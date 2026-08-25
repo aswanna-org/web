@@ -111,6 +111,11 @@
     "farm": "AGRICULTURE FARM",
     "getInTouch": "GET IN TOUCH"
   },
+  "newsPage": {
+    "subtitle": "LATEST UPDATES",
+    "title": "NEWS",
+    "desc": "Stay informed with the latest news, events, and announcements from the agricultural sector."
+  },
   "careers": {
     "subtitle": "JOIN US",
     "title": "CAREERS",

@@ -5,7 +5,7 @@
   --color-primary: #f8c146; /* Yellow from design */
   --color-primary-dark: #e8b135;
   --color-secondary: #4a7454; /* Green from design */
-  --font-sans: "Roboto", sans-serif;
+  --font-sans: "Roboto", "Noto Sans Sinhala", sans-serif;
   --font-caveat: "Caveat Brush", cursive;
 }
 

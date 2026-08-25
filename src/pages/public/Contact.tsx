@@ -1,37 +1,18 @@
 import { MapPin, Phone, Mail } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import PageHero from '../../components/public/PageHero';
 
 export default function Contact() {
   const { t } = useTranslation();
   return (
     <div className="w-full min-h-screen bg-white font-roboto">
       {/* Hero Section */}
-      <section className="relative w-full h-[60vh] min-h-[400px] flex flex-col justify-center">
-        {/* Background Image */}
-        <div
-          className="absolute inset-0 z-0"
-          style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center'
-          }}
-        >
-          <div className="absolute inset-0 bg-black/50"></div>
-          <div className="absolute inset-0 bg-gradient-to-r from-[#e87f3b]/90 via-black/50 to-transparent"></div>
-        </div>
-
-        {/* Content */}
-        <div className="container mx-auto px-4 lg:px-8 relative z-10 pt-40 md:pt-32">
-          <div className="max-w-3xl">
-            <h1 className="text-white text-5xl sm:text-6xl md:text-7xl font-black uppercase mb-6 drop-shadow-xl tracking-tight">
-              {t('contact.title')}
-            </h1>
-            <p className="text-gray-100 text-lg sm:text-xl leading-relaxed max-w-2xl font-light drop-shadow-md whitespace-pre-line">
-              {t('contact.desc')}
-            </p>
-          </div>
-        </div>
-      </section>
+      <PageHero 
+        title="CONTACT US" 
+        description={t('contact.desc')} 
+        image="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
+        gradientColor="#e87f3b"
+      />
 
       {/* Info Section */}
       <section className="w-full py-24 bg-white border-b border-gray-100">

@@ -4,6 +4,10 @@ import About from './pages/public/About';
 import Header from './components/public/Header';
 import Contact from './pages/public/Contact';
 import Careers from './pages/public/Careers';
+import News from './pages/public/News';
+import AgroCategories from './pages/public/AgroCategories';
+import AgroCategoryDetail from './pages/public/AgroCategoryDetail';
+import AgroProductDetail from './pages/public/AgroProductDetail';
 
 // Simple layouts for demonstration
 function PublicLayout() {
@@ -42,7 +46,10 @@ function App() {
           <Route path="pages/faq" element={<div className="p-20 text-center font-roboto">FAQ Page Placeholder <br /><a href="/" className="text-blue-500 underline">Back</a></div>} />
           <Route path="pages/contact" element={<Contact />} />
           <Route path="projects" element={<div className="p-20 text-center font-roboto">Projects Placeholder <br /><a href="/" className="text-blue-500 underline">Back</a></div>} />
-          <Route path="news" element={<div className="p-20 text-center font-roboto">News Placeholder <br /><a href="/" className="text-blue-500 underline">Back</a></div>} />
+          <Route path="news" element={<News />} />
+          <Route path="agro" element={<AgroCategories />} />
+          <Route path="agro/:slug" element={<AgroCategoryDetail />} />
+          <Route path="agro/:slug/:productId" element={<AgroProductDetail />} />
         </Route>
 
         {/* Admin Routes */}
