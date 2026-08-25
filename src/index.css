@@ -1,0 +1,40 @@
+@import url('https://fonts.googleapis.com/css2?family=Caveat+Brush&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #f8c146; /* Yellow from design */
+  --color-primary-dark: #e8b135;
+  --color-secondary: #4a7454; /* Green from design */
+  --font-sans: "Roboto", sans-serif;
+  --font-caveat: "Caveat Brush", cursive;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #f9f9f9;
+  color: #333;
+}
+
+@layer utilities {
+  .animate-vertical-scroll {
+    animation: scrollVertical 40s linear infinite;
+  }
+
+  
+  .animate-vertical-scroll:hover {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes scrollVertical {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

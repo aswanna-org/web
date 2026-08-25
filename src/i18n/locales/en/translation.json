@@ -1,0 +1,131 @@
+{
+  "header": {
+    "home": "Home",
+    "about": "About",
+    "pages": "Pages",
+    "projects": "Projects",
+    "news": "News",
+    "callAnytime": "Call Anytime",
+    "team": "Our Team",
+    "careers": "Careers",
+    "faq": "FAQ",
+    "contact": "Contact Us"
+  },
+  "hero": {
+    "welcome": "Welcome to Agriculture Farm",
+    "slide1": {
+      "title": "Agriculture & Eco Farming",
+      "desc": "There are many of passages of lorem Ipsum, but the majori have suffered alteration in some form."
+    },
+    "slide2": {
+      "title": "Organic Harvest Seasons",
+      "desc": "Discover the richness of organic farming and seasonal harvests that bring the best of nature to you."
+    },
+    "slide3": {
+      "title": "Modern Farming Methods",
+      "desc": "Innovative eco-farming techniques for a sustainable and greener future."
+    },
+    "discoverMore": "Discover More"
+  },
+  "features": {
+    "leader": "Agriculture Leader",
+    "quality": "Quality Standards",
+    "services": "Organic Services",
+    "fresh": "Fresh Vegetables"
+  },
+  "about": {
+    "subtitle": "WELCOME TO ASWANNA",
+    "title": "Better Agriculture for Better Future",
+    "experience": "We have 30 years of agriculture & eco farming experience globally",
+    "desc": "There are many variations of passages of lorem ipsum available, but the majority have suffered alteration in some form by injected humor or random words which don't look even.",
+    "professional": "Professional Farmers",
+    "organic": "Organic & Eco Solutions"
+  },
+  "market": {
+    "title": "Current Market Prices",
+    "subtitle": "Stay updated with the latest weekly vegetable prices and market trends directly from the source.",
+    "product": "Product",
+    "price": "Price (1Kg)",
+    "trend": "Trend",
+    "tomato": "Tomato",
+    "potato": "Potato",
+    "cabbage": "Cabbage",
+    "beans": "Green Beans",
+    "onion": "Red Onion",
+    "insightsTitle": "Stay Ahead of the Market",
+    "insightsDesc": "Get daily price updates and weekly agricultural market insights delivered directly to your inbox.",
+    "emailPlaceholder": "Enter your email address",
+    "subscribe": "Subscribe Now"
+  },
+  "news": {
+    "subtitle": "LATEST NEWS",
+    "title": "Latest News & Updates",
+    "news1": "New subsidies for organic farmers announced.",
+    "news2": "High yield reported for the upcoming harvest season.",
+    "news3": "Government introduces modern farming equipment.",
+    "news4": "Market prices stabilize after the recent heavy rains."
+  },
+  "promo": {
+    "title": "Providing High Quality Products",
+    "button": "Discover More"
+  },
+  "blogs": {
+    "subtitle": "OUR BLOGS",
+    "title": "Read Our Latest Articles",
+    "blog1": "The Future of Sustainable Farming in Sri Lanka",
+    "blog2": "How to Maximize Crop Yield with Organic Fertilizers",
+    "blog3": "Understanding the Benefits of Greenhouse Agriculture",
+    "blog4": "Top 5 Technologies Changing the Agricultural Landscape"
+  },
+  "contact": {
+    "title": "Contact Us",
+    "desc": "The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English.",
+    "address": "Address",
+    "phone": "Phone",
+    "email": "E-mail"
+  },
+  "products": {
+    "title1": "Fruits &",
+    "title2": "Vegetables",
+    "subtitle": "Farm Products",
+    "more": "More About",
+    "healthy": "Healthy ",
+    "life": "life ",
+    "with": "with ",
+    "fresh": "fresh ",
+    "productsTxt": "products",
+    "blueberry": "Blueberry",
+    "strawberry": "Strawberry",
+    "apples": "Apples",
+    "orange": "Orange",
+    "carrot": "Carrot",
+    "cabbage": "Cabbage",
+    "potato": "Potato",
+    "eggplant": "Eggplant"
+  },
+  "aboutPage": {
+    "subtitle": "ABOUT",
+    "title": "COMPANY",
+    "desc": "The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English.",
+    "weAre": "WE ARE",
+    "farm": "AGRICULTURE FARM",
+    "getInTouch": "GET IN TOUCH"
+  },
+  "careers": {
+    "subtitle": "JOIN US",
+    "title": "CAREERS",
+    "desc": "Be part of the agricultural revolution. Explore opportunities across government, private sector, NGOs, and daily wage roles.",
+    "searchPlaceholder": "Search for jobs, roles, or locations...",
+    "openPositions": "Open Positions",
+    "applyNow": "Apply Now",
+    "noResults": "No jobs found",
+    "noResultsDesc": "We couldn't find any open positions matching your search. Try adjusting your filters.",
+    "types": {
+      "all": "All",
+      "government": "Government",
+      "private": "Private",
+      "ngo": "NGO",
+      "dailywage": "Daily Wage"
+    }
+  }
+}
