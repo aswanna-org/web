@@ -210,3 +210,90 @@ export const AGRO_CATEGORIES: AgroCategory[] = [
 export function getCategoryBySlug(slug: string): AgroCategory | undefined {
   return AGRO_CATEGORIES.find((c) => c.slug === slug);
 }
+
+export interface AgroMainCategory {
+  id: string;
+  name: string;
+  nameSi: string;
+  slug: string;
+  icon: string;       // lucide-react icon component name or ReactNode (we'll just use string for lucide icon mapping)
+  color: string;      // gradient/bg color
+  subtitle: string;   // e.g., Vegetables, Fruits, Flowers, Paddy, Tuber, Export
+  subtitleSi: string;
+  subCategories: string[]; // array of AgroCategory slugs
+}
+
+export const AGRO_MAIN_CATEGORIES: AgroMainCategory[] = [
+  {
+    id: 'mc-1',
+    name: 'Crop Farming',
+    nameSi: 'බෝග වගාව',
+    slug: 'crop-farming',
+    icon: 'Sprout',
+    color: '#054a29', // dark green from mockup
+    subtitle: 'Vegetables, Fruits, Flowers, Paddy, Tuber, Export',
+    subtitleSi: 'එළවළු, පළතුරු, මල්, වී, අල, අපනයන',
+    subCategories: [
+      'vegetable-farming',
+      'fruit-farming',
+      'rice-farming',
+      'flower-farming',
+      'traditional-paddy',
+      'export-paddy',
+      'aquatic-paddy',
+      'tuber-crops',
+      'leafy-greens',
+      'aquatic-vegetables',
+      'aquatic-fruits'
+    ]
+  },
+  {
+    id: 'mc-2',
+    name: 'Agro Engineering',
+    nameSi: 'කෘෂි ඉංජිනේරු',
+    slug: 'agro-engineering',
+    icon: 'Tractor',
+    color: '#1e3a8a', // blue from mockup
+    subtitle: 'Machinery, Drones & Water Systems',
+    subtitleSi: 'යන්ත්‍ර සූත්‍ර, ඩ්‍රෝන & ජල පද්ධති',
+    subCategories: []
+  },
+  {
+    id: 'mc-3',
+    name: 'Horticulture',
+    nameSi: 'උද්‍යාන පාලනය',
+    slug: 'horticulture',
+    icon: 'Image', // Using Image/Landscape icon as per mockup
+    color: '#b45309', // orange/yellow from mockup
+    subtitle: 'Greenhouse & Garden Management',
+    subtitleSi: 'හරිතාගාර & උද්‍යාන කළමනාකරණය',
+    subCategories: []
+  },
+  {
+    id: 'mc-4',
+    name: 'Plant Diseases',
+    nameSi: 'ශාක රෝග',
+    slug: 'plant-diseases',
+    icon: 'Bug',
+    color: '#7f1d1d', // red from mockup
+    subtitle: 'Pest and Disease Identification',
+    subtitleSi: 'පළිබෝධ හා රෝග හඳුනාගැනීම',
+    subCategories: []
+  },
+  {
+    id: 'mc-5',
+    name: 'Plant Nutrition',
+    nameSi: 'ශාක පෝෂණය',
+    slug: 'plant-nutrition',
+    icon: 'FlaskConical', // Using beaker/flask icon
+    color: '#4c1d95', // purple from mockup
+    subtitle: 'Fertilizer, Soil Conservation & pH Control',
+    subtitleSi: 'පොහොර, පස් සංරක්ෂණ & pH පාලනය',
+    subCategories: []
+  }
+];
+
+export function getMainCategoryBySlug(slug: string): AgroMainCategory | undefined {
+  return AGRO_MAIN_CATEGORIES.find((c) => c.slug === slug);
+}
+

@@ -5,7 +5,10 @@ import Header from './components/public/Header';
 import Contact from './pages/public/Contact';
 import Careers from './pages/public/Careers';
 import News from './pages/public/News';
+import Education from './pages/public/Education';
+import Gallery from './pages/public/Gallery';
 import AgroCategories from './pages/public/AgroCategories';
+import AgroMainCategoryDetail from './pages/public/AgroMainCategoryDetail';
 import AgroCategoryDetail from './pages/public/AgroCategoryDetail';
 import AgroProductDetail from './pages/public/AgroProductDetail';
 
@@ -47,9 +50,12 @@ function App() {
           <Route path="pages/contact" element={<Contact />} />
           <Route path="projects" element={<div className="p-20 text-center font-roboto">Projects Placeholder <br /><a href="/" className="text-blue-500 underline">Back</a></div>} />
           <Route path="news" element={<News />} />
+          <Route path="education" element={<Education />} />
+          <Route path="gallery" element={<Gallery />} />
           <Route path="agro" element={<AgroCategories />} />
-          <Route path="agro/:slug" element={<AgroCategoryDetail />} />
-          <Route path="agro/:slug/:productId" element={<AgroProductDetail />} />
+          <Route path="agro/:mainSlug" element={<AgroMainCategoryDetail />} />
+          <Route path="agro/:mainSlug/:subSlug" element={<AgroCategoryDetail />} />
+          <Route path="agro/:mainSlug/:subSlug/:productId" element={<AgroProductDetail />} />
         </Route>
 
         {/* Admin Routes */}

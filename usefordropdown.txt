@@ -1,0 +1,65 @@
+Material UI (MUI) හෝ Angular Material භාවිතා කරන්නේ නම්:
+ඔයාට මේ විදිහට වෙන වෙනම Dropdown හදන්නැතුව, ඒවගේ තියෙන TreeSelect හෝ Cascader කියන UI components කෙලින්ම පාවිච්චි කරන්නත් පුළුවන්. ඒකට අර backend එකෙන් එන children සහිත JSON array එක කෙලින්ම prop එකක් විදිහට දුන්නාම, ලස්සන nested menu එකක් auto හැදෙනවා.import { useState, useEffect } from 'react';
+import axios from 'axios';
+
+export default function CategorySelector() {
+  const [categories, setCategories] = useState([]);
+  
+  // Selected IDs
+  const [mainCatId, setMainCatId] = useState('');
+  const [subCatId, setSubCatId] = useState('');
+
+  useEffect(() => {
+    // 1. API එකෙන් සම්පූර්ණ Category Tree එකම ගන්නවා
+    axios.get('http://localhost:5000/api/categories').then(res => {
+      setCategories(res.data);
+    });
+  }, []);
+
+  // 2. තෝරගත්ත Main Category එකේ දත්ත හොයාගන්නවා
+  const selectedMainCat = categories.find(c => c.id === mainCatId);
+
+  return (
+    <div className="flex flex-col gap-4 max-w-md">
+      
+      {/* 1 වන Dropdown එක (Main Category) */}
+      <label className="font-bold">Main Category</label>
+      <select 
+        className="border p-2 rounded"
+        value={mainCatId} 
+        onChange={(e) => {
+          setMainCatId(e.target.value);
+          setSubCatId(''); // අලුත් main එකක් තෝරද්දි පරණ sub එක clear කරනවා
+        }}
+      >
+        <option value="">Select Main Category...</option>
+        {categories.map(cat => (
+          <option key={cat.id} value={cat.id}>{cat.name}</option>
+        ))}
+      </select>
+
+      {/* 2 වන Dropdown එක (Sub Category - Main එකක් තේරුවොත් විතරක් පෙන්වයි) */}
+      {selectedMainCat && selectedMainCat.children.length > 0 && (
+        <>
+          <label className="font-bold mt-2">Sub Category</label>
+          <select 
+            className="border p-2 rounded"
+            value={subCatId} 
+            onChange={(e) => setSubCatId(e.target.value)}
+          >
+            <option value="">Select Sub Category...</option>
+            {selectedMainCat.children.map(subCat => (
+              <option key={subCat.id} value={subCat.id}>{subCat.name}</option>
+            ))}
+          </select>
+        </>
+      )}
+
+      {/* අන්තිමට තේරුන ID එක පෙන්නනවා (මේක තමයි DB එකට යවන්නේ) */}
+      <div className="mt-4 p-4 bg-gray-100 rounded">
+        Final Selected ID to Save: <b>{subCatId || mainCatId}</b>
+      </div>
+
+    </div>
+  );
+}

@@ -9,7 +9,9 @@
     "team": "Our Team",
     "careers": "Careers",
     "faq": "FAQ",
-    "contact": "Contact Us"
+    "contact": "Contact Us",
+    "education": "Education",
+    "gallery": "Gallery"
   },
   "hero": {
     "welcome": "Welcome to Agriculture Farm",
@@ -109,7 +111,25 @@
     "desc": "The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English.",
     "weAre": "WE ARE",
     "farm": "AGRICULTURE FARM",
-    "getInTouch": "GET IN TOUCH"
+    "getInTouch": "Get in touch"
+  },
+  "educationPage": {
+    "title": "AGRO EDUCATION",
+    "subtitle": "EMPOWERING FARMERS",
+    "desc": "Discover our comprehensive courses designed to equip you with modern agricultural skills and business knowledge.",
+    "all": "All Categories",
+    "noCourses": "No courses found for this category.",
+    "duration": "Duration",
+    "price": "Price",
+    "enroll": "Enroll Now"
+  },
+  "galleryPage": {
+    "title": "OUR GALLERY",
+    "subtitle": "CAPTURING MOMENTS",
+    "desc": "Take a visual journey through our farm. Explore our high-quality photos and engaging videos showcasing our agricultural excellence.",
+    "photos": "Photos",
+    "videos": "Videos",
+    "noMedia": "No media found for this category."
   },
   "newsPage": {
     "subtitle": "LATEST UPDATES",

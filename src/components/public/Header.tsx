@@ -1,8 +1,17 @@
-import { ShoppingCart, Menu, X, ChevronDown } from 'lucide-react';
+import { ShoppingCart, Menu, X, ChevronDown, ChevronRight, Sprout, Tractor, Image as ImageIcon, Bug, FlaskConical } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect } from 'react';
-import { AGRO_CATEGORIES } from '../../data/agroData';
+import { AGRO_MAIN_CATEGORIES, getCategoryBySlug } from '../../data/agroData';
+
+// Map icon names to lucide components
+const IconMap: Record<string, React.ElementType> = {
+  Sprout,
+  Tractor,
+  Image: ImageIcon,
+  Bug,
+  FlaskConical
+};
 
 export default function Header() {
   const { t, i18n } = useTranslation();
@@ -68,30 +77,52 @@ export default function Header() {
               Agro Technology <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180 duration-200" />
             </button>
             <div className="absolute top-full left-0 hidden group-hover:flex pt-3 w-64">
-              <div className="bg-white rounded-xl shadow-lg border border-gray-200/80 overflow-hidden w-full">
-                {/* Two-column category list */}
+              <div className="bg-white rounded-xl shadow-lg border border-gray-200/80 overflow-visible w-full">
                 <div className="flex flex-col p-2 gap-0.5">
-                  {AGRO_CATEGORIES.map((cat) => (
-                    <Link
-                      key={cat.id}
-                      to={`/agro/${cat.slug}`}
-                      className="px-3 py-2.5 rounded-lg hover:bg-[var(--color-secondary)]/8 text-sm font-medium text-gray-700 hover:text-[var(--color-secondary)] transition-colors"
-                    >
-                      {cat.name}
-                    </Link>
-                  ))}
-                </div>
-                {/* Footer */}
-                <div className="border-t border-gray-100 px-4 py-2.5 flex items-center justify-between bg-gray-50/50">
-                  <span className="text-xs text-gray-400">{AGRO_CATEGORIES.length} categories available</span>
-                  <Link to="/agro" className="text-xs font-semibold text-[var(--color-secondary)] hover:underline flex items-center gap-1">
-                    View all →
-                  </Link>
+                  {AGRO_MAIN_CATEGORIES.map((cat) => {
+                    const isSinhala = i18n.language === 'si';
+                    return (
+                      <div key={cat.id} className="relative group/sub">
+                        <Link
+                          to={`/agro/${cat.slug}`}
+                          className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-[var(--color-secondary)]/8 text-sm font-medium text-gray-700 hover:text-[var(--color-secondary)] transition-colors w-full text-left"
+                        >
+                          {isSinhala ? cat.nameSi : cat.name}
+                          {cat.subCategories.length > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
+                        </Link>
+                        
+                        {/* Nested Flyout Menu */}
+                        {cat.subCategories.length > 0 && (
+                          <div className="absolute -top-2 left-full pl-1 hidden group-hover/sub:flex w-56 z-50">
+                            <div className="bg-white rounded-xl shadow-lg border border-gray-200/80 overflow-hidden w-full">
+                              <div className="flex flex-col p-2 gap-0.5">
+                                {cat.subCategories.map((subSlug) => {
+                                  const subCat = getCategoryBySlug(subSlug);
+                                  if (!subCat) return null;
+                                  return (
+                                    <Link
+                                      key={subCat.id}
+                                      to={`/agro/${cat.slug}/${subCat.slug}`}
+                                      className="px-3 py-2.5 rounded-lg hover:bg-[var(--color-secondary)]/8 text-sm font-medium text-gray-700 hover:text-[var(--color-secondary)] transition-colors"
+                                    >
+                                      {isSinhala ? subCat.nameSi : subCat.name}
+                                    </Link>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
           </div>
 
+          <Link to="/gallery" className="text-white font-medium hover:text-[var(--color-primary)] pb-1 transition-colors">{t('header.gallery', 'Gallery')}</Link>
+          <Link to="/education" className="text-white font-medium hover:text-[var(--color-primary)] pb-1 transition-colors">{t('header.education', 'Education')}</Link>
           <Link to="/news" className="text-white font-medium hover:text-[var(--color-primary)] pb-1 transition-colors">{t('header.news')}</Link>
         </nav>
 
@@ -186,20 +217,25 @@ export default function Header() {
               {openSubmenu === 'agro' && (
                 <div className="flex flex-col pl-4 border-l-2 border-[var(--color-primary)]/30 space-y-3 mt-2">
                   <Link to="/agro" onClick={() => setIsMobileMenuOpen(false)} className="text-[var(--color-primary)] text-sm font-bold hover:text-white transition-colors">All Categories</Link>
-                  {AGRO_CATEGORIES.map((cat) => (
-                    <Link
-                      key={cat.id}
-                      to={`/agro/${cat.slug}`}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="flex items-center gap-2 text-gray-300 text-sm hover:text-white transition-colors"
-                    >
-                      <span>{cat.icon}</span> {cat.name}
-                    </Link>
-                  ))}
+                  {AGRO_MAIN_CATEGORIES.map((cat) => {
+                    const Icon = IconMap[cat.icon] || Sprout;
+                    return (
+                      <Link
+                        key={cat.id}
+                        to={`/agro/${cat.slug}`}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="flex items-center gap-2 text-gray-300 text-sm hover:text-white transition-colors"
+                      >
+                        <Icon className="w-4 h-4" /> {cat.name}
+                      </Link>
+                    )
+                  })}
                 </div>
               )}
             </div>
 
+            <Link to="/gallery" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.gallery', 'Gallery')}</Link>
+            <Link to="/education" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.education', 'Education')}</Link>
             <Link to="/news" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.news')}</Link>
           </nav>
 

@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
-import { Leaf, ArrowRight } from 'lucide-react';
+import { ArrowRight, User, CalendarDays, Leaf } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { useCallback, useEffect, useState } from 'react';
+import Card from '../../components/ui/Card';
 
 export default function NewsSection() {
   const { t } = useTranslation();
@@ -100,45 +101,17 @@ export default function NewsSection() {
                 key={item.id} 
                 className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_25%] min-w-0 group relative rounded-2xl overflow-hidden transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col bg-transparent"
               >
-                {/* Image Top Half */}
-                <div className="relative h-56 w-full overflow-hidden rounded-2xl">
-                  <img 
-                    src={item.image} 
-                    alt={t(item.titleKey)} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 pointer-events-none"
+                <div className="h-full px-2">
+                  <Card
+                    image={item.image}
+                    badge={item.category}
+                    title={t(item.titleKey)}
+                    meta={[
+                      { icon: User, text: item.author },
+                      { icon: CalendarDays, text: item.date }
+                    ]}
+                    primaryAction={{ text: "Read More", icon: ArrowRight }}
                   />
-                  {/* Category Badge */}
-                  <span className="absolute top-4 left-4 bg-[#c8e265] text-gray-900 font-bold text-xs px-3 py-1.5 rounded uppercase tracking-wider shadow-sm">
-                    {item.category}
-                  </span>
-                </div>
-                
-                {/* Content Bottom Half */}
-                <div className="pt-6 flex flex-col flex-grow">
-                  
-                  {/* Meta: Avatar, Author, Date */}
-                  <div className="flex items-center gap-3 mb-4">
-                    <img src={item.avatar} alt={item.author} className="w-8 h-8 rounded-full border-2 border-white shadow-sm" />
-                    <div className="flex items-center gap-2 text-xs font-bold text-gray-600 bg-black/5 px-2 py-1 rounded-md">
-                      <span className="uppercase">{item.author}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs font-bold text-gray-600 bg-black/5 px-2 py-1 rounded-md">
-                      <span className="uppercase">{item.date}</span>
-                    </div>
-                  </div>
-
-                  {/* Title */}
-                  <h3 className="text-gray-900 font-bold text-xl leading-snug mb-6 line-clamp-3">
-                    {t(item.titleKey)}
-                  </h3>
-
-                  {/* Read More Button */}
-                  <div className="mt-auto">
-                    <button className="flex items-center justify-center gap-2 bg-black/5 backdrop-blur-md hover:bg-black/10 rounded-xl px-5 py-2.5 text-sm font-bold text-gray-800 transition-colors w-max shadow-sm">
-                      Read More <ArrowRight className="w-4 h-4" />
-                    </button>
-                  </div>
-
                 </div>
               </div>
             ))}

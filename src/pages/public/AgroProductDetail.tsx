@@ -1,14 +1,18 @@
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, MapPin, Clock, ShoppingCart, Tag, Check, Leaf, Star } from 'lucide-react';
-import { getCategoryBySlug } from '../../data/agroData';
+import { getCategoryBySlug, getMainCategoryBySlug } from '../../data/agroData';
+import { useTranslation } from 'react-i18next';
 
 export default function AgroProductDetail() {
-  const { slug, productId } = useParams<{ slug: string; productId: string }>();
-  const category = getCategoryBySlug(slug ?? '');
+  const { mainSlug, subSlug, productId } = useParams<{ mainSlug: string; subSlug: string; productId: string }>();
+  const { i18n } = useTranslation();
+  const mainCategory = getMainCategoryBySlug(mainSlug ?? '');
+  const category = getCategoryBySlug(subSlug ?? '');
   const product = category?.products.find((p) => p.id === productId);
 
-  if (!category || !product) return <Navigate to="/agro" replace />;
+  if (!mainCategory || !category || !product) return <Navigate to="/agro" replace />;
 
+  const isSinhala = i18n.language === 'si';
   const relatedProducts = category.products.filter((p) => p.id !== product.id);
 
   return (
@@ -23,13 +27,13 @@ export default function AgroProductDetail() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
         <div className="absolute top-0 left-0 right-0 z-10 container mx-auto px-4 lg:px-12 pt-28">
-          <Link to={`/agro/${slug}`} className="inline-flex items-center gap-2 text-white/70 hover:text-white text-sm transition-colors group">
+          <Link to={`/agro/${mainCategory.slug}/${category.slug}`} className="inline-flex items-center gap-2 text-white/70 hover:text-white text-sm transition-colors group">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            {category.name}
+            {isSinhala ? category.nameSi : category.name}
           </Link>
         </div>
         <div className="absolute bottom-0 left-0 right-0 container mx-auto px-4 lg:px-12 pb-10">
-          <p className="text-white/60 text-sm uppercase tracking-[0.2em] font-medium mb-2">{category.name} · {product.nameSi}</p>
+          <p className="text-white/60 text-sm uppercase tracking-[0.2em] font-medium mb-2">{isSinhala ? category.nameSi : category.name} · {product.nameSi}</p>
           <h1 className="text-white text-5xl sm:text-6xl font-black tracking-tight mb-4">{product.name}</h1>
           <div className="flex items-center gap-5 flex-wrap">
             <div className="flex items-center gap-1">
@@ -80,7 +84,7 @@ export default function AgroProductDetail() {
               <div className="mt-6 pt-5 border-t border-gray-100 space-y-3">
                 <div className="flex items-center gap-2 text-sm text-gray-600"><MapPin className="w-4 h-4 text-[var(--color-secondary)] shrink-0" />From {product.origin}</div>
                 <div className="flex items-center gap-2 text-sm text-gray-600"><Clock className="w-4 h-4 text-[var(--color-secondary)] shrink-0" />Season: {product.season}</div>
-                <Link to={`/agro/${slug}`} className="flex items-center gap-2 text-sm text-[var(--color-secondary)] hover:underline font-medium">
+                <Link to={`/agro/${mainCategory.slug}/${category.slug}`} className="flex items-center gap-2 text-sm text-[var(--color-secondary)] hover:underline font-medium">
                   <ArrowLeft className="w-4 h-4" />Back to {category.name}
                 </Link>
               </div>
@@ -93,7 +97,7 @@ export default function AgroProductDetail() {
             <h2 className="text-2xl font-black text-gray-900 mb-8">More in <span className="text-[var(--color-secondary)]">{category.name}</span></h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
               {relatedProducts.map((p) => (
-                <Link key={p.id} to={`/agro/${slug}/${p.id}`} className="group rounded-2xl overflow-hidden border border-gray-100 hover:border-[var(--color-secondary)]/30 hover:shadow-lg transition-all duration-300">
+                <Link key={p.id} to={`/agro/${mainCategory.slug}/${category.slug}/${p.id}`} className="group rounded-2xl overflow-hidden border border-gray-100 hover:border-[var(--color-secondary)]/30 hover:shadow-lg transition-all duration-300">
                   <div className="h-40 overflow-hidden"><img src={p.image} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /></div>
                   <div className="p-4">
                     <p className="text-xs text-gray-400 mb-0.5">{p.nameSi}</p>

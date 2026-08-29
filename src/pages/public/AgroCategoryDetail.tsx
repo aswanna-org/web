@@ -1,12 +1,18 @@
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, Check } from 'lucide-react';
-import { getCategoryBySlug } from '../../data/agroData';
+import { ArrowLeft, MapPin, ShoppingCart } from 'lucide-react';
+import { getCategoryBySlug, getMainCategoryBySlug } from '../../data/agroData';
+import { useTranslation } from 'react-i18next';
+import Card from '../../components/ui/Card';
 
 export default function AgroCategoryDetail() {
-  const { slug } = useParams<{ slug: string }>();
-  const category = getCategoryBySlug(slug ?? '');
+  const { mainSlug, subSlug } = useParams<{ mainSlug: string; subSlug: string }>();
+  const { i18n } = useTranslation();
+  
+  const mainCategory = getMainCategoryBySlug(mainSlug ?? '');
+  const category = getCategoryBySlug(subSlug ?? '');
 
-  if (!category) return <Navigate to="/agro" replace />;
+  if (!mainCategory || !category) return <Navigate to="/agro" replace />;
+  const isSinhala = i18n.language === 'si';
 
   return (
     <div className="w-full min-h-screen bg-gray-50">
@@ -32,10 +38,10 @@ export default function AgroCategoryDetail() {
         <div className="container mx-auto px-4 lg:px-12 relative z-10 pt-32">
           {/* Breadcrumb */}
           <Link
-            to="/agro"
+            to={`/agro/${mainCategory.slug}`}
             className="inline-flex items-center gap-2 text-white/70 hover:text-white text-sm mb-4 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" /> All Categories
+            <ArrowLeft className="w-4 h-4" /> {isSinhala ? mainCategory.nameSi : mainCategory.name}
           </Link>
           <div className="flex items-center gap-4">
             <div>
@@ -60,47 +66,20 @@ export default function AgroCategoryDetail() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {category.products.map((product) => (
-              <Link
+              <Card
                 key={product.id}
-                to={`/agro/${slug}/${product.id}`}
-                className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-400 cursor-pointer border border-gray-100 hover:border-[var(--color-secondary)]/30"
-              >
-                {/* Product Image */}
-                <div className="relative h-48 overflow-hidden">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-transform duration-600 group-hover:scale-110"
-                  />
-                  {product.available ? (
-                    <span className="absolute top-3 right-3 bg-[var(--color-secondary)] text-white text-xs font-bold px-2 py-1 rounded-full flex items-center gap-1">
-                      <Check className="w-3 h-3" /> Available
-                    </span>
-                  ) : (
-                    <span className="absolute top-3 right-3 bg-gray-400 text-white text-xs font-bold px-2 py-1 rounded-full">
-                      Out of Stock
-                    </span>
-                  )}
-                </div>
-
-                {/* Product Info */}
-                <div className="p-5">
-                  <p className="text-xs text-[var(--color-secondary)] font-bold uppercase tracking-widest mb-1">
-                    {product.nameSi}
-                  </p>
-                  <h3 className="text-lg font-bold text-gray-900 group-hover:text-[var(--color-secondary)] transition-colors">
-                    {product.name}
-                  </h3>
-                  <p className="text-sm text-gray-500 mt-1 line-clamp-2">{product.description}</p>
-
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                    <div className="flex items-center gap-1 text-xs text-gray-400">
-                      <MapPin className="w-3 h-3" /> {product.origin}
-                    </div>
-                    <span className="text-[var(--color-secondary)] font-black text-base">{product.price}</span>
-                  </div>
-                </div>
-              </Link>
+                to={`/agro/${mainCategory.slug}/${category.slug}/${product.id}`}
+                image={product.image}
+                badge={product.available ? "Available" : "Out of Stock"}
+                title={product.name}
+                subtitle={product.nameSi}
+                meta={[
+                  { text: product.price },
+                  { icon: MapPin, text: product.origin }
+                ]}
+                primaryAction={{ text: "View Details" }}
+                secondaryAction={{ icon: ShoppingCart }}
+              />
             ))}
           </div>
         </div>
