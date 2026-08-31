@@ -8,7 +8,7 @@ export default function About() {
     <div className="w-full min-h-screen bg-white font-roboto">
       {/* Hero Section */}
       <PageHero 
-        title="COMPANY" 
+        title={t('aboutPage.title', 'COMPANY')} 
         description={t('aboutPage.desc')} 
         image="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
         gradientColor="#0f8b8d"

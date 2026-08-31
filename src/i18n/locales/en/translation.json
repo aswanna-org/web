@@ -11,7 +11,9 @@
     "faq": "FAQ",
     "contact": "Contact Us",
     "education": "Education",
-    "gallery": "Gallery"
+    "gallery": "Gallery",
+    "agroTechnology": "Agro Technology",
+    "blog": "Blog"
   },
   "hero": {
     "welcome": "Welcome to Agriculture Farm",
@@ -134,7 +136,11 @@
   "newsPage": {
     "subtitle": "LATEST UPDATES",
     "title": "NEWS",
-    "desc": "Stay informed with the latest news, events, and announcements from the agricultural sector."
+    "desc": "Stay informed with the latest news, updates, and announcements from Aswanna.",
+    "latest": "Latest",
+    "loading": "Loading news...",
+    "noNews": "No news articles found.",
+    "selectToRead": "Select an article to read"
   },
   "careers": {
     "subtitle": "JOIN US",
@@ -152,5 +158,56 @@
       "ngo": "NGO",
       "dailywage": "Daily Wage"
     }
+  },
+  "agro": {
+    "title": "Agro Technology",
+    "desc": "Browse all farming categories — from paddy fields to flower farms — and explore the produce that powers Sri Lanka.",
+    "searchPlaceholder": "Search categories... (e.g. Vegetable, Flower)",
+    "noCategories": "No categories found",
+    "tryDifferent": "Try a different search term.",
+    "subCategories": "sub-categories",
+    "exploreFarming": "Explore farming techniques",
+    "viewSubCategories": "View Sub-categories",
+    "allMainCategories": "All Main Categories",
+    "searchSubPlaceholder": "Search sub-categories... (e.g. Vegetable, Fruit)",
+    "noSubCategories": "No sub-categories found",
+    "exploreCategory": "Explore Category",
+    "explore": "Explore",
+    "productsInCategory": "Products in this category",
+    "available": "Available",
+    "outOfStock": "Out of Stock",
+    "viewDetails": "View Details",
+    "noItemsFound": "No items found in this category.",
+    "farmersVerified": "Farmers Verified",
+    "inStock": "In Stock",
+    "per": "per",
+    "unit": "unit",
+    "aboutProduct": "About this product",
+    "farmingGuide": "Farming Guide",
+    "sourcedDirectly": "Sourced directly from verified local farmers",
+    "qualityChecked": "Quality checked before listing on Aswanna",
+    "supportsSustainable": "Supports sustainable and ethical farming practices",
+    "details": "Details",
+    "origin": "Origin",
+    "unitCap": "Unit",
+    "status": "Status",
+    "unavailable": "Unavailable",
+    "addToInquiry": "Add to Inquiry",
+    "contactForBulk": "Contact us for bulk pricing",
+    "from": "From",
+    "backTo": "Back to",
+    "moreIn": "More in",
+    "brandName": "Aswanna"
+  },
+  "blogPage": {
+    "title": "BLOG",
+    "subtitle": "ARTICLES & INSIGHTS",
+    "desc": "Read our latest articles, farming guides, and insights from industry experts.",
+    "latestPosts": "Latest Posts",
+    "loading": "Loading posts...",
+    "noPosts": "No blog posts found.",
+    "by": "By",
+    "share": "Share",
+    "selectToRead": "Select a post to read"
   }
 }

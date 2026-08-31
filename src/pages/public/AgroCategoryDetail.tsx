@@ -6,7 +6,7 @@ import Card from '../../components/ui/Card';
 
 export default function AgroCategoryDetail() {
   const { mainSlug, subSlug } = useParams<{ mainSlug: string; subSlug: string }>();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   
   const [mainCategory, setMainCategory] = useState<any>(null);
   const [category, setCategory] = useState<any>(null);
@@ -50,7 +50,7 @@ export default function AgroCategoryDetail() {
   return (
     <div className="w-full min-h-screen bg-gray-50">
       {/* ── Hero ── */}
-      <section className="relative w-full h-[50vh] min-h-[350px] flex flex-col justify-end pb-10 overflow-hidden">
+      <section className="relative w-full h-[50vh] min-h-[350px] flex flex-col justify-center overflow-hidden">
         <div
           className="absolute inset-0 z-0 bg-gray-900"
           style={{
@@ -68,7 +68,7 @@ export default function AgroCategoryDetail() {
           />
         </div>
 
-        <div className="container mx-auto px-4 lg:px-12 relative z-10 pt-32">
+        <div className="container mx-auto px-4 lg:px-12 relative z-10 pt-20">
           {/* Breadcrumb */}
           <Link
             to={`/agro/${mainCategory.slug}`}
@@ -93,7 +93,7 @@ export default function AgroCategoryDetail() {
       <section className="w-full py-16">
         <div className="container mx-auto px-4 lg:px-12">
           <p className="text-sm text-gray-400 uppercase tracking-widest font-bold mb-8">
-            {items.length} Products in this category
+            {items.length} {t('agro.productsInCategory', 'Products in this category')}
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -102,21 +102,21 @@ export default function AgroCategoryDetail() {
                 key={product.id}
                 to={`/agro/${mainCategory.slug}/${category.slug}/${product.slug}`}
                 image={product.images && product.images.length > 0 ? product.images[0] : undefined}
-                badge={product.status === 'AVAILABLE' ? "Available" : "Out of Stock"}
-                title={product.name}
-                subtitle={isSinhala ? (product.sinhalaName || '') : ''}
+                badge={product.status === 'AVAILABLE' ? t('agro.available', 'Available') : t('agro.outOfStock', 'Out of Stock')}
+                title={isSinhala ? (product.sinhalaName || product.name) : product.name}
+                subtitle={isSinhala ? product.name : ''}
                 meta={[
                   { text: product.price ? `Rs. ${product.price} / ${product.unit}` : '' },
                   { icon: MapPin, text: product.location || '' }
                 ].filter(m => m.text)}
-                primaryAction={{ text: "View Details" }}
+                primaryAction={{ text: t('agro.viewDetails', 'View Details') }}
                 secondaryAction={{ icon: ShoppingCart }}
               />
             ))}
             
             {items.length === 0 && (
               <div className="col-span-full py-10 text-center text-gray-400">
-                <p>No items found in this category.</p>
+                <p>{t('agro.noItemsFound', 'No items found in this category.')}</p>
               </div>
             )}
           </div>

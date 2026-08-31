@@ -11,10 +11,10 @@ i18n
       en: { translation: enTranslations },
       si: { translation: siTranslations }
     },
-    lng: 'en', // default language
+    lng: 'si',
     fallbackLng: 'en',
     interpolation: {
-      escapeValue: false // react already safes from xss
+      escapeValue: false
     }
   });
 

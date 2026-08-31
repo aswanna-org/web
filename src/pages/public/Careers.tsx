@@ -83,7 +83,7 @@ export default function Careers() {
     <div className="w-full min-h-screen bg-white font-roboto">
       {/* Hero Section */}
       <PageHero 
-        title="CAREERS" 
+        title={t('careers.title', 'CAREERS')} 
         description={t('careers.desc', 'Be part of the agricultural revolution. Explore opportunities across government, private sector, NGOs, and daily wage roles.')} 
         image="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
         gradientColor="var(--color-secondary)"

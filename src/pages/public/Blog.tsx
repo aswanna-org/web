@@ -49,7 +49,6 @@ export default function Blog() {
       {/* ── Page Hero ── */}
       <PageHero
         title={t('blogPage.title', 'BLOG')}
-        subtitle={t('blogPage.subtitle', 'ARTICLES & INSIGHTS')}
         description={t('blogPage.desc', 'Read our latest articles, farming guides, and insights from industry experts.')}
         image="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
         gradientColor="#28b41bff"
@@ -63,15 +62,15 @@ export default function Blog() {
           <div className="w-full lg:w-1/3 flex flex-col">
             <div className="flex items-center gap-6 border-b border-gray-200 mb-6 pb-2">
               <h2 className="text-xl font-bold text-[var(--color-secondary)] border-b-2 border-[var(--color-secondary)] pb-2 -mb-[10px]">
-                Latest Posts
+                {t('blogPage.latestPosts', 'Latest Posts')}
               </h2>
             </div>
 
             <div className="flex flex-col gap-6 overflow-y-auto max-h-[800px] pr-2 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
               {isLoading ? (
-                <div className="p-10 text-center text-gray-500">Loading posts...</div>
+                <div className="p-10 text-center text-gray-500">{t('blogPage.loading', 'Loading posts...')}</div>
               ) : blogList.length === 0 ? (
-                <div className="p-10 text-center text-gray-500">No blog posts found.</div>
+                <div className="p-10 text-center text-gray-500">{t('blogPage.noPosts', 'No blog posts found.')}</div>
               ) : (
                 blogList.map((blog) => (
                   <div
@@ -124,13 +123,13 @@ export default function Blog() {
                       )}
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">By <span className="font-bold text-gray-800">{selectedBlog.authorName}</span></p>
+                      <p className="text-sm text-gray-500">{t('blogPage.by', 'By')} <span className="font-bold text-gray-800">{selectedBlog.authorName}</span></p>
                       <p className="text-xs text-gray-400">{new Date(selectedBlog.createdAt).toLocaleDateString()}</p>
                     </div>
                   </div>
 
                   <button className="flex items-center gap-2 px-4 py-2 bg-[var(--color-secondary)] hover:bg-[var(--color-secondary)]/90 text-white rounded-full text-sm font-bold transition-colors shadow-sm">
-                    Share <Share2 className="w-4 h-4" />
+                    {t('blogPage.share', 'Share')} <Share2 className="w-4 h-4" />
                   </button>
                 </div>
 
@@ -154,7 +153,7 @@ export default function Blog() {
               </>
             ) : (
               <div className="flex items-center justify-center h-full text-gray-400 font-medium">
-                Select a post to read
+                {t('blogPage.selectToRead', 'Select a post to read')}
               </div>
             )}
           </div>

@@ -8,7 +8,7 @@ export default function Contact() {
     <div className="w-full min-h-screen bg-white font-roboto">
       {/* Hero Section */}
       <PageHero 
-        title="CONTACT US" 
+        title={t('contact.title', 'CONTACT US')} 
         description={t('contact.desc')} 
         image="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
         gradientColor="#e87f3b"

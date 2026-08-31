@@ -21,7 +21,7 @@ export default function Education() {
     <div className="w-full min-h-screen bg-gray-50">
       {/* ── Page Hero ── */}
       <PageHero
-        title="EDUCATION"
+        title={t('educationPage.title', 'EDUCATION')}
         description={t('contact.desc')}
         image="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
         gradientColor="#054a29"

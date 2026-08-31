@@ -359,7 +359,8 @@ const ItemManagement = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">{item.name}</div>
-                      <div className="text-sm text-gray-500">{item.slug}</div>
+                      <div className="text-sm text-gray-500">{item.sinhalaName || '-'}</div>
+                      <div className="text-xs text-gray-400 mt-1">{item.slug}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">

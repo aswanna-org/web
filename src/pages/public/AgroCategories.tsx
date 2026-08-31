@@ -26,7 +26,7 @@ export default function AgroCategories() {
       .catch(console.error);
   }, [API_BASE_URL]);
 
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const isSinhala = i18n.language === 'si';
   
   const mainCategories = dbCategories
@@ -59,28 +59,28 @@ export default function AgroCategories() {
         <div className="container mx-auto px-4 lg:px-12 relative z-10 pt-40 md:pt-32">
           <div className="max-w-3xl">
             <span className="text-white font-thin text-xl sm:text-2xl uppercase tracking-[0.3em] block mb-2 opacity-80">
-              Aswanna
+              {t('agro.brandName', 'Aswanna')}
             </span>
             <h1 className="text-white text-5xl sm:text-6xl md:text-7xl font-black uppercase mb-6 drop-shadow-xl tracking-tight">
-              Agro Technology
+              {t('agro.title', 'Agro Technology')}
             </h1>
             <p className="text-gray-100 text-lg sm:text-xl leading-relaxed max-w-2xl font-light drop-shadow-md">
-              Browse all farming categories — from paddy fields to flower farms — and explore the produce that powers Sri Lanka.
+              {t('agro.desc', 'Browse all farming categories — from paddy fields to flower farms — and explore the produce that powers Sri Lanka.')}
             </p>
           </div>
         </div>
       </section>
 
       {/* ── Search ── */}
-      <section className="w-full py-10 bg-white border-b border-gray-100 shadow-sm sticky top-[64px] z-20">
+      <section className="w-full py-10 bg-white border-b border-gray-100 shadow-sm z-20">
         <div className="container mx-auto px-4 lg:px-12">
-          <div className="max-w-xl mx-auto relative">
+          <div className="max-w-xl ml-auto relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search categories... (e.g. Vegetable, Flower)"
+              placeholder={t('agro.searchPlaceholder', 'Search categories... (e.g. Vegetable, Flower)')}
               className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--color-secondary)] focus:ring-2 focus:ring-[var(--color-secondary)]/20 outline-none transition-all shadow-sm text-gray-700"
             />
           </div>
@@ -92,8 +92,8 @@ export default function AgroCategories() {
         <div className="container mx-auto px-4 lg:px-12">
           {filtered.length === 0 ? (
             <div className="text-center py-20 text-gray-400">
-              <p className="text-2xl font-bold mb-2">No categories found</p>
-              <p>Try a different search term.</p>
+              <p className="text-2xl font-bold mb-2">{t('agro.noCategories', 'No categories found')}</p>
+              <p>{t('agro.tryDifferent', 'Try a different search term.')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -106,10 +106,10 @@ export default function AgroCategories() {
                     image={cat.image || undefined}
                     icon={Sprout}
                     color="#2E7D32"
-                    badge={`${subCount} sub-categories`}
+                    badge={`${subCount} ${t('agro.subCategories', 'sub-categories')}`}
                     title={isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
-                    subtitle="Explore farming techniques"
-                    primaryAction={{ text: "View Sub-categories", icon: ChevronRight }}
+                    subtitle={t('agro.exploreFarming', 'Explore farming techniques')}
+                    primaryAction={{ text: t('agro.viewSubCategories', 'View Sub-categories'), icon: ChevronRight }}
                   />
                 );
               })}

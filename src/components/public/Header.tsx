@@ -83,9 +83,9 @@ export default function Header() {
 
           {/* Agro Technology Dropdown */}
           <div className="relative group">
-            <button className="flex items-center gap-1 text-white text-[15px] font-medium hover:text-white/80 transition-colors py-2">
-              Agro Technology <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180 duration-200" />
-            </button>
+            <Link to="/agro" className="flex items-center gap-1 text-white text-[15px] font-medium hover:text-white/80 transition-colors py-2">
+              {t('header.agroTechnology', 'Agro Technology')} <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180 duration-200" />
+            </Link>
             <div className="absolute top-full left-0 hidden group-hover:flex pt-2 w-64">
               <div className="bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-gray-100 overflow-visible w-full">
                 <div className="flex flex-col p-2 gap-0.5">
@@ -233,7 +233,7 @@ export default function Header() {
                 onClick={() => toggleSubmenu('agro')}
                 className="flex items-center justify-between hover:text-[var(--color-primary)] transition-colors"
               >
-                <span>Agro Technology</span>
+                <span>{t('header.agroTechnology', 'Agro Technology')}</span>
                 <ChevronDown className={`w-5 h-5 transition-transform ${openSubmenu === 'agro' ? 'rotate-180' : ''}`} />
               </button>
               {openSubmenu === 'agro' && (
