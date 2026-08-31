@@ -207,28 +207,8 @@ export default function Header() {
             <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.home')}</Link>
             <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.about')}</Link>
 
-            {/* Mobile Dropdown 1 */}
-            <div className="flex flex-col border-b border-white/10 pb-4">
-              <button
-                onClick={() => toggleSubmenu('pages')}
-                className="flex items-center justify-between hover:text-[var(--color-primary)] transition-colors"
-              >
-                <span>{t('header.pages')}</span>
-                <ChevronDown className={`w-5 h-5 transition-transform ${openSubmenu === 'pages' ? 'rotate-180' : ''}`} />
-              </button>
-              {openSubmenu === 'pages' && (
-                <div className="flex flex-col pl-4 border-l-2 border-[var(--color-primary)]/30 space-y-3 mt-2">
-                  <Link to="/pages/team" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-300 text-sm hover:text-white transition-colors">{t('header.team')}</Link>
-                  <Link to="/pages/careers" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-300 text-sm hover:text-white transition-colors">{t('header.careers')}</Link>
-                  <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-300 text-sm hover:text-white transition-colors">{t('header.blog', 'Blog')}</Link>
-                  <Link to="/pages/faq" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-300 text-sm hover:text-white transition-colors">{t('header.faq')}</Link>
-                  <Link to="/pages/contact" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-300 text-sm hover:text-white transition-colors">{t('header.contact')}</Link>
-                </div>
-              )}
-            </div>
-
             {/* Mobile Agro Technology */}
-            <div className="flex flex-col border-b border-white/10 pb-4">
+            <div className="flex flex-col">
               <button
                 onClick={() => toggleSubmenu('agro')}
                 className="flex items-center justify-between hover:text-[var(--color-primary)] transition-colors"
@@ -237,29 +217,66 @@ export default function Header() {
                 <ChevronDown className={`w-5 h-5 transition-transform ${openSubmenu === 'agro' ? 'rotate-180' : ''}`} />
               </button>
               {openSubmenu === 'agro' && (
-                <div className="flex flex-col pl-4 border-l-2 border-[var(--color-primary)]/30 space-y-3 mt-2">
-                  <Link to="/agro" onClick={() => setIsMobileMenuOpen(false)} className="text-[var(--color-primary)] text-sm font-bold hover:text-white transition-colors">All Categories</Link>
+                <div className="flex flex-col pl-4 border-l-2 border-[var(--color-primary)]/30 space-y-4 mt-4">
+                  <Link to="/agro" onClick={() => setIsMobileMenuOpen(false)} className="text-[var(--color-primary)] text-base font-bold hover:text-white transition-colors">
+                    {t('agro.allMainCategories', 'All Categories')}
+                  </Link>
                   {mainCategories.map((cat) => {
                     const isSinhala = i18n.language === 'si';
+                    const subCats = getSubCategories(cat.id);
                     return (
-                      <Link
-                        key={cat.id}
-                        to={`/agro/${cat.slug}`}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center gap-2 text-gray-300 text-sm hover:text-white transition-colors"
-                      >
-                        <Sprout className="w-4 h-4" /> {isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
-                      </Link>
+                      <div key={cat.id} className="flex flex-col">
+                        <Link
+                          to={`/agro/${cat.slug}`}
+                          onClick={() => setIsMobileMenuOpen(false)}
+                          className="flex items-center gap-2 text-gray-200 text-sm font-bold hover:text-white transition-colors mb-2"
+                        >
+                          <Sprout className="w-4 h-4" /> {isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
+                        </Link>
+                        {subCats.length > 0 && (
+                          <div className="flex flex-col pl-6 space-y-3 border-l border-white/10 ml-2">
+                            {subCats.map((subCat) => (
+                              <Link
+                                key={subCat.id}
+                                to={`/agro/${cat.slug}/${subCat.slug}`}
+                                onClick={() => setIsMobileMenuOpen(false)}
+                                className="text-gray-400 text-xs hover:text-white transition-colors"
+                              >
+                                {isSinhala ? (subCat.sinhalaName || subCat.name) : subCat.name}
+                              </Link>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     )
                   })}
                 </div>
               )}
             </div>
 
-            <Link to="/gallery" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.gallery', 'Gallery')}</Link>
             <Link to="/education" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.education', 'Education')}</Link>
             <Link to="/news" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.news')}</Link>
+            <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.blog', 'Blog')}</Link>
             <Link to="/pages/careers" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.careers', 'Careers')}</Link>
+            <Link to="/gallery" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.gallery', 'Gallery')}</Link>
+            
+            {/* Contact & Login for mobile */}
+            <div className="flex flex-col gap-4 mt-2 pt-6 border-t border-white/10">
+              <Link 
+                to="/pages/contact" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full text-center border border-[var(--color-primary)] text-[var(--color-primary)] rounded-full px-5 py-3 font-medium transition-all hover:bg-[var(--color-primary)] hover:text-white"
+              >
+                {t('header.contact', 'Contact Us')}
+              </Link>
+              <Link 
+                to="/admin/login" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="w-full text-center bg-white text-gray-900 hover:text-[var(--color-primary)] rounded-full px-6 py-3 font-bold transition-all shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+              >
+                Login
+              </Link>
+            </div>
           </nav>
 
           {/* Mobile menu content ends */}

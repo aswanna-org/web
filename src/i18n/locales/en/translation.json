@@ -209,5 +209,17 @@
     "by": "By",
     "share": "Share",
     "selectToRead": "Select a post to read"
+  },
+  "marketplace": {
+    "title": "MARKETPLACE",
+    "desc": "Buy seeds, fertilizers, and agricultural equipment."
+  },
+  "plantFinder": {
+    "title": "PLANT FINDER",
+    "desc": "Find the best crops suited for your soil and climate."
+  },
+  "agroLands": {
+    "title": "AGRO LANDS",
+    "desc": "Find agricultural lands for sale and lease."
   }
 }

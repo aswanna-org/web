@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import Home from './pages/public/Home';
 import About from './pages/public/About';
 import Header from './components/public/Header';
+import SecondaryNav from './components/public/SecondaryNav';
 import Contact from './pages/public/Contact';
 import Careers from './pages/public/Careers';
 import News from './pages/public/News';
@@ -12,6 +13,9 @@ import AgroCategories from './pages/public/AgroCategories';
 import AgroMainCategoryDetail from './pages/public/AgroMainCategoryDetail';
 import AgroCategoryDetail from './pages/public/AgroCategoryDetail';
 import AgroProductDetail from './pages/public/AgroProductDetail';
+import Marketplace from './pages/public/Marketplace';
+import PlantFinder from './pages/public/PlantFinder';
+import AgroLands from './pages/public/AgroLands';
 
 // Admin imports
 import AdminLayout from './admin/layouts/AdminLayout';
@@ -31,6 +35,7 @@ function PublicLayout() {
   return (
     <>
       <Header />
+      <SecondaryNav />
       <div className="min-h-screen flex flex-col">
         <Outlet />
       </div>
@@ -60,6 +65,9 @@ function App() {
             <Route path="agro/:mainSlug" element={<AgroMainCategoryDetail />} />
             <Route path="agro/:mainSlug/:subSlug" element={<AgroCategoryDetail />} />
             <Route path="agro/:mainSlug/:subSlug/:productId" element={<AgroProductDetail />} />
+            <Route path="marketplace" element={<Marketplace />} />
+            <Route path="plant-finder" element={<PlantFinder />} />
+            <Route path="agro-lands" element={<AgroLands />} />
           </Route>
 
           {/* Admin Routes */}

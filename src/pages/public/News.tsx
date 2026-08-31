@@ -75,7 +75,14 @@ export default function News() {
                 newsList.map((news) => (
                   <div
                     key={news.id}
-                    onClick={() => setSelectedNewsId(news.id)}
+                    onClick={() => {
+                      setSelectedNewsId(news.id);
+                      if (window.innerWidth < 1024) {
+                        setTimeout(() => {
+                          document.getElementById('news-detail-section')?.scrollIntoView({ behavior: 'smooth' });
+                        }, 100);
+                      }
+                    }}
                     className={`flex gap-4 p-3 rounded-xl cursor-pointer transition-all duration-300 ${selectedNewsId === news.id
                         ? 'bg-white shadow-md border border-[var(--color-secondary)]/20'
                         : 'hover:bg-white hover:shadow-sm border border-transparent'
@@ -109,7 +116,7 @@ export default function News() {
           </div>
 
           {/* Right Column: News Details (approx 2/3 width) */}
-          <div className="w-full lg:w-2/3 bg-white rounded-2xl shadow-sm border border-gray-100 p-8 lg:p-12 min-h-[500px]">
+          <div id="news-detail-section" className="w-full lg:w-2/3 bg-white rounded-2xl shadow-sm border border-gray-100 p-8 lg:p-12 min-h-[500px]">
             {selectedNews ? (
               <>
                 {/* Author and Share Row */}

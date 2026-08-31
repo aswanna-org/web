@@ -51,7 +51,7 @@ export default function AgroProductDetail() {
 
   return (
     <div className="w-full min-h-screen bg-white">
-      <section className="relative w-full h-[30vh] min-h-[280px] overflow-hidden">
+      <section className="relative w-full min-h-[40vh] overflow-hidden flex flex-col justify-center">
         <img src={mainImage} alt={product.name} className="absolute inset-0 w-full h-full object-cover" />
         <div
           className="absolute inset-0"
@@ -60,18 +60,17 @@ export default function AgroProductDetail() {
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-        {/* We add pt-28 here to push the breadcrumb down below the transparent header */}
-        <div className="absolute top-0 left-0 right-0 z-10 container mx-auto px-4 lg:px-12 pt-[100px]">
-          <Link to={`/agro/${mainCategory.slug}/${category.slug}`} className="inline-flex items-center gap-2 text-white/70 hover:text-white text-sm transition-colors group">
+        
+        <div className="relative z-10 container mx-auto px-4 lg:px-12 pt-32 pb-12 flex flex-col mt-auto">
+          <Link to={`/agro/${mainCategory.slug}/${category.slug}`} className="inline-flex items-center w-fit gap-2 text-white/70 hover:text-white text-sm transition-colors group mb-8">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             {isSinhala ? (category.sinhalaName || category.name) : category.name}
           </Link>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 container mx-auto px-4 lg:px-12 pb-8">
+          
           <p className="text-white/60 text-sm uppercase tracking-[0.2em] font-medium mb-1">
             {isSinhala ? (category.sinhalaName || category.name) : category.name} · {isSinhala ? (product.sinhalaName || product.name) : product.name}
           </p>
-          <h1 className="text-white text-4xl sm:text-5xl font-black tracking-tight mb-3">
+          <h1 className="text-white text-4xl sm:text-5xl font-black tracking-tight mb-4 drop-shadow-md">
             {isSinhala ? (product.sinhalaName || product.name) : product.name}
           </h1>
           <div className="flex items-center gap-5 flex-wrap">
