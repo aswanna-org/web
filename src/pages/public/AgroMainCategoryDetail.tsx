@@ -1,30 +1,60 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { Search, ArrowLeft, ChevronRight } from 'lucide-react';
-import { getMainCategoryBySlug, getCategoryBySlug, type AgroCategory } from '../../data/agroData';
 import { useTranslation } from 'react-i18next';
 import Card from '../../components/ui/Card';
+
+interface Category {
+  id: string;
+  name: string;
+  sinhalaName: string | null;
+  slug: string;
+  parentId: string | null;
+  image: string | null;
+  order: number;
+}
 
 export default function AgroMainCategoryDetail() {
   const { mainSlug } = useParams<{ mainSlug: string }>();
   const { i18n } = useTranslation();
-  const mainCategory = getMainCategoryBySlug(mainSlug ?? '');
+  const [dbCategories, setDbCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState('');
+  
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-  if (!mainCategory) return <Navigate to="/agro" replace />;
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/categories`)
+      .then(res => res.json())
+      .then(data => setDbCategories(data))
+      .catch(console.error);
+  }, [API_BASE_URL]);
+
+  const mainCategory = dbCategories.find(c => c.slug === mainSlug && !c.parentId);
+  const subCategories = dbCategories
+    .filter(cat => cat.parentId === mainCategory?.id)
+    .sort((a, b) => a.order - b.order);
 
   const isSinhala = i18n.language === 'si';
-
-  // Get the actual AgroCategory objects for the slugs in mainCategory.subCategories
-  const subCategories: AgroCategory[] = mainCategory.subCategories
-    .map(slug => getCategoryBySlug(slug))
-    .filter((c): c is AgroCategory => c !== undefined);
 
   const filtered = subCategories.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.nameSi.includes(search)
+      (c.sinhalaName && c.sinhalaName.includes(search))
   );
+
+  // Wait for fetch to complete before redirecting
+  if (dbCategories.length > 0 && !mainCategory) {
+    return <Navigate to="/agro" replace />;
+  }
+
+  // Don't render until we have the main category loaded
+  if (!mainCategory) {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen bg-white">
@@ -42,7 +72,7 @@ export default function AgroMainCategoryDetail() {
           <div 
             className="absolute inset-0 mix-blend-multiply"
             style={{
-              background: `linear-gradient(to right, ${mainCategory.color} 0%, ${mainCategory.color}dd 30%, transparent 100%)`,
+              background: `linear-gradient(to right, #2E7D32 0%, #2E7D32dd 30%, transparent 100%)`,
             }}
           />
         </div>
@@ -58,10 +88,10 @@ export default function AgroMainCategoryDetail() {
           <div className="flex items-center gap-4">
             <div>
               <p className="text-white/60 text-sm font-medium uppercase tracking-widest mb-1">
-                {isSinhala ? mainCategory.subtitleSi : mainCategory.subtitle}
+                Agro Technology
               </p>
               <h1 className="text-white text-4xl sm:text-5xl font-black uppercase tracking-tight drop-shadow-xl">
-                {isSinhala ? mainCategory.nameSi : mainCategory.name}
+                {isSinhala ? (mainCategory.sinhalaName || mainCategory.name) : mainCategory.name}
               </h1>
             </div>
           </div>
@@ -98,10 +128,10 @@ export default function AgroMainCategoryDetail() {
                 <Card
                   key={cat.id}
                   to={`/agro/${mainCategory.slug}/${cat.slug}`}
-                  image={cat.image}
-                  badge={`${cat.products.length} products`}
+                  image={cat.image || undefined}
+                  badge="Explore Category"
                   title={cat.name}
-                  subtitle={isSinhala ? cat.nameSi : cat.nameSi}
+                  subtitle={isSinhala ? cat.sinhalaName || '' : ''}
                   primaryAction={{ text: "Explore", icon: ChevronRight }}
                 />
               ))}

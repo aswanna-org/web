@@ -1,55 +1,82 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, ChevronDown, ChevronRight, X } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 
-// Mock Data for Careers
-const INITIAL_CAREER_DATA = [
-  { id: 1, title: 'Agricultural Field Officer', type: 'Government', location: 'Anuradhapura, Sri Lanka', time: 'Full Time', posted: '2 days ago' },
-  { id: 2, title: 'Farm Manager', type: 'Private', location: 'Nuwara Eliya, Sri Lanka', time: 'Full Time', posted: '3 days ago' },
-  { id: 3, title: 'Community Outreach Coordinator', type: 'NGO', location: 'Colombo, Sri Lanka', time: 'Contract', posted: '1 week ago' },
-  { id: 4, title: 'Harvesting Laborer (Tea Estate)', type: 'Daily Wage', location: 'Kandy, Sri Lanka', time: 'Daily/Casual', posted: 'Just now' },
-  { id: 5, title: 'Agronomist', type: 'Private', location: 'Dambulla, Sri Lanka', time: 'Full Time', posted: '4 days ago' },
-];
+interface Job {
+  id: string;
+  title: string;
+  sinhalaTitle?: string;
+  description: string;
+  sinhalaDescription?: string;
+  location: string;
+  sinhalaLocation?: string;
+  isActive: boolean;
+  createdAt: string;
+}
 
-const JOB_TYPES = ['All', 'Government', 'Private', 'NGO', 'Daily Wage'];
+const JOB_TYPES = ['All'];
 
 export default function Careers() {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
 
-  const [jobsData, setJobsData] = useState(INITIAL_CAREER_DATA);
+  const [jobsData, setJobsData] = useState<Job[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newJob, setNewJob] = useState({ title: '', location: '', wage: '' });
-  const [expandedJob, setExpandedJob] = useState<number | null>(null);
+  const [newJob, setNewJob] = useState({ title: '', location: '', description: '' });
+  const [expandedJob, setExpandedJob] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+  useEffect(() => {
+    fetchJobs();
+  }, []);
+
+  const fetchJobs = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/careers/openings?limit=100`);
+      if (res.ok) {
+        const data = await res.json();
+        // Only show active jobs to public
+        setJobsData(data.data?.filter((j: Job) => j.isActive) || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch jobs");
+    }
+  };
 
   // Filter Logic
   const filteredJobs = jobsData.filter((job) => {
     const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = activeFilter === 'All' || job.type === activeFilter;
-    return matchesSearch && matchesType;
+      (job.location && job.location.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesSearch;
   });
 
-  const handlePostJob = (e: React.FormEvent) => {
+  const handlePostJob = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newJob.title || !newJob.location) return;
+    if (!newJob.title || !newJob.location || !newJob.description) return;
 
-    const jobEntry = {
-      id: Date.now(),
-      title: newJob.title,
-      type: 'Daily Wage', // Automatically daily wage as requested
-      location: newJob.location,
-      time: 'Daily/Casual',
-      posted: 'Just now',
-    };
-
-    setJobsData([jobEntry, ...jobsData]);
-    setIsModalOpen(false);
-    setNewJob({ title: '', location: '', wage: '' });
-    // Switch filter to Daily Wage to see the new post easily
-    setActiveFilter('Daily Wage');
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/careers/openings/public`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newJob)
+      });
+      if (res.ok) {
+        alert("Job submitted successfully! It will be visible after admin approval.");
+        setIsModalOpen(false);
+        setNewJob({ title: '', location: '', description: '' });
+      } else {
+        alert("Failed to submit job.");
+      }
+    } catch (err) {
+      alert("Error submitting job.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -133,15 +160,14 @@ export default function Careers() {
                     >
                       <div className="flex flex-col">
                         <span className="text-[11px] font-bold text-[var(--color-primary)] uppercase tracking-[0.2em] mb-3">
-                          OPEN ROLES • {t(`careers.types.${job.type.toLowerCase().replace(' ', '')}`, job.type)}
+                          OPEN ROLES
                         </span>
                         <h3 className="text-2xl sm:text-3xl font-bold text-[#143d4d] mb-3 tracking-tight group-hover:text-[var(--color-primary)] transition-colors">
                           {job.title}
                         </h3>
                         <p className="text-sm text-gray-500 font-medium tracking-wide">
-                          {job.time} <span className="mx-2 text-gray-300">•</span>
-                          Negotiable <span className="mx-2 text-gray-300">•</span>
-                          {job.location}
+                          {new Date(job.createdAt).toLocaleDateString()} <span className="mx-2 text-gray-300">•</span>
+                          {job.location || 'Location Not Specified'}
                         </p>
                       </div>
 
@@ -163,21 +189,14 @@ export default function Careers() {
 
                     {/* Expandable Description */}
                     <div
-                      className={`overflow-hidden transition-all duration-500 ease-in-out ${expandedJob === job.id ? 'max-h-[500px] opacity-100 mb-8' : 'max-h-0 opacity-0 mb-0'}`}
+                      className={`overflow-hidden transition-all duration-500 ease-in-out ${expandedJob === job.id ? 'max-h-[800px] opacity-100 mb-8' : 'max-h-0 opacity-0 mb-0'}`}
                     >
                       <div className="pl-6 border-l-4 border-[var(--color-primary)]/50 pt-2 pb-4">
                         <h4 className="text-lg font-bold text-[#143d4d] mb-2">Job Description</h4>
-                        <p className="text-gray-600 mb-6 leading-relaxed">
-                          We are looking for dedicated individuals to join our agriculture team. Experience in the field is highly valued. The role involves daily field operations, ensuring high-quality agricultural output, and collaborating with our extensive network of farming professionals to drive sustainable practices.
-                        </p>
-
-                        <h4 className="text-md font-bold text-[#143d4d] mb-3 uppercase tracking-wider text-sm">Requirements</h4>
-                        <ul className="list-disc list-inside text-gray-600 space-y-2">
-                          <li>Relevant experience in the agriculture or farming sector.</li>
-                          <li>Ability to work well in a team environment and handle physical tasks.</li>
-                          <li>Strong commitment to sustainable and ethical farming practices.</li>
-                          <li>Excellent communication and problem-solving skills.</li>
-                        </ul>
+                        <div 
+                          className="text-gray-600 mb-6 leading-relaxed prose prose-sm max-w-none whitespace-pre-wrap break-words"
+                          dangerouslySetInnerHTML={{ __html: job.description }}
+                        />
                       </div>
                     </div>
                   </div>
@@ -234,21 +253,23 @@ export default function Careers() {
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-bold text-gray-700 uppercase tracking-wide">Daily Wage (Optional)</label>
-                <input
-                  type="text"
-                  value={newJob.wage}
-                  onChange={e => setNewJob({ ...newJob, wage: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--color-primary)] outline-none"
-                  placeholder="e.g. Rs. 2000/day"
+                <label className="text-sm font-bold text-gray-700 uppercase tracking-wide">Job Description *</label>
+                <textarea
+                  required
+                  rows={4}
+                  value={newJob.description}
+                  onChange={e => setNewJob({ ...newJob, description: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--color-primary)] outline-none resize-none"
+                  placeholder="Describe the job role, requirements, and contact details..."
                 />
               </div>
 
               <button
                 type="submit"
-                className="mt-4 w-full py-4 bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all uppercase tracking-wider"
+                disabled={isSubmitting}
+                className="mt-4 w-full py-4 bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] disabled:bg-gray-400 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all uppercase tracking-wider"
               >
-                Publish Job
+                {isSubmitting ? 'Publishing...' : 'Publish Job'}
               </button>
             </form>
           </div>

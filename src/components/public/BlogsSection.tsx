@@ -23,13 +23,20 @@ export default function BlogsSection() {
 
   const scrollTo = useCallback((index: number) => emblaApi && emblaApi.scrollTo(index), [emblaApi]);
 
-  const blogItems = [
-    { id: 1, image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&q=80', titleKey: 'blogs.blog1', date: 'MAY 7, 2026', category: 'TUTORIAL', author: 'Admin', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80' },
-    { id: 2, image: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=600&q=80', titleKey: 'blogs.blog2', date: 'MAY 4, 2026', category: 'GUIDE', author: 'Admin', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80' },
-    { id: 3, image: 'https://images.unsplash.com/photo-1595841696677-6479c04c0e15?w=600&q=80', titleKey: 'blogs.blog3', date: 'APR 28, 2026', category: 'INSIGHTS', author: 'Admin', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80' },
-    { id: 4, image: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=600&q=80', titleKey: 'blogs.blog4', date: 'APR 20, 2026', category: 'TECH', author: 'Admin', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80' },
-    { id: 5, image: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600&q=80', titleKey: 'blogs.blog1', date: 'APR 15, 2026', category: 'COMMUNITY', author: 'Admin', avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80' },
-  ];
+  const [blogItems, setBlogItems] = useState<any[]>([]);
+  const { i18n } = useTranslation();
+  const isSinhala = i18n.language === 'si';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/blogs?limit=5`)
+      .then(res => res.json())
+      .then(data => {
+        const items = data.data || data;
+        setBlogItems(items);
+      })
+      .catch(err => console.error("Error fetching blogs:", err));
+  }, []);
 
   return (
     <section className="w-full py-20 bg-[#f4f7f6] relative">
@@ -63,14 +70,14 @@ export default function BlogsSection() {
               >
                 <div className="h-full px-2">
                   <Card
-                    image={item.image}
-                    badge={item.category}
-                    title={t(item.titleKey)}
+                    image={item.image || 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&q=80'}
+                    badge="BLOG"
+                    title={isSinhala ? (item.sinhalaTitle || item.title) : item.title}
                     meta={[
-                      { icon: User, text: item.author },
-                      { icon: CalendarDays, text: item.date }
+                      { icon: User, text: item.authorName },
+                      { icon: CalendarDays, text: new Date(item.createdAt).toLocaleDateString() }
                     ]}
-                    primaryAction={{ text: "Read More", icon: ArrowRight }}
+                    primaryAction={{ text: "Read More", icon: ArrowRight, onClick: () => window.location.href = '/blog' }}
                   />
                 </div>
               </div>

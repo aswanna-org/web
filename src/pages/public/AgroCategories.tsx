@@ -1,29 +1,42 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Sprout, Tractor, Image as ImageIcon, Bug, FlaskConical, ChevronRight } from 'lucide-react';
-import { AGRO_MAIN_CATEGORIES } from '../../data/agroData';
+import { Search, Sprout, ChevronRight } from 'lucide-react';
 import Card from '../../components/ui/Card';
 
-const IconMap: Record<string, React.ElementType> = {
-  Sprout,
-  Tractor,
-  Image: ImageIcon,
-  Bug,
-  FlaskConical
-};
+interface Category {
+  id: string;
+  name: string;
+  sinhalaName: string | null;
+  slug: string;
+  parentId: string | null;
+  image: string | null;
+  order: number;
+}
 
 export default function AgroCategories() {
   const [search, setSearch] = useState('');
+  const [dbCategories, setDbCategories] = useState<Category[]>([]);
+  
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/categories`)
+      .then(res => res.json())
+      .then(data => setDbCategories(data))
+      .catch(console.error);
+  }, [API_BASE_URL]);
 
   const { i18n } = useTranslation();
   const isSinhala = i18n.language === 'si';
+  
+  const mainCategories = dbCategories
+    .filter(cat => !cat.parentId)
+    .sort((a, b) => a.order - b.order);
 
-  const filtered = AGRO_MAIN_CATEGORIES.filter(
+  const filtered = mainCategories.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.nameSi.includes(search) || 
-      c.subtitle.toLowerCase().includes(search.toLowerCase()) ||
-      c.subtitleSi.includes(search)
+      (c.sinhalaName && c.sinhalaName.includes(search))
   );
 
   return (
@@ -85,16 +98,17 @@ export default function AgroCategories() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filtered.map((cat) => {
-                const Icon = IconMap[cat.icon] || Sprout;
+                const subCount = dbCategories.filter(sub => sub.parentId === cat.id).length;
                 return (
                   <Card
                     key={cat.id}
                     to={`/agro/${cat.slug}`}
-                    icon={Icon}
-                    color={cat.color}
-                    badge={`${cat.subCategories.length} categories`}
-                    title={isSinhala ? cat.nameSi : cat.name}
-                    subtitle={isSinhala ? cat.subtitleSi : cat.subtitle}
+                    image={cat.image || undefined}
+                    icon={Sprout}
+                    color="#2E7D32"
+                    badge={`${subCount} sub-categories`}
+                    title={isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
+                    subtitle="Explore farming techniques"
                     primaryAction={{ text: "View Sub-categories", icon: ChevronRight }}
                   />
                 );

@@ -23,53 +23,20 @@ export default function NewsSection() {
 
   const scrollTo = useCallback((index: number) => emblaApi && emblaApi.scrollTo(index), [emblaApi]);
 
-  const newsItems = [
-    {
-      id: 1,
-      image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&q=80',
-      titleKey: 'news.news1',
-      category: 'HARVEST',
-      date: 'MAY 7, 2026',
-      author: 'Admin',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80'
-    },
-    {
-      id: 2,
-      image: 'https://images.unsplash.com/photo-1586771107445-d3ca888129ff?w=600&q=80',
-      titleKey: 'news.news2',
-      category: 'FARMING',
-      date: 'MAY 4, 2026',
-      author: 'Admin',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80'
-    },
-    {
-      id: 3,
-      image: 'https://images.unsplash.com/photo-1595841696677-6479c04c0e15?w=600&q=80',
-      titleKey: 'news.news3',
-      category: 'EQUIPMENT',
-      date: 'APR 28, 2026',
-      author: 'Admin',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80'
-    },
-    {
-      id: 4,
-      image: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=600&q=80',
-      titleKey: 'news.news4',
-      category: 'MARKET',
-      date: 'APR 20, 2026',
-      author: 'Admin',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80'
-    },
-    {
-      id: 5,
-      image: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=600&q=80',
-      titleKey: 'news.news1',
-      category: 'WEATHER',
-      date: 'APR 15, 2026',
-      author: 'Admin',
-      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&q=80'
-    },
-  ];
+  const [newsItems, setNewsItems] = useState<any[]>([]);
+  const { i18n } = useTranslation();
+  const isSinhala = i18n.language === 'si';
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/news?limit=5`)
+      .then(res => res.json())
+      .then(data => {
+        const items = data.data || data;
+        setNewsItems(items);
+      })
+      .catch(err => console.error("Error fetching news:", err));
+  }, []);
 
   return (
     <section className="w-full py-20 bg-gray-50 relative">
@@ -103,14 +70,14 @@ export default function NewsSection() {
               >
                 <div className="h-full px-2">
                   <Card
-                    image={item.image}
-                    badge={item.category}
-                    title={t(item.titleKey)}
+                    image={item.image || 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&q=80'}
+                    badge="NEWS"
+                    title={isSinhala ? (item.sinhalaTitle || item.title) : item.title}
                     meta={[
-                      { icon: User, text: item.author },
-                      { icon: CalendarDays, text: item.date }
+                      { icon: User, text: item.authorName },
+                      { icon: CalendarDays, text: new Date(item.createdAt).toLocaleDateString() }
                     ]}
-                    primaryAction={{ text: "Read More", icon: ArrowRight }}
+                    primaryAction={{ text: "Read More", icon: ArrowRight, onClick: () => window.location.href = '/news' }}
                   />
                 </div>
               </div>
