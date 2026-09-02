@@ -5,6 +5,8 @@ import AboutSection from '../../components/public/AboutSection';
 import MarketPricesSection from '../../components/public/MarketPricesSection';
 import PromoBanner from '../../components/public/PromoBanner';
 import GovijanaSewaPromo from '../../components/public/GovijanaSewaPromo';
+import NewsSection from '../../components/public/NewsSection';
+import BlogsSection from '../../components/public/BlogsSection';
 
 export default function Home() {
   return (
@@ -16,7 +18,9 @@ export default function Home() {
         <ProductsSection />
         <AboutSection />
         <MarketPricesSection />
+        <NewsSection />
         <PromoBanner />
+        <BlogsSection />
       </main>
     </div>
   );
