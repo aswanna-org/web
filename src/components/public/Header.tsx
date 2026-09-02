@@ -1,4 +1,4 @@
-import { ShoppingCart, Menu, X, ChevronDown, ChevronRight, Sprout } from 'lucide-react';
+import { ShoppingCart, Menu, X, ChevronDown, ChevronRight, Sprout, Store, Map, Building } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useMemo } from 'react';
@@ -20,6 +20,8 @@ export default function Header() {
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const [dbCategories, setDbCategories] = useState<Category[]>([]);
+
+  const isSinhala = i18n.language === 'si';
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -58,19 +60,20 @@ export default function Header() {
   const getSubCategories = (parentId: string) => dbCategories.filter(c => c.parentId === parentId).sort((a, b) => a.order - b.order);
 
   return (
-    <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled
-        ? 'bg-black/40 backdrop-blur-md shadow-xl py-2'
-        : 'bg-transparent py-4'
-      }`}>
+    <>
+      <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled
+          ? 'bg-black/40 backdrop-blur-md shadow-xl py-2'
+          : 'bg-transparent py-4'
+        }`}>
       <div className="container mx-auto px-4 lg:px-8 flex items-center justify-between">
 
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <img src="/images/aswanna_logo.png" alt="Aswanna Logo" className="h-16 lg:h-24 w-auto object-contain" />
+          <img src="/images/aswanna_logo.png" alt="Aswanna Logo" className="h-16 xl:h-24 w-auto object-contain" />
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-5 xl:gap-8">
+        <nav className="hidden xl:flex items-center gap-5 2xl:gap-8">
           <Link to="/" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.home')}</Link>
           <Link to="/about" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.about')}</Link>
 
@@ -83,7 +86,6 @@ export default function Header() {
               <div className="bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-gray-100 overflow-visible w-full">
                 <div className="flex flex-col p-2 gap-0.5">
                   {mainCategories.map((cat) => {
-                    const isSinhala = i18n.language === 'si';
                     const subCats = getSubCategories(cat.id);
                     return (
                       <div key={cat.id} className="relative group/sub">
@@ -124,14 +126,11 @@ export default function Header() {
           </div>
 
           <Link to="/education" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.education', 'Education')}</Link>
-          <Link to="/news" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.news')}</Link>
-          <Link to="/blog" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.blog', 'Blog')}</Link>
-          <Link to="/pages/careers" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.careers', 'Careers')}</Link>
           <Link to="/gallery" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.gallery', 'Gallery')}</Link>
         </nav>
 
         {/* Desktop Actions */}
-        <div className="hidden lg:flex items-center gap-4">
+        <div className="hidden xl:flex items-center gap-4">
           {/* Language Switcher */}
           <div className="flex items-center gap-2 text-sm font-bold tracking-wider mr-2">
             <button
@@ -165,7 +164,7 @@ export default function Header() {
         </div>
 
         {/* Mobile Menu Toggle & Mini Actions */}
-        <div className="flex lg:hidden items-center gap-5">
+        <div className="flex xl:hidden items-center gap-5">
           <div className="flex items-center gap-2 text-xs font-bold tracking-wider">
             <button
               onClick={() => i18n.changeLanguage('en')}
@@ -193,8 +192,10 @@ export default function Header() {
         </div>
       </div>
 
+      </header>
+
       {/* Mobile Menu Overlay */}
-      <div className={`lg:hidden fixed inset-0 z-40 bg-black/90 backdrop-blur-xl transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`} style={{ top: '88px' }}>
+      <div className={`xl:hidden fixed inset-0 z-40 bg-black/90 backdrop-blur-xl transition-transform duration-300 pt-[100px] ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex flex-col p-6 h-full overflow-y-auto pb-24">
           <nav className="flex flex-col gap-6 text-white text-xl">
             <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.home')}</Link>
@@ -215,7 +216,6 @@ export default function Header() {
                     {t('agro.allMainCategories', 'All Categories')}
                   </Link>
                   {mainCategories.map((cat) => {
-                    const isSinhala = i18n.language === 'si';
                     const subCats = getSubCategories(cat.id);
                     return (
                       <div key={cat.id} className="flex flex-col">
@@ -248,11 +248,41 @@ export default function Header() {
             </div>
 
             <Link to="/education" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.education', 'Education')}</Link>
-            <Link to="/news" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.news')}</Link>
-            <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.blog', 'Blog')}</Link>
-            <Link to="/pages/careers" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.careers', 'Careers')}</Link>
             <Link to="/gallery" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.gallery', 'Gallery')}</Link>
             
+            {/* Mobile Quick Links */}
+            <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-white/10">
+              <span className="text-xs font-bold text-gray-500 tracking-widest uppercase mb-2">Quick Access</span>
+              <Link to="/marketplace" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 bg-[#f6a847]/10 border border-[#f6a847]/30 rounded-xl hover:bg-[#f6a847]/20 transition-colors">
+                <Store className="w-6 h-6 text-[#f6a847]" />
+                <div className="flex flex-col">
+                  <span className="text-base font-bold text-white">{isSinhala ? 'අලෙවිසැල' : 'Marketplace'}</span>
+                  <span className="text-[11px] text-gray-400">{isSinhala ? 'බීජ, පොහොර, උපකරණ' : 'Seeds, Fertilizers'}</span>
+                </div>
+              </Link>
+              <Link to="/plant-finder" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 bg-[#5bc07c]/10 border border-[#5bc07c]/30 rounded-xl hover:bg-[#5bc07c]/20 transition-colors">
+                <Sprout className="w-6 h-6 text-[#5bc07c]" />
+                <div className="flex flex-col">
+                  <span className="text-base font-bold text-white">{isSinhala ? 'පැළයක් සොයාගමු' : 'Plant Finder'}</span>
+                  <span className="text-[11px] text-gray-400">{isSinhala ? 'පසට ගැළපෙන බෝග' : 'Suitable crops'}</span>
+                </div>
+              </Link>
+              <Link to="/agro-lands" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 bg-[#679fe4]/10 border border-[#679fe4]/30 rounded-xl hover:bg-[#679fe4]/20 transition-colors">
+                <Map className="w-6 h-6 text-[#679fe4]" />
+                <div className="flex flex-col">
+                  <span className="text-base font-bold text-white">{isSinhala ? 'කෘෂි ඉඩම්' : 'Agro Lands'}</span>
+                  <span className="text-[11px] text-gray-400">{isSinhala ? 'විකිණීමට හා බද්දට' : 'Sale and lease'}</span>
+                </div>
+              </Link>
+              <Link to="/govijana-sewa" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl hover:bg-emerald-500/20 transition-colors">
+                <Building className="w-6 h-6 text-emerald-400" />
+                <div className="flex flex-col">
+                  <span className="text-base font-bold text-white">{isSinhala ? 'ගොවිජන සේවා' : 'Govijana Sewa'}</span>
+                  <span className="text-[11px] text-gray-400">{isSinhala ? 'මධ්‍යස්ථාන සොයන්න' : 'Find Agrarian Centers'}</span>
+                </div>
+              </Link>
+            </div>
+
             {/* Contact & Login for mobile */}
             <div className="flex flex-col gap-4 mt-2 pt-6 border-t border-white/10">
               <Link 
@@ -275,6 +305,6 @@ export default function Header() {
           {/* Mobile menu content ends */}
         </div>
       </div>
-    </header>
+    </>
   );
 }

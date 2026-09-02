@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Store, Sprout, Map, Briefcase, Plus } from 'lucide-react';
+import { Store, Sprout, Map, Building } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
@@ -42,25 +42,14 @@ export default function SecondaryNav() {
       textColor: 'text-white drop-shadow-md'
     },
     {
-      id: 4,
-      to: '/pages/careers',
-      icon: Briefcase,
-      titleSi: 'රැකියා',
-      titleEn: 'Careers',
-      descSi: 'කෘෂි ක්ෂේත්‍රයේ රැකියා',
-      descEn: 'Agro vacancies',
-      bgColor: 'bg-[#b678db]/60 backdrop-blur-md border border-white/20',
-      textColor: 'text-white drop-shadow-md'
-    },
-    {
       id: 5,
-      to: '#',
-      icon: Plus,
-      titleSi: 'නව සේවාව',
-      titleEn: 'New Service',
-      descSi: 'ළඟදීම...',
-      descEn: 'Coming soon',
-      bgColor: 'bg-[#ed6b7b]/60 backdrop-blur-md border border-white/20',
+      to: '/govijana-sewa',
+      icon: Building,
+      titleEn: 'Govijana Sewa',
+      titleSi: 'ගොවිජන සේවා',
+      descEn: 'Find Agrarian Centers',
+      descSi: 'මධ්‍යස්ථාන සොයන්න',
+      bgColor: 'bg-[#0f5132]/80 backdrop-blur-md border border-white/20',
       textColor: 'text-white drop-shadow-md'
     }
   ];
@@ -81,7 +70,7 @@ export default function SecondaryNav() {
   }, []);
 
   return (
-    <div className={`fixed z-40 transition-all duration-700 ease-in-out
+    <div className={`hidden lg:block fixed z-40 transition-all duration-700 ease-in-out
       top-[130px] right-2 w-auto
       lg:top-[110px] lg:left-0 lg:right-auto lg:w-full
       ${isScrolled ? 'lg:!top-[130px] lg:!right-6 lg:!left-auto lg:!w-[220px]' : ''}
@@ -96,7 +85,7 @@ export default function SecondaryNav() {
             >
               {/* Large Background Icon (Desktop only) */}
               <link.icon className={`hidden lg:block absolute -bottom-3 -right-3 text-white opacity-10 group-hover:scale-110 transition-transform duration-500 ${isScrolled ? 'w-12 h-12' : 'w-16 h-16'}`} />
-              
+
               {/* Top Row: Simple Icon */}
               <div className={`flex justify-center items-center ${!isScrolled ? 'lg:mb-2' : 'lg:mb-1'}`}>
                 <link.icon className={`w-5 h-5 lg:w-6 lg:h-6 text-white drop-shadow-md`} />

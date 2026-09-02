@@ -4,8 +4,7 @@ import FeaturesSection from '../../components/public/FeaturesSection';
 import AboutSection from '../../components/public/AboutSection';
 import MarketPricesSection from '../../components/public/MarketPricesSection';
 import PromoBanner from '../../components/public/PromoBanner';
-import NewsSection from '../../components/public/NewsSection';
-import BlogsSection from '../../components/public/BlogsSection';
+import GovijanaSewaPromo from '../../components/public/GovijanaSewaPromo';
 
 export default function Home() {
   return (
@@ -13,12 +12,11 @@ export default function Home() {
       <main className="flex-grow">
         <HeroCarousel />
         <FeaturesSection />
+        <GovijanaSewaPromo />
         <ProductsSection />
         <AboutSection />
         <MarketPricesSection />
-        <NewsSection />
         <PromoBanner />
-        <BlogsSection />
       </main>
     </div>
   );

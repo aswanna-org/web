@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Users, Settings, FileText, BarChart3, X, Leaf, Layers, Image as ImageIcon, ShoppingCart, Sprout, Map } from 'lucide-react';
+import { Home, Users, Settings, FileText, BarChart3, X, Leaf, Layers, Image as ImageIcon, ShoppingCart, Sprout, Map, Building } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: boolean) => void }) => {
   const navItems = [
@@ -9,6 +9,7 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: bool
     { name: 'Products', path: '/admin/products', icon: FileText },
     { name: 'Plant Finder', path: '/admin/plants', icon: Sprout },
     { name: 'Agro Lands', path: '/admin/agrolands', icon: Map },
+    { name: 'Govijana Sewa', path: '/admin/asc', icon: Building },
     { name: 'Orders', path: '/admin/orders', icon: ShoppingCart },
     { name: 'News', path: '/admin/news', icon: FileText },
     { name: 'Blogs', path: '/admin/blogs', icon: FileText },

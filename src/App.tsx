@@ -18,6 +18,7 @@ import PlantFinder from './pages/public/PlantFinder';
 import AgroLands from './pages/public/AgroLands';
 import { CartProvider } from './context/CartContext';
 import CartModal from './components/public/CartModal';
+import GovijanaSewa from './pages/public/GovijanaSewa';
 
 // Admin imports
 import AdminLayout from './admin/layouts/AdminLayout';
@@ -31,6 +32,7 @@ import GalleryManagement from './admin/pages/GalleryManagement';
 import ProductManagement from './admin/pages/ProductManagement';
 import PlantManagement from './admin/pages/PlantManagement';
 import AgroLandManagement from './admin/pages/AgroLandManagement';
+import AscManagement from './admin/pages/AscManagement';
 import OrderManagement from './admin/pages/OrderManagement';
 import Login from './admin/pages/Login';
 import { ProtectedRoute } from './admin/components/ProtectedRoute';
@@ -68,6 +70,7 @@ function App() {
               <Route path="blog" element={<Blog />} />
               <Route path="education" element={<Education />} />
               <Route path="gallery" element={<Gallery />} />
+              <Route path="govijana-sewa" element={<GovijanaSewa />} />
               <Route path="agro" element={<AgroCategories />} />
               <Route path="agro/:mainSlug" element={<AgroMainCategoryDetail />} />
               <Route path="agro/:mainSlug/:subSlug" element={<AgroCategoryDetail />} />
@@ -95,6 +98,7 @@ function App() {
               <Route path="products" element={<ProductManagement />} />
               <Route path="plants" element={<PlantManagement />} />
               <Route path="agrolands" element={<AgroLandManagement />} />
+              <Route path="asc" element={<AscManagement />} />
               <Route path="orders" element={<OrderManagement />} />
               {/* Add more admin routes here */}
             </Route>
