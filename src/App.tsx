@@ -29,6 +29,8 @@ import BlogManagement from './admin/pages/BlogManagement';
 import CareerManagement from './admin/pages/CareerManagement';
 import GalleryManagement from './admin/pages/GalleryManagement';
 import ProductManagement from './admin/pages/ProductManagement';
+import PlantManagement from './admin/pages/PlantManagement';
+import AgroLandManagement from './admin/pages/AgroLandManagement';
 import OrderManagement from './admin/pages/OrderManagement';
 import Login from './admin/pages/Login';
 import { ProtectedRoute } from './admin/components/ProtectedRoute';
@@ -91,6 +93,8 @@ function App() {
               <Route path="careers" element={<CareerManagement />} />
               <Route path="gallery" element={<GalleryManagement />} />
               <Route path="products" element={<ProductManagement />} />
+              <Route path="plants" element={<PlantManagement />} />
+              <Route path="agrolands" element={<AgroLandManagement />} />
               <Route path="orders" element={<OrderManagement />} />
               {/* Add more admin routes here */}
             </Route>

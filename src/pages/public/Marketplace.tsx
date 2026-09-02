@@ -24,7 +24,7 @@ const PREDEFINED_CATEGORIES = [
 ];
 
 export default function Marketplace() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -87,27 +87,28 @@ export default function Marketplace() {
           
           {/* Sidebar / Filters */}
           <div className="w-full lg:w-1/4">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 sticky top-24">
-              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                <Filter size={20} />
-                Categories
+            <div className="sticky top-24">
+              <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <Filter size={24} className="text-green-600" />
+                {t('marketplace.categories', 'Categories')}
               </h3>
-              <div className="space-y-2">
+              <div className="flex flex-col gap-3">
                 <button 
                   onClick={() => setSelectedCategory('')}
-                  className={`w-full text-left px-3 py-2 rounded-md transition-colors ${selectedCategory === '' ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
+                  className={`w-full text-left px-5 py-4 rounded-xl shadow-sm border transition-all duration-200 hover:-translate-y-1 ${selectedCategory === '' ? 'bg-green-600 border-green-600 text-white shadow-green-200/50 shadow-lg font-medium' : 'bg-white border-gray-100 text-gray-700 hover:border-green-300 hover:shadow-md'}`}
                 >
-                  All Products
+                  <span className="text-base">{t('marketplace.allProducts', 'All Products')}</span>
                 </button>
                 {PREDEFINED_CATEGORIES.map(cat => {
-                  const displayCat = `${cat.en} / ${cat.si}`;
+                  const isSinhala = i18n.language === 'si';
+                  const displayCat = isSinhala ? cat.si : cat.en;
                   return (
                     <button 
                       key={cat.en}
                       onClick={() => setSelectedCategory(cat.en)}
-                      className={`w-full text-left px-3 py-2 rounded-md transition-colors ${selectedCategory === cat.en ? 'bg-green-50 text-green-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
+                      className={`w-full text-left px-5 py-4 rounded-xl shadow-sm border transition-all duration-200 hover:-translate-y-1 ${selectedCategory === cat.en ? 'bg-green-600 border-green-600 text-white shadow-green-200/50 shadow-lg font-medium' : 'bg-white border-gray-100 text-gray-700 hover:border-green-300 hover:shadow-md'}`}
                     >
-                      {displayCat}
+                      <span className="text-base">{displayCat}</span>
                     </button>
                   );
                 })}
