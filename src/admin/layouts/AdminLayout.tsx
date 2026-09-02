@@ -1,13 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Layers, 
-  Box, 
-  Newspaper,
-  FileText,
-  Briefcase
-} from 'lucide-react';
+
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 

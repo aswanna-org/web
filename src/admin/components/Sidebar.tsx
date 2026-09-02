@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
+
 import { NavLink } from 'react-router-dom';
-import { Home, Users, Settings, FileText, BarChart3, Menu, X, Leaf, Layers, Image as ImageIcon } from 'lucide-react';
+import { Home, Users, Settings, FileText, BarChart3, X, Leaf, Layers, Image as ImageIcon, ShoppingCart } from 'lucide-react';
 
 const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: boolean) => void }) => {
   const navItems = [
     { name: 'Dashboard', path: '/admin', icon: Home },
-    { name: 'Categories', path: '/admin/categories', icon: Layers },
-    { name: 'Items', path: '/admin/items', icon: Leaf },
+    { name: 'Agro Categories', path: '/admin/categories', icon: Layers },
+    { name: 'Agro Items', path: '/admin/items', icon: Leaf },
+    { name: 'Products', path: '/admin/products', icon: FileText },
+    { name: 'Orders', path: '/admin/orders', icon: ShoppingCart },
     { name: 'News', path: '/admin/news', icon: FileText },
     { name: 'Blogs', path: '/admin/blogs', icon: FileText },
     { name: 'Careers', path: '/admin/careers', icon: FileText },
     { name: 'Gallery', path: '/admin/gallery', icon: ImageIcon },
-    { name: 'Orders', path: '/admin/orders', icon: FileText },
     { name: 'Customers', path: '/admin/customers', icon: Users },
     { name: 'Analytics', path: '/admin/analytics', icon: BarChart3 },
     { name: 'Settings', path: '/admin/settings', icon: Settings },

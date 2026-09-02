@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 export default function SecondaryNav() {
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isSinhala = i18n.language === 'si';
 
   const links = [

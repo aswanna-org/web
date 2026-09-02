@@ -1,16 +1,9 @@
-import { ShoppingCart, Menu, X, ChevronDown, ChevronRight, Sprout, Tractor, Image as ImageIcon, Bug, FlaskConical } from 'lucide-react';
+import { ShoppingCart, Menu, X, ChevronDown, ChevronRight, Sprout } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useMemo } from 'react';
 
-// Map icon names to lucide components
-const IconMap: Record<string, React.ElementType> = {
-  Sprout,
-  Tractor,
-  Image: ImageIcon,
-  Bug,
-  FlaskConical
-};
+
 
 interface Category {
   id: string;

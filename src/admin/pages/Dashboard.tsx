@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Users, DollarSign, ShoppingBag, Activity, TrendingUp, TrendingDown } from 'lucide-react';
 
 const Dashboard = () => {

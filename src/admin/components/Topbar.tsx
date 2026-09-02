@@ -1,6 +1,6 @@
-import React from 'react';
+
 import { Search, Bell, Menu, User, LogOut, ChevronDown } from 'lucide-react';
-import { useLocation, Link, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const Topbar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {

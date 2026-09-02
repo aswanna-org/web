@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, AlertCircle, Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import RichTextEditor from '../components/RichTextEditor';
 
