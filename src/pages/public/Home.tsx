@@ -7,6 +7,7 @@ import PromoBanner from '../../components/public/PromoBanner';
 import GovijanaSewaPromo from '../../components/public/GovijanaSewaPromo';
 import NewsSection from '../../components/public/NewsSection';
 import BlogsSection from '../../components/public/BlogsSection';
+import Footer from '../../components/public/Footer';
 
 export default function Home() {
   return (
@@ -21,6 +22,7 @@ export default function Home() {
         <NewsSection />
         <PromoBanner />
         <BlogsSection />
+        <Footer />
       </main>
     </div>
   );

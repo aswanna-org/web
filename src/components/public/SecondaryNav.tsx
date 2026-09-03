@@ -16,7 +16,8 @@ export default function SecondaryNav() {
       titleEn: 'Marketplace',
       descSi: 'බීජ, පොහොර, උපකරණ',
       descEn: 'Seeds, Fertilizers',
-      bgColor: 'bg-[#f6a847]/60 backdrop-blur-md border border-white/20',
+      // Glass effect classes
+      bgColor: 'bg-[#f6a847]/40 backdrop-blur-xl bg-gradient-to-br from-white/30 to-transparent border border-white/40 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)]',
       textColor: 'text-white drop-shadow-md'
     },
     {
@@ -27,7 +28,7 @@ export default function SecondaryNav() {
       titleEn: 'Plant Finder',
       descSi: 'පසට ගැළපෙන බෝග',
       descEn: 'Suitable crops',
-      bgColor: 'bg-[#5bc07c]/60 backdrop-blur-md border border-white/20',
+      bgColor: 'bg-[#5bc07c]/40 backdrop-blur-xl bg-gradient-to-br from-white/30 to-transparent border border-white/40 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)]',
       textColor: 'text-white drop-shadow-md'
     },
     {
@@ -38,7 +39,7 @@ export default function SecondaryNav() {
       titleEn: 'Agro Lands',
       descSi: 'විකිණීමට හා බද්දට',
       descEn: 'Sale and lease',
-      bgColor: 'bg-[#679fe4]/60 backdrop-blur-md border border-white/20',
+      bgColor: 'bg-[#679fe4]/40 backdrop-blur-xl bg-gradient-to-br from-white/30 to-transparent border border-white/40 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)]',
       textColor: 'text-white drop-shadow-md'
     },
     {
@@ -49,7 +50,7 @@ export default function SecondaryNav() {
       titleSi: 'ගොවිජන සේවා',
       descEn: 'Find Agrarian Centers',
       descSi: 'මධ්‍යස්ථාන සොයන්න',
-      bgColor: 'bg-[#0f5132]/80 backdrop-blur-md border border-white/20',
+      bgColor: 'bg-[#0f5132]/50 backdrop-blur-xl bg-gradient-to-br from-white/20 to-transparent border border-white/30 shadow-[0_8px_32px_0_rgba(0,0,0,0.15)]',
       textColor: 'text-white drop-shadow-md'
     }
   ];
@@ -58,7 +59,6 @@ export default function SecondaryNav() {
 
   useEffect(() => {
     const handleScroll = () => {
-      // 400px is roughly where the hero content ends and the next section starts
       if (window.scrollY > 400) {
         setIsScrolled(true);
       } else {
@@ -75,30 +75,32 @@ export default function SecondaryNav() {
       lg:top-[110px] lg:left-0 lg:right-auto lg:w-full
       ${isScrolled ? 'lg:!top-[130px] lg:!right-6 lg:!left-auto lg:!w-[220px]' : ''}
     `}>
-      <div className={`w-full ${!isScrolled ? 'lg:container lg:mx-auto lg:px-8 lg:py-4' : 'lg:py-2'}`}>
-        <div className={`flex flex-col gap-3 ${!isScrolled ? 'lg:grid lg:grid-cols-5 lg:gap-5' : 'lg:flex lg:flex-col lg:gap-3'}`}>
+      <div className={`w-full ${!isScrolled ? 'lg:container lg:mx-auto lg:px-8 lg:py-4' : 'lg:py-4'}`}>
+        <div className={`flex flex-col gap-3 ${!isScrolled ? 'lg:grid lg:grid-cols-4 lg:gap-4' : 'lg:flex lg:flex-col lg:gap-2'}`}>
           {links.map((link) => (
             <Link
               key={link.id}
               to={link.to}
-              className={`relative overflow-hidden ${link.bgColor} rounded-xl lg:rounded-2xl p-3 lg:p-4 transition-all duration-300 group shadow-lg hover:shadow-xl hover:-translate-y-1 flex flex-col items-center lg:items-start lg:block`}
+              className={`relative overflow-hidden ${link.bgColor} rounded-xl lg:rounded-2xl p-3 lg:py-3 lg:px-4 transition-all duration-300 group hover:shadow-[0_8px_32px_0_rgba(255,255,255,0.2)] hover:-translate-y-1 flex items-center justify-center lg:justify-start w-full`}
             >
-              {/* Large Background Icon (Desktop only) */}
-              <link.icon className={`hidden lg:block absolute -bottom-3 -right-3 text-white opacity-10 group-hover:scale-110 transition-transform duration-500 ${isScrolled ? 'w-12 h-12' : 'w-16 h-16'}`} />
+              {/* Background Decorative Icon - Opacity අඩු කර ඇත */}
+              <link.icon className={`hidden lg:block absolute -bottom-3 -right-3 text-white opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-500 ${isScrolled ? 'w-12 h-12' : 'w-16 h-16'}`} />
 
-              {/* Top Row: Simple Icon */}
-              <div className={`flex justify-center items-center ${!isScrolled ? 'lg:mb-2' : 'lg:mb-1'}`}>
-                <link.icon className={`w-5 h-5 lg:w-6 lg:h-6 text-white drop-shadow-md`} />
-              </div>
+              <div className="relative z-10 flex items-center gap-4 w-full">
 
-              {/* Bottom Row: Text (Hidden on Mobile) */}
-              <div className="hidden lg:block relative z-10 w-full text-left">
-                <h3 className={`${link.textColor} font-bold leading-tight mb-0.5 ${isScrolled ? 'text-sm' : 'text-[15px]'}`}>
-                  {isSinhala ? link.titleSi : link.titleEn}
-                </h3>
-                <p className={`${link.textColor} opacity-90 font-medium ${isScrolled ? 'text-[10px]' : 'text-xs'}`}>
-                  {isSinhala ? link.descSi : link.descEn}
-                </p>
+                <div className="flex-shrink-0 flex items-center justify-center">
+                  <link.icon className={`text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] ${isScrolled ? 'w-6 h-6 lg:w-7 lg:h-7' : 'w-7 h-7 lg:w-8 lg:h-8'}`} />
+                </div>
+
+                <div className="hidden lg:flex flex-col text-left">
+                  <h3 className={`${link.textColor} font-bold leading-none mb-1.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] ${isScrolled ? 'text-xs' : 'text-[15px]'}`}>
+                    {isSinhala ? link.titleSi : link.titleEn}
+                  </h3>
+                  <p className={`${link.textColor} opacity-90 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] ${isScrolled ? 'text-[10px]' : 'text-[12px]'} leading-tight`}>
+                    {isSinhala ? link.descSi : link.descEn}
+                  </p>
+                </div>
+
               </div>
             </Link>
           ))}
