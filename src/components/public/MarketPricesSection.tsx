@@ -1,20 +1,44 @@
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
+interface MarketItem {
+  id: string;
+  image: string;
+  nameKey: string;
+  nameSinhala: string | null;
+  price: string;
+  trend: 'up' | 'down';
+  change: string;
+}
+
 export default function MarketPricesSection() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const isSinhala = i18n.language === 'si';
 
-  // Mock data representing vegetable market prices
-  const marketData = [
-    { id: 1, image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=150&q=80', nameKey: 'market.tomato', price: 'Rs. 350.00', trend: 'up', change: '+12.5%' },
-    { id: 2, image: 'https://images.unsplash.com/photo-1518977673343-a4a623080d82?w=150&q=80', nameKey: 'market.potato', price: 'Rs. 180.00', trend: 'down', change: '-5.2%' },
-    { id: 3, image: 'https://images.unsplash.com/photo-1594282486552-05b4d70fbb92?w=150&q=80', nameKey: 'market.cabbage', price: 'Rs. 220.00', trend: 'up', change: '+3.4%' },
-    { id: 4, image: 'https://images.unsplash.com/photo-1593165030252-0fb3fc782fba?w=150&q=80', nameKey: 'market.beans', price: 'Rs. 450.00', trend: 'down', change: '-8.1%' },
-    { id: 5, image: 'https://images.unsplash.com/photo-1618512496248-a07ce83aa8cb?w=150&q=80', nameKey: 'market.onion', price: 'Rs. 280.00', trend: 'up', change: '+4.0%' },
-  ];
+  const [marketData, setMarketData] = useState<MarketItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Duplicate the array to create a seamless infinite scrolling effect
-  const displayData = [...marketData, ...marketData];
+  useEffect(() => {
+    const fetchMarketPrices = async () => {
+      try {
+        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        const res = await fetch(`${API_BASE_URL}/products/market-prices`);
+        if (res.ok) {
+          const data = await res.json();
+          setMarketData(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch market prices', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchMarketPrices();
+  }, []);
+
+  // Duplicate the array to create a seamless infinite scrolling effect if there is data
+  const displayData = marketData.length > 0 ? [...marketData, ...marketData] : [];
 
   return (
     <section className="w-full py-16 relative overflow-hidden font-roboto">
@@ -41,44 +65,57 @@ export default function MarketPricesSection() {
             <div className="w-full pr-0 lg:pr-8 flex-1">
               {/* Scrolling Container */}
               <div className="h-[450px] lg:h-full min-h-[400px] overflow-hidden relative" style={{ WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)' }}>
-                <div className="flex flex-col animate-vertical-scroll gap-4 pt-4 pb-12 absolute inset-0">
-                  {displayData.map((item, index) => (
-                    <div 
-                      key={`${item.id}-${index}`} 
-                      className="flex items-center justify-between p-4 bg-white/5 backdrop-blur-md border border-white/20 shadow-md rounded-2xl transition-transform hover:-translate-y-1 w-full shrink-0"
-                    >
-                      
-                      {/* Product Info */}
-                      <div className="flex items-center gap-4 w-1/2">
-                        <img 
-                          src={item.image} 
-                          alt={t(item.nameKey)} 
-                          className="w-12 h-12 rounded-full object-cover shadow-sm border border-white"
-                        />
-                        <div className="flex flex-col">
-                          <span className="font-bold text-gray-900 text-lg">{t(item.nameKey)}</span>
-                          <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">1 Kg</span>
+                {loading ? (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mr-2"></div>
+                    Loading prices...
+                  </div>
+                ) : marketData.length === 0 ? (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    No market prices available.
+                  </div>
+                ) : (
+                  <div className="flex flex-col animate-vertical-scroll gap-4 pt-4 pb-12 absolute inset-0">
+                    {displayData.map((item, index) => (
+                      <div 
+                        key={`${item.id}-${index}`} 
+                        className="flex items-center justify-between p-4 bg-white/5 backdrop-blur-md border border-white/20 shadow-md rounded-2xl transition-transform hover:-translate-y-1 w-full shrink-0"
+                      >
+                        
+                        {/* Product Info */}
+                        <div className="flex items-center gap-4 w-1/2">
+                          <img 
+                            src={item.image} 
+                            alt={isSinhala && item.nameSinhala ? item.nameSinhala : item.nameKey} 
+                            className="w-12 h-12 rounded-full object-cover shadow-sm border border-white"
+                          />
+                          <div className="flex flex-col">
+                            <span className="font-bold text-gray-900 text-lg">
+                              {isSinhala && item.nameSinhala ? item.nameSinhala : item.nameKey}
+                            </span>
+                            <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">1 Kg</span>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Price */}
-                      <div className="w-1/4 text-right">
-                         <p className="font-bold text-gray-900 text-lg">{item.price.replace('Rs. ', '')}</p>
-                         <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">Rs</p>
-                      </div>
-
-                      {/* Trend Indicator */}
-                      <div className="w-1/4 flex flex-col items-end justify-center">
-                        <div className={`flex items-center gap-1 font-bold ${item.trend === 'up' ? 'text-green-600' : 'text-red-500'}`}>
-                          {item.trend === 'up' ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
-                          <span className="text-base">{item.change}</span>
+                        {/* Price */}
+                        <div className="w-1/4 text-right">
+                           <p className="font-bold text-gray-900 text-lg">{item.price.replace('Rs. ', '')}</p>
+                           <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">Rs</p>
                         </div>
-                        <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider font-semibold">Trend</span>
-                      </div>
 
-                    </div>
-                  ))}
-                </div>
+                        {/* Trend Indicator */}
+                        <div className="w-1/4 flex flex-col items-end justify-center">
+                          <div className={`flex items-center gap-1 font-bold ${item.trend === 'up' ? 'text-green-600' : 'text-red-500'}`}>
+                            {item.trend === 'up' ? <TrendingUp className="w-5 h-5" /> : <TrendingDown className="w-5 h-5" />}
+                            <span className="text-base">{item.change}</span>
+                          </div>
+                          <span className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider font-semibold">Trend</span>
+                        </div>
+
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -112,6 +112,7 @@ export default function BlogManagement() {
       formData.append('slug', currentBlog.slug || generateSlug(currentBlog.title));
       formData.append('content', currentBlog.content);
       formData.append('authorName', currentBlog.authorName);
+      if (currentBlog.createdAt) formData.append('createdAt', currentBlog.createdAt);
       
       if (currentBlog.sinhalaTitle) formData.append('sinhalaTitle', currentBlog.sinhalaTitle);
       if (currentBlog.sinhalaContent) formData.append('sinhalaContent', currentBlog.sinhalaContent);
@@ -325,6 +326,22 @@ export default function BlogManagement() {
                         value={currentBlog.slug || ''}
                         onChange={(e) => setCurrentBlog({ ...currentBlog, slug: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-100"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Publish Date (Optional)</label>
+                      <input
+                        type="date"
+                        value={currentBlog.createdAt ? new Date(currentBlog.createdAt).toISOString().split('T')[0] : ''}
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            const date = new Date(e.target.value);
+                            setCurrentBlog({ ...currentBlog, createdAt: date.toISOString() });
+                          } else {
+                            setCurrentBlog({ ...currentBlog, createdAt: '' });
+                          }
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                       />
                     </div>
 

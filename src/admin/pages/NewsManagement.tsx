@@ -113,6 +113,7 @@ export default function NewsManagement() {
       formData.append('slug', currentNews.slug || generateSlug(currentNews.title));
       formData.append('content', currentNews.content);
       formData.append('authorName', currentNews.authorName);
+      if (currentNews.createdAt) formData.append('createdAt', currentNews.createdAt);
       
       if (currentNews.sinhalaTitle) formData.append('sinhalaTitle', currentNews.sinhalaTitle);
       if (currentNews.sinhalaContent) formData.append('sinhalaContent', currentNews.sinhalaContent);
@@ -326,6 +327,22 @@ export default function NewsManagement() {
                         value={currentNews.slug || ''}
                         onChange={(e) => setCurrentNews({ ...currentNews, slug: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-100"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Publish Date (Optional)</label>
+                      <input
+                        type="date"
+                        value={currentNews.createdAt ? new Date(currentNews.createdAt).toISOString().split('T')[0] : ''}
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            const date = new Date(e.target.value);
+                            setCurrentNews({ ...currentNews, createdAt: date.toISOString() });
+                          } else {
+                            setCurrentNews({ ...currentNews, createdAt: '' });
+                          }
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
                       />
                     </div>
 
