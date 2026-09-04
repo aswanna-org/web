@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, ShoppingCart, Tag, Check, Leaf, Star } from 'lucide-react';
+import { ArrowLeft, MapPin, ShoppingCart } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function AgroProductDetail() {
   const { mainSlug, subSlug, productId } = useParams<{ mainSlug: string; subSlug: string; productId: string }>();
   const { t, i18n } = useTranslation();
-  
+
   const [mainCategory, setMainCategory] = useState<any>(null);
   const [category, setCategory] = useState<any>(null);
   const [product, setProduct] = useState<any>(null);
   const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
@@ -26,10 +26,10 @@ export default function AgroProductDetail() {
         setMainCategory(mainData);
         setCategory(subData);
         setProduct(productData);
-        
+
         if (subData && productData) {
-            const related = (subData.items || []).filter((p: any) => p.id !== productData.id && p.status === 'AVAILABLE').slice(0, 4);
-            setRelatedProducts(related);
+          const related = (subData.items || []).filter((p: any) => p.id !== productData.id && p.status === 'AVAILABLE').slice(0, 4);
+          setRelatedProducts(related);
         }
       })
       .catch(console.error)
@@ -47,7 +47,11 @@ export default function AgroProductDetail() {
   if (!mainCategory || !category || !product) return <Navigate to="/agro" replace />;
 
   const isSinhala = i18n.language === 'si';
-  const mainImage = product.images && product.images.length > 0 ? product.images[0] : 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80';
+  const mainImage = Array.isArray(product.images)
+    ? product.images[0]
+    : (typeof product.images === 'object' && product.images !== null
+      ? Object.values(product.images)[0]
+      : product.images) || 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80';
 
   return (
     <div className="w-full min-h-screen bg-white">
@@ -60,32 +64,15 @@ export default function AgroProductDetail() {
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
-        
+
         <div className="relative z-10 container mx-auto px-4 lg:px-12 pt-32 pb-12 flex flex-col mt-auto">
           <Link to={`/agro/${mainCategory.slug}/${category.slug}`} className="inline-flex items-center w-fit gap-2 text-white/70 hover:text-white text-sm transition-colors group mb-8">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             {isSinhala ? (category.sinhalaName || category.name) : category.name}
           </Link>
-          
-          <p className="text-white/60 text-sm uppercase tracking-[0.2em] font-medium mb-1">
-            {isSinhala ? (category.sinhalaName || category.name) : category.name} · {isSinhala ? (product.sinhalaName || product.name) : product.name}
-          </p>
           <h1 className="text-white text-4xl sm:text-5xl font-black tracking-tight mb-4 drop-shadow-md">
             {isSinhala ? (product.sinhalaName || product.name) : product.name}
           </h1>
-          <div className="flex items-center gap-5 flex-wrap">
-            <div className="flex items-center gap-1">
-              {[1,2,3,4,5].map((s) => (<Star key={s} className="w-4 h-4 fill-yellow-400 text-yellow-400" />))}
-              <span className="text-white/50 text-xs ml-2">{t('agro.farmersVerified', 'Farmers Verified')}</span>
-            </div>
-            {product.status === 'AVAILABLE' ? (
-              <span className="flex items-center gap-1.5 bg-green-500/20 border border-green-400/40 text-green-300 text-xs font-bold px-3 py-1 rounded-full">
-                <Check className="w-3 h-3" /> {t('agro.inStock', 'In Stock')}
-              </span>
-            ) : (
-              <span className="bg-gray-500/30 text-gray-300 text-xs font-bold px-3 py-1 rounded-full">{t('agro.outOfStock', 'Out of Stock')}</span>
-            )}
-          </div>
         </div>
       </section>
 
@@ -98,54 +85,108 @@ export default function AgroProductDetail() {
                 <span className="text-gray-400 text-lg">{t('agro.per', 'per')} {product.unit || t('agro.unit', 'unit')}</span>
               </div>
             )}
-            
+
             <div className="mb-10">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">{t('agro.aboutProduct', 'About this product')}</p>
-              <div 
+              <div
                 className="text-gray-700 text-lg leading-relaxed prose max-w-none break-words"
-                dangerouslySetInnerHTML={{ __html: isSinhala ? (product.sinhalaDescription || product.description || '') : (product.description || '') }} 
+                dangerouslySetInnerHTML={{ __html: isSinhala ? (product.sinhalaDescription || product.description || '') : (product.description || '') }}
               />
             </div>
-            
+
             {(product.farmingGuide || product.sinhalaFarmingGuide) && (
               <div className="mb-10 p-6 bg-green-50 rounded-2xl border border-green-100 overflow-hidden">
                 <p className="text-xs font-bold text-green-700 uppercase tracking-widest mb-3">{t('agro.farmingGuide', 'Farming Guide')}</p>
-                <div 
+                <div
                   className="text-gray-800 leading-relaxed prose max-w-none prose-green break-words"
-                  dangerouslySetInnerHTML={{ __html: isSinhala ? (product.sinhalaFarmingGuide || product.farmingGuide || '') : (product.farmingGuide || '') }} 
+                  dangerouslySetInnerHTML={{ __html: isSinhala ? (product.sinhalaFarmingGuide || product.farmingGuide || '') : (product.farmingGuide || '') }}
                 />
               </div>
             )}
-
-            <ul className="space-y-2 mb-10">
-              <li className="flex items-start gap-2 text-gray-600"><Check className="w-4 h-4 text-[var(--color-secondary)] shrink-0 mt-1" />{t('agro.sourcedDirectly', 'Sourced directly from verified local farmers')}</li>
-              <li className="flex items-start gap-2 text-gray-600"><Check className="w-4 h-4 text-[var(--color-secondary)] shrink-0 mt-1" />{t('agro.qualityChecked', 'Quality checked before listing on Aswanna')}</li>
-              <li className="flex items-start gap-2 text-gray-600"><Check className="w-4 h-4 text-[var(--color-secondary)] shrink-0 mt-1" />{t('agro.supportsSustainable', 'Supports sustainable and ethical farming practices')}</li>
-            </ul>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">{t('agro.details', 'Details')}</p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pb-10 border-b border-gray-100">
-              <div><div className="flex items-center gap-1.5 text-xs text-gray-400 mb-1"><MapPin className="w-3.5 h-3.5" /> {t('agro.origin', 'Origin')}</div><p className="font-semibold text-gray-800 truncate">{product.location || 'Sri Lanka'}</p></div>
-              <div><div className="flex items-center gap-1.5 text-xs text-gray-400 mb-1"><Tag className="w-3.5 h-3.5" /> {t('agro.unitCap', 'Unit')}</div><p className="font-semibold text-gray-800 truncate">{t('agro.per', 'Per')} {product.unit || t('agro.unit', 'unit')}</p></div>
-              <div><div className="flex items-center gap-1.5 text-xs text-gray-400 mb-1"><Leaf className="w-3.5 h-3.5" /> {t('agro.status', 'Status')}</div><p className={`font-semibold ${product.status === 'AVAILABLE' ? 'text-green-600' : 'text-red-500'} truncate`}>{product.status === 'AVAILABLE' ? t('agro.available', 'Available') : t('agro.unavailable', 'Unavailable')}</p></div>
-            </div>
           </div>
           <div className="lg:col-span-1">
             <div className="sticky top-28 rounded-2xl border border-gray-200 p-6">
-              {product.price && (
-                <>
-                  <p className="text-2xl font-black text-[var(--color-secondary)] mb-1">Rs. {product.price}</p>
-                  <p className="text-sm text-gray-400 mb-6">{t('agro.per', 'per')} {product.unit || t('agro.unit', 'unit')}</p>
-                </>
-              )}
-              <button className="w-full py-4 bg-[var(--color-secondary)] hover:bg-[var(--color-secondary)]/90 text-white font-bold rounded-xl transition-all uppercase tracking-wider flex items-center justify-center gap-2 mb-3 shadow-md hover:shadow-lg">
-                <ShoppingCart className="w-5 h-5" />{t('agro.addToInquiry', 'Add to Inquiry')}
-              </button>
-              <p className="text-center text-xs text-gray-400">{t('agro.contactForBulk', 'Contact us for bulk pricing')}</p>
-              <div className="mt-6 pt-5 border-t border-gray-100 space-y-3">
-                <div className="flex items-center gap-2 text-sm text-gray-600"><MapPin className="w-4 h-4 text-[var(--color-secondary)] shrink-0" /><span className="truncate">{t('agro.from', 'From')} {product.location || 'Sri Lanka'}</span></div>
-                <Link to={`/agro/${mainCategory.slug}/${category.slug}`} className="flex items-center gap-2 text-sm text-[var(--color-secondary)] hover:underline font-medium">
-                  <ArrowLeft className="w-4 h-4 shrink-0" /><span className="truncate">{t('agro.backTo', 'Back to')} {isSinhala ? (category.sinhalaName || category.name) : category.name}</span>
-                </Link>
+              <div className="mt-6 pt-5 border-gray-100 space-y-5">
+                {product.scientificName && (
+                  <div>
+                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{t('agro.scientificName', 'Scientific Name')}</p>
+                    <p className="text-sm font-medium text-gray-800 italic">{product.scientificName}</p>
+                  </div>
+                )}
+
+                {product.slAgriData && (
+                  <div className="space-y-3">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2">{t('agro.slData', 'Sri Lanka Data')}</p>
+
+                    {product.slAgriData.cultivationArea && (
+                      <div className="flex justify-between items-center text-sm gap-2">
+                        <span className="text-gray-500">{t('agro.cultivationArea', 'Cultivation Area')}:</span>
+                        <span className="font-medium text-gray-800 text-right">{isSinhala ? (product.slAgriData.sinhalaCultivationArea || product.slAgriData.cultivationArea) : product.slAgriData.cultivationArea}</span>
+                      </div>
+                    )}
+
+                    {product.slAgriData.annualProduction && (
+                      <div className="flex justify-between items-center text-sm gap-2">
+                        <span className="text-gray-500">{t('agro.annualProd', 'Annual Prod')}:</span>
+                        <span className="font-medium text-gray-800 text-right">{isSinhala ? (product.slAgriData.sinhalaAnnualProduction || product.slAgriData.annualProduction) : product.slAgriData.annualProduction}</span>
+                      </div>
+                    )}
+
+                    {product.slAgriData.averageYield && (
+                      <div className="flex justify-between items-center text-sm gap-2">
+                        <span className="text-gray-500">{t('agro.avgYield', 'Avg Yield')}:</span>
+                        <span className="font-medium text-gray-800 text-right">{isSinhala ? (product.slAgriData.sinhalaAverageYield || product.slAgriData.averageYield) : product.slAgriData.averageYield}</span>
+                      </div>
+                    )}
+
+                    {product.slAgriData.districts && product.slAgriData.districts.length > 0 && (
+                      <div className="pt-1">
+                        <p className="text-xs text-gray-500 mb-2">{t('agro.topDistricts', 'Top Districts')}:</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {product.slAgriData.districts.map((d: any, idx: number) => (
+                            <span key={idx} className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-md border border-green-100 font-medium">
+                              {isSinhala ? (d.sinhalaDistrictName || d.districtName) : d.districtName} {d.percentage}%
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {product.globalAgriData && product.globalAgriData.length > 0 && (
+                  <div className="space-y-3 pt-2">
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2">{t('agro.globalData', 'Global Data')}</p>
+                    {product.globalAgriData.slice(0, 3).map((g: any, idx: number) => (
+                      <div key={idx} className="text-sm bg-gray-50/80 p-2.5 rounded-lg border border-gray-100">
+                        <div className="flex justify-between items-center mb-1.5 border-b border-gray-200/50 pb-1.5">
+                          <span className="font-bold text-gray-800">#{g.rank} {isSinhala ? (g.sinhalaCountryName || g.countryName) : g.countryName}</span>
+                        </div>
+                        <div className="flex flex-col gap-1 text-xs text-gray-500 font-medium">
+                          <div className="flex justify-between items-start gap-2">
+                            <span className="text-gray-400 whitespace-nowrap">{t('agro.production', 'Production')}:</span>
+                            <span className="text-right text-gray-700">{g.production}</span>
+                          </div>
+                          <div className="flex justify-between items-start gap-2">
+                            <span className="text-gray-400 whitespace-nowrap">{t('agro.area', 'Area')}:</span>
+                            <span className="text-right text-gray-700">{g.cultivationArea}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="pt-2 space-y-3 border-t border-gray-100 mt-2">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 mt-4">
+                    <MapPin className="w-4 h-4 text-[var(--color-secondary)] shrink-0" />
+                    <span className="truncate">{t('agro.from', 'From')} {product.location || 'Sri Lanka'}</span>
+                  </div>
+                  <Link to={`/agro/${mainCategory.slug}/${category.slug}`} className="flex items-center gap-2 text-sm text-[var(--color-secondary)] hover:underline font-medium">
+                    <ArrowLeft className="w-4 h-4 shrink-0" />
+                    <span className="truncate">{t('agro.backTo', 'Back to')} {isSinhala ? (category.sinhalaName || category.name) : category.name}</span>
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -156,12 +197,28 @@ export default function AgroProductDetail() {
             <h2 className="text-2xl font-black text-gray-900 mb-8">{t('agro.moreIn', 'More in')} <span className="text-[var(--color-secondary)]">{isSinhala ? (category.sinhalaName || category.name) : category.name}</span></h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
               {relatedProducts.map((p) => (
-                <Link key={p.id} to={`/agro/${mainCategory.slug}/${category.slug}/${p.slug}`} className="group rounded-2xl overflow-hidden border border-gray-100 hover:border-[var(--color-secondary)]/30 hover:shadow-lg transition-all duration-300">
-                  <div className="h-40 overflow-hidden"><img src={p.images && p.images.length > 0 ? p.images[0] : 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80'} alt={p.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" /></div>
-                  <div className="p-4">
-                    <p className="text-xs text-gray-400 mb-0.5 truncate">{isSinhala ? p.name : ''}</p>
-                    <h3 className="font-bold text-gray-900 group-hover:text-[var(--color-secondary)] transition-colors text-sm truncate">{isSinhala ? (p.sinhalaName || p.name) : p.name}</h3>
-                    {p.price && <p className="font-black text-[var(--color-secondary)] text-sm mt-2">Rs. {p.price}</p>}
+                <Link 
+                  key={p.id} 
+                  to={`/agro/${mainCategory.slug}/${category.slug}/${p.slug}`} 
+                  className="group relative block w-full aspect-square rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-100"
+                >
+                  <img
+                    src={
+                      (Array.isArray(p.images) && p.images.length > 0
+                        ? p.images[0]
+                        : (typeof p.images === 'object' && p.images !== null
+                          ? Object.values(p.images)[0]
+                          : p.images)) || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80'
+                    }
+                    alt={isSinhala ? (p.sinhalaName || p.name) : p.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  
+                  {/* Hover Overlay */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6 backdrop-blur-[2px]">
+                    <h3 className="text-white text-xl font-bold text-center drop-shadow-md translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                      {isSinhala ? (p.sinhalaName || p.name) : p.name}
+                    </h3>
                   </div>
                 </Link>
               ))}

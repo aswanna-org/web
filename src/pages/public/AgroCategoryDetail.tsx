@@ -97,22 +97,35 @@ export default function AgroCategoryDetail() {
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {items.map((product: any) => (
-              <Card
+            {items.map((product: any) => {
+              console.log('Product Item:', product);
+              return (
+              <Link 
                 key={product.id}
                 to={`/agro/${mainCategory.slug}/${category.slug}/${product.slug}`}
-                image={product.images && product.images.length > 0 ? product.images[0] : undefined}
-                badge={product.status === 'AVAILABLE' ? t('agro.available', 'Available') : t('agro.outOfStock', 'Out of Stock')}
-                title={isSinhala ? (product.sinhalaName || product.name) : product.name}
-                subtitle={isSinhala ? product.name : ''}
-                meta={[
-                  { text: product.price ? `Rs. ${product.price} / ${product.unit}` : '' },
-                  { icon: MapPin, text: product.location || '' }
-                ].filter(m => m.text)}
-                primaryAction={{ text: t('agro.viewDetails', 'View Details') }}
-                secondaryAction={{ icon: ShoppingCart }}
-              />
-            ))}
+                className="group relative block w-full aspect-square rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-100"
+              >
+                <img
+                  src={
+                    Array.isArray(product.images) && product.images.length > 0
+                      ? product.images[0]
+                      : (typeof product.images === 'object' && product.images !== null
+                          ? Object.values(product.images)[0] as string
+                          : (product.images as string) || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80')
+                  }
+                  alt={isSinhala ? (product.sinhalaName || product.name) : product.name}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                
+                {/* Hover Overlay */}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6 backdrop-blur-[2px]">
+                  <h3 className="text-white text-2xl font-bold text-center drop-shadow-md translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                    {isSinhala ? (product.sinhalaName || product.name) : product.name}
+                  </h3>
+                </div>
+              </Link>
+              );
+            })}
             
             {items.length === 0 && (
               <div className="col-span-full py-10 text-center text-gray-400">

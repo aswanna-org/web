@@ -197,7 +197,16 @@
     "from": "සිට",
     "backTo": "ආපසු",
     "moreIn": "තවත් දේ",
-    "brandName": "අස්වැන්න"
+    "brandName": "අස්වැන්න",
+    "scientificName": "විද්‍යාත්මක නාමය",
+    "slData": "ශ්‍රී ලංකා දත්ත",
+    "cultivationArea": "වගා කරන භූමි ප්‍රමාණය",
+    "annualProd": "වාර්ෂික නිෂ්පාදනය",
+    "avgYield": "සාමාන්‍ය අස්වැන්න",
+    "topDistricts": "ප්‍රමුඛ දිස්ත්‍රික්ක",
+    "globalData": "ගෝලීය දත්ත",
+    "production": "නිෂ්පාදනය",
+    "area": "භූමි ප්‍රමාණය"
   },
   "blogPage": {
     "title": "බ්ලොග්",

@@ -10,6 +10,7 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: bool
     { name: 'Plant Finder', path: '/admin/plants', icon: Sprout },
     { name: 'Agro Lands', path: '/admin/agrolands', icon: Map },
     { name: 'Govijana Sewa', path: '/admin/asc', icon: Building },
+    { name: 'Courses', path: '/admin/courses', icon: FileText },
     { name: 'Orders', path: '/admin/orders', icon: ShoppingCart },
     { name: 'News', path: '/admin/news', icon: FileText },
     { name: 'Blogs', path: '/admin/blogs', icon: FileText },

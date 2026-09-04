@@ -197,7 +197,16 @@
     "from": "From",
     "backTo": "Back to",
     "moreIn": "More in",
-    "brandName": "Aswanna"
+    "brandName": "Aswanna",
+    "scientificName": "Scientific Name",
+    "slData": "Sri Lanka Data",
+    "cultivationArea": "Cultivation Area",
+    "annualProd": "Annual Production",
+    "avgYield": "Average Yield",
+    "topDistricts": "Top Districts",
+    "globalData": "Global Data",
+    "production": "Production",
+    "area": "Area"
   },
   "blogPage": {
     "title": "BLOG",

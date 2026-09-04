@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { Search, ArrowLeft, ChevronRight } from 'lucide-react';
+import { Search, ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import Card from '../../components/ui/Card';
 
 interface Category {
   id: string;
@@ -19,7 +18,7 @@ export default function AgroMainCategoryDetail() {
   const { t, i18n } = useTranslation();
   const [dbCategories, setDbCategories] = useState<Category[]>([]);
   const [search, setSearch] = useState('');
-  
+
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
@@ -69,7 +68,7 @@ export default function AgroMainCategoryDetail() {
           }}
         >
           <div className="absolute inset-0 bg-black/50" />
-          <div 
+          <div
             className="absolute inset-0 mix-blend-multiply"
             style={{
               background: `linear-gradient(to right, #2E7D32 0%, #2E7D32dd 30%, transparent 100%)`,
@@ -87,9 +86,6 @@ export default function AgroMainCategoryDetail() {
           </Link>
           <div className="flex items-center gap-4">
             <div>
-              <p className="text-white/60 text-sm font-medium uppercase tracking-widest mb-1">
-                {t('agro.title', 'Agro Technology')}
-              </p>
               <h1 className="text-white text-4xl sm:text-5xl font-black uppercase tracking-tight drop-shadow-xl">
                 {isSinhala ? (mainCategory.sinhalaName || mainCategory.name) : mainCategory.name}
               </h1>
@@ -125,15 +121,24 @@ export default function AgroMainCategoryDetail() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filtered.map((cat) => (
-                <Card
+                <Link
                   key={cat.id}
                   to={`/agro/${mainCategory.slug}/${cat.slug}`}
-                  image={cat.image || undefined}
-                  badge={t('agro.exploreCategory', 'Explore Category')}
-                  title={isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
-                  subtitle={isSinhala ? cat.name : ''}
-                  primaryAction={{ text: t('agro.explore', 'Explore'), icon: ChevronRight }}
-                />
+                  className="group relative block w-full aspect-square rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-100"
+                >
+                  <img
+                    src={cat.image || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80'}
+                    alt={isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+
+                  {/* Hover Overlay */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6 backdrop-blur-[2px]">
+                    <h3 className="text-white text-2xl font-bold text-center drop-shadow-md translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                      {isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
+                    </h3>
+                  </div>
+                </Link>
               ))}
             </div>
           )}

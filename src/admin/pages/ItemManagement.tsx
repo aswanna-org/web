@@ -9,19 +9,38 @@ interface Category {
   parentId: string | null;
 }
 
+interface DistrictShare {
+  districtName: string;
+  sinhalaDistrictName: string;
+  percentage: number;
+}
+
+interface SriLankaAgriData {
+  cultivationArea: string | null;
+  sinhalaCultivationArea: string | null;
+  annualProduction: string | null;
+  sinhalaAnnualProduction: string | null;
+  averageYield: string | null;
+  sinhalaAverageYield: string | null;
+  districts: DistrictShare[];
+}
+
+interface GlobalAgriData {
+  rank: number;
+  countryName: string;
+  sinhalaCountryName: string | null;
+  production: string;
+  cultivationArea: string;
+}
+
 interface Item {
   id: string;
   name: string;
   sinhalaName: string | null;
+  scientificName: string | null;
   slug: string;
   description: string | null;
   sinhalaDescription: string | null;
-  farmingGuide: string | null;
-  sinhalaFarmingGuide: string | null;
-  diseasesInfo: string | null;
-  sinhalaDiseasesInfo: string | null;
-  price: number | null;
-  unit: string | null;
   location: string | null;
   sinhalaLocation: string | null;
   status: string;
@@ -29,6 +48,8 @@ interface Item {
   categoryId: string;
   order: number;
   category?: Category;
+  slAgriData?: SriLankaAgriData | null;
+  globalAgriData?: GlobalAgriData[] | null;
 }
 
 const ItemManagement = () => {
@@ -53,25 +74,13 @@ const ItemManagement = () => {
     }
   };
 
-  const handleFarmingGuideChange = (val: string) => {
-    if (currentItem.farmingGuide !== val) {
-      setCurrentItem(prev => ({ ...prev, farmingGuide: val }));
-    }
-  };
-
   const handleSinhalaDescriptionChange = (val: string) => {
     if (currentItem.sinhalaDescription !== val) {
       setCurrentItem(prev => ({ ...prev, sinhalaDescription: val }));
     }
   };
 
-  const handleSinhalaFarmingGuideChange = (val: string) => {
-    if (currentItem.sinhalaFarmingGuide !== val) {
-      setCurrentItem(prev => ({ ...prev, sinhalaFarmingGuide: val }));
-    }
-  };
-
-  const [activeTab, setActiveTab] = useState<'EN' | 'SI'>('EN');
+  const [activeTab, setActiveTab] = useState<'EN' | 'SI' | 'SL_DATA' | 'GLOBAL_DATA'>('EN');
   
   // Image handling
   const [newImages, setNewImages] = useState<File[]>([]);
@@ -139,11 +148,22 @@ const ItemManagement = () => {
     setCurrentItem({
       name: '',
       sinhalaName: '',
+      scientificName: '',
       slug: '',
       description: '',
-      farmingGuide: '',
+      sinhalaDescription: '',
       status: 'AVAILABLE',
-      order: 99
+      order: 99,
+      slAgriData: {
+        cultivationArea: '',
+        sinhalaCultivationArea: '',
+        annualProduction: '',
+        sinhalaAnnualProduction: '',
+        averageYield: '',
+        sinhalaAverageYield: '',
+        districts: []
+      },
+      globalAgriData: []
     });
     setSelectedMainCategoryId('');
     setNewImages([]);
@@ -203,7 +223,11 @@ const ItemManagement = () => {
       Object.keys(currentItem).forEach(key => {
         const val = (currentItem as any)[key];
         if (val !== null && val !== undefined && key !== 'images' && key !== 'category') {
-          formData.append(key, val.toString());
+          if (key === 'slAgriData' || key === 'globalAgriData') {
+            formData.append(key, JSON.stringify(val));
+          } else {
+            formData.append(key, val.toString());
+          }
         }
       });
 
@@ -478,26 +502,14 @@ const ItemManagement = () => {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={currentItem.price || ''}
-                        onChange={(e) => setCurrentItem({ ...currentItem, price: parseFloat(e.target.value) })}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Unit (e.g. kg, per plant)</label>
-                      <input
-                        type="text"
-                        value={currentItem.unit || ''}
-                        onChange={(e) => setCurrentItem({ ...currentItem, unit: e.target.value })}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Scientific Name</label>
+                    <input
+                      type="text"
+                      value={currentItem.scientificName || ''}
+                      onChange={(e) => setCurrentItem({ ...currentItem, scientificName: e.target.value })}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -560,13 +572,13 @@ const ItemManagement = () => {
 
                 </div>
 
-                {/* Right Column: Rich Text */}
+                {/* Right Column: Details & Data Tabs */}
                 <div className="space-y-4 flex flex-col h-full">
-                  <div className="flex border-b border-gray-200">
+                  <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide">
                     <button
                       type="button"
                       onClick={() => setActiveTab('EN')}
-                      className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
+                      className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                         activeTab === 'EN'
                           ? 'border-green-500 text-green-600'
                           : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -577,13 +589,35 @@ const ItemManagement = () => {
                     <button
                       type="button"
                       onClick={() => setActiveTab('SI')}
-                      className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
+                      className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                         activeTab === 'SI'
                           ? 'border-green-500 text-green-600'
                           : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                       }`}
                     >
-                      සිංහල Details (Sinhala)
+                      සිංහල Details
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('SL_DATA')}
+                      className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                        activeTab === 'SL_DATA'
+                          ? 'border-green-500 text-green-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      SL Data
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('GLOBAL_DATA')}
+                      className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                        activeTab === 'GLOBAL_DATA'
+                          ? 'border-green-500 text-green-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      Global Data
                     </button>
                   </div>
 
@@ -594,14 +628,6 @@ const ItemManagement = () => {
                         value={currentItem.description || ''}
                         onChange={handleDescriptionChange}
                         placeholder="Write a detailed description here..."
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Farming Guide / Details (English)</label>
-                      <RichTextEditor
-                        value={currentItem.farmingGuide || ''}
-                        onChange={handleFarmingGuideChange}
-                        placeholder="Step by step guide or additional details..."
                       />
                     </div>
                   </div>
@@ -615,13 +641,242 @@ const ItemManagement = () => {
                         placeholder="සිංහලෙන් විස්තරය ඇතුලත් කරන්න..."
                       />
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Farming Guide (Sinhala) - වගා උපදෙස්</label>
-                      <RichTextEditor
-                        value={currentItem.sinhalaFarmingGuide || ''}
-                        onChange={handleSinhalaFarmingGuideChange}
-                        placeholder="පියවරෙන් පියවර වගා උපදෙස්..."
-                      />
+                  </div>
+
+                  <div className={activeTab === 'SL_DATA' ? 'block space-y-4' : 'hidden'}>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Cultivation Area</label>
+                        <input
+                          type="text"
+                          value={currentItem.slAgriData?.cultivationArea || ''}
+                          onChange={(e) => setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, cultivationArea: e.target.value } as any })}
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Cultivation Area (Sinhala)</label>
+                        <input
+                          type="text"
+                          value={currentItem.slAgriData?.sinhalaCultivationArea || ''}
+                          onChange={(e) => setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, sinhalaCultivationArea: e.target.value } as any })}
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Annual Production</label>
+                        <input
+                          type="text"
+                          value={currentItem.slAgriData?.annualProduction || ''}
+                          onChange={(e) => setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, annualProduction: e.target.value } as any })}
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Annual Production (Sinhala)</label>
+                        <input
+                          type="text"
+                          value={currentItem.slAgriData?.sinhalaAnnualProduction || ''}
+                          onChange={(e) => setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, sinhalaAnnualProduction: e.target.value } as any })}
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Average Yield</label>
+                        <input
+                          type="text"
+                          value={currentItem.slAgriData?.averageYield || ''}
+                          onChange={(e) => setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, averageYield: e.target.value } as any })}
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Average Yield (Sinhala)</label>
+                        <input
+                          type="text"
+                          value={currentItem.slAgriData?.sinhalaAverageYield || ''}
+                          onChange={(e) => setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, sinhalaAverageYield: e.target.value } as any })}
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-6">
+                      <div className="flex justify-between items-center mb-2">
+                        <h4 className="font-medium text-gray-900">District Shares</h4>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const currentDistricts = currentItem.slAgriData?.districts || [];
+                            setCurrentItem({
+                              ...currentItem,
+                              slAgriData: {
+                                ...currentItem.slAgriData,
+                                districts: [...currentDistricts, { districtName: '', sinhalaDistrictName: '', percentage: 0 }]
+                              } as any
+                            });
+                          }}
+                          className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200"
+                        >
+                          + Add District
+                        </button>
+                      </div>
+                      <div className="space-y-3">
+                        {currentItem.slAgriData?.districts?.map((d: any, idx: number) => (
+                          <div key={idx} className="flex gap-2 items-start bg-gray-50 p-2 rounded border border-gray-200">
+                            <input
+                              type="text"
+                              placeholder="District (EN)"
+                              value={d.districtName}
+                              onChange={(e) => {
+                                const newD = [...(currentItem.slAgriData?.districts || [])];
+                                newD[idx].districtName = e.target.value;
+                                setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, districts: newD } as any });
+                              }}
+                              className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                            />
+                            <input
+                              type="text"
+                              placeholder="District (SI)"
+                              value={d.sinhalaDistrictName}
+                              onChange={(e) => {
+                                const newD = [...(currentItem.slAgriData?.districts || [])];
+                                newD[idx].sinhalaDistrictName = e.target.value;
+                                setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, districts: newD } as any });
+                              }}
+                              className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                            />
+                            <input
+                              type="number"
+                              placeholder="%"
+                              value={d.percentage}
+                              onChange={(e) => {
+                                const newD = [...(currentItem.slAgriData?.districts || [])];
+                                newD[idx].percentage = parseFloat(e.target.value) || 0;
+                                setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, districts: newD } as any });
+                              }}
+                              className="w-20 rounded border border-gray-300 px-2 py-1 text-sm"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newD = (currentItem.slAgriData?.districts || []).filter((_: any, i: number) => i !== idx);
+                                setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, districts: newD } as any });
+                              }}
+                              className="text-red-500 hover:text-red-700 p-1"
+                            >
+                              <X size={16} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className={activeTab === 'GLOBAL_DATA' ? 'block space-y-4' : 'hidden'}>
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="font-medium text-gray-900">Global Production Data</h4>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const currentGlobal = currentItem.globalAgriData || [];
+                          setCurrentItem({
+                            ...currentItem,
+                            globalAgriData: [...currentGlobal, { rank: currentGlobal.length + 1, countryName: '', sinhalaCountryName: '', production: '', cultivationArea: '' }]
+                          });
+                        }}
+                        className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200"
+                      >
+                        + Add Country
+                      </button>
+                    </div>
+                    <div className="space-y-4">
+                      {currentItem.globalAgriData?.map((g: any, idx: number) => (
+                        <div key={idx} className="bg-gray-50 p-3 rounded border border-gray-200 relative">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newG = (currentItem.globalAgriData || []).filter((_: any, i: number) => i !== idx);
+                              setCurrentItem({ ...currentItem, globalAgriData: newG });
+                            }}
+                            className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                          >
+                            <X size={16} />
+                          </button>
+                          
+                          <div className="grid grid-cols-2 gap-3 pr-8">
+                            <div>
+                              <label className="block text-xs text-gray-500">Rank</label>
+                              <input
+                                type="number"
+                                value={g.rank}
+                                onChange={(e) => {
+                                  const newG = [...(currentItem.globalAgriData || [])];
+                                  newG[idx].rank = parseInt(e.target.value) || 0;
+                                  setCurrentItem({ ...currentItem, globalAgriData: newG });
+                                }}
+                                className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-500">Production</label>
+                              <input
+                                type="text"
+                                value={g.production}
+                                onChange={(e) => {
+                                  const newG = [...(currentItem.globalAgriData || [])];
+                                  newG[idx].production = e.target.value;
+                                  setCurrentItem({ ...currentItem, globalAgriData: newG });
+                                }}
+                                className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-500">Country Name</label>
+                              <input
+                                type="text"
+                                value={g.countryName}
+                                onChange={(e) => {
+                                  const newG = [...(currentItem.globalAgriData || [])];
+                                  newG[idx].countryName = e.target.value;
+                                  setCurrentItem({ ...currentItem, globalAgriData: newG });
+                                }}
+                                className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-500">Country Name (Sinhala)</label>
+                              <input
+                                type="text"
+                                value={g.sinhalaCountryName || ''}
+                                onChange={(e) => {
+                                  const newG = [...(currentItem.globalAgriData || [])];
+                                  newG[idx].sinhalaCountryName = e.target.value;
+                                  setCurrentItem({ ...currentItem, globalAgriData: newG });
+                                }}
+                                className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                              />
+                            </div>
+                            <div className="col-span-2">
+                              <label className="block text-xs text-gray-500">Cultivation Area</label>
+                              <input
+                                type="text"
+                                value={g.cultivationArea}
+                                onChange={(e) => {
+                                  const newG = [...(currentItem.globalAgriData || [])];
+                                  newG[idx].cultivationArea = e.target.value;
+                                  setCurrentItem({ ...currentItem, globalAgriData: newG });
+                                }}
+                                className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>

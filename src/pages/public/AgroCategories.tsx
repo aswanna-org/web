@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, Sprout, ChevronRight } from 'lucide-react';
-import Card from '../../components/ui/Card';
+import { Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface Category {
   id: string;
@@ -9,27 +9,32 @@ interface Category {
   sinhalaName: string | null;
   slug: string;
   parentId: string | null;
-  image: string | null;
+  images: any;
   order: number;
 }
 
 export default function AgroCategories() {
   const [search, setSearch] = useState('');
-  const [dbCategories, setDbCategories] = useState<Category[]>([]);
-  
+  const [categories, setCategories] = useState<Category[]>([]);
+
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/categories`)
       .then(res => res.json())
-      .then(data => setDbCategories(data))
-      .catch(console.error);
+      .then(data => {
+        console.log('Fetched Categories Data:', data);
+        setCategories(data);
+      })
+      .catch(error => {
+        console.error('Error fetching categories:', error);
+      });
   }, [API_BASE_URL]);
 
   const { t, i18n } = useTranslation();
   const isSinhala = i18n.language === 'si';
-  
-  const mainCategories = dbCategories
+
+  const mainCategories = categories
     .filter(cat => !cat.parentId)
     .sort((a, b) => a.order - b.order);
 
@@ -98,19 +103,29 @@ export default function AgroCategories() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filtered.map((cat) => {
-                const subCount = dbCategories.filter(sub => sub.parentId === cat.id).length;
+                const imageUrl = Array.isArray(cat.images)
+                  ? cat.images[0]
+                  : (typeof cat.images === 'object' && cat.images !== null ? Object.values(cat.images)[0] : cat.images);
+
                 return (
-                  <Card
-                    key={cat.id}
-                    to={`/agro/${cat.slug}`}
-                    image={cat.image || undefined}
-                    icon={Sprout}
-                    color="#2E7D32"
-                    badge={`${subCount} ${t('agro.subCategories', 'sub-categories')}`}
-                    title={isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
-                    subtitle={t('agro.exploreFarming', 'Explore farming techniques')}
-                    primaryAction={{ text: t('agro.viewSubCategories', 'View Sub-categories'), icon: ChevronRight }}
-                  />
+                  <Link 
+                    key={cat.id} 
+                    to={`/agro/${cat.slug}`} 
+                    className="group relative block w-full aspect-square rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-100"
+                  >
+                    <img
+                      src={imageUrl || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80'}
+                      alt={isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6 backdrop-blur-[2px]">
+                      <h3 className="text-white text-2xl font-bold text-center drop-shadow-md translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                        {isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
+                      </h3>
+                    </div>
+                  </Link>
                 );
               })}
             </div>
