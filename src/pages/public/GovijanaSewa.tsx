@@ -235,7 +235,7 @@ export default function GovijanaSewa() {
 
                       <div className="flex items-center gap-4 mt-4 sm:mt-0">
                         <button
-                          className="px-8 py-4 bg-[var(--color-primary)]/80 hover:bg-[var(--color-primary)] border border-[var(--color-primary)]/50 backdrop-blur-md flex items-center justify-center text-white font-bold rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-all duration-300 uppercase tracking-wider shrink-0 w-full sm:w-auto"
+                          className="px-8 py-4 bg-[var(--color-primary)]/80 hover:bg-[var(--color-primary)] border border-[var(--color-primary)]/50 backdrop-blur-md flex items-center justify-center text-white font-bold rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-all duration-300 uppercase tracking-wider shrink-0 w-full sm:w-auto"
                         >
                           View Details <ArrowRight size={16} className="ml-2" />
                         </button>

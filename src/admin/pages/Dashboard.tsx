@@ -1,136 +1,102 @@
+import { useState, useEffect } from 'react';
+import { Users, Newspaper, BookOpen, ShoppingBag, MapPin, Building2, ShoppingCart, Sprout } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-import { Users, DollarSign, ShoppingBag, Activity, TrendingUp, TrendingDown } from 'lucide-react';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-const Dashboard = () => {
-  const statCards = [
-    { title: 'Total Revenue', value: '$45,231.89', change: '+20.1%', isPositive: true, icon: DollarSign, color: 'text-green-600', bg: 'bg-green-100' },
-    { title: 'New Customers', value: '+2350', change: '+180.1%', isPositive: true, icon: Users, color: 'text-blue-600', bg: 'bg-blue-100' },
-    { title: 'Sales', value: '+12,234', change: '+19%', isPositive: true, icon: ShoppingBag, color: 'text-purple-600', bg: 'bg-purple-100' },
-    { title: 'Active Now', value: '573', change: '-5%', isPositive: false, icon: Activity, color: 'text-red-600', bg: 'bg-red-100' },
-  ];
+interface StatCard { label: string; count: number | null; icon: React.ReactNode; href: string; color: string; }
 
-  const recentOrders = [
-    { id: '#ORD-001', customer: 'John Doe', product: 'Organic Tomatoes', date: 'Oct 24, 2026', amount: '$120.00', status: 'Completed' },
-    { id: '#ORD-002', customer: 'Jane Smith', product: 'Fresh Carrots', date: 'Oct 23, 2026', amount: '$45.50', status: 'Processing' },
-    { id: '#ORD-003', customer: 'Robert Johnson', product: 'Premium Rice 5kg', date: 'Oct 23, 2026', amount: '$210.00', status: 'Completed' },
-    { id: '#ORD-004', customer: 'Emily Davis', product: 'Avocado Pack', date: 'Oct 22, 2026', amount: '$32.00', status: 'Pending' },
-    { id: '#ORD-005', customer: 'Michael Wilson', product: 'Organic Fertilizer', date: 'Oct 21, 2026', amount: '$85.00', status: 'Completed' },
-  ];
+export default function Dashboard() {
+  const [stats, setStats] = useState<Record<string, number>>({});
+  const [isLoading, setIsLoading] = useState(true);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'Completed': return 'bg-green-100 text-green-800';
-      case 'Processing': return 'bg-blue-100 text-blue-800';
-      case 'Pending': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const token = localStorage.getItem('token');
+  const headers = { Authorization: `Bearer ${token}` };
+
+  const fetchStat = async (endpoint: string, key: string) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/${endpoint}`, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        const count = data.meta?.total ?? (Array.isArray(data) ? data.length : data.total ?? null);
+        if (count !== null) setStats(prev => ({ ...prev, [key]: count }));
+      }
+    } catch (_) {}
   };
 
+  useEffect(() => {
+    const fetches = [
+      fetchStat('news?limit=1', 'news'),
+      fetchStat('blogs?limit=1', 'blogs'),
+      fetchStat('items?limit=1', 'items'),
+      fetchStat('products?limit=1', 'products'),
+      fetchStat('agrolands?limit=1', 'agrolands'),
+      fetchStat('asc?limit=1', 'asc'),
+      fetchStat('orders?limit=1', 'orders'),
+      fetchStat('plants?limit=1', 'plants'),
+      fetchStat('courses/admin?limit=1', 'courses'),
+      fetchStat('careers/openings?limit=1', 'careers'),
+    ];
+    Promise.all(fetches).finally(() => setIsLoading(false));
+  }, []);
+
+  const cards: StatCard[] = [
+    { label: 'News Articles', count: stats.news ?? null, icon: <Newspaper size={24} />, href: '/admin/news', color: 'bg-blue-500' },
+    { label: 'Blog Posts', count: stats.blogs ?? null, icon: <Newspaper size={24} />, href: '/admin/blogs', color: 'bg-purple-500' },
+    { label: 'Agro Items', count: stats.items ?? null, icon: <BookOpen size={24} />, href: '/admin/items', color: 'bg-green-500' },
+    { label: 'Products', count: stats.products ?? null, icon: <ShoppingBag size={24} />, href: '/admin/products', color: 'bg-orange-500' },
+    { label: 'Agro Lands', count: stats.agrolands ?? null, icon: <MapPin size={24} />, href: '/admin/agrolands', color: 'bg-teal-500' },
+    { label: 'ASC Centers', count: stats.asc ?? null, icon: <Building2 size={24} />, href: '/admin/asc', color: 'bg-indigo-500' },
+    { label: 'Orders', count: stats.orders ?? null, icon: <ShoppingCart size={24} />, href: '/admin/orders', color: 'bg-red-500' },
+    { label: 'Plants', count: stats.plants ?? null, icon: <Sprout size={24} />, href: '/admin/plants', color: 'bg-lime-500' },
+    { label: 'Courses', count: stats.courses ?? null, icon: <BookOpen size={24} />, href: '/admin/courses', color: 'bg-sky-500' },
+    { label: 'Job Openings', count: stats.careers ?? null, icon: <Users size={24} />, href: '/admin/careers', color: 'bg-amber-500' },
+  ];
+
   return (
-    <div className="space-y-6 w-full mx-auto">
-      {/* Stats Overview */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {statCards.map((stat, index) => {
-          const Icon = stat.icon;
-          return (
-            <div key={index} className="rounded-xl bg-white p-6 shadow-sm border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-500">{stat.title}</p>
-                  <p className="mt-2 text-3xl font-bold text-gray-900">{stat.value}</p>
-                </div>
-                <div className={`flex h-12 w-12 items-center justify-center rounded-full ${stat.bg}`}>
-                  <Icon className={`h-6 w-6 ${stat.color}`} />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center">
-                {stat.isPositive ? (
-                  <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
-                ) : (
-                  <TrendingDown className="h-4 w-4 text-red-500 mr-1" />
-                )}
-                <span className={`text-sm font-medium ${stat.isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                  {stat.change}
-                </span>
-                <span className="ml-2 text-sm text-gray-500">from last month</span>
-              </div>
-            </div>
-          );
-        })}
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
+        <p className="text-sm text-gray-500 mt-1">Welcome back! Here's an overview of your content.</p>
       </div>
 
-      {/* Main Content Area */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Recent Orders Table */}
-        <div className="lg:col-span-2 rounded-xl bg-white shadow-sm border border-gray-100 overflow-hidden">
-          <div className="border-b border-gray-100 px-6 py-4 flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-gray-800">Recent Orders</h2>
-            <button className="text-sm font-medium text-green-600 hover:text-green-700">View All</button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-gray-500">
-              <thead className="bg-gray-50 text-xs uppercase text-gray-700">
-                <tr>
-                  <th scope="col" className="px-6 py-3">Order ID</th>
-                  <th scope="col" className="px-6 py-3">Customer</th>
-                  <th scope="col" className="px-6 py-3">Product</th>
-                  <th scope="col" className="px-6 py-3">Amount</th>
-                  <th scope="col" className="px-6 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentOrders.map((order, i) => (
-                  <tr key={i} className="border-b border-gray-50 hover:bg-gray-50 transition-colors last:border-0">
-                    <td className="whitespace-nowrap px-6 py-4 font-medium text-gray-900">{order.id}</td>
-                    <td className="px-6 py-4">{order.customer}</td>
-                    <td className="px-6 py-4 text-gray-500">{order.product}</td>
-                    <td className="px-6 py-4 font-medium text-gray-900">{order.amount}</td>
-                    <td className="px-6 py-4">
-                      <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${getStatusColor(order.status)}`}>
-                        {order.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        {cards.map(card => (
+          <Link key={card.label} to={card.href}
+            className="bg-white rounded-xl border border-gray-100 p-5 flex flex-col gap-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
+            <div className={`w-10 h-10 rounded-xl ${card.color} text-white flex items-center justify-center`}>
+              {card.icon}
+            </div>
+            <div>
+              {isLoading ? (
+                <div className="h-7 w-12 bg-gray-100 rounded animate-pulse mb-1" />
+              ) : (
+                <p className="text-2xl font-bold text-gray-800">{card.count ?? '—'}</p>
+              )}
+              <p className="text-sm text-gray-500">{card.label}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
 
-        {/* Top Products/Analytics Widget */}
-        <div className="rounded-xl bg-white shadow-sm border border-gray-100 p-6 flex flex-col">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Traffic Sources</h2>
-          <div className="flex-1 flex items-center justify-center py-4">
-            {/* Simple placeholder for a chart */}
-            <div className="relative h-48 w-48 rounded-full border-[16px] border-green-500 border-t-blue-500 border-r-purple-500 border-b-yellow-500 flex items-center justify-center shadow-inner">
-              <div className="text-center">
-                <span className="block text-2xl font-bold text-gray-800">42K</span>
-                <span className="text-xs text-gray-500">Visits</span>
-              </div>
-            </div>
-          </div>
-          <div className="mt-4 space-y-3">
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-green-500"></div><span className="text-gray-600">Direct</span></div>
-              <span className="font-medium">45%</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-blue-500"></div><span className="text-gray-600">Social</span></div>
-              <span className="font-medium">25%</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-purple-500"></div><span className="text-gray-600">Organic</span></div>
-              <span className="font-medium">20%</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-yellow-500"></div><span className="text-gray-600">Referral</span></div>
-              <span className="font-medium">10%</span>
-            </div>
-          </div>
+      <div className="bg-white rounded-xl border border-gray-100 p-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
+        <div className="flex flex-wrap gap-3">
+          {[
+            { label: 'Add News', href: '/admin/news' },
+            { label: 'Add Blog Post', href: '/admin/blogs' },
+            { label: 'Add Product', href: '/admin/products' },
+            { label: 'Add Land', href: '/admin/agrolands' },
+            { label: 'Add Course', href: '/admin/courses' },
+            { label: 'View Orders', href: '/admin/orders' },
+          ].map(action => (
+            <Link key={action.label} to={action.href}
+              className="px-4 py-2 bg-green-50 text-green-700 font-medium rounded-lg text-sm hover:bg-green-100 transition-colors">
+              {action.label}
+            </Link>
+          ))}
         </div>
       </div>
     </div>
   );
-};
-
-export default Dashboard;
+}

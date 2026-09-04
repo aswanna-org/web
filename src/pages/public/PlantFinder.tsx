@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import PageHero from '../../components/public/PageHero';
 import { useTranslation } from 'react-i18next';
 import { Search, Filter, Sprout, MapPin, Layers, Clock } from 'lucide-react';
+import Pagination from '../../components/admin/Pagination';
 
 interface Lookup {
   id: string;
@@ -49,17 +50,21 @@ export default function PlantFinder() {
   const [selectedZone, setSelectedZone] = useState('');
   const [selectedSoil, setSelectedSoil] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
-    fetchPlants();
-  }, [searchQuery, selectedZone, selectedSoil, selectedTime]);
+    fetchPlants(currentPage);
+  }, [searchQuery, selectedZone, selectedSoil, selectedTime, currentPage]);
 
-  const fetchPlants = async () => {
+  const fetchPlants = async (page = 1) => {
     try {
       setIsLoading(true);
       const queryParams = new URLSearchParams();
+      queryParams.append('page', page.toString());
+      queryParams.append('limit', '12');
       if (searchQuery) queryParams.append('search', searchQuery);
       if (selectedZone) queryParams.append('climaticZone', selectedZone);
       if (selectedSoil) queryParams.append('soilType', selectedSoil);
@@ -68,8 +73,11 @@ export default function PlantFinder() {
       const res = await fetch(`${API_BASE_URL}/plants?${queryParams.toString()}`);
       if (res.ok) {
         const data = await res.json();
-        setPlants(data.plants);
-        setAvailableFilters(data.filters);
+        setPlants(data.data?.plants || data.plants || []);
+        setAvailableFilters(data.data?.filters || data.filters || { climaticZones: [], soilTypes: [], harvestTimes: [] });
+        if (data.meta) {
+          setTotalPages(data.meta.totalPages);
+        }
       }
     } catch (err) {
       console.error('Failed to fetch plants', err);
@@ -255,6 +263,15 @@ export default function PlantFinder() {
               </div>
             )}
             
+            {totalPages > 1 && (
+              <div className="mt-8">
+                <Pagination 
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={(page) => setCurrentPage(page)}
+                />
+              </div>
+            )}
           </div>
         </div>
       </div>

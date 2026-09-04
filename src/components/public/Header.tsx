@@ -36,10 +36,12 @@ export default function Header() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/categories`);
+        const res = await fetch(`${API_BASE_URL}/categories/tree`);
         if (res.ok) {
           const data = await res.json();
-          setDbCategories(data);
+          // /tree returns a nested structure; flatten it for the nav
+          const flatten = (items: any[]): any[] => items.flatMap((c: any) => [c, ...(c.children ? flatten(c.children) : [])]);
+          setDbCategories(Array.isArray(data) ? flatten(data) : []);
         }
       } catch (err) {
         console.error("Failed to fetch categories for navbar", err);
@@ -91,7 +93,7 @@ export default function Header() {
                       <div key={cat.id} className="relative group/sub">
                         <Link
                           to={`/agro/${cat.slug}`}
-                          className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-green-50 text-sm font-medium text-gray-700 hover:text-green-700 transition-colors w-full text-left"
+                          className="flex items-center justify-between px-3 py-2.5 rounded-full hover:bg-green-50 text-sm font-medium text-gray-700 hover:text-green-700 transition-colors w-full text-left"
                         >
                           {isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
                           {subCats.length > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
@@ -107,7 +109,7 @@ export default function Header() {
                                     <Link
                                       key={subCat.id}
                                       to={`/agro/${cat.slug}/${subCat.slug}`}
-                                      className="px-3 py-2.5 rounded-lg hover:bg-green-50 text-sm font-medium text-gray-700 hover:text-green-700 transition-colors"
+                                      className="px-3 py-2.5 rounded-full hover:bg-green-50 text-sm font-medium text-gray-700 hover:text-green-700 transition-colors"
                                     >
                                       {isSinhala ? (subCat.sinhalaName || subCat.name) : subCat.name}
                                     </Link>

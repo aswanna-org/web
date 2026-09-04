@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Clock, BookOpen, DollarSign } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import Card from '../../components/ui/Card';
+import Pagination from '../../components/admin/Pagination';
 
 export default function Education() {
   const { t, i18n } = useTranslation();
@@ -10,6 +11,8 @@ export default function Education() {
   const [categories, setCategories] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const isSinhala = i18n.language === 'si';
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -25,21 +28,24 @@ export default function Education() {
   useEffect(() => {
     // Fetch Courses
     const url = activeCategory === 'All' 
-      ? `${API_BASE_URL}/courses` 
-      : `${API_BASE_URL}/courses?categoryId=${activeCategory}`;
+      ? `${API_BASE_URL}/courses?page=${currentPage}&limit=12` 
+      : `${API_BASE_URL}/courses?categoryId=${activeCategory}&page=${currentPage}&limit=12`;
 
     setLoading(true);
     fetch(url)
       .then(res => res.json())
       .then(data => {
-        setCourses(Array.isArray(data) ? data : []);
+        setCourses(Array.isArray(data.data) ? data.data : (Array.isArray(data) ? data : []));
+        if (data.meta) {
+          setTotalPages(data.meta.totalPages);
+        }
         setLoading(false);
       })
       .catch((err) => {
         console.error(err);
         setLoading(false);
       });
-  }, [API_BASE_URL, activeCategory]);
+  }, [API_BASE_URL, activeCategory, currentPage]);
 
   return (
     <div className="w-full min-h-screen bg-gray-50">
@@ -58,7 +64,7 @@ export default function Education() {
           {/* Filter Navigation */}
           <div className="flex flex-wrap items-center justify-center gap-3 mb-12">
             <button
-              onClick={() => setActiveCategory('All')}
+              onClick={() => { setActiveCategory('All'); setCurrentPage(1); }}
               className={`px-6 py-2.5 rounded-full text-sm font-bold tracking-wider transition-all duration-300 ${activeCategory === 'All'
                   ? 'bg-[var(--color-secondary)] text-white shadow-md'
                   : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 shadow-sm border border-gray-100'
@@ -69,7 +75,7 @@ export default function Education() {
             {categories.map((cat) => (
               <button
                 key={cat.id}
-                onClick={() => setActiveCategory(cat.id)}
+                onClick={() => { setActiveCategory(cat.id); setCurrentPage(1); }}
                 className={`px-6 py-2.5 rounded-full text-sm font-bold tracking-wider transition-all duration-300 ${activeCategory === cat.id
                     ? 'bg-[var(--color-secondary)] text-white shadow-md'
                     : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 shadow-sm border border-gray-100'
@@ -109,6 +115,16 @@ export default function Education() {
                   }}
                 />
               ))}
+            </div>
+          )}
+          
+          {totalPages > 1 && (
+            <div className="mt-12">
+              <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
             </div>
           )}
         </div>

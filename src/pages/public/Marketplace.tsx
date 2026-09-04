@@ -3,6 +3,7 @@ import PageHero from '../../components/public/PageHero';
 import { useTranslation } from 'react-i18next';
 import { Search, ShoppingCart, Filter, ShoppingBag } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
+import Pagination from '../../components/admin/Pagination';
 
 interface Product {
   id: string;
@@ -31,25 +32,33 @@ export default function Marketplace() {
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   
   const { addToCart, itemCount, setIsCartOpen } = useCart();
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
-    fetchProducts();
-  }, [searchQuery, selectedCategory]);
+    fetchProducts(currentPage);
+  }, [searchQuery, selectedCategory, currentPage]);
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (page = 1) => {
     try {
       setIsLoading(true);
       const queryParams = new URLSearchParams();
+      queryParams.append('page', page.toString());
+      queryParams.append('limit', '12');
       if (searchQuery) queryParams.append('search', searchQuery);
       if (selectedCategory) queryParams.append('category', selectedCategory);
       
       const res = await fetch(`${API_BASE_URL}/products?${queryParams.toString()}`);
       if (res.ok) {
-        setProducts(await res.json());
+        const data = await res.json();
+        setProducts(data.data || data.products || data || []);
+        if (data.meta) {
+          setTotalPages(data.meta.totalPages);
+        }
       }
     } catch (err) {
       console.error('Failed to fetch products', err);
@@ -186,6 +195,16 @@ export default function Marketplace() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+            
+            {totalPages > 1 && (
+              <div className="mt-8">
+                <Pagination 
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={(page) => setCurrentPage(page)}
+                />
               </div>
             )}
           </div>

@@ -164,7 +164,7 @@ const CartModal = () => {
                 type="submit" 
                 form="checkout-form"
                 disabled={isSubmitting}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 rounded-xl transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3.5 rounded-full transition-colors disabled:opacity-70 disabled:cursor-not-allowed flex justify-center items-center gap-2"
               >
                 {isSubmitting ? 'Processing...' : 'Place Order Now'}
               </button>

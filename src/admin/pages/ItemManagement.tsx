@@ -1,943 +1,183 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, AlertCircle, Search, Image as ImageIcon, Loader2 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import RichTextEditor from '../components/RichTextEditor';
+import { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, X, Search, Package, Upload } from 'lucide-react';
+import Pagination from '../../components/admin/Pagination';
 
-interface Category {
-  id: string;
-  name: string;
-  parentId: string | null;
-}
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-interface DistrictShare {
-  districtName: string;
-  sinhalaDistrictName: string;
-  percentage: number;
-}
-
-interface SriLankaAgriData {
-  cultivationArea: string | null;
-  sinhalaCultivationArea: string | null;
-  annualProduction: string | null;
-  sinhalaAnnualProduction: string | null;
-  averageYield: string | null;
-  sinhalaAverageYield: string | null;
-  districts: DistrictShare[];
-}
-
-interface GlobalAgriData {
-  rank: number;
-  countryName: string;
-  sinhalaCountryName: string | null;
-  production: string;
-  cultivationArea: string;
-}
-
+interface Category { id: string; name: string; }
 interface Item {
-  id: string;
-  name: string;
-  sinhalaName: string | null;
-  scientificName: string | null;
-  slug: string;
-  description: string | null;
-  sinhalaDescription: string | null;
-  location: string | null;
-  sinhalaLocation: string | null;
-  status: string;
-  images: string[] | null;
-  categoryId: string;
-  order: number;
-  category?: Category;
-  slAgriData?: SriLankaAgriData | null;
-  globalAgriData?: GlobalAgriData[] | null;
+  id: string; name: string; sinhalaName?: string; slug: string; description?: string;
+  sinhalaDescription?: string; image?: string; categoryId?: string; category?: Category; order?: number;
 }
 
-const ItemManagement = () => {
+const defaultForm = { name: '', sinhalaName: '', slug: '', description: '', sinhalaDescription: '', categoryId: '', order: '0' };
+
+export default function ItemManagement() {
   const [items, setItems] = useState<Item[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Search and Filter
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filterCategoryId, setFilterCategoryId] = useState('');
-
-  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [currentItem, setCurrentItem] = useState<Partial<Item>>({});
-  const [selectedMainCategoryId, setSelectedMainCategoryId] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState({ ...defaultForm });
+  const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [imageFile, setImageFile] = useState<File | null>(null);
 
-  const handleDescriptionChange = (val: string) => {
-    if (currentItem.description !== val) {
-      setCurrentItem(prev => ({ ...prev, description: val }));
-    }
+  const token = localStorage.getItem('token');
+  const authHeaders = { Authorization: `Bearer ${token}` };
+
+  const fetchItems = async (page = 1) => {
+    setIsLoading(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/items?page=${page}&limit=15`, { headers: authHeaders });
+      if (res.ok) {
+        const data = await res.json();
+        setItems(data.data || []);
+        if (data.meta) setTotalPages(data.meta.totalPages);
+      }
+    } finally { setIsLoading(false); }
   };
-
-  const handleSinhalaDescriptionChange = (val: string) => {
-    if (currentItem.sinhalaDescription !== val) {
-      setCurrentItem(prev => ({ ...prev, sinhalaDescription: val }));
-    }
-  };
-
-  const [activeTab, setActiveTab] = useState<'EN' | 'SI' | 'SL_DATA' | 'GLOBAL_DATA'>('EN');
-  
-  // Image handling
-  const [newImages, setNewImages] = useState<File[]>([]);
-  const [existingImages, setExistingImages] = useState<string[]>([]);
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Delete State
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<Item | null>(null);
-
-  const { token } = useAuth();
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
-  useEffect(() => {
-    fetchCategories();
-    fetchItems();
-  }, []);
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/categories`);
-      if (response.ok) {
-        setCategories(await response.json());
+      const res = await fetch(`${API_BASE_URL}/categories/all?limit=100`, { headers: authHeaders });
+      if (res.ok) {
+        const data = await res.json();
+        setCategories(data.data || []);
       }
-    } catch (err) {
-      console.error('Failed to fetch categories');
-    }
+    } catch (_) {}
   };
 
-  const fetchItems = async () => {
-    try {
-      setIsLoading(true);
-      // Fetching all for admin (might need pagination later if huge)
-      const response = await fetch(`${API_BASE_URL}/items?limit=1000`);
-      if (!response.ok) throw new Error('Failed to fetch items');
-      const data = await response.json();
-      setItems(data.data || []);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+  useEffect(() => { fetchItems(currentPage); }, [currentPage]);
+  useEffect(() => { fetchCategories(); }, []);
+
+  const openCreate = () => { setForm({ ...defaultForm }); setImageFile(null); setEditingId(null); setIsModalOpen(true); };
+  const openEdit = (item: Item) => {
+    setForm({ name: item.name, sinhalaName: item.sinhalaName || '', slug: item.slug, description: item.description || '', sinhalaDescription: item.sinhalaDescription || '', categoryId: item.categoryId || '', order: String(item.order ?? 0) });
+    setImageFile(null); setEditingId(item.id); setIsModalOpen(true);
   };
 
-  const mainCategories = categories.filter(c => !c.parentId);
-  const subCategories = categories.filter(c => c.parentId);
-
-  // Form specific sub-categories based on selected main category
-  const formSubCategories = categories.filter(c => c.parentId === selectedMainCategoryId);
-
-  let displayItems = items;
-  if (searchQuery.trim()) {
-    const q = searchQuery.toLowerCase();
-    displayItems = displayItems.filter(i =>
-      i.name.toLowerCase().includes(q) ||
-      (i.sinhalaName && i.sinhalaName.toLowerCase().includes(q)) ||
-      i.slug.toLowerCase().includes(q)
-    );
-  }
-  if (filterCategoryId) {
-    displayItems = displayItems.filter(i => i.categoryId === filterCategoryId);
-  }
-
-  const handleOpenAddModal = () => {
-    setCurrentItem({
-      name: '',
-      sinhalaName: '',
-      scientificName: '',
-      slug: '',
-      description: '',
-      sinhalaDescription: '',
-      status: 'AVAILABLE',
-      order: 99,
-      slAgriData: {
-        cultivationArea: '',
-        sinhalaCultivationArea: '',
-        annualProduction: '',
-        sinhalaAnnualProduction: '',
-        averageYield: '',
-        sinhalaAverageYield: '',
-        districts: []
-      },
-      globalAgriData: []
-    });
-    setSelectedMainCategoryId('');
-    setNewImages([]);
-    setExistingImages([]);
-    setIsEditMode(false);
-    setIsModalOpen(true);
-  };
-
-  const handleOpenEditModal = (item: Item) => {
-    setCurrentItem(item);
-
-    // Find parent main category to set the dropdown correctly
-    const subCat = categories.find(c => c.id === item.categoryId);
-    if (subCat && subCat.parentId) {
-      setSelectedMainCategoryId(subCat.parentId);
-    }
-
-    setExistingImages(Array.isArray(item.images) ? item.images : []);
-    setNewImages([]);
-    setIsEditMode(true);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setCurrentItem({});
-    setNewImages([]);
-    setExistingImages([]);
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setNewImages(Array.from(e.target.files));
-    }
-  };
-
-  const removeExistingImage = (urlToRemove: string) => {
-    setExistingImages(prev => prev.filter(url => url !== urlToRemove));
-  };
-
-  const handleSaveItem = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentItem.categoryId) {
-      alert("Please select a sub-category.");
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      const url = isEditMode
-        ? `${API_BASE_URL}/items/${currentItem.id}`
-        : `${API_BASE_URL}/items`;
-
-      const method = isEditMode ? 'PUT' : 'POST';
-
-      const formData = new FormData();
-      Object.keys(currentItem).forEach(key => {
-        const val = (currentItem as any)[key];
-        if (val !== null && val !== undefined && key !== 'images' && key !== 'category') {
-          if (key === 'slAgriData' || key === 'globalAgriData') {
-            formData.append(key, JSON.stringify(val));
-          } else {
-            formData.append(key, val.toString());
-          }
-        }
-      });
-
-      // Append kept existing images
-      formData.append('images', JSON.stringify(existingImages));
-
-      // Append new files
-      newImages.forEach(file => {
-        formData.append('images', file);
-      });
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save item');
-      }
-
-      fetchItems();
-      handleCloseModal();
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setIsSaving(false);
-    }
+    const fd = new FormData();
+    Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+    if (imageFile) fd.append('image', imageFile);
+    const method = editingId ? 'PUT' : 'POST';
+    const url = editingId ? `${API_BASE_URL}/items/${editingId}` : `${API_BASE_URL}/items`;
+    const res = await fetch(url, { method, headers: authHeaders, body: fd });
+    if (res.ok) { setIsModalOpen(false); fetchItems(currentPage); }
   };
 
-  const confirmDelete = (item: Item) => {
-    setItemToDelete(item);
-    setIsDeleteDialogOpen(true);
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this item?')) return;
+    await fetch(`${API_BASE_URL}/items/${id}`, { method: 'DELETE', headers: authHeaders });
+    fetchItems(currentPage);
   };
 
-  const handleDelete = async () => {
-    if (!itemToDelete) return;
-    try {
-      const response = await fetch(`${API_BASE_URL}/items/${itemToDelete.id}`, {
-        method: 'DELETE',
-        headers: {
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete item');
-      }
-
-      fetchItems();
-      setIsDeleteDialogOpen(false);
-      setItemToDelete(null);
-    } catch (err: any) {
-      alert(err.message);
-    }
-  };
+  const filteredItems = items.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="space-y-6 w-full mx-auto pb-10">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Item Management</h1>
-          <p className="mt-1 text-sm text-gray-500">Manage products, crops, and content items across all categories.</p>
+          <h1 className="text-2xl font-bold text-gray-800">Item Management</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage agro information items</p>
         </div>
-        <button
-          onClick={handleOpenAddModal}
-          className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg font-medium transition-colors shadow-sm whitespace-nowrap"
-        >
-          <Plus size={18} />
-          Add New Item
+        <button onClick={openCreate} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+          <Plus size={18} /> Add Item
         </button>
       </div>
 
-      {/* Filters and Search Bar */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <div className="relative w-full sm:max-w-md">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
-            <Search size={18} />
-          </span>
-          <input
-            type="text"
-            placeholder="Search items by name or slug..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 bg-gray-50 py-2.5 pl-10 pr-4 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 transition-colors"
-          />
-        </div>
-
-        <div className="w-full sm:w-64">
-          <select
-            value={filterCategoryId}
-            onChange={(e) => setFilterCategoryId(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 bg-gray-50 py-2.5 px-3 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500 transition-colors"
-          >
-            <option value="">All Categories</option>
-            {subCategories.map(category => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="relative max-w-md">
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input type="text" placeholder="Search items..." value={search} onChange={e => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" />
         </div>
       </div>
 
-      {error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-2">
-          <AlertCircle size={20} />
-          <span>{error}</span>
-        </div>
-      )}
-
-      {/* Data Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20"><div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" /></div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Order</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Item</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Slug</th>
+                <th className="px-6 py-3" />
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-gray-500">Loading items...</td>
+            <tbody className="divide-y divide-gray-50">
+              {filteredItems.length === 0 ? (
+                <tr><td colSpan={4} className="text-center py-12 text-gray-400"><Package className="mx-auto mb-2" size={32} /><p>No items found</p></td></tr>
+              ) : filteredItems.map(item => (
+                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      {item.image && <img src={item.image} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />}
+                      <div>
+                        <p className="font-medium text-gray-800">{item.name}</p>
+                        {item.sinhalaName && <p className="text-xs text-gray-500">{item.sinhalaName}</p>}
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-gray-600">{item.category?.name || '-'}</td>
+                  <td className="px-6 py-4 text-gray-500 font-mono text-xs">{item.slug}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2 justify-end">
+                      <button onClick={() => openEdit(item)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit size={16} /></button>
+                      <button onClick={() => handleDelete(item.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                    </div>
+                  </td>
                 </tr>
-              ) : displayItems.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-gray-500">No items found matching your filters.</td>
-                </tr>
-              ) : (
-                displayItems.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-600 bg-gray-50/50">
-                      {item.order}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {item.images && item.images.length > 0 ? (
-                        <img src={item.images[0]} alt={item.name} className="w-12 h-12 object-cover rounded-md border border-gray-200" />
-                      ) : (
-                        <div className="w-12 h-12 bg-gray-100 rounded-md border border-gray-200 flex items-center justify-center text-gray-400">
-                          <ImageIcon size={20} />
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{item.name}</div>
-                      <div className="text-sm text-gray-500">{item.sinhalaName || '-'}</div>
-                      <div className="text-xs text-gray-400 mt-1">{item.slug}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {item.category?.name || 'Unknown'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${item.status === 'AVAILABLE' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                        {item.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => handleOpenEditModal(item)}
-                        className="text-blue-600 hover:text-blue-900 mr-4"
-                        title="Edit"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => confirmDelete(item)}
-                        className="text-red-600 hover:text-red-900"
-                        title="Delete"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
+              ))}
             </tbody>
           </table>
-        </div>
+        )}
+        {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
       </div>
 
-      {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-7xl max-h-[90vh] flex flex-col">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">
-                {isEditMode ? 'Edit Item' : 'Add New Item'}
-              </h2>
-              <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600">
-                <X size={20} />
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="bg-white rounded-2xl w-full max-w-lg relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-800">{editingId ? 'Edit Item' : 'Add Item'}</h2>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X size={20} /></button>
             </div>
-
-            <form onSubmit={handleSaveItem} className="p-6 overflow-y-auto flex-1">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                {/* Left Column: Basic Details */}
-                <div className="space-y-4">
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-4">
-                    <h3 className="font-medium text-gray-900 border-b border-gray-200 pb-2">Category Assignment</h3>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Main Category</label>
-                      <select
-                        value={selectedMainCategoryId}
-                        onChange={(e) => {
-                          setSelectedMainCategoryId(e.target.value);
-                          setCurrentItem({ ...currentItem, categoryId: '' }); // reset sub category
-                        }}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                      >
-                        <option value="">Select Main Category...</option>
-                        {mainCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Sub Category *</label>
-                      <select
-                        required
-                        value={currentItem.categoryId || ''}
-                        onChange={(e) => setCurrentItem({ ...currentItem, categoryId: e.target.value })}
-                        disabled={!selectedMainCategoryId && !isEditMode}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100"
-                      >
-                        <option value="" disabled>Select Sub Category...</option>
-                        {formSubCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Item Name *</label>
-                    <input
-                      type="text"
-                      required
-                      value={currentItem.name || ''}
-                      onChange={(e) => setCurrentItem({ ...currentItem, name: e.target.value })}
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Sinhala Name</label>
-                    <input
-                      type="text"
-                      value={currentItem.sinhalaName || ''}
-                      onChange={(e) => setCurrentItem({ ...currentItem, sinhalaName: e.target.value })}
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">URL Slug *</label>
-                    <input
-                      type="text"
-                      required
-                      value={currentItem.slug || ''}
-                      onChange={(e) => setCurrentItem({ ...currentItem, slug: e.target.value })}
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Scientific Name</label>
-                    <input
-                      type="text"
-                      value={currentItem.scientificName || ''}
-                      onChange={(e) => setCurrentItem({ ...currentItem, scientificName: e.target.value })}
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                      <select
-                        value={currentItem.status || 'AVAILABLE'}
-                        onChange={(e) => setCurrentItem({ ...currentItem, status: e.target.value })}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                      >
-                        <option value="AVAILABLE">AVAILABLE</option>
-                        <option value="OUT_OF_STOCK">OUT OF STOCK</option>
-                        <option value="HIDDEN">HIDDEN</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
-                      <input
-                        type="number"
-                        required
-                        value={currentItem.order ?? 99}
-                        onChange={(e) => setCurrentItem({ ...currentItem, order: parseInt(e.target.value) || 0 })}
-                        className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Item Images</label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={handleImageChange}
-                      className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-                    />
-
-                    {/* Image Previews */}
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {existingImages.map((url, idx) => (
-                        <div key={`exist-${idx}`} className="relative group">
-                          <img src={url} className="w-16 h-16 object-cover rounded-lg border" alt="Existing" />
-                          <button
-                            type="button"
-                            onClick={() => removeExistingImage(url)}
-                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X size={12} />
-                          </button>
-                        </div>
-                      ))}
-                      {newImages.map((file, idx) => (
-                        <div key={`new-${idx}`} className="relative">
-                          <img src={URL.createObjectURL(file)} className="w-16 h-16 object-cover rounded-lg border border-green-500" alt="New" />
-                          <span className="absolute bottom-0 right-0 bg-green-500 text-white text-[10px] px-1 rounded-tl">New</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Name (EN) *</label><input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Name (SI)</label><input value={form.sinhalaName} onChange={e => setForm({...form, sinhalaName: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Slug *</label><input required value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <select value={form.categoryId} onChange={e => setForm({...form, categoryId: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50">
+                    <option value="">Select Category</option>
+                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
                 </div>
-
-                {/* Right Column: Details & Data Tabs */}
-                <div className="space-y-4 flex flex-col h-full">
-                  <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-hide">
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('EN')}
-                      className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                        activeTab === 'EN'
-                          ? 'border-green-500 text-green-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      English Details
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('SI')}
-                      className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                        activeTab === 'SI'
-                          ? 'border-green-500 text-green-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      සිංහල Details
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('SL_DATA')}
-                      className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                        activeTab === 'SL_DATA'
-                          ? 'border-green-500 text-green-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      SL Data
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('GLOBAL_DATA')}
-                      className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                        activeTab === 'GLOBAL_DATA'
-                          ? 'border-green-500 text-green-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      Global Data
-                    </button>
-                  </div>
-
-                  <div className={activeTab === 'EN' ? 'block space-y-8' : 'hidden'}>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Main Description (English)</label>
-                      <RichTextEditor
-                        value={currentItem.description || ''}
-                        onChange={handleDescriptionChange}
-                        placeholder="Write a detailed description here..."
-                      />
-                    </div>
-                  </div>
-
-                  <div className={activeTab === 'SI' ? 'block space-y-8' : 'hidden'}>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Main Description (Sinhala) - ප්‍රධාන විස්තරය</label>
-                      <RichTextEditor
-                        value={currentItem.sinhalaDescription || ''}
-                        onChange={handleSinhalaDescriptionChange}
-                        placeholder="සිංහලෙන් විස්තරය ඇතුලත් කරන්න..."
-                      />
-                    </div>
-                  </div>
-
-                  <div className={activeTab === 'SL_DATA' ? 'block space-y-4' : 'hidden'}>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Cultivation Area</label>
-                        <input
-                          type="text"
-                          value={currentItem.slAgriData?.cultivationArea || ''}
-                          onChange={(e) => setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, cultivationArea: e.target.value } as any })}
-                          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Cultivation Area (Sinhala)</label>
-                        <input
-                          type="text"
-                          value={currentItem.slAgriData?.sinhalaCultivationArea || ''}
-                          onChange={(e) => setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, sinhalaCultivationArea: e.target.value } as any })}
-                          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Annual Production</label>
-                        <input
-                          type="text"
-                          value={currentItem.slAgriData?.annualProduction || ''}
-                          onChange={(e) => setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, annualProduction: e.target.value } as any })}
-                          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Annual Production (Sinhala)</label>
-                        <input
-                          type="text"
-                          value={currentItem.slAgriData?.sinhalaAnnualProduction || ''}
-                          onChange={(e) => setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, sinhalaAnnualProduction: e.target.value } as any })}
-                          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Average Yield</label>
-                        <input
-                          type="text"
-                          value={currentItem.slAgriData?.averageYield || ''}
-                          onChange={(e) => setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, averageYield: e.target.value } as any })}
-                          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Average Yield (Sinhala)</label>
-                        <input
-                          type="text"
-                          value={currentItem.slAgriData?.sinhalaAverageYield || ''}
-                          onChange={(e) => setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, sinhalaAverageYield: e.target.value } as any })}
-                          className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="mt-6">
-                      <div className="flex justify-between items-center mb-2">
-                        <h4 className="font-medium text-gray-900">District Shares</h4>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const currentDistricts = currentItem.slAgriData?.districts || [];
-                            setCurrentItem({
-                              ...currentItem,
-                              slAgriData: {
-                                ...currentItem.slAgriData,
-                                districts: [...currentDistricts, { districtName: '', sinhalaDistrictName: '', percentage: 0 }]
-                              } as any
-                            });
-                          }}
-                          className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200"
-                        >
-                          + Add District
-                        </button>
-                      </div>
-                      <div className="space-y-3">
-                        {currentItem.slAgriData?.districts?.map((d: any, idx: number) => (
-                          <div key={idx} className="flex gap-2 items-start bg-gray-50 p-2 rounded border border-gray-200">
-                            <input
-                              type="text"
-                              placeholder="District (EN)"
-                              value={d.districtName}
-                              onChange={(e) => {
-                                const newD = [...(currentItem.slAgriData?.districts || [])];
-                                newD[idx].districtName = e.target.value;
-                                setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, districts: newD } as any });
-                              }}
-                              className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
-                            />
-                            <input
-                              type="text"
-                              placeholder="District (SI)"
-                              value={d.sinhalaDistrictName}
-                              onChange={(e) => {
-                                const newD = [...(currentItem.slAgriData?.districts || [])];
-                                newD[idx].sinhalaDistrictName = e.target.value;
-                                setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, districts: newD } as any });
-                              }}
-                              className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
-                            />
-                            <input
-                              type="number"
-                              placeholder="%"
-                              value={d.percentage}
-                              onChange={(e) => {
-                                const newD = [...(currentItem.slAgriData?.districts || [])];
-                                newD[idx].percentage = parseFloat(e.target.value) || 0;
-                                setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, districts: newD } as any });
-                              }}
-                              className="w-20 rounded border border-gray-300 px-2 py-1 text-sm"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const newD = (currentItem.slAgriData?.districts || []).filter((_: any, i: number) => i !== idx);
-                                setCurrentItem({ ...currentItem, slAgriData: { ...currentItem.slAgriData, districts: newD } as any });
-                              }}
-                              className="text-red-500 hover:text-red-700 p-1"
-                            >
-                              <X size={16} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={activeTab === 'GLOBAL_DATA' ? 'block space-y-4' : 'hidden'}>
-                    <div className="flex justify-between items-center mb-2">
-                      <h4 className="font-medium text-gray-900">Global Production Data</h4>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const currentGlobal = currentItem.globalAgriData || [];
-                          setCurrentItem({
-                            ...currentItem,
-                            globalAgriData: [...currentGlobal, { rank: currentGlobal.length + 1, countryName: '', sinhalaCountryName: '', production: '', cultivationArea: '' }]
-                          });
-                        }}
-                        className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200"
-                      >
-                        + Add Country
-                      </button>
-                    </div>
-                    <div className="space-y-4">
-                      {currentItem.globalAgriData?.map((g: any, idx: number) => (
-                        <div key={idx} className="bg-gray-50 p-3 rounded border border-gray-200 relative">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newG = (currentItem.globalAgriData || []).filter((_: any, i: number) => i !== idx);
-                              setCurrentItem({ ...currentItem, globalAgriData: newG });
-                            }}
-                            className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-                          >
-                            <X size={16} />
-                          </button>
-                          
-                          <div className="grid grid-cols-2 gap-3 pr-8">
-                            <div>
-                              <label className="block text-xs text-gray-500">Rank</label>
-                              <input
-                                type="number"
-                                value={g.rank}
-                                onChange={(e) => {
-                                  const newG = [...(currentItem.globalAgriData || [])];
-                                  newG[idx].rank = parseInt(e.target.value) || 0;
-                                  setCurrentItem({ ...currentItem, globalAgriData: newG });
-                                }}
-                                className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs text-gray-500">Production</label>
-                              <input
-                                type="text"
-                                value={g.production}
-                                onChange={(e) => {
-                                  const newG = [...(currentItem.globalAgriData || [])];
-                                  newG[idx].production = e.target.value;
-                                  setCurrentItem({ ...currentItem, globalAgriData: newG });
-                                }}
-                                className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs text-gray-500">Country Name</label>
-                              <input
-                                type="text"
-                                value={g.countryName}
-                                onChange={(e) => {
-                                  const newG = [...(currentItem.globalAgriData || [])];
-                                  newG[idx].countryName = e.target.value;
-                                  setCurrentItem({ ...currentItem, globalAgriData: newG });
-                                }}
-                                className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-xs text-gray-500">Country Name (Sinhala)</label>
-                              <input
-                                type="text"
-                                value={g.sinhalaCountryName || ''}
-                                onChange={(e) => {
-                                  const newG = [...(currentItem.globalAgriData || [])];
-                                  newG[idx].sinhalaCountryName = e.target.value;
-                                  setCurrentItem({ ...currentItem, globalAgriData: newG });
-                                }}
-                                className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
-                              />
-                            </div>
-                            <div className="col-span-2">
-                              <label className="block text-xs text-gray-500">Cultivation Area</label>
-                              <input
-                                type="text"
-                                value={g.cultivationArea}
-                                onChange={(e) => {
-                                  const newG = [...(currentItem.globalAgriData || [])];
-                                  newG[idx].cultivationArea = e.target.value;
-                                  setCurrentItem({ ...currentItem, globalAgriData: newG });
-                                }}
-                                className="w-full rounded border border-gray-300 px-2 py-1 text-sm"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Order</label><input type="number" value={form.order} onChange={e => setForm({...form, order: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                    <Upload size={16} className="text-gray-400" />
+                    <span className="text-sm text-gray-500 truncate">{imageFile ? imageFile.name : 'Choose image...'}</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={e => setImageFile(e.target.files?.[0] || null)} />
+                  </label>
                 </div>
-
               </div>
-
-              {/* Fixed Footer */}
-              <div className="mt-8 pt-4 border-t border-gray-200 flex justify-end gap-3 sticky bottom-0 bg-white">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-                  disabled={isSaving}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:bg-green-400 flex items-center gap-2"
-                >
-                  {isSaving && <Loader2 size={16} className="animate-spin" />}
-                  {isEditMode ? 'Save Changes' : 'Create Item'}
-                </button>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Description (EN)</label><textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={3} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Description (SI)</label><textarea value={form.sinhalaDescription} onChange={e => setForm({...form, sinhalaDescription: e.target.value})} rows={3} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 font-medium transition-colors">Cancel</button>
+                <button type="submit" className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">{editingId ? 'Update' : 'Add'}</button>
               </div>
             </form>
           </div>
         </div>
       )}
-
-      {/* Delete Confirmation Modal */}
-      {isDeleteDialogOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden p-6 text-center">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-              <AlertCircle className="h-6 w-6 text-red-600" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Delete Item?</h3>
-            <p className="text-sm text-gray-500 mb-6">
-              Are you sure you want to delete "{itemToDelete?.name}"?
-              This action cannot be undone and will permanently remove all associated images.
-            </p>
-            <div className="flex justify-center gap-3">
-              <button
-                onClick={() => setIsDeleteDialogOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 w-full"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 w-full"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
-};
-
-export default ItemManagement;
+}

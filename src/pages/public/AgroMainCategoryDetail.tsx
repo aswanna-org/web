@@ -22,9 +22,9 @@ export default function AgroMainCategoryDetail() {
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/categories`)
+    fetch(`${API_BASE_URL}/categories/tree`)
       .then(res => res.json())
-      .then(data => setDbCategories(data))
+      .then(data => setDbCategories(Array.isArray(data) ? data : (data.data || [])))
       .catch(console.error);
   }, [API_BASE_URL]);
 
@@ -124,7 +124,7 @@ export default function AgroMainCategoryDetail() {
                 <Link
                   key={cat.id}
                   to={`/agro/${mainCategory.slug}/${cat.slug}`}
-                  className="group relative block w-full aspect-square rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-100"
+                  className="group relative block w-full aspect-square rounded-full-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-100"
                 >
                   <img
                     src={cat.image || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80'}

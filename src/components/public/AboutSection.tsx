@@ -83,7 +83,7 @@ export default function AboutSection() {
             </div>
 
             <div>
-              <button className="mt-8 px-8 py-4 bg-black/5 backdrop-blur-md hover:bg-black/10 text-gray-800 font-bold rounded-lg shadow-sm hover:shadow-md transition-all duration-300 uppercase tracking-wider">
+              <button className="mt-8 px-8 py-4 bg-black/5 backdrop-blur-md hover:bg-black/10 text-gray-800 font-bold rounded-full shadow-sm hover:shadow-md transition-all duration-300 uppercase tracking-wider">
             {t('about.button')}
           </button>
             </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image as ImageIcon, Video, PlayCircle } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
+import Pagination from '../../components/admin/Pagination';
 
 interface GalleryItem {
   id: string;
@@ -17,17 +18,22 @@ export default function Gallery() {
   const [activeTab, setActiveTab] = useState<'IMAGE' | 'VIDEO'>('IMAGE');
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const isSinhala = i18n.language === 'si';
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
-    const fetchGallery = async () => {
+    const fetchGallery = async (page = 1) => {
       try {
-        const res = await fetch(`${API_BASE_URL}/gallery?limit=100`);
+        const res = await fetch(`${API_BASE_URL}/gallery?page=${page}&limit=12&type=${activeTab}`);
         if (res.ok) {
           const data = await res.json();
           setItems(data.data || []);
+          if (data.meta) {
+            setTotalPages(data.meta.totalPages);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch gallery items", err);
@@ -35,11 +41,10 @@ export default function Gallery() {
         setIsLoading(false);
       }
     };
-    fetchGallery();
-  }, [API_BASE_URL]);
+    fetchGallery(currentPage);
+  }, [API_BASE_URL, currentPage, activeTab]);
 
-  // Filter items based on active tab
-  const filteredItems = items.filter((item) => item.type === activeTab);
+  const filteredItems = items;
 
   const getYoutubeThumbnail = (url: string) => {
     const videoId = url.split('v=')[1]?.split('&')[0] || url.split('youtu.be/')[1]?.split('?')[0];
@@ -64,7 +69,7 @@ export default function Gallery() {
           <div className="flex justify-center mb-12">
             <div className="bg-white p-1.5 rounded-full shadow-sm border border-gray-100 flex items-center">
               <button
-                onClick={() => setActiveTab('IMAGE')}
+                onClick={() => { setActiveTab('IMAGE'); setCurrentPage(1); }}
                 className={`flex items-center gap-2 px-8 py-3 rounded-full text-sm font-bold tracking-wider transition-all duration-300 ${activeTab === 'IMAGE'
                     ? 'bg-[var(--color-secondary)] text-white shadow-md'
                     : 'text-gray-500 hover:text-gray-900'
@@ -74,7 +79,7 @@ export default function Gallery() {
                 {t('galleryPage.photos', 'Photos')}
               </button>
               <button
-                onClick={() => setActiveTab('VIDEO')}
+                onClick={() => { setActiveTab('VIDEO'); setCurrentPage(1); }}
                 className={`flex items-center gap-2 px-8 py-3 rounded-full text-sm font-bold tracking-wider transition-all duration-300 ${activeTab === 'VIDEO'
                     ? 'bg-[var(--color-secondary)] text-white shadow-md'
                     : 'text-gray-500 hover:text-gray-900'
@@ -136,6 +141,16 @@ export default function Gallery() {
                   )}
                 </div>
               ))}
+            </div>
+          )}
+          
+          {totalPages > 1 && (
+            <div className="mt-12">
+              <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
             </div>
           )}
         </div>

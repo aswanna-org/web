@@ -147,7 +147,7 @@ export default function MarketPricesSection() {
                       placeholder={t('market.emailPlaceholder')} 
                       className="w-full px-5 py-4 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white placeholder-white/70 outline-none focus:border-white transition-colors text-center"
                     />
-                    <button className="w-full py-4 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white font-bold rounded-xl transition-colors shadow-lg uppercase tracking-wider">
+                    <button className="w-full py-4 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white font-bold rounded-full transition-colors shadow-lg uppercase tracking-wider">
                       {t('market.subscribe')}
                     </button>
                   </div>

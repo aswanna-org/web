@@ -81,7 +81,7 @@ export default function SecondaryNav() {
             <Link
               key={link.id}
               to={link.to}
-              className={`relative overflow-hidden ${link.bgColor} rounded-xl lg:rounded-2xl p-3 lg:py-3 lg:px-4 transition-all duration-300 group hover:shadow-[0_8px_32px_0_rgba(255,255,255,0.2)] hover:-translate-y-1 flex items-center justify-center lg:justify-start w-full`}
+              className={`relative overflow-hidden ${link.bgColor} rounded-full p-3 lg:py-3 lg:px-4 transition-all duration-300 group hover:shadow-[0_8px_32px_0_rgba(255,255,255,0.2)] hover:-translate-y-1 flex items-center justify-center lg:justify-start w-full`}
             >
               {/* Background Decorative Icon - Opacity අඩු කර ඇත */}
               <link.icon className={`hidden lg:block absolute -bottom-3 -right-3 text-white opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-500 ${isScrolled ? 'w-12 h-12' : 'w-16 h-16'}`} />

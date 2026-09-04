@@ -1,458 +1,174 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, AlertCircle, Image as ImageIcon, Upload } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { Plus, Edit, Trash2, X, Search, Sprout } from 'lucide-react';
+import Pagination from '../../components/admin/Pagination';
 
-interface Lookup {
-  id: string;
-  name: string;
-  nameSi: string | null;
-}
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+interface Lookup { id: string; name: string; nameSi?: string; }
 interface Plant {
-  id: string;
-  name: string;
-  sinhalaName: string | null;
-  slug: string;
-  description: string | null;
-  sinhalaDescription: string | null;
-  climaticZoneId: string | null;
-  climaticZone?: Lookup;
-  soilTypeId: string | null;
-  soilType?: Lookup;
-  harvestTimeId: string | null;
-  harvestTime?: Lookup;
-  image: string | null;
+  id: string; name: string; sinhalaName?: string; slug: string; description?: string;
+  sinhalaDescription?: string; climaticZoneId?: string; soilTypeId?: string; harvestTimeId?: string; image?: string;
+  climaticZone?: Lookup; soilType?: Lookup; harvestTime?: Lookup;
 }
 
-const PlantManagement = () => {
+const defaultForm = { name: '', sinhalaName: '', description: '', sinhalaDescription: '', climaticZoneId: '', soilTypeId: '', harvestTimeId: '', image: '' };
+
+export default function PlantManagement() {
   const [plants, setPlants] = useState<Plant[]>([]);
+  const [filters, setFilters] = useState<{ climaticZones: Lookup[]; soilTypes: Lookup[]; harvestTimes: Lookup[] }>({ climaticZones: [], soilTypes: [], harvestTimes: [] });
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Lookups
-  const [climaticZones, setClimaticZones] = useState<Lookup[]>([]);
-  const [soilTypes, setSoilTypes] = useState<Lookup[]>([]);
-  const [harvestTimes, setHarvestTimes] = useState<Lookup[]>([]);
-
-  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [currentPlant, setCurrentPlant] = useState<Partial<Plant>>({});
-  
-  // Image Upload State
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState({ ...defaultForm });
+  const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  // Delete State
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [plantToDelete, setPlantToDelete] = useState<Plant | null>(null);
+  const token = localStorage.getItem('token');
+  const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
-  const { token } = useAuth();
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
-  useEffect(() => {
-    fetchPlants();
-  }, []);
-
-  const fetchPlants = async () => {
+  const fetchPlants = async (page = 1) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      const response = await fetch(`${API_BASE_URL}/plants`);
-      if (!response.ok) throw new Error('Failed to fetch plants');
-      const data = await response.json();
-      setPlants(data.plants || []);
-      if (data.filters) {
-        setClimaticZones(data.filters.climaticZones || []);
-        setSoilTypes(data.filters.soilTypes || []);
-        setHarvestTimes(data.filters.harvestTimes || []);
+      const res = await fetch(`${API_BASE_URL}/plants?page=${page}&limit=15&search=${search}`, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setPlants(data.data || []);
+        if (data.filters) setFilters(data.filters);
+        if (data.meta) setTotalPages(data.meta.totalPages);
       }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+    } finally { setIsLoading(false); }
   };
 
-  const handleOpenModal = (plant?: Plant) => {
-    if (plant) {
-      setIsEditMode(true);
-      setCurrentPlant(plant);
-    } else {
-      setIsEditMode(false);
-      setCurrentPlant({});
-    }
-    setImageFile(null);
-    setIsModalOpen(true);
+  useEffect(() => { fetchPlants(currentPage); }, [currentPage, search]);
+
+  const openCreate = () => { setForm({ ...defaultForm }); setEditingId(null); setIsModalOpen(true); };
+  const openEdit = (p: Plant) => {
+    setForm({ name: p.name, sinhalaName: p.sinhalaName || '', description: p.description || '', sinhalaDescription: p.sinhalaDescription || '', climaticZoneId: p.climaticZoneId || '', soilTypeId: p.soilTypeId || '', harvestTimeId: p.harvestTimeId || '', image: p.image || '' });
+    setEditingId(p.id); setIsModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setCurrentPlant({});
-    setImageFile(null);
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImageFile(e.target.files[0]);
-    }
-  };
-
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      if (!currentPlant.name) {
-        alert("English name is required.");
-        return;
-      }
-
-      setIsUploading(true);
-      let imageUrl = currentPlant.image;
-
-      // Handle image upload if a new file is selected
-      if (imageFile) {
-        const formData = new FormData();
-        formData.append('image', imageFile);
-
-        const uploadRes = await fetch(`${API_BASE_URL}/upload/image`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          },
-          body: formData
-        });
-
-        if (!uploadRes.ok) throw new Error('Image upload failed');
-        const uploadData = await uploadRes.json();
-        imageUrl = uploadData.url;
-      }
-
-      const payload = {
-        ...currentPlant,
-        image: imageUrl
-      };
-
-      const method = isEditMode ? 'PUT' : 'POST';
-      const url = isEditMode 
-        ? `${API_BASE_URL}/plants/${currentPlant.id}` 
-        : `${API_BASE_URL}/plants`;
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) throw new Error('Failed to save plant');
-      
-      await fetchPlants();
-      handleCloseModal();
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setIsUploading(false);
-    }
+    const method = editingId ? 'PUT' : 'POST';
+    const url = editingId ? `${API_BASE_URL}/plants/${editingId}` : `${API_BASE_URL}/plants`;
+    const res = await fetch(url, { method, headers, body: JSON.stringify(form) });
+    if (res.ok) { setIsModalOpen(false); fetchPlants(currentPage); }
   };
 
-  const confirmDelete = async () => {
-    if (!plantToDelete) return;
-    try {
-      const response = await fetch(`${API_BASE_URL}/plants/${plantToDelete.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (!response.ok) throw new Error('Failed to delete plant');
-      await fetchPlants();
-      setIsDeleteDialogOpen(false);
-      setPlantToDelete(null);
-    } catch (err: any) {
-      alert(err.message);
-    }
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this plant?')) return;
+    await fetch(`${API_BASE_URL}/plants/${id}`, { method: 'DELETE', headers });
+    fetchPlants(currentPage);
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">Plant Management (Plant Finder)</h1>
-        <button 
-          onClick={() => handleOpenModal()}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-        >
-          <Plus size={20} />
-          Add New Plant
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Plant Management</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage plant finder database</p>
+        </div>
+        <button onClick={openCreate} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+          <Plus size={18} /> Add Plant
         </button>
       </div>
 
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 flex items-center gap-3">
-          <AlertCircle className="text-red-500" />
-          <p className="text-red-700">{error}</p>
-        </div>
-      )}
-
-      {/* Plants Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr>
-                <th className="px-6 py-4 text-sm font-medium text-gray-500">Image</th>
-                <th className="px-6 py-4 text-sm font-medium text-gray-500">Name (EN)</th>
-                <th className="px-6 py-4 text-sm font-medium text-gray-500">Name (SI)</th>
-                <th className="px-6 py-4 text-sm font-medium text-gray-500">Climatic Zone</th>
-                <th className="px-6 py-4 text-sm font-medium text-gray-500">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {plants.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
-                    No plants found. Click "Add New Plant" to create one.
-                  </td>
-                </tr>
-              ) : (
-                plants.map((plant) => (
-                  <tr key={plant.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      {plant.image ? (
-                        <img src={plant.image} alt={plant.name} className="w-12 h-12 rounded-lg object-cover" />
-                      ) : (
-                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-                          <ImageIcon size={20} />
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 font-medium text-gray-800">{plant.name}</td>
-                    <td className="px-6 py-4 text-gray-600">{plant.sinhalaName || '-'}</td>
-                    <td className="px-6 py-4 text-gray-600">{plant.climaticZone?.name || '-'}</td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <button 
-                          onClick={() => handleOpenModal(plant)}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          <Edit2 size={18} />
-                        </button>
-                        <button 
-                          onClick={() => {
-                            setPlantToDelete(plant);
-                            setIsDeleteDialogOpen(true);
-                          }}
-                          className="text-red-600 hover:text-red-800"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="relative max-w-md">
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input type="text" placeholder="Search plants..." value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" />
         </div>
       </div>
 
-      {/* Add/Edit Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center p-6 border-b border-gray-100">
-              <h2 className="text-xl font-bold text-gray-800">
-                {isEditMode ? 'Edit Plant' : 'Add New Plant'}
-              </h2>
-              <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600">
-                <X size={24} />
-              </button>
-            </div>
-            
-            <form onSubmit={handleSave} className="p-6 space-y-6">
-              
-              {/* Image Upload Area */}
-              <div className="flex justify-center">
-                <div className="relative w-40 h-40 border-2 border-dashed border-gray-300 rounded-xl flex items-center justify-center overflow-hidden bg-gray-50 group hover:border-green-500 transition-colors">
-                  {(imageFile || currentPlant.image) ? (
-                    <img 
-                      src={imageFile ? URL.createObjectURL(imageFile) : currentPlant.image!} 
-                      alt="Preview" 
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="text-center text-gray-400">
-                      <ImageIcon className="mx-auto mb-2" size={32} />
-                      <span className="text-sm">Upload Image</span>
-                    </div>
-                  )}
-                  <input 
-                    type="file" 
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                  />
-                  
-                  {/* Hover overlay for changing image */}
-                  {(imageFile || currentPlant.image) && (
-                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer pointer-events-none">
-                      <div className="text-white text-center">
-                        <Upload size={24} className="mx-auto mb-1" />
-                        <span className="text-xs font-medium">Change</span>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20"><div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" /></div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Plant</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Climatic Zone</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Soil Type</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Harvest Time</th>
+                <th className="px-6 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {plants.length === 0 ? (
+                <tr><td colSpan={5} className="text-center py-12 text-gray-400"><Sprout className="mx-auto mb-2" size={32} /><p>No plants found</p></td></tr>
+              ) : plants.map(p => (
+                <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      {p.image && <img src={p.image} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />}
+                      <div>
+                        <p className="font-medium text-gray-800">{p.name}</p>
+                        {p.sinhalaName && <p className="text-xs text-gray-500">{p.sinhalaName}</p>}
                       </div>
                     </div>
-                  )}
-                </div>
-              </div>
+                  </td>
+                  <td className="px-6 py-4 text-gray-600">{p.climaticZone?.name || '-'}</td>
+                  <td className="px-6 py-4 text-gray-600">{p.soilType?.name || '-'}</td>
+                  <td className="px-6 py-4 text-gray-600">{p.harvestTime?.name || '-'}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2 justify-end">
+                      <button onClick={() => openEdit(p)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit size={16} /></button>
+                      <button onClick={() => handleDelete(p.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
+      </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">English Name *</label>
-                  <input 
-                    type="text" 
-                    required
-                    value={currentPlant.name || ''}
-                    onChange={(e) => setCurrentPlant({...currentPlant, name: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="e.g. Carrot"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Sinhala Name</label>
-                  <input 
-                    type="text" 
-                    value={currentPlant.sinhalaName || ''}
-                    onChange={(e) => setCurrentPlant({...currentPlant, sinhalaName: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                    placeholder="e.g. කැරට්"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Climatic Zone</label>
-                  <select 
-                    value={currentPlant.climaticZoneId || ''}
-                    onChange={(e) => setCurrentPlant({...currentPlant, climaticZoneId: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  >
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="bg-white rounded-2xl w-full max-w-lg relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-800">{editingId ? 'Edit Plant' : 'Add Plant'}</h2>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Name (EN) *</label><input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Name (SI)</label><input value={form.sinhalaName} onChange={e => setForm({...form, sinhalaName: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Climatic Zone</label>
+                  <select value={form.climaticZoneId} onChange={e => setForm({...form, climaticZoneId: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50">
                     <option value="">Select Zone</option>
-                    {climaticZones.map(z => (
-                      <option key={z.id} value={z.id}>{z.name} ({z.nameSi})</option>
-                    ))}
+                    {filters.climaticZones.map(z => <option key={z.id} value={z.id}>{z.name}</option>)}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Soil Type</label>
-                  <select 
-                    value={currentPlant.soilTypeId || ''}
-                    onChange={(e) => setCurrentPlant({...currentPlant, soilTypeId: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="">Select Soil Type</option>
-                    {soilTypes.map(s => (
-                      <option key={s.id} value={s.id}>{s.name} ({s.nameSi})</option>
-                    ))}
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Soil Type</label>
+                  <select value={form.soilTypeId} onChange={e => setForm({...form, soilTypeId: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50">
+                    <option value="">Select Soil</option>
+                    {filters.soilTypes.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Harvest Time</label>
-                  <select 
-                    value={currentPlant.harvestTimeId || ''}
-                    onChange={(e) => setCurrentPlant({...currentPlant, harvestTimeId: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="">Select Harvest Time</option>
-                    {harvestTimes.map(h => (
-                      <option key={h.id} value={h.id}>{h.name} ({h.nameSi})</option>
-                    ))}
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Harvest Time</label>
+                  <select value={form.harvestTimeId} onChange={e => setForm({...form, harvestTimeId: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50">
+                    <option value="">Select Time</option>
+                    {filters.harvestTimes.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
                   </select>
                 </div>
-                <div></div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">English Description</label>
-                  <textarea 
-                    value={currentPlant.description || ''}
-                    onChange={(e) => setCurrentPlant({...currentPlant, description: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 h-24"
-                    placeholder="Enter english description..."
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Sinhala Description</label>
-                  <textarea 
-                    value={currentPlant.sinhalaDescription || ''}
-                    onChange={(e) => setCurrentPlant({...currentPlant, sinhalaDescription: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 h-24"
-                    placeholder="Enter sinhala description..."
-                  />
-                </div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label><input value={form.image} onChange={e => setForm({...form, image: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
               </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-                <button 
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-                  disabled={isUploading}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors flex items-center gap-2"
-                  disabled={isUploading}
-                >
-                  {isUploading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Saving...
-                    </>
-                  ) : (
-                    'Save Plant'
-                  )}
-                </button>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Description (EN)</label><textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={3} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Description (SI)</label><textarea value={form.sinhalaDescription} onChange={e => setForm({...form, sinhalaDescription: e.target.value})} rows={3} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 font-medium transition-colors">Cancel</button>
+                <button type="submit" className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">{editingId ? 'Update' : 'Add'}</button>
               </div>
             </form>
           </div>
         </div>
       )}
-
-      {/* Delete Confirmation Modal */}
-      {isDeleteDialogOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-2">Confirm Delete</h3>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete "{plantToDelete?.name}"? This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button 
-                onClick={() => setIsDeleteDialogOpen(false)}
-                className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={confirmDelete}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
-};
-
-export default PlantManagement;
+}

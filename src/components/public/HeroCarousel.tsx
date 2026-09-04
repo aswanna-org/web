@@ -86,7 +86,7 @@ export default function HeroCarousel() {
             {t(slides[currentSlide].descKey)}
           </p>
 
-          <button className="px-8 py-4 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 uppercase tracking-wider">
+          <button className="px-8 py-4 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 uppercase tracking-wider">
             {t('hero.discoverMore')}
           </button>
         </div>

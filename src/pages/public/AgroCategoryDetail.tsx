@@ -102,26 +102,24 @@ export default function AgroCategoryDetail() {
               <Link 
                 key={product.id}
                 to={`/agro/${mainCategory.slug}/${category.slug}/${product.slug}`}
-                className="group relative block w-full aspect-square rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-100"
+                className="group block w-full text-center"
               >
-                <img
-                  src={
-                    Array.isArray(product.images) && product.images.length > 0
-                      ? product.images[0]
-                      : (typeof product.images === 'object' && product.images !== null
-                          ? Object.values(product.images)[0] as string
-                          : (product.images as string) || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80')
-                  }
-                  alt={isSinhala ? (product.sinhalaName || product.name) : product.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                />
-                
-                {/* Hover Overlay */}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6 backdrop-blur-[2px]">
-                  <h3 className="text-white text-2xl font-bold text-center drop-shadow-md translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                    {isSinhala ? (product.sinhalaName || product.name) : product.name}
-                  </h3>
+                <div className="w-full aspect-square rounded-3xl overflow-hidden mb-4 bg-gray-50">
+                  <img
+                    src={
+                      Array.isArray(product.images) && product.images.length > 0
+                        ? product.images[0]
+                        : (typeof product.images === 'object' && product.images !== null
+                            ? Object.values(product.images)[0] as string
+                            : (product.images as string) || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80')
+                    }
+                    alt={isSinhala ? (product.sinhalaName || product.name) : product.name}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
                 </div>
+                <h3 className="text-gray-800 text-xl font-bold group-hover:text-green-600 transition-colors">
+                  {isSinhala ? (product.sinhalaName || product.name) : product.name}
+                </h3>
               </Link>
               );
             })}

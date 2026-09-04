@@ -1,471 +1,160 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Search, X, Image as ImageIcon } from 'lucide-react';
-import RichTextEditor from '../components/RichTextEditor';
-import { useAuth } from '../../context/AuthContext';
+import { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, X, Search, Newspaper, Upload } from 'lucide-react';
+import Pagination from '../../components/admin/Pagination';
 
-interface News {
-  id: string;
-  title: string;
-  sinhalaTitle: string | null;
-  slug: string;
-  content: string;
-  sinhalaContent: string | null;
-  image: string | null;
-  authorName: string;
-  authorEmail: string | null;
-  authorAvatar: string | null;
-  createdAt: string;
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+interface NewsItem {
+  id: string; title: string; sinhalaTitle?: string; slug: string;
+  content: string; sinhalaContent?: string; image?: string;
+  authorName: string; authorEmail?: string; authorAvatar?: string; createdAt: string;
 }
 
+const defaultForm = { title: '', sinhalaTitle: '', slug: '', content: '', sinhalaContent: '', image: '', authorName: '', authorEmail: '', authorAvatar: '' };
+
 export default function NewsManagement() {
-  const [newsList, setNewsList] = useState<News[]>([]);
+  const [items, setItems] = useState<NewsItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [currentNews, setCurrentNews] = useState<Partial<News>>({});
-  
-  const { token } = useAuth();
-
-  const handleContentChange = (val: string) => {
-    if (currentNews.content !== val) {
-      setCurrentNews(prev => ({ ...prev, content: val }));
-    }
-  };
-
-  const handleSinhalaContentChange = (val: string) => {
-    if (currentNews.sinhalaContent !== val) {
-      setCurrentNews(prev => ({ ...prev, sinhalaContent: val }));
-    }
-  };
-  
-  const [activeTab, setActiveTab] = useState<'EN' | 'SI'>('EN');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState({ ...defaultForm });
+  const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const token = localStorage.getItem('token');
+  const authHeaders = { Authorization: `Bearer ${token}` };
 
-  useEffect(() => {
-    fetchNews();
-  }, []);
-
-  const fetchNews = async () => {
+  const fetchItems = async (page = 1) => {
     setIsLoading(true);
     try {
-      // Assuming pagination returns { data: News[] } based on the controller util
-      const res = await fetch(`${API_BASE_URL}/news`);
-      const data = await res.json();
-      setNewsList(data.data || data); // handle both paginated and flat responses
-    } catch (error) {
-      console.error('Failed to fetch news:', error);
-    } finally {
-      setIsLoading(false);
-    }
+      const res = await fetch(`${API_BASE_URL}/news?page=${page}&limit=15`, { headers: authHeaders });
+      if (res.ok) {
+        const data = await res.json();
+        setItems(data.data || []);
+        if (data.meta) setTotalPages(data.meta.totalPages);
+      }
+    } finally { setIsLoading(false); }
   };
 
-  const handleOpenAddModal = () => {
-    setCurrentNews({
-      authorName: 'Admin', // Default author
-    });
-    setImageFile(null);
-    setAvatarFile(null);
-    setIsEditMode(false);
-    setIsModalOpen(true);
+  useEffect(() => { fetchItems(currentPage); }, [currentPage]);
+
+  const openCreate = () => { setForm({ ...defaultForm }); setImageFile(null); setEditingId(null); setIsModalOpen(true); };
+  const openEdit = (item: NewsItem) => {
+    setForm({ title: item.title, sinhalaTitle: item.sinhalaTitle || '', slug: item.slug, content: item.content, sinhalaContent: item.sinhalaContent || '', image: item.image || '', authorName: item.authorName, authorEmail: item.authorEmail || '', authorAvatar: item.authorAvatar || '' });
+    setImageFile(null); setEditingId(item.id); setIsModalOpen(true);
   };
 
-  const handleOpenEditModal = (news: News) => {
-    setCurrentNews(news);
-    setImageFile(null);
-    setAvatarFile(null);
-    setIsEditMode(true);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setCurrentNews({});
-    setImageFile(null);
-    setAvatarFile(null);
-  };
-
-  const generateSlug = (text: string) => {
-    return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-  };
-
-  const handleSaveNews = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentNews.title || !currentNews.content || !currentNews.authorName) {
-      alert("Title, content, and author name are required.");
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      const url = isEditMode
-        ? `${API_BASE_URL}/news/${currentNews.id}`
-        : `${API_BASE_URL}/news`;
-      const method = isEditMode ? 'PUT' : 'POST';
-
-      const formData = new FormData();
-      formData.append('title', currentNews.title);
-      formData.append('slug', currentNews.slug || generateSlug(currentNews.title));
-      formData.append('content', currentNews.content);
-      formData.append('authorName', currentNews.authorName);
-      if (currentNews.createdAt) formData.append('createdAt', currentNews.createdAt);
-      
-      if (currentNews.sinhalaTitle) formData.append('sinhalaTitle', currentNews.sinhalaTitle);
-      if (currentNews.sinhalaContent) formData.append('sinhalaContent', currentNews.sinhalaContent);
-      if (currentNews.authorEmail) formData.append('authorEmail', currentNews.authorEmail);
-
-      if (imageFile) formData.append('image', imageFile);
-      if (avatarFile) formData.append('authorAvatar', avatarFile);
-
-      const res = await fetch(url, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData,
-      });
-
-      if (!res.ok) throw new Error('Failed to save news');
-      
-      await fetchNews();
-      handleCloseModal();
-    } catch (error) {
-      console.error('Error saving news:', error);
-      alert("Failed to save news. Please try again.");
-    } finally {
-      setIsSaving(false);
-    }
+    const fd = new FormData();
+    Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+    if (imageFile) fd.append('image', imageFile);
+    const method = editingId ? 'PUT' : 'POST';
+    const url = editingId ? `${API_BASE_URL}/news/${editingId}` : `${API_BASE_URL}/news`;
+    const res = await fetch(url, { method, headers: authHeaders, body: fd });
+    if (res.ok) { setIsModalOpen(false); fetchItems(currentPage); }
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this news article?")) return;
-    
-    try {
-      const res = await fetch(`${API_BASE_URL}/news/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      if (!res.ok) throw new Error('Failed to delete');
-      await fetchNews();
-    } catch (error) {
-      console.error('Error deleting news:', error);
-      alert("Failed to delete news article.");
-    }
+    if (!confirm('Delete this news article?')) return;
+    await fetch(`${API_BASE_URL}/news/${id}`, { method: 'DELETE', headers: authHeaders });
+    fetchItems(currentPage);
   };
 
-  const filteredNews = newsList.filter(n => 
-    n.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (n.sinhalaTitle && n.sinhalaTitle.includes(searchQuery))
-  );
+  const filteredItems = items.filter(i => i.title.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="p-6 h-full flex flex-col bg-gray-50">
-      <div className="flex justify-between items-center mb-6">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">News Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage public news articles</p>
+          <h1 className="text-2xl font-bold text-gray-800">News Management</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage news articles and announcements</p>
         </div>
-        <button
-          onClick={handleOpenAddModal}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-medium transition-colors"
-        >
-          <Plus size={20} />
-          Add News
+        <button onClick={openCreate} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+          <Plus size={18} /> Add Article
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex-1 flex flex-col overflow-hidden">
-        <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
-          <div className="relative w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input
-              type="text"
-              placeholder="Search news..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            />
-          </div>
-          <div className="text-sm text-gray-500 font-medium">
-            Total Articles: {newsList.length}
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-auto">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-gray-50 sticky top-0 z-10 shadow-sm">
-              <tr>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Image</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Title</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Author</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                    <div className="flex justify-center mb-2"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div></div>
-                    Loading news...
-                  </td>
-                </tr>
-              ) : filteredNews.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                    No news found.
-                  </td>
-                </tr>
-              ) : (
-                filteredNews.map((news) => (
-                  <tr key={news.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      {news.image ? (
-                        <img src={news.image} alt={news.title} className="w-12 h-12 rounded object-cover border border-gray-200" />
-                      ) : (
-                        <div className="w-12 h-12 rounded bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400">
-                          <ImageIcon size={20} />
-                        </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-semibold text-gray-900">{news.title}</div>
-                      {news.sinhalaTitle && <div className="text-xs text-gray-500 mt-1">{news.sinhalaTitle}</div>}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        {news.authorAvatar ? (
-                          <img src={news.authorAvatar} alt={news.authorName} className="w-6 h-6 rounded-full object-cover" />
-                        ) : (
-                          <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500 font-bold">
-                            {news.authorName.charAt(0)}
-                          </div>
-                        )}
-                        <span className="text-sm text-gray-700">{news.authorName}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(news.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button
-                        onClick={() => handleOpenEditModal(news)}
-                        className="text-indigo-600 hover:text-indigo-900 mr-4"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(news.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="relative max-w-md">
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input type="text" placeholder="Search news..." value={search} onChange={e => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" />
         </div>
       </div>
 
-      {/* Add/Edit Modal */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20"><div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" /></div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Author</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Slug</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filteredItems.length === 0 ? (
+                <tr><td colSpan={5} className="text-center py-12 text-gray-400"><Newspaper className="mx-auto mb-2" size={32} /><p>No news articles found</p></td></tr>
+              ) : filteredItems.map(item => (
+                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      {item.image && <img src={item.image} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />}
+                      <span className="font-medium text-gray-800 line-clamp-1">{item.title}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-gray-600">{item.authorName}</td>
+                  <td className="px-6 py-4 text-gray-500 font-mono text-xs">{item.slug}</td>
+                  <td className="px-6 py-4 text-gray-500">{new Date(item.createdAt).toLocaleDateString()}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2 justify-end">
+                      <button onClick={() => openEdit(item)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit size={16} /></button>
+                      <button onClick={() => handleDelete(item.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
+      </div>
+
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] flex flex-col">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">
-                {isEditMode ? 'Edit News Article' : 'Add News Article'}
-              </h2>
-              <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600">
-                <X size={20} />
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="bg-white rounded-2xl w-full max-w-2xl relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-800">{editingId ? 'Edit Article' : 'Add New Article'}</h2>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X size={20} /></button>
             </div>
-
-            <form onSubmit={handleSaveNews} className="p-6 overflow-y-auto flex-1">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                {/* Left Column: Basic Details & Author */}
-                <div className="space-y-4">
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-4">
-                    <h3 className="text-sm font-bold text-gray-700 border-b border-gray-200 pb-2">Article Details</h3>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
-                      <input
-                        type="text"
-                        required
-                        value={currentNews.title || ''}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setCurrentNews({ ...currentNews, title: val, slug: generateSlug(val) });
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Sinhala Title</label>
-                      <input
-                        type="text"
-                        value={currentNews.sinhalaTitle || ''}
-                        onChange={(e) => setCurrentNews({ ...currentNews, sinhalaTitle: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">URL Slug *</label>
-                      <input
-                        type="text"
-                        required
-                        value={currentNews.slug || ''}
-                        onChange={(e) => setCurrentNews({ ...currentNews, slug: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 bg-gray-100"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Publish Date (Optional)</label>
-                      <input
-                        type="date"
-                        value={currentNews.createdAt ? new Date(currentNews.createdAt).toISOString().split('T')[0] : ''}
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            const date = new Date(e.target.value);
-                            setCurrentNews({ ...currentNews, createdAt: date.toISOString() });
-                          } else {
-                            setCurrentNews({ ...currentNews, createdAt: '' });
-                          }
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Main Cover Image</label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => e.target.files && setImageFile(e.target.files[0])}
-                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-                      />
-                      {currentNews.image && !imageFile && (
-                        <img src={currentNews.image} alt="Current cover" className="mt-2 h-20 rounded border border-gray-200" />
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-4">
-                    <h3 className="text-sm font-bold text-gray-700 border-b border-gray-200 pb-2">Author Details</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Author Name *</label>
-                        <input
-                          type="text"
-                          required
-                          value={currentNews.authorName || ''}
-                          onChange={(e) => setCurrentNews({ ...currentNews, authorName: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Author Email</label>
-                        <input
-                          type="email"
-                          value={currentNews.authorEmail || ''}
-                          onChange={(e) => setCurrentNews({ ...currentNews, authorEmail: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Author Avatar (Small)</label>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => e.target.files && setAvatarFile(e.target.files[0])}
-                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
-                      />
-                      {currentNews.authorAvatar && !avatarFile && (
-                        <img src={currentNews.authorAvatar} alt="Current avatar" className="mt-2 h-10 w-10 rounded-full border border-gray-200 object-cover" />
-                      )}
-                    </div>
-                  </div>
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Title (EN) *</label><input required value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Title (SI)</label><input value={form.sinhalaTitle} onChange={e => setForm({...form, sinhalaTitle: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Slug *</label><input required value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Author Name *</label><input required value={form.authorName} onChange={e => setForm({...form, authorName: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Author Email</label><input type="email" value={form.authorEmail} onChange={e => setForm({...form, authorEmail: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                    <Upload size={16} className="text-gray-400" />
+                    <span className="text-sm text-gray-500">{imageFile ? imageFile.name : 'Choose image...'}</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={e => setImageFile(e.target.files?.[0] || null)} />
+                  </label>
                 </div>
-
-                {/* Right Column: Rich Text Content */}
-                <div className="space-y-4 flex flex-col h-full">
-                  <div className="flex border-b border-gray-200">
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('EN')}
-                      className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
-                        activeTab === 'EN'
-                          ? 'border-green-500 text-green-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      English Content
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('SI')}
-                      className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
-                        activeTab === 'SI'
-                          ? 'border-green-500 text-green-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      සිංහල Content (Sinhala)
-                    </button>
-                  </div>
-
-                  <div className={activeTab === 'EN' ? 'block space-y-8 flex-1' : 'hidden'}>
-                    <div className="h-[400px]">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Article Body (English) *</label>
-                      <RichTextEditor
-                        value={currentNews.content || ''}
-                        onChange={handleContentChange}
-                        placeholder="Write the full news article here..."
-                      />
-                    </div>
-                  </div>
-
-                  <div className={activeTab === 'SI' ? 'block space-y-8 flex-1' : 'hidden'}>
-                    <div className="h-[400px]">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Article Body (Sinhala) - ලිපිය</label>
-                      <RichTextEditor
-                        value={currentNews.sinhalaContent || ''}
-                        onChange={handleSinhalaContentChange}
-                        placeholder="ලිපියේ විස්තරය සිංහලෙන් ඇතුලත් කරන්න..."
-                      />
-                    </div>
-                  </div>
-                </div>
-
               </div>
-
-              <div className="mt-8 flex justify-end gap-3 pt-4 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium shadow-sm disabled:opacity-50 flex items-center gap-2"
-                >
-                  {isSaving && <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>}
-                  {isEditMode ? 'Update News' : 'Publish News'}
-                </button>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Content (EN) *</label><textarea required value={form.content} onChange={e => setForm({...form, content: e.target.value})} rows={5} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Content (SI)</label><textarea value={form.sinhalaContent} onChange={e => setForm({...form, sinhalaContent: e.target.value})} rows={5} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 font-medium transition-colors">Cancel</button>
+                <button type="submit" className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">{editingId ? 'Update' : 'Publish'}</button>
               </div>
             </form>
           </div>

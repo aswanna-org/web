@@ -47,7 +47,7 @@ export default function ProductsSection() {
               {t('products.subtitle')}
             </h3>
 
-            <button className="px-8 py-4 bg-white/10 backdrop-blur-md hover:bg-yellow-500/20 text-black font-bold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 uppercase tracking-wider">
+            <button className="px-8 py-4 bg-white/10 backdrop-blur-md hover:bg-yellow-500/20 text-black font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 uppercase tracking-wider">
               {t('products.more')}
             </button>
           </div>

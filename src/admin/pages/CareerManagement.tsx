@@ -1,422 +1,156 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import RichTextEditor from '../components/RichTextEditor';
+import { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, X, Search, Briefcase, ToggleLeft, ToggleRight } from 'lucide-react';
+import Pagination from '../../components/admin/Pagination';
 
-interface JobOpening {
-  id: string;
-  title: string;
-  sinhalaTitle: string | null;
-  description: string;
-  sinhalaDescription: string | null;
-  location: string | null;
-  sinhalaLocation: string | null;
-  isActive: boolean;
-  createdAt: string;
-  _count?: {
-    applications: number;
-  };
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+interface Job {
+  id: string; title: string; sinhalaTitle?: string; description: string;
+  sinhalaDescription?: string; location: string; sinhalaLocation?: string;
+  isActive: boolean; createdAt: string;
 }
 
-const CareerManagement = () => {
-  const [jobs, setJobs] = useState<JobOpening[]>([]);
+const defaultForm = { title: '', sinhalaTitle: '', description: '', sinhalaDescription: '', location: '', sinhalaLocation: '', isActive: true };
+
+export default function CareerManagement() {
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [currentJob, setCurrentJob] = useState<Partial<JobOpening>>({});
-  const [activeTab, setActiveTab] = useState<'EN' | 'SI'>('EN');
-  const [isSaving, setIsSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [form, setForm] = useState<typeof defaultForm>({ ...defaultForm });
+  const [search, setSearch] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [jobToDelete, setJobToDelete] = useState<JobOpening | null>(null);
+  const token = localStorage.getItem('token');
+  const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
-  const { token } = useAuth();
-  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-
-  useEffect(() => {
-    fetchJobs();
-  }, []);
-
-  const fetchJobs = async () => {
+  const fetchJobs = async (page = 1) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
-      const response = await fetch(`${API_BASE_URL}/careers/openings?limit=100`);
-      if (!response.ok) throw new Error('Failed to fetch jobs');
-      const data = await response.json();
-      setJobs(data.data || []);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
+      const res = await fetch(`${API_BASE_URL}/careers/openings?page=${page}&limit=15`, { headers });
+      if (res.ok) {
+        const data = await res.json();
+        setJobs(data.data || []);
+        if (data.meta) setTotalPages(data.meta.totalPages);
+      }
+    } finally { setIsLoading(false); }
   };
 
-  const handleOpenAddModal = () => {
-    setCurrentJob({
-      title: '',
-      sinhalaTitle: '',
-      description: '',
-      sinhalaDescription: '',
-      location: '',
-      sinhalaLocation: '',
-      isActive: true
-    });
-    setIsEditMode(false);
-    setActiveTab('EN');
-    setIsModalOpen(true);
+  useEffect(() => { fetchJobs(currentPage); }, [currentPage]);
+
+  const openCreate = () => { setForm({ ...defaultForm }); setEditingId(null); setIsModalOpen(true); };
+  const openEdit = (job: Job) => {
+    setForm({ title: job.title, sinhalaTitle: job.sinhalaTitle || '', description: job.description, sinhalaDescription: job.sinhalaDescription || '', location: job.location, sinhalaLocation: job.sinhalaLocation || '', isActive: job.isActive });
+    setEditingId(job.id); setIsModalOpen(true);
   };
 
-  const handleOpenEditModal = (job: JobOpening) => {
-    setCurrentJob(job);
-    setIsEditMode(true);
-    setActiveTab('EN');
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setCurrentJob({});
-  };
-
-  const handleDescriptionChange = (val: string) => {
-    if (currentJob.description !== val) {
-      setCurrentJob(prev => ({ ...prev, description: val }));
-    }
-  };
-
-  const handleSinhalaDescriptionChange = (val: string) => {
-    if (currentJob.sinhalaDescription !== val) {
-      setCurrentJob(prev => ({ ...prev, sinhalaDescription: val }));
-    }
-  };
-
-  const handleSaveJob = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentJob.title || !currentJob.description) {
-      alert("Title and description are required.");
-      return;
-    }
-
-    setIsSaving(true);
-    try {
-      const url = isEditMode
-        ? `${API_BASE_URL}/careers/openings/${currentJob.id}`
-        : `${API_BASE_URL}/careers/openings`;
-
-      const method = isEditMode ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
-        body: JSON.stringify(currentJob),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save job');
-      }
-
-      fetchJobs();
-      handleCloseModal();
-    } catch (err: any) {
-      alert(err.message);
-    } finally {
-      setIsSaving(false);
-    }
+    const method = editingId ? 'PUT' : 'POST';
+    const url = editingId ? `${API_BASE_URL}/careers/openings/${editingId}` : `${API_BASE_URL}/careers/openings`;
+    const res = await fetch(url, { method, headers, body: JSON.stringify(form) });
+    if (res.ok) { setIsModalOpen(false); fetchJobs(currentPage); }
   };
 
-  const confirmDelete = (job: JobOpening) => {
-    setJobToDelete(job);
-    setIsDeleteDialogOpen(true);
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this job opening?')) return;
+    await fetch(`${API_BASE_URL}/careers/openings/${id}`, { method: 'DELETE', headers });
+    fetchJobs(currentPage);
   };
 
-  const handleDelete = async () => {
-    if (!jobToDelete) return;
-    try {
-      const response = await fetch(`${API_BASE_URL}/careers/openings/${jobToDelete.id}`, {
-        method: 'DELETE',
-        headers: {
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        }
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete job');
-      }
-
-      fetchJobs();
-      setIsDeleteDialogOpen(false);
-      setJobToDelete(null);
-    } catch (err: any) {
-      alert(err.message);
-    }
-  };
-
-  const toggleJobStatus = async (job: JobOpening) => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/careers/openings/${job.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
-        body: JSON.stringify({ ...job, isActive: !job.isActive }),
-      });
-
-      if (!response.ok) throw new Error('Failed to update status');
-      fetchJobs();
-    } catch (err: any) {
-      alert(err.message);
-    }
-  };
+  const filteredJobs = jobs.filter(j => j.title.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="space-y-6 w-full mx-auto pb-10">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Career Management</h1>
-          <p className="mt-1 text-sm text-gray-500">Manage job postings and review submissions.</p>
+          <h1 className="text-2xl font-bold text-gray-800">Career Management</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage job openings and applications</p>
         </div>
-        <button
-          onClick={handleOpenAddModal}
-          className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg font-medium transition-colors"
-        >
-          <Plus size={18} />
-          Post New Job
+        <button onClick={openCreate} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+          <Plus size={18} /> Add Job
         </button>
       </div>
 
-      {error && (
-        <div className="bg-red-50 text-red-600 p-4 rounded-lg flex items-center gap-2">
-          <AlertCircle size={20} />
-          <span>{error}</span>
-        </div>
-      )}
-
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {isLoading ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-gray-500">Loading jobs...</td>
-                </tr>
-              ) : jobs.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-gray-500">No jobs posted yet.</td>
-                </tr>
-              ) : (
-                jobs.map((job) => (
-                  <tr key={job.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">{job.title}</div>
-                      {job.sinhalaTitle && <div className="text-xs text-gray-500">{job.sinhalaTitle}</div>}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {job.location || 'Anywhere'}
-                    </td>
-                    <td className="px-6 py-4">
-                      <button
-                        onClick={() => toggleJobStatus(job)}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                          job.isActive 
-                            ? 'bg-green-100 text-green-800 hover:bg-green-200' 
-                            : 'bg-amber-100 text-amber-800 hover:bg-amber-200'
-                        }`}
-                        title={job.isActive ? "Click to disable" : "Click to approve/enable"}
-                      >
-                        {job.isActive ? <CheckCircle2 size={12} /> : <AlertCircle size={12} />}
-                        {job.isActive ? 'Active' : 'Pending Review'}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
-                      {new Date(job.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4 text-right text-sm font-medium">
-                      <button
-                        onClick={() => handleOpenEditModal(job)}
-                        className="text-blue-600 hover:text-blue-900 mr-4"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => confirmDelete(job)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="relative max-w-md">
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input type="text" placeholder="Search jobs..." value={search} onChange={e => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" />
         </div>
       </div>
 
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        {isLoading ? (
+          <div className="flex justify-center items-center py-20"><div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" /></div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filteredJobs.length === 0 ? (
+                <tr><td colSpan={5} className="text-center py-12 text-gray-400"><Briefcase className="mx-auto mb-2" size={32} /><p>No job openings found</p></td></tr>
+              ) : filteredJobs.map(job => (
+                <tr key={job.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 font-medium text-gray-800">{job.title}</td>
+                  <td className="px-6 py-4 text-gray-600">{job.location}</td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${job.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{job.isActive ? 'Active' : 'Inactive'}</span>
+                  </td>
+                  <td className="px-6 py-4 text-gray-500">{new Date(job.createdAt).toLocaleDateString()}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2 justify-end">
+                      <button onClick={() => openEdit(job)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit size={16} /></button>
+                      <button onClick={() => handleDelete(job.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+        {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
+      </div>
+
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">
-                {isEditMode ? 'Edit Job' : 'Post New Job'}
-              </h2>
-              <button onClick={handleCloseModal} className="text-gray-400 hover:text-gray-600">
-                <X size={20} />
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="bg-white rounded-2xl w-full max-w-2xl relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-800">{editingId ? 'Edit Job' : 'Add New Job'}</h2>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X size={20} /></button>
             </div>
-
-            <form onSubmit={handleSaveJob} className="p-6 overflow-y-auto flex-1">
-              <div className="flex border-b border-gray-200 mb-6">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('EN')}
-                  className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'EN'
-                      ? 'border-green-500 text-green-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  English Details
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('SI')}
-                  className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
-                    activeTab === 'SI'
-                      ? 'border-green-500 text-green-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  සිංහල Details (Sinhala)
-                </button>
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Title (EN) *</label><input required value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Title (SI)</label><input value={form.sinhalaTitle} onChange={e => setForm({...form, sinhalaTitle: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Location</label><input value={form.location} onChange={e => setForm({...form, location: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Location (SI)</label><input value={form.sinhalaLocation} onChange={e => setForm({...form, sinhalaLocation: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
               </div>
-
-              <div className={activeTab === 'EN' ? 'space-y-6 block' : 'hidden'}>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Job Title *</label>
-                  <input
-                    type="text"
-                    required
-                    value={currentJob.title || ''}
-                    onChange={(e) => setCurrentJob({ ...currentJob, title: e.target.value })}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
-                  <input
-                    type="text"
-                    value={currentJob.location || ''}
-                    onChange={(e) => setCurrentJob({ ...currentJob, location: e.target.value })}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                    placeholder="e.g. Colombo, Sri Lanka"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Job Description *</label>
-                  <RichTextEditor
-                    value={currentJob.description || ''}
-                    onChange={handleDescriptionChange}
-                  />
-                </div>
-              </div>
-
-              <div className={activeTab === 'SI' ? 'space-y-6 block' : 'hidden'}>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Job Title (Sinhala)</label>
-                  <input
-                    type="text"
-                    value={currentJob.sinhalaTitle || ''}
-                    onChange={(e) => setCurrentJob({ ...currentJob, sinhalaTitle: e.target.value })}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Location (Sinhala)</label>
-                  <input
-                    type="text"
-                    value={currentJob.sinhalaLocation || ''}
-                    onChange={(e) => setCurrentJob({ ...currentJob, sinhalaLocation: e.target.value })}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:ring-green-500 focus:border-green-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Job Description (Sinhala)</label>
-                  <RichTextEditor
-                    value={currentJob.sinhalaDescription || ''}
-                    onChange={handleSinhalaDescriptionChange}
-                  />
-                </div>
-              </div>
-
-              <div className="mt-8 pt-4 border-t border-gray-200 flex justify-end gap-3 sticky bottom-0 bg-white">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-                  disabled={isSaving}
-                >
-                  Cancel
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Description (EN) *</label><textarea required value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={4} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Description (SI)</label><textarea value={form.sinhalaDescription} onChange={e => setForm({...form, sinhalaDescription: e.target.value})} rows={4} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+              <div className="flex items-center gap-3">
+                <button type="button" onClick={() => setForm({...form, isActive: !form.isActive})}>
+                  {form.isActive ? <ToggleRight size={28} className="text-green-600" /> : <ToggleLeft size={28} className="text-gray-400" />}
                 </button>
-                <button
-                  type="submit"
-                  disabled={isSaving}
-                  className="px-6 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 disabled:bg-green-400 flex items-center gap-2"
-                >
-                  {isSaving && <Loader2 size={16} className="animate-spin" />}
-                  {isEditMode ? 'Save Changes' : 'Post Job'}
-                </button>
+                <span className="text-sm font-medium text-gray-700">Active (visible to public)</span>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 font-medium transition-colors">Cancel</button>
+                <button type="submit" className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">{editingId ? 'Update' : 'Post Job'}</button>
               </div>
             </form>
           </div>
         </div>
       )}
-
-      {isDeleteDialogOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden p-6 text-center">
-            <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-              <AlertCircle className="h-6 w-6 text-red-600" />
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Delete Job?</h3>
-            <p className="text-sm text-gray-500 mb-6">
-              Are you sure you want to delete "{jobToDelete?.title}"? This action cannot be undone.
-            </p>
-            <div className="flex justify-center gap-3">
-              <button
-                onClick={() => setIsDeleteDialogOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 w-full"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 w-full"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
-};
-
-export default CareerManagement;
+}

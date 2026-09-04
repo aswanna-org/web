@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import PageHero from '../../components/public/PageHero';
 import { useTranslation } from 'react-i18next';
 import { Search, MapPin, Maximize, Phone, Tag } from 'lucide-react';
+import Pagination from '../../components/admin/Pagination';
 
 interface Lookup {
   id: string;
@@ -46,6 +47,8 @@ export default function AgroLands() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedType, setSelectedType] = useState<string>('');
   const [selectedLocation, setSelectedLocation] = useState<string>('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -57,13 +60,15 @@ export default function AgroLands() {
   }, [searchQuery]);
 
   useEffect(() => {
-    fetchLands();
-  }, [debouncedSearch, selectedType, selectedLocation]);
+    fetchLands(currentPage);
+  }, [debouncedSearch, selectedType, selectedLocation, currentPage]);
 
-  const fetchLands = async () => {
+  const fetchLands = async (page = 1) => {
     try {
       setIsLoading(true);
       const params = new URLSearchParams();
+      params.append('page', page.toString());
+      params.append('limit', '12');
       if (debouncedSearch) params.append('search', debouncedSearch);
       if (selectedType) params.append('type', selectedType);
       if (selectedLocation) params.append('location', selectedLocation);
@@ -72,8 +77,11 @@ export default function AgroLands() {
       if (!response.ok) throw new Error('Failed to fetch agro lands');
       
       const data = await response.json();
-      setLands(data.lands || []);
-      setFilters(data.filters || { locations: [], types: [] });
+      setLands(data.data?.lands || data.lands || []);
+      setFilters(data.data?.filters || data.filters || { locations: [], types: [] });
+      if (data.meta) {
+        setTotalPages(data.meta.totalPages);
+      }
     } catch (error) {
       console.error('Error:', error);
     } finally {
@@ -211,7 +219,7 @@ export default function AgroLands() {
                     </h3>
                     
                     <div className="flex items-center text-gray-500 text-sm mb-2">
-                      <MapPin size={16} className="mr-1" />
+                       <MapPin size={16} className="mr-1" />
                       <span className="line-clamp-1">{isSinhala ? (land.locationSi || land.location) : land.location}</span>
                     </div>
                     
@@ -258,6 +266,15 @@ export default function AgroLands() {
             </div>
           )}
           
+          {totalPages > 1 && (
+            <div className="mt-8">
+              <Pagination 
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

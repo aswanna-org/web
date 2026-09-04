@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Share2, Clock, User, Image as ImageIcon } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import { useTranslation } from 'react-i18next';
+import Pagination from '../../components/admin/Pagination';
 
 interface NewsItem {
   id: string;
@@ -26,9 +27,11 @@ export default function News() {
   const [newsList, setNewsList] = useState<NewsItem[]>([]);
   const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/news`)
+    fetch(`${API_BASE_URL}/news?page=${currentPage}&limit=10`)
       .then(res => res.json())
       .then(data => {
         const items = data.data || data;
@@ -36,10 +39,13 @@ export default function News() {
         if (items.length > 0) {
           setSelectedNewsId(items[0].id);
         }
+        if (data.meta) {
+          setTotalPages(data.meta.totalPages);
+        }
       })
       .catch(err => console.error("Error fetching news:", err))
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [currentPage]);
 
   const selectedNews = newsList.find((n) => n.id === selectedNewsId) || newsList[0];
 
@@ -113,6 +119,15 @@ export default function News() {
                 ))
               )}
             </div>
+            {totalPages > 1 && (
+              <div className="mt-6 pr-2">
+                <Pagination 
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={(page) => setCurrentPage(page)}
+                />
+              </div>
+            )}
           </div>
 
           {/* Right Column: News Details (approx 2/3 width) */}

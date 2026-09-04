@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, ChevronDown, ChevronRight, X } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
+import Pagination from '../../components/admin/Pagination';
 
 interface Job {
   id: string;
@@ -21,6 +22,8 @@ export default function Careers() {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('All');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   const [jobsData, setJobsData] = useState<Job[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,16 +34,19 @@ export default function Careers() {
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
-    fetchJobs();
-  }, []);
+    fetchJobs(currentPage);
+  }, [currentPage]);
 
-  const fetchJobs = async () => {
+  const fetchJobs = async (page = 1) => {
     try {
-      const res = await fetch(`${API_BASE_URL}/careers/openings?limit=100`);
+      const res = await fetch(`${API_BASE_URL}/careers/openings?page=${page}&limit=12`);
       if (res.ok) {
         const data = await res.json();
         // Only show active jobs to public
         setJobsData(data.data?.filter((j: Job) => j.isActive) || []);
+        if (data.meta) {
+          setTotalPages(data.meta.totalPages);
+        }
       }
     } catch (err) {
       console.error("Failed to fetch jobs");
@@ -179,7 +185,7 @@ export default function Careers() {
                           <ChevronDown className="w-5 h-5" />
                         </button>
                         <button
-                          className="px-8 py-4 bg-[var(--color-primary)]/80 hover:bg-[var(--color-primary)] border border-[var(--color-primary)]/50 backdrop-blur-md flex items-center justify-center text-white font-bold rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-all duration-300 uppercase tracking-wider shrink-0 w-full sm:w-auto"
+                          className="px-8 py-4 bg-[var(--color-primary)]/80 hover:bg-[var(--color-primary)] border border-[var(--color-primary)]/50 backdrop-blur-md flex items-center justify-center text-white font-bold rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-all duration-300 uppercase tracking-wider shrink-0 w-full sm:w-auto"
                           onClick={(e) => { e.stopPropagation(); /* apply logic */ }}
                         >
                           Submit Application <ChevronRight className="w-4 h-4 ml-2" />
@@ -206,6 +212,16 @@ export default function Careers() {
                   <Search className="w-12 h-12 text-gray-300 mb-4" />
                   <h3 className="text-xl font-bold text-[#143d4d] mb-2">{t('careers.noResults', 'No jobs found')}</h3>
                   <p className="text-gray-500 max-w-sm">{t('careers.noResultsDesc', 'We couldn\'t find any open positions matching your search. Try adjusting your filters.')}</p>
+                </div>
+              )}
+              
+              {totalPages > 1 && (
+                <div className="mt-8">
+                  <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={(page) => setCurrentPage(page)}
+                  />
                 </div>
               )}
             </div>
@@ -267,7 +283,7 @@ export default function Careers() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="mt-4 w-full py-4 bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] disabled:bg-gray-400 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all uppercase tracking-wider"
+                className="mt-4 w-full py-4 bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] disabled:bg-gray-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all uppercase tracking-wider"
               >
                 {isSubmitting ? 'Publishing...' : 'Publish Job'}
               </button>

@@ -200,7 +200,7 @@ export default function AgroProductDetail() {
                 <Link 
                   key={p.id} 
                   to={`/agro/${mainCategory.slug}/${category.slug}/${p.slug}`} 
-                  className="group relative block w-full aspect-square rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-100"
+                  className="group relative block w-full aspect-square rounded-full-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-100"
                 >
                   <img
                     src={

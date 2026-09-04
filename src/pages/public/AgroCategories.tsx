@@ -20,11 +20,10 @@ export default function AgroCategories() {
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/categories`)
+    fetch(`${API_BASE_URL}/categories/tree`)
       .then(res => res.json())
       .then(data => {
-        console.log('Fetched Categories Data:', data);
-        setCategories(data);
+        setCategories(Array.isArray(data) ? data : (data.data || []));
       })
       .catch(error => {
         console.error('Error fetching categories:', error);
@@ -111,7 +110,7 @@ export default function AgroCategories() {
                   <Link 
                     key={cat.id} 
                     to={`/agro/${cat.slug}`} 
-                    className="group relative block w-full aspect-square rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-100"
+                    className="group relative block w-full aspect-square rounded-full-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-100"
                   >
                     <img
                       src={imageUrl || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80'}
