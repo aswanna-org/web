@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, ShoppingCart } from 'lucide-react';
+import { ArrowLeft, MapPin } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function AgroProductDetail() {

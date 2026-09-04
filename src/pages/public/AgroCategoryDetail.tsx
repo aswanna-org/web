@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { ArrowLeft, MapPin, ShoppingCart } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import Card from '../../components/ui/Card';
 
 export default function AgroCategoryDetail() {
   const { mainSlug, subSlug } = useParams<{ mainSlug: string; subSlug: string }>();

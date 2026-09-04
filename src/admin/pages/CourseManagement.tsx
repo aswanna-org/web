@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, X, Search, BookOpen, Clock, Users, PlusCircle, MinusCircle, Image as ImageIcon } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Search, BookOpen, Clock, PlusCircle, MinusCircle, Image as ImageIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface Course {
