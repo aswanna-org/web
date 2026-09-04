@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, X, Search, Newspaper, Upload } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Upload, Newspaper, X } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
+import RichTextEditor from '../components/RichTextEditor';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -150,8 +151,18 @@ export default function BlogManagement() {
                   </label>
                 </div>
               </div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Content (EN) *</label><textarea required value={form.content} onChange={e => setForm({...form, content: e.target.value})} rows={5} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Content (SI)</label><textarea value={form.sinhalaContent} onChange={e => setForm({...form, sinhalaContent: e.target.value})} rows={5} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Content (EN) *</label>
+                <div className={editingId ? '' : 'h-64 mb-16'}>
+                  <RichTextEditor value={form.content} onChange={value => setForm({...form, content: value})} placeholder="Write blog content in English..." />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Content (SI)</label>
+                <div className={editingId ? '' : 'h-64 mb-16'}>
+                  <RichTextEditor value={form.sinhalaContent} onChange={value => setForm({...form, sinhalaContent: value})} placeholder="Write blog content in Sinhala..." />
+                </div>
+              </div>
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 font-medium transition-colors">Cancel</button>
                 <button type="submit" className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">{editingId ? 'Update' : 'Publish'}</button>
