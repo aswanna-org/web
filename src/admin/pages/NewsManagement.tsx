@@ -7,11 +7,23 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 interface NewsItem {
   id: string; title: string; sinhalaTitle?: string; slug: string;
-  content: string; sinhalaContent?: string; image?: string;
+  content: string; sinhalaContent?: string; category?: string; image?: string;
   authorName: string; authorEmail?: string; authorAvatar?: string; createdAt: string;
 }
 
-const defaultForm = { title: '', sinhalaTitle: '', slug: '', content: '', sinhalaContent: '', image: '', authorName: '', authorEmail: '', authorAvatar: '' };
+const NEWS_CATEGORIES = [
+  'රාජ්ය ප්රතිපත්ති සහ කැබිනට් තීරණ',
+  'සංවර්ධන පුවත්',
+  'ප්රාදේශීය පුවත්',
+  'වෙළඳ හා ආර්ථික',
+  'තාක්ෂණ හා පර්යේෂණ',
+  'සත්ව පාලනය හා ධීවර',
+  'කාලගුණ හා ආපදා',
+  'විදේශ පුවත්',
+  'විශේෂාංග'
+];
+
+const defaultForm = { title: '', sinhalaTitle: '', slug: '', content: '', sinhalaContent: '', category: '', image: '', authorName: '', authorEmail: '', authorAvatar: '' };
 
 export default function NewsManagement() {
   const [items, setItems] = useState<NewsItem[]>([]);
@@ -43,7 +55,7 @@ export default function NewsManagement() {
 
   const openCreate = () => { setForm({ ...defaultForm }); setImageFile(null); setEditingId(null); setIsModalOpen(true); };
   const openEdit = (item: NewsItem) => {
-    setForm({ title: item.title, sinhalaTitle: item.sinhalaTitle || '', slug: item.slug, content: item.content, sinhalaContent: item.sinhalaContent || '', image: item.image || '', authorName: item.authorName, authorEmail: item.authorEmail || '', authorAvatar: item.authorAvatar || '' });
+    setForm({ title: item.title, sinhalaTitle: item.sinhalaTitle || '', slug: item.slug, content: item.content, sinhalaContent: item.sinhalaContent || '', category: item.category || '', image: item.image || '', authorName: item.authorName, authorEmail: item.authorEmail || '', authorAvatar: item.authorAvatar || '' });
     setImageFile(null); setEditingId(item.id); setIsModalOpen(true);
   };
 
@@ -141,6 +153,12 @@ export default function NewsManagement() {
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Title (EN) *</label><input required value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Title (SI)</label><input value={form.sinhalaTitle} onChange={e => setForm({...form, sinhalaTitle: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Slug *</label><input required value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                  <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50">
+                    <option value="">Select Category</option>
+                    {NEWS_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                  </select>
+                </div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Author Name *</label><input required value={form.authorName} onChange={e => setForm({...form, authorName: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Author Email</label><input type="email" value={form.authorEmail} onChange={e => setForm({...form, authorEmail: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
