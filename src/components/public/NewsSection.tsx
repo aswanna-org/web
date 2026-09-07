@@ -33,9 +33,12 @@ export default function NewsSection() {
       .then(res => res.json())
       .then(data => {
         const items = data.data || data;
-        setNewsItems(items);
+        setNewsItems(Array.isArray(items) ? items : []);
       })
-      .catch(err => console.error("Error fetching news:", err));
+      .catch(err => {
+        console.error("Error fetching news:", err);
+        setNewsItems([]);
+      });
   }, []);
 
   return (
