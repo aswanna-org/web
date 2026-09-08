@@ -54,7 +54,7 @@ export default function ItemManagement() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/categories/all?limit=100`, { headers: authHeaders });
+      const res = await fetch(`${API_BASE_URL}/categories?limit=100`, { headers: authHeaders });
       if (res.ok) {
         const data = await res.json();
         setCategories(data.data || []);
