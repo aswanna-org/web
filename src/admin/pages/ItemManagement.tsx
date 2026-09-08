@@ -18,7 +18,7 @@ interface Item {
 }
 
 const defaultForm = { 
-  name: '', sinhalaName: '', slug: '', scientificName: '', location: '', sinhalaLocation: '', status: 'active',
+  name: '', sinhalaName: '', slug: '', scientificName: '', location: '', sinhalaLocation: '', status: 'AVAILABLE',
   description: '', sinhalaDescription: '', categoryId: '', order: '0',
   slAgriData: { cultivationArea: '', sinhalaCultivationArea: '', annualProduction: '', sinhalaAnnualProduction: '', averageYield: '', sinhalaAverageYield: '', districts: [] as DistrictShare[] },
   globalAgriData: [] as GlobalAgriData[]
@@ -74,7 +74,7 @@ export default function ItemManagement() {
     setForm({ 
       name: item.name, sinhalaName: item.sinhalaName || '', slug: item.slug,
       scientificName: item.scientificName || '', location: item.location || '', sinhalaLocation: item.sinhalaLocation || '',
-      status: item.status || 'active', description: item.description || '', 
+      status: item.status || 'AVAILABLE', description: item.description || '', 
       sinhalaDescription: item.sinhalaDescription || '', categoryId: item.categoryId || '', order: String(item.order ?? 0),
       slAgriData: item.slAgriData || { cultivationArea: '', sinhalaCultivationArea: '', annualProduction: '', sinhalaAnnualProduction: '', averageYield: '', sinhalaAverageYield: '', districts: [] },
       globalAgriData: item.globalAgriData || []
@@ -229,8 +229,8 @@ export default function ItemManagement() {
                       <div><label className="block text-sm font-medium text-gray-700 mb-1">Order</label><input type="number" value={form.order} onChange={e => setForm({...form, order: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
                       <div><label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
                         <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white">
-                          <option value="active">Active</option>
-                          <option value="inactive">Inactive</option>
+                          <option value="AVAILABLE">Available</option>
+                          <option value="UNAVAILABLE">Unavailable</option>
                         </select>
                       </div>
                     </div>
