@@ -38,6 +38,8 @@ export default function ItemManagement() {
   const [imageFile2, setImageFile2] = useState<File | null>(null);
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'EN' | 'SI' | 'SL_DATA' | 'GLOBAL_DATA'>('EN');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const token = localStorage.getItem('admin_token');
   const authHeaders = { Authorization: `Bearer ${token}` };
@@ -84,6 +86,8 @@ export default function ItemManagement() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
+    setSaveError(null);
     const fd = new FormData();
     Object.entries(form).forEach(([k, v]) => {
       if (k === 'slAgriData' || k === 'globalAgriData') {
@@ -104,10 +108,22 @@ export default function ItemManagement() {
 
     fd.append('imagesOrder', JSON.stringify(finalImagesOrder));
 
-    const method = editingId ? 'PUT' : 'POST';
-    const url = editingId ? `${API_BASE_URL}/items/${editingId}` : `${API_BASE_URL}/items`;
-    const res = await fetch(url, { method, headers: authHeaders, body: fd });
-    if (res.ok) { setIsModalOpen(false); fetchItems(currentPage); }
+    try {
+      const method = editingId ? 'PUT' : 'POST';
+      const url = editingId ? `${API_BASE_URL}/items/${editingId}` : `${API_BASE_URL}/items`;
+      const res = await fetch(url, { method, headers: authHeaders, body: fd });
+      if (res.ok) {
+        setIsModalOpen(false);
+        fetchItems(currentPage);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setSaveError(errData.error || `Failed to save item (${res.status}). Please try again.`);
+      }
+    } catch (err) {
+      setSaveError('Network error. Please check your connection and try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -317,9 +333,21 @@ export default function ItemManagement() {
               </div>
               
               {/* Footer Actions */}
-              <div className="p-6 border-t border-gray-100 bg-gray-50 flex gap-3">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-100 bg-white font-medium transition-colors">Cancel</button>
-                <button type="submit" className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">{editingId ? 'Update' : 'Add'}</button>
+              <div className="p-6 border-t border-gray-100 bg-gray-50 space-y-3">
+                {saveError && (
+                  <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg">
+                    <span className="mt-0.5">⚠️</span>
+                    <span>{saveError}</span>
+                  </div>
+                )}
+                <div className="flex gap-3">
+                  <button type="button" onClick={() => setIsModalOpen(false)} disabled={isSaving} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-100 bg-white font-medium transition-colors disabled:opacity-50">Cancel</button>
+                  <button type="submit" disabled={isSaving} className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                    {isSaving ? (
+                      <><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />{editingId ? 'Updating...' : 'Saving...'}</>
+                    ) : (editingId ? 'Update' : 'Add')}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
