@@ -20,6 +20,18 @@ interface NewsItem {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+const NEWS_CATEGORIES = [
+  'රාජ්‍ය ප්‍රතිපත්ති සහ කැබිනට් තීරණ',
+  'සංවර්ධන පුවත්',
+  'ප්‍රාදේශීය පුවත්',
+  'වෙළඳ හා ආර්ථික',
+  'තාක්ෂණ හා පර්යේෂණ',
+  'සත්ව පාලනය හා ධීවර',
+  'කාලගුණ හා ආපදා',
+  'විදේශ පුවත්',
+  'විශේෂාංග'
+];
+
 export default function News() {
   const { t, i18n } = useTranslation();
   const isSinhala = i18n.language === 'si';
@@ -29,9 +41,12 @@ export default function News() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/news?page=${currentPage}&limit=10`)
+    setIsLoading(true);
+    const categoryParam = selectedCategory ? `&category=${encodeURIComponent(selectedCategory)}` : '';
+    fetch(`${API_BASE_URL}/news?page=${currentPage}&limit=10${categoryParam}`)
       .then(res => res.json())
       .then(data => {
         const items = data.data || data;
@@ -45,7 +60,7 @@ export default function News() {
       })
       .catch(err => console.error("Error fetching news:", err))
       .finally(() => setIsLoading(false));
-  }, [currentPage]);
+  }, [currentPage, selectedCategory]);
 
   const selectedNews = newsList.find((n) => n.id === selectedNewsId) || newsList[0];
 
@@ -66,10 +81,24 @@ export default function News() {
 
           {/* Left Column: News List (approx 1/3 width) */}
           <div className="w-full lg:w-1/3 flex flex-col">
-            <div className="flex items-center gap-6 border-b border-gray-200 mb-6 pb-2">
+            <div className="flex items-center gap-6 border-b border-gray-200 mb-6 pb-2 justify-between">
               <h2 className="text-xl font-bold text-[var(--color-secondary)] border-b-2 border-[var(--color-secondary)] pb-2 -mb-[10px]">
                 {t('newsPage.latest', 'Latest')}
               </h2>
+            </div>
+
+            <div className="mb-6">
+              <select 
+                value={selectedCategory} 
+                onChange={(e) => {
+                  setSelectedCategory(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)]/50 bg-white shadow-sm text-sm font-medium text-gray-700"
+              >
+                <option value="">{t('newsPage.allCategories', 'All Categories')}</option>
+                {NEWS_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
             </div>
 
             <div className="flex flex-col gap-6 overflow-y-auto max-h-[800px] pr-2 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
