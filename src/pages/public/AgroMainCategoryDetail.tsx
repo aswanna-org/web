@@ -17,6 +17,7 @@ export default function AgroMainCategoryDetail() {
   const { mainSlug } = useParams<{ mainSlug: string }>();
   const { t, i18n } = useTranslation();
   const [dbCategories, setDbCategories] = useState<Category[]>([]);
+  const [mainCategoryWithItems, setMainCategoryWithItems] = useState<any>(null);
   const [search, setSearch] = useState('');
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -27,6 +28,15 @@ export default function AgroMainCategoryDetail() {
       .then(data => setDbCategories(Array.isArray(data) ? data : (data.data || [])))
       .catch(console.error);
   }, [API_BASE_URL]);
+
+  useEffect(() => {
+    if (mainSlug) {
+      fetch(`${API_BASE_URL}/categories/${mainSlug}`)
+        .then(res => res.ok ? res.json() : null)
+        .then(data => setMainCategoryWithItems(data))
+        .catch(console.error);
+    }
+  }, [mainSlug, API_BASE_URL]);
 
   const mainCategory = dbCategories.find(c => c.slug === mainSlug && !c.parentId);
   const subCategories = dbCategories
@@ -103,44 +113,117 @@ export default function AgroMainCategoryDetail() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={t('agro.searchSubPlaceholder', 'Search sub-categories... (e.g. Vegetable, Fruit)')}
+              placeholder={subCategories.length > 0 ? t('agro.searchSubPlaceholder', 'Search sub-categories... (e.g. Vegetable, Fruit)') : t('agro.searchPlaceholder', 'Search...')}
               className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--color-secondary)] focus:ring-2 focus:ring-[var(--color-secondary)]/20 outline-none transition-all shadow-sm text-gray-700"
             />
           </div>
         </div>
       </section>
 
-      {/* ── Category Grid ── */}
+      {/* ── Category / Product Grid ── */}
       <section className="w-full py-20 bg-white">
         <div className="container mx-auto px-4 lg:px-12">
-          {filtered.length === 0 ? (
-            <div className="text-center py-20 text-gray-400">
-              <p className="text-2xl font-bold mb-2">{t('agro.noSubCategories', 'No sub-categories found')}</p>
-              <p>{t('agro.tryDifferent', 'Try a different search term.')}</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {filtered.map((cat) => (
-                <Link
-                  key={cat.id}
-                  to={`/agro/${mainCategory.slug}/${cat.slug}`}
-                  className="group relative block w-full aspect-square rounded-full-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-100"
-                >
-                  <img
-                    src={cat.image || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80'}
-                    alt={isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
+          {subCategories.length > 0 ? (
+            filtered.length === 0 ? (
+              <div className="text-center py-20 text-gray-400">
+                <p className="text-2xl font-bold mb-2">{t('agro.noSubCategories', 'No sub-categories found')}</p>
+                <p>{t('agro.tryDifferent', 'Try a different search term.')}</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {filtered.map((cat) => (
+                  <Link
+                    key={cat.id}
+                    to={`/agro/${mainCategory.slug}/${cat.slug}`}
+                    className="group relative block w-full aspect-square rounded-full-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-100"
+                  >
+                    <img
+                      src={cat.image || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80'}
+                      alt={isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
 
-                  {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6 backdrop-blur-[2px]">
-                    <h3 className="text-white text-2xl font-bold text-center drop-shadow-md translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                      {isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
-                    </h3>
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6 backdrop-blur-[2px]">
+                      <h3 className="text-white text-2xl font-bold text-center drop-shadow-md translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                        {isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
+                      </h3>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )
+          ) : (
+            (() => {
+              const items = (mainCategoryWithItems?.items || []).sort((a: any, b: any) => a.order - b.order).filter((product: any) => {
+                const title = isSinhala ? (product.sinhalaName || product.name) : product.name;
+                return title.toLowerCase().includes(search.toLowerCase());
+              });
+
+              return (
+                <div>
+                  <p className="text-sm text-gray-400 uppercase tracking-widest font-bold mb-8">
+                    {items.length} {t('agro.productsInCategory', 'Products in this category')}
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 xl:gap-8">
+                    {items.map((product: any, index: number) => {
+                      const CARD_COLORS = [
+                        { bg: 'bg-[#f1f8eb]', border: 'border-[#c5e1b8]' }, // Green
+                        { bg: 'bg-[#fef2e6]', border: 'border-[#f6d7be]' }, // Orange
+                        { bg: 'bg-[#f4eef9]', border: 'border-[#d8c3e8]' }, // Purple
+                        { bg: 'bg-[#fff9e6]', border: 'border-[#f4e2b0]' }, // Yellow
+                        { bg: 'bg-[#f0f7fb]', border: 'border-[#c0dceb]' }, // Blue
+                        { bg: 'bg-[#fdeef0]', border: 'border-[#f4c8d1]' }, // Pink
+                      ];
+                      const color = CARD_COLORS[index % CARD_COLORS.length];
+                      
+                      const imageUrl = Array.isArray(product.images) && product.images.length > 0
+                        ? product.images[0]
+                        : (typeof product.images === 'object' && product.images !== null
+                            ? Object.values(product.images)[0] as string
+                            : (product.images as string) || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80');
+                            
+                      const title = isSinhala ? (product.sinhalaName || product.name) : product.name;
+
+                      return (
+                      <Link 
+                        key={product.id}
+                        to={`/agro/${mainCategory.slug}/${mainCategory.slug}/${product.slug}`}
+                        className={`group relative flex flex-row items-center p-6 pl-[110px] sm:pl-[140px] min-h-[130px] rounded-[24px] border ${color.bg} ${color.border} hover:shadow-lg hover:-translate-y-1 transition-all duration-300`}
+                      >
+                        {/* Left side: Image */}
+                        <img
+                          src={imageUrl}
+                          alt={title}
+                          className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-[100px] h-[140px] sm:w-[125px] sm:h-[160px] object-contain drop-shadow-xl group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 mix-blend-multiply"
+                        />
+                        
+                        {/* Right side: Content */}
+                        <div className="flex flex-col justify-center items-end h-full gap-3 w-full text-right">
+                          <h3 className="text-[20px] sm:text-[22px] font-black text-[#0A2647] leading-tight tracking-tight">
+                            {title}
+                          </h3>
+                          
+                          <div className="flex justify-end">
+                            <span className="inline-flex items-center justify-center px-5 py-1.5 rounded-full border border-white/50 bg-white/40 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] text-xs font-bold text-gray-800 group-hover:bg-white/60 group-hover:shadow-[0_4px_15px_rgba(0,0,0,0.1)] transition-all">
+                              {isSinhala ? 'බලන්න' : 'View'}
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+                      );
+                    })}
+                    
+                    {items.length === 0 && (
+                      <div className="col-span-full py-10 text-center text-gray-400">
+                        <p>{t('agro.noItemsFound', 'No items found in this category.')}</p>
+                      </div>
+                    )}
                   </div>
-                </Link>
-              ))}
-            </div>
+                </div>
+              );
+            })()
           )}
         </div>
       </section>

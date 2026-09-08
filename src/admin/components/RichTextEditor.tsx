@@ -7,9 +7,10 @@ interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  height?: string;
 }
 
-export default function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
+export default function RichTextEditor({ value, onChange, placeholder, height = '500px' }: RichTextEditorProps) {
   const quillRef = useRef<ReactQuill>(null);
   const { token } = useAuth();
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -76,7 +77,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
   ];
 
   return (
-    <div className="bg-white rounded-lg border border-gray-300 overflow-hidden">
+    <div className="bg-white rounded-lg border border-gray-300 overflow-hidden flex flex-col" style={{ height }}>
       <ReactQuill
         ref={quillRef}
         theme="snow"
@@ -85,7 +86,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
         modules={modules}
         formats={formats}
         placeholder={placeholder}
-        className="h-64 mb-12"
+        style={{ height: `calc(${height} - 42px)` }}
       />
     </div>
   );
