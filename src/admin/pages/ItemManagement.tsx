@@ -12,12 +12,14 @@ interface GlobalAgriData { rank: number; countryName: string; sinhalaCountryName
 
 interface Item {
   id: string; name: string; sinhalaName?: string; slug: string; description?: string;
-  sinhalaDescription?: string; images?: string | string[]; categoryId?: string; category?: Category; order?: number;
+  sinhalaDescription?: string; scientificName?: string; location?: string; sinhalaLocation?: string;
+  status?: string; images?: string | string[]; categoryId?: string; category?: Category; order?: number;
   slAgriData?: SriLankaAgriData; globalAgriData?: GlobalAgriData[];
 }
 
 const defaultForm = { 
-  name: '', sinhalaName: '', slug: '', description: '', sinhalaDescription: '', categoryId: '', order: '0',
+  name: '', sinhalaName: '', slug: '', scientificName: '', location: '', sinhalaLocation: '', status: 'active',
+  description: '', sinhalaDescription: '', categoryId: '', order: '0',
   slAgriData: { cultivationArea: '', sinhalaCultivationArea: '', annualProduction: '', sinhalaAnnualProduction: '', averageYield: '', sinhalaAverageYield: '', districts: [] as DistrictShare[] },
   globalAgriData: [] as GlobalAgriData[]
 };
@@ -68,7 +70,9 @@ export default function ItemManagement() {
   const openCreate = () => { setForm({ ...defaultForm }); setImageFile1(null); setImageFile2(null); setExistingImages([]); setEditingId(null); setActiveTab('EN'); setIsModalOpen(true); };
   const openEdit = (item: Item) => {
     setForm({ 
-      name: item.name, sinhalaName: item.sinhalaName || '', slug: item.slug, description: item.description || '', 
+      name: item.name, sinhalaName: item.sinhalaName || '', slug: item.slug,
+      scientificName: item.scientificName || '', location: item.location || '', sinhalaLocation: item.sinhalaLocation || '',
+      status: item.status || 'active', description: item.description || '', 
       sinhalaDescription: item.sinhalaDescription || '', categoryId: item.categoryId || '', order: String(item.order ?? 0),
       slAgriData: item.slAgriData || { cultivationArea: '', sinhalaCultivationArea: '', annualProduction: '', sinhalaAnnualProduction: '', averageYield: '', sinhalaAverageYield: '', districts: [] },
       globalAgriData: item.globalAgriData || []
@@ -193,6 +197,7 @@ export default function ItemManagement() {
                   <div className="lg:w-1/3 space-y-4">
                     <div><label className="block text-sm font-medium text-gray-700 mb-1">Name (EN) *</label><input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
                     <div><label className="block text-sm font-medium text-gray-700 mb-1">Name (SI)</label><input value={form.sinhalaName} onChange={e => setForm({...form, sinhalaName: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                    <div><label className="block text-sm font-medium text-gray-700 mb-1">Scientific Name</label><input value={form.scientificName} onChange={e => setForm({...form, scientificName: e.target.value})} placeholder="e.g. Oryza sativa" className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 italic" /></div>
                     <div><label className="block text-sm font-medium text-gray-700 mb-1">Slug *</label><input required value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
                     <div><label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                       <select value={form.categoryId} onChange={e => setForm({...form, categoryId: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white">
@@ -200,7 +205,19 @@ export default function ItemManagement() {
                         {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                       </select>
                     </div>
-                    <div><label className="block text-sm font-medium text-gray-700 mb-1">Order</label><input type="number" value={form.order} onChange={e => setForm({...form, order: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div><label className="block text-sm font-medium text-gray-700 mb-1">Location (EN)</label><input value={form.location} onChange={e => setForm({...form, location: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                      <div><label className="block text-sm font-medium text-gray-700 mb-1">Location (SI)</label><input value={form.sinhalaLocation} onChange={e => setForm({...form, sinhalaLocation: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div><label className="block text-sm font-medium text-gray-700 mb-1">Order</label><input type="number" value={form.order} onChange={e => setForm({...form, order: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                      <div><label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                        <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white">
+                          <option value="active">Active</option>
+                          <option value="inactive">Inactive</option>
+                        </select>
+                      </div>
+                    </div>
                     <div className="flex gap-4">
                       <div className="flex-1"><label className="block text-sm font-medium text-gray-700 mb-1">Card Image</label>
                         <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
