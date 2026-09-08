@@ -95,31 +95,51 @@ export default function AgroCategoryDetail() {
             {items.length} {t('agro.productsInCategory', 'Products in this category')}
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {items.map((product: any) => {
-              console.log('Product Item:', product);
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 xl:gap-8">
+            {items.map((product: any, index: number) => {
+              const CARD_COLORS = [
+                { bg: 'bg-[#f1f8eb]', border: 'border-[#c5e1b8]' }, // Green
+                { bg: 'bg-[#fef2e6]', border: 'border-[#f6d7be]' }, // Orange
+                { bg: 'bg-[#f4eef9]', border: 'border-[#d8c3e8]' }, // Purple
+                { bg: 'bg-[#fff9e6]', border: 'border-[#f4e2b0]' }, // Yellow
+                { bg: 'bg-[#f0f7fb]', border: 'border-[#c0dceb]' }, // Blue
+                { bg: 'bg-[#fdeef0]', border: 'border-[#f4c8d1]' }, // Pink
+              ];
+              const color = CARD_COLORS[index % CARD_COLORS.length];
+              
+              const imageUrl = Array.isArray(product.images) && product.images.length > 0
+                ? product.images[0]
+                : (typeof product.images === 'object' && product.images !== null
+                    ? Object.values(product.images)[0] as string
+                    : (product.images as string) || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80');
+                    
+              const title = isSinhala ? (product.sinhalaName || product.name) : product.name;
+
               return (
               <Link 
                 key={product.id}
                 to={`/agro/${mainCategory.slug}/${category.slug}/${product.slug}`}
-                className="group block w-full text-center"
+                className={`group relative flex flex-row items-center p-6 pl-[110px] sm:pl-[140px] min-h-[130px] rounded-[24px] border ${color.bg} ${color.border} hover:shadow-lg hover:-translate-y-1 transition-all duration-300`}
               >
-                <div className="w-full aspect-square rounded-3xl overflow-hidden mb-4 bg-gray-50">
-                  <img
-                    src={
-                      Array.isArray(product.images) && product.images.length > 0
-                        ? product.images[0]
-                        : (typeof product.images === 'object' && product.images !== null
-                            ? Object.values(product.images)[0] as string
-                            : (product.images as string) || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80')
-                    }
-                    alt={isSinhala ? (product.sinhalaName || product.name) : product.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
+                {/* Left side: Image (Popping out top & bottom) */}
+                <img
+                  src={imageUrl}
+                  alt={title}
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-[100px] h-[140px] sm:w-[125px] sm:h-[160px] object-contain drop-shadow-xl group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 mix-blend-multiply"
+                />
+                
+                {/* Right side: Content */}
+                <div className="flex flex-col justify-center items-end h-full gap-3 w-full text-right">
+                  <h3 className="text-[20px] sm:text-[22px] font-black text-[#0A2647] leading-tight tracking-tight">
+                    {title}
+                  </h3>
+                  
+                  <div className="flex justify-end">
+                    <span className="inline-flex items-center justify-center px-5 py-1.5 rounded-full border border-white/50 bg-white/40 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] text-xs font-bold text-gray-800 group-hover:bg-white/60 group-hover:shadow-[0_4px_15px_rgba(0,0,0,0.1)] transition-all">
+                      {isSinhala ? 'බලන්න' : 'View'}
+                    </span>
+                  </div>
                 </div>
-                <h3 className="text-gray-800 text-xl font-bold group-hover:text-green-600 transition-colors">
-                  {isSinhala ? (product.sinhalaName || product.name) : product.name}
-                </h3>
               </Link>
               );
             })}

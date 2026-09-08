@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Share2, Clock, User, Image as ImageIcon } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Share2, Clock, User, Image as ImageIcon, Link as LinkIcon, MessageCircle, Check } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import { useTranslation } from 'react-i18next';
 import Pagination from '../../components/admin/Pagination';
@@ -42,6 +42,21 @@ export default function News() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [showShareMenu, setShowShareMenu] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const shareMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
+        setShowShareMenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     setIsLoading(true);
@@ -52,7 +67,14 @@ export default function News() {
         const items = data.data || data;
         setNewsList(items);
         if (items.length > 0) {
-          setSelectedNewsId(items[0].id);
+          const urlParams = new URLSearchParams(window.location.search);
+          const slugFromUrl = urlParams.get('slug') || urlParams.get('id');
+          const matchedItem = items.find((i: NewsItem) => i.slug === slugFromUrl || i.id === slugFromUrl);
+          if (matchedItem) {
+            setSelectedNewsId(matchedItem.id);
+          } else {
+            setSelectedNewsId(items[0].id);
+          }
         }
         if (data.meta) {
           setTotalPages(data.meta.totalPages);
@@ -63,6 +85,28 @@ export default function News() {
   }, [currentPage, selectedCategory]);
 
   const selectedNews = newsList.find((n) => n.id === selectedNewsId) || newsList[0];
+
+  const handleShare = (type: 'copy' | 'whatsapp' | 'facebook') => {
+    if (!selectedNews) return;
+    
+    const shareUrl = `${window.location.origin}${window.location.pathname}?slug=${selectedNews.slug}`;
+    const title = isSinhala ? (selectedNews.sinhalaTitle || selectedNews.title) : selectedNews.title;
+
+    if (type === 'copy') {
+      navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => {
+        setCopied(false);
+        setShowShareMenu(false);
+      }, 2000);
+    } else if (type === 'whatsapp') {
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(title + ' - ' + shareUrl)}`, '_blank');
+      setShowShareMenu(false);
+    } else if (type === 'facebook') {
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
+      setShowShareMenu(false);
+    }
+  };
 
   return (
     <div className="w-full min-h-screen bg-gray-50">
@@ -179,9 +223,42 @@ export default function News() {
                     </div>
                   </div>
 
-                  <button className="flex items-center gap-2 px-4 py-2 bg-[var(--color-secondary)] hover:bg-[var(--color-secondary)]/90 text-white rounded-full text-sm font-bold transition-colors shadow-sm">
-                    {t('blogPage.share', 'Share')} <Share2 className="w-4 h-4" />
-                  </button>
+                  <div className="relative" ref={shareMenuRef}>
+                    <button 
+                      onClick={() => setShowShareMenu(!showShareMenu)}
+                      className="flex items-center gap-2 px-4 py-2 bg-[var(--color-secondary)] hover:bg-[var(--color-secondary)]/90 text-white rounded-full text-sm font-bold transition-colors shadow-sm"
+                    >
+                      {t('blogPage.share', 'Share')} <Share2 className="w-4 h-4" />
+                    </button>
+                    
+                    {showShareMenu && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-10 flex flex-col animate-in fade-in slide-in-from-top-2 duration-200">
+                        <button 
+                          onClick={() => handleShare('copy')}
+                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-medium text-gray-700 transition-colors"
+                        >
+                          {copied ? <Check className="w-4 h-4 text-green-500" /> : <LinkIcon className="w-4 h-4 text-gray-500" />}
+                          {copied ? t('newsPage.copied', 'Copied!') : t('newsPage.copyLink', 'Copy Link')}
+                        </button>
+                        <button 
+                          onClick={() => handleShare('whatsapp')}
+                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-medium text-gray-700 transition-colors"
+                        >
+                          <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                          {t('newsPage.shareWhatsApp', 'WhatsApp')}
+                        </button>
+                        <button 
+                          onClick={() => handleShare('facebook')}
+                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-medium text-gray-700 transition-colors"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1877F2]">
+                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                          </svg>
+                          {t('newsPage.shareFacebook', 'Facebook')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Title */}

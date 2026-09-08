@@ -12,7 +12,7 @@ interface GlobalAgriData { rank: number; countryName: string; sinhalaCountryName
 
 interface Item {
   id: string; name: string; sinhalaName?: string; slug: string; description?: string;
-  sinhalaDescription?: string; image?: string; categoryId?: string; category?: Category; order?: number;
+  sinhalaDescription?: string; images?: string | string[]; categoryId?: string; category?: Category; order?: number;
   slAgriData?: SriLankaAgriData; globalAgriData?: GlobalAgriData[];
 }
 
@@ -32,7 +32,9 @@ export default function ItemManagement() {
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFile1, setImageFile1] = useState<File | null>(null);
+  const [imageFile2, setImageFile2] = useState<File | null>(null);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<'EN' | 'SI' | 'SL_DATA' | 'GLOBAL_DATA'>('EN');
 
   const token = localStorage.getItem('admin_token');
@@ -63,7 +65,7 @@ export default function ItemManagement() {
   useEffect(() => { fetchItems(currentPage); }, [currentPage]);
   useEffect(() => { fetchCategories(); }, []);
 
-  const openCreate = () => { setForm({ ...defaultForm }); setImageFile(null); setEditingId(null); setActiveTab('EN'); setIsModalOpen(true); };
+  const openCreate = () => { setForm({ ...defaultForm }); setImageFile1(null); setImageFile2(null); setExistingImages([]); setEditingId(null); setActiveTab('EN'); setIsModalOpen(true); };
   const openEdit = (item: Item) => {
     setForm({ 
       name: item.name, sinhalaName: item.sinhalaName || '', slug: item.slug, description: item.description || '', 
@@ -71,7 +73,9 @@ export default function ItemManagement() {
       slAgriData: item.slAgriData || { cultivationArea: '', sinhalaCultivationArea: '', annualProduction: '', sinhalaAnnualProduction: '', averageYield: '', sinhalaAverageYield: '', districts: [] },
       globalAgriData: item.globalAgriData || []
     });
-    setImageFile(null); setEditingId(item.id); setActiveTab('EN'); setIsModalOpen(true);
+    const imgs = Array.isArray(item.images) ? item.images : (item.images ? [item.images as string] : []);
+    setExistingImages(imgs);
+    setImageFile1(null); setImageFile2(null); setEditingId(item.id); setActiveTab('EN'); setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,7 +88,18 @@ export default function ItemManagement() {
         fd.append(k, String(v));
       }
     });
-    if (imageFile) fd.append('image', imageFile);
+    
+    const finalImagesOrder = [];
+    if (imageFile1) { fd.append('images', imageFile1); finalImagesOrder.push('NEW_FILE'); }
+    else if (existingImages[0]) { finalImagesOrder.push(existingImages[0]); }
+    else { finalImagesOrder.push(''); }
+    
+    if (imageFile2) { fd.append('images', imageFile2); finalImagesOrder.push('NEW_FILE'); }
+    else if (existingImages[1]) { finalImagesOrder.push(existingImages[1]); }
+    else { finalImagesOrder.push(''); }
+
+    fd.append('imagesOrder', JSON.stringify(finalImagesOrder));
+
     const method = editingId ? 'PUT' : 'POST';
     const url = editingId ? `${API_BASE_URL}/items/${editingId}` : `${API_BASE_URL}/items`;
     const res = await fetch(url, { method, headers: authHeaders, body: fd });
@@ -139,7 +154,7 @@ export default function ItemManagement() {
                 <tr key={item.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      {item.image && <img src={item.image} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />}
+                      {item.images && (Array.isArray(item.images) ? item.images[0] : item.images) && <img src={Array.isArray(item.images) ? item.images[0] : (item.images as string)} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />}
                       <div>
                         <p className="font-medium text-gray-800">{item.name}</p>
                         {item.sinhalaName && <p className="text-xs text-gray-500">{item.sinhalaName}</p>}
@@ -186,12 +201,21 @@ export default function ItemManagement() {
                       </select>
                     </div>
                     <div><label className="block text-sm font-medium text-gray-700 mb-1">Order</label><input type="number" value={form.order} onChange={e => setForm({...form, order: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
-                    <div><label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
-                      <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                        <Upload size={16} className="text-gray-400" />
-                        <span className="text-sm text-gray-500 truncate">{imageFile ? imageFile.name : 'Choose image...'}</span>
-                        <input type="file" accept="image/*" className="hidden" onChange={e => setImageFile(e.target.files?.[0] || null)} />
-                      </label>
+                    <div className="flex gap-4">
+                      <div className="flex-1"><label className="block text-sm font-medium text-gray-700 mb-1">Card Image</label>
+                        <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                          <Upload size={16} className="text-gray-400" />
+                          <span className="text-sm text-gray-500 truncate">{imageFile1 ? imageFile1.name : (existingImages[0] ? 'Image exists (Change)' : 'Choose image...')}</span>
+                          <input type="file" accept="image/*" className="hidden" onChange={e => setImageFile1(e.target.files?.[0] || null)} />
+                        </label>
+                      </div>
+                      <div className="flex-1"><label className="block text-sm font-medium text-gray-700 mb-1">Header Image</label>
+                        <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                          <Upload size={16} className="text-gray-400" />
+                          <span className="text-sm text-gray-500 truncate">{imageFile2 ? imageFile2.name : (existingImages[1] ? 'Image exists (Change)' : 'Choose image...')}</span>
+                          <input type="file" accept="image/*" className="hidden" onChange={e => setImageFile2(e.target.files?.[0] || null)} />
+                        </label>
+                      </div>
                     </div>
                   </div>
 

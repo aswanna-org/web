@@ -47,16 +47,22 @@ export default function AgroProductDetail() {
   if (!mainCategory || !category || !product) return <Navigate to="/agro" replace />;
 
   const isSinhala = i18n.language === 'si';
-  const mainImage = Array.isArray(product.images)
-    ? product.images[0]
-    : (typeof product.images === 'object' && product.images !== null
-      ? Object.values(product.images)[0]
-      : product.images) || 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80';
+  let productImages: string[] = [];
+  if (Array.isArray(product.images)) {
+    productImages = product.images;
+  } else if (typeof product.images === 'object' && product.images !== null) {
+    productImages = Object.values(product.images) as string[];
+  } else if (typeof product.images === 'string') {
+    productImages = [product.images];
+  }
+
+  const defaultImage = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80';
+  const headerImage = (productImages.length > 1 && productImages[1]) ? productImages[1] : (productImages[0] || defaultImage);
 
   return (
     <div className="w-full min-h-screen bg-white">
       <section className="relative w-full min-h-[40vh] overflow-hidden flex flex-col justify-center">
-        <img src={mainImage} alt={product.name} className="absolute inset-0 w-full h-full object-cover" />
+        <img src={headerImage} alt={product.name} className="absolute inset-0 w-full h-full object-cover" />
         <div
           className="absolute inset-0"
           style={{
