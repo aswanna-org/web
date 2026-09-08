@@ -24,7 +24,7 @@ export default function CategoryManagement() {
   const [form, setForm] = useState({ ...defaultForm });
   const [imageFile, setImageFile] = useState<File | null>(null);
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('admin_token');
   const authHeaders = { Authorization: `Bearer ${token}` };
 
   const fetchCategories = async () => {

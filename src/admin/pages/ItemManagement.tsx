@@ -35,7 +35,7 @@ export default function ItemManagement() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [activeTab, setActiveTab] = useState<'EN' | 'SI' | 'SL_DATA' | 'GLOBAL_DATA'>('EN');
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('admin_token');
   const authHeaders = { Authorization: `Bearer ${token}` };
 
   const fetchItems = async (page = 1) => {

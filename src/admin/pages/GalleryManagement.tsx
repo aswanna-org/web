@@ -22,7 +22,7 @@ export default function GalleryManagement() {
   const [totalPages, setTotalPages] = useState(1);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('admin_token');
   const authHeaders = { Authorization: `Bearer ${token}` };
 
   const fetchItems = async (page = 1) => {

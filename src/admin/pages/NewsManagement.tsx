@@ -37,7 +37,7 @@ export default function NewsManagement() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [authorAvatarFile, setAuthorAvatarFile] = useState<File | null>(null);
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('admin_token');
   const authHeaders = { Authorization: `Bearer ${token}` };
 
   const fetchItems = async (page = 1) => {

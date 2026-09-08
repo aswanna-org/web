@@ -20,7 +20,7 @@ export default function OrderManagement() {
   const [totalPages, setTotalPages] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('admin_token');
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
   const fetchOrders = async (page = 1) => {

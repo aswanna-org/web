@@ -21,7 +21,7 @@ export default function AscManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('admin_token');
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
   const fetchAscs = async (page = 1) => {

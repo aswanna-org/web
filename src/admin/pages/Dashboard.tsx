@@ -10,7 +10,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState<Record<string, number>>({});
   const [isLoading, setIsLoading] = useState(true);
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('admin_token');
   const headers = { Authorization: `Bearer ${token}` };
 
   const fetchStat = async (endpoint: string, key: string) => {

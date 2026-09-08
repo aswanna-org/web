@@ -24,7 +24,7 @@ export default function PlantManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('admin_token');
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
   const fetchPlants = async (page = 1) => {
