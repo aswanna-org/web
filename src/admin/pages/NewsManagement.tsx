@@ -35,6 +35,7 @@ export default function NewsManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [authorAvatarFile, setAuthorAvatarFile] = useState<File | null>(null);
 
   const token = localStorage.getItem('token');
   const authHeaders = { Authorization: `Bearer ${token}` };
@@ -53,10 +54,10 @@ export default function NewsManagement() {
 
   useEffect(() => { fetchItems(currentPage); }, [currentPage]);
 
-  const openCreate = () => { setForm({ ...defaultForm }); setImageFile(null); setEditingId(null); setIsModalOpen(true); };
+  const openCreate = () => { setForm({ ...defaultForm }); setImageFile(null); setAuthorAvatarFile(null); setEditingId(null); setIsModalOpen(true); };
   const openEdit = (item: NewsItem) => {
     setForm({ title: item.title, sinhalaTitle: item.sinhalaTitle || '', slug: item.slug, content: item.content, sinhalaContent: item.sinhalaContent || '', category: item.category || '', image: item.image || '', authorName: item.authorName, authorEmail: item.authorEmail || '', authorAvatar: item.authorAvatar || '' });
-    setImageFile(null); setEditingId(item.id); setIsModalOpen(true);
+    setImageFile(null); setAuthorAvatarFile(null); setEditingId(item.id); setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,10 +65,23 @@ export default function NewsManagement() {
     const fd = new FormData();
     Object.entries(form).forEach(([k, v]) => fd.append(k, v));
     if (imageFile) fd.append('image', imageFile);
+    if (authorAvatarFile) fd.append('authorAvatar', authorAvatarFile);
     const method = editingId ? 'PUT' : 'POST';
     const url = editingId ? `${API_BASE_URL}/news/${editingId}` : `${API_BASE_URL}/news`;
-    const res = await fetch(url, { method, headers: authHeaders, body: fd });
-    if (res.ok) { setIsModalOpen(false); fetchItems(currentPage); }
+    
+    try {
+      const res = await fetch(url, { method, headers: authHeaders, body: fd });
+      if (res.ok) { 
+        setIsModalOpen(false); 
+        fetchItems(currentPage); 
+      } else {
+        const errorData = await res.json();
+        alert(`Error: ${errorData.error || 'Failed to save news'}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error occurred while saving.');
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -161,16 +175,23 @@ export default function NewsManagement() {
                 </div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Author Name *</label><input required value={form.authorName} onChange={e => setForm({...form, authorName: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Author Email</label><input type="email" value={form.authorEmail} onChange={e => setForm({...form, authorEmail: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Main Image</label>
                   <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
                     <Upload size={16} className="text-gray-400" />
-                    <span className="text-sm text-gray-500">{imageFile ? imageFile.name : 'Choose image...'}</span>
+                    <span className="text-sm text-gray-500 line-clamp-1">{imageFile ? imageFile.name : 'Choose image...'}</span>
                     <input type="file" accept="image/*" className="hidden" onChange={e => setImageFile(e.target.files?.[0] || null)} />
+                  </label>
+                </div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Author Avatar</label>
+                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                    <Upload size={16} className="text-gray-400" />
+                    <span className="text-sm text-gray-500 line-clamp-1">{authorAvatarFile ? authorAvatarFile.name : 'Choose avatar...'}</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={e => setAuthorAvatarFile(e.target.files?.[0] || null)} />
                   </label>
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Content (EN) *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Content (EN)</label>
                 <div className={editingId ? '' : 'h-64 mb-16'}>
                   <RichTextEditor value={form.content} onChange={value => setForm({...form, content: value})} placeholder="Write news content in English..." />
                 </div>
