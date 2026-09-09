@@ -169,8 +169,8 @@ export default function Blog() {
 
                 {/* Content */}
                 <div
-                  className="prose prose-lg max-w-none break-words"
-                  dangerouslySetInnerHTML={{ __html: isSinhala ? (selectedBlog.sinhalaContent || selectedBlog.content) : selectedBlog.content }}
+                  className="prose prose-lg max-w-none rich-content"
+                  dangerouslySetInnerHTML={{ __html: (isSinhala ? (selectedBlog.sinhalaContent || selectedBlog.content) : selectedBlog.content).replace(/&nbsp;|\u00a0/g, ' ') }}
                 />
               </>
             ) : (

@@ -93,10 +93,9 @@ export default function AgroProductDetail() {
             )}
 
             <div className="mb-10">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">{t('agro.aboutProduct', 'About this product')}</p>
               <div
-                className="text-gray-700 text-lg leading-relaxed prose max-w-none break-words rich-content"
-                dangerouslySetInnerHTML={{ __html: isSinhala ? (product.sinhalaDescription || product.description || '') : (product.description || '') }}
+                className="text-gray-700 text-lg leading-relaxed prose max-w-none rich-content"
+                dangerouslySetInnerHTML={{ __html: (isSinhala ? (product.sinhalaDescription || product.description || '') : (product.description || '')).replace(/&nbsp;|\u00a0/g, ' ') }}
               />
             </div>
 
@@ -104,8 +103,8 @@ export default function AgroProductDetail() {
               <div className="mb-10 p-6 bg-green-50 rounded-2xl border border-green-100 overflow-hidden">
                 <p className="text-xs font-bold text-green-700 uppercase tracking-widest mb-3">{t('agro.farmingGuide', 'Farming Guide')}</p>
                 <div
-                  className="text-gray-800 leading-relaxed prose max-w-none prose-green break-words rich-content"
-                  dangerouslySetInnerHTML={{ __html: isSinhala ? (product.sinhalaFarmingGuide || product.farmingGuide || '') : (product.farmingGuide || '') }}
+                  className="text-gray-800 leading-relaxed prose max-w-none prose-green rich-content"
+                  dangerouslySetInnerHTML={{ __html: (isSinhala ? (product.sinhalaFarmingGuide || product.farmingGuide || '') : (product.farmingGuide || '')).replace(/&nbsp;|\u00a0/g, ' ') }}
                 />
               </div>
             )}

@@ -40,48 +40,71 @@ body {
   scrollbar-width: none;
 }
 
-/* ── Rich Text / Quill Content Rendering ── */
-.prose,
-[dangerouslySetInnerHTML],
-.rich-content {
-  overflow-wrap: break-word;
-  word-break: break-word;
-  word-wrap: break-word;
+/* ── Rich Text / Content Rendering & Sinhala Typography Protection ── */
+.rich-content,
+.tiptap {
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  hyphens: none !important;
+  -webkit-hyphens: none !important;
+  min-width: 0;
 }
 
-/* Quill rendered HTML output styles */
-.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+.rich-content *,
+.tiptap * {
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+  hyphens: none !important;
+  -webkit-hyphens: none !important;
+}
+
+.rich-content h1,
+.rich-content h2,
+.rich-content h3,
+.rich-content h4,
+.rich-content h5,
+.rich-content h6,
+.tiptap h1,
+.tiptap h2,
+.tiptap h3 {
   font-weight: 700;
   line-height: 1.4;
   margin-top: 1.25em;
   margin-bottom: 0.5em;
-  overflow-wrap: break-word;
-  word-break: break-word;
 }
-.prose h1 { font-size: 1.75rem; }
-.prose h2 { font-size: 1.4rem; }
-.prose h3 { font-size: 1.2rem; }
+.rich-content h1, .tiptap h1 { font-size: 1.75rem; }
+.rich-content h2, .tiptap h2 { font-size: 1.4rem; }
+.rich-content h3, .tiptap h3 { font-size: 1.2rem; }
 
-.prose p {
+.rich-content p,
+.tiptap p {
   margin-bottom: 0.9em;
-  overflow-wrap: break-word;
-  word-break: break-word;
+  line-height: 1.7;
 }
 
-.prose ul, .prose ol {
-  padding-left: 1.5em;
+.rich-content ul,
+.rich-content ol,
+.tiptap ul,
+.tiptap ol {
+  padding-left: 1.75em;
   margin-bottom: 0.9em;
 }
-.prose ul { list-style-type: disc; }
-.prose ol { list-style-type: decimal; }
-.prose li { margin-bottom: 0.3em; overflow-wrap: break-word; word-break: break-word; }
+.rich-content ul, .tiptap ul { list-style-type: disc; }
+.rich-content ol, .tiptap ol { list-style-type: decimal; }
+.rich-content li,
+.tiptap li {
+  margin-bottom: 0.3em;
+  display: list-item;
+}
 
-.prose strong { font-weight: 700; }
-.prose em { font-style: italic; }
-.prose u { text-decoration: underline; }
-.prose s { text-decoration: line-through; }
+.rich-content strong { font-weight: 700; }
+.rich-content em { font-style: italic; }
+.rich-content u { text-decoration: underline; }
+.rich-content s { text-decoration: line-through; }
 
-.prose blockquote {
+.rich-content blockquote {
   border-left: 4px solid #d1d5db;
   padding-left: 1em;
   color: #6b7280;
@@ -89,37 +112,88 @@ body {
   font-style: italic;
 }
 
-.prose a {
+.rich-content a {
   color: var(--color-secondary);
   text-decoration: underline;
 }
 
-.prose img {
+.rich-content img {
   max-width: 100%;
   height: auto;
   border-radius: 0.5rem;
 }
 
-.prose table {
+.rich-content table {
   width: 100%;
   border-collapse: collapse;
   margin: 1em 0;
   overflow-x: auto;
   display: block;
 }
-.prose table th, .prose table td {
+.rich-content table th,
+.rich-content table td {
   border: 1px solid #e5e7eb;
   padding: 0.5em 0.75em;
   text-align: left;
-  overflow-wrap: break-word;
-  word-break: break-word;
+  word-break: normal;
+  overflow-wrap: normal;
 }
-.prose table th { background: #f9fafb; font-weight: 600; }
+.rich-content table th { background: #f9fafb; font-weight: 600; }
 
-/* Fix Quill-specific class names rendered in output */
-.ql-align-center { text-align: center; }
-.ql-align-right { text-align: right; }
-.ql-align-justify { text-align: justify; }
-.ql-indent-1 { padding-left: 2em; }
-.ql-indent-2 { padding-left: 4em; }
-.ql-indent-3 { padding-left: 6em; }
+/* Quill backward compatibility alignment & indent classes */
+.rich-content .ql-align-center { text-align: center; }
+.rich-content .ql-align-right  { text-align: right; }
+.rich-content .ql-align-justify { text-align: justify; }
+.rich-content .ql-indent-1 { padding-left: 2em; }
+.rich-content .ql-indent-2 { padding-left: 4em; }
+.rich-content .ql-indent-3 { padding-left: 6em; }
+
+/* ── Tiptap Editor & Placeholder Styles ── */
+.tiptap {
+  min-height: 100%;
+}
+.tiptap:focus {
+  outline: none;
+}
+.tiptap p.is-editor-empty:first-child::before {
+  color: #9ca3af;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+.tiptap table {
+  border-collapse: collapse;
+  margin: 1em 0;
+  table-layout: fixed;
+  width: 100%;
+  overflow: hidden;
+}
+.tiptap table td,
+.tiptap table th {
+  min-width: 1em;
+  border: 1px solid #d1d5db;
+  padding: 8px 12px;
+  vertical-align: top;
+  box-sizing: border-box;
+  position: relative;
+}
+.tiptap table th {
+  font-weight: bold;
+  text-align: left;
+  background-color: #f3f4f6;
+}
+.tiptap table .selectedCell:after {
+  z-index: 2;
+  position: absolute;
+  content: "";
+  left: 0; right: 0; top: 0; bottom: 0;
+  background: rgba(74, 116, 84, 0.15);
+  pointer-events: none;
+}
+.tiptap hr,
+.rich-content hr {
+  border: none;
+  border-top: 2px solid #e5e7eb;
+  margin: 1.5rem 0;
+}

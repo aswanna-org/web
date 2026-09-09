@@ -275,8 +275,8 @@ export default function News() {
 
                 {/* Content */}
                 <div 
-                  className="prose prose-lg max-w-none break-words"
-                  dangerouslySetInnerHTML={{ __html: isSinhala ? (selectedNews.sinhalaContent || selectedNews.content) : selectedNews.content }}
+                  className="prose prose-lg max-w-none rich-content"
+                  dangerouslySetInnerHTML={{ __html: (isSinhala ? (selectedNews.sinhalaContent || selectedNews.content) : selectedNews.content).replace(/&nbsp;|\u00a0/g, ' ') }}
                 />
               </>
             ) : (

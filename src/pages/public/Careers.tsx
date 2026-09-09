@@ -200,8 +200,8 @@ export default function Careers() {
                       <div className="pl-6 border-l-4 border-[var(--color-primary)]/50 pt-2 pb-4">
                         <h4 className="text-lg font-bold text-[#143d4d] mb-2">Job Description</h4>
                         <div 
-                          className="text-gray-600 mb-6 leading-relaxed prose prose-sm max-w-none whitespace-pre-wrap break-words"
-                          dangerouslySetInnerHTML={{ __html: job.description }}
+                          className="text-gray-600 mb-6 leading-relaxed prose prose-sm max-w-none rich-content"
+                          dangerouslySetInnerHTML={{ __html: (job.description || '').replace(/&nbsp;|\u00a0/g, ' ') }}
                         />
                       </div>
                     </div>
