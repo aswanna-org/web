@@ -139,7 +139,14 @@ export default function ItemManagement() {
                 {/* Left Sidebar */}
                 <div className="w-[420px] shrink-0 border-r border-gray-100 overflow-y-auto p-5 space-y-4 bg-gray-50/50">
                   <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Basic Info</label>
-                  <div><label className="block text-sm font-medium text-gray-700 mb-1">Name (EN) *</label><input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white" /></div>
+                  <div><label className="block text-sm font-medium text-gray-700 mb-1">Name (EN) *</label><input required value={form.name} onChange={e => {
+                    const val = e.target.value;
+                    if (!editingId) {
+                      setForm({ ...form, name: val, slug: val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') });
+                    } else {
+                      setForm({ ...form, name: val });
+                    }
+                  }} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white" /></div>
                   <div><label className="block text-sm font-medium text-gray-700 mb-1">Name (SI)</label><input value={form.sinhalaName} onChange={e => setForm({ ...form, sinhalaName: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white" /></div>
                   <div><label className="block text-sm font-medium text-gray-700 mb-1">Scientific Name</label><input value={form.scientificName} onChange={e => setForm({ ...form, scientificName: e.target.value })} placeholder="e.g. Oryza sativa" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white italic placeholder:not-italic placeholder:text-gray-400" /></div>
                   <div><label className="block text-sm font-medium text-gray-700 mb-1">Slug *</label><input required value={form.slug} onChange={e => setForm({ ...form, slug: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white font-mono" /></div>
