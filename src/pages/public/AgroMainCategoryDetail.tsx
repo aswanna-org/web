@@ -11,6 +11,7 @@ interface Category {
   parentId: string | null;
   image: string | null;
   order: number;
+  children?: Category[];
 }
 
 export default function AgroMainCategoryDetail() {
@@ -38,10 +39,9 @@ export default function AgroMainCategoryDetail() {
     }
   }, [mainSlug, API_BASE_URL]);
 
-  const mainCategory = dbCategories.find(c => c.slug === mainSlug && !c.parentId);
-  const subCategories = dbCategories
-    .filter(cat => cat.parentId === mainCategory?.id)
-    .sort((a, b) => a.order - b.order);
+  const mainCategory = dbCategories.find(c => c.slug === mainSlug);
+  const subCategories = (mainCategory?.children || [])
+    .sort((a: any, b: any) => a.order - b.order);
 
   const isSinhala = i18n.language === 'si';
 
