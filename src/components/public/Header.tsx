@@ -127,7 +127,7 @@ export default function Header() {
             </div>
           </div>
 
-          <Link to="/about" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.about', 'About Us')}</Link>
+
           <Link to="/news" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.news', 'News')}</Link>
           <Link to="/blog" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.blog', 'Blog')}</Link>
           <Link to="/careers" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.careers', 'Careers')}</Link>
@@ -253,7 +253,7 @@ export default function Header() {
               )}
             </div>
 
-            <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.about', 'About Us')}</Link>
+
             <Link to="/news" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.news', 'News')}</Link>
             <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.blog', 'Blog')}</Link>
             <Link to="/careers" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.careers', 'Careers')}</Link>

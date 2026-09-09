@@ -23,6 +23,7 @@ export default function BlogManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const token = localStorage.getItem('admin_token');
   const authHeaders = { Authorization: `Bearer ${token}` };
@@ -49,13 +50,21 @@ export default function BlogManagement() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
     const fd = new FormData();
     Object.entries(form).forEach(([k, v]) => fd.append(k, v));
     if (imageFile) fd.append('image', imageFile);
     const method = editingId ? 'PUT' : 'POST';
     const url = editingId ? `${API_BASE_URL}/blogs/${editingId}` : `${API_BASE_URL}/blogs`;
-    const res = await fetch(url, { method, headers: authHeaders, body: fd });
-    if (res.ok) { setIsModalOpen(false); fetchItems(currentPage); }
+    try {
+      const res = await fetch(url, { method, headers: authHeaders, body: fd });
+      if (res.ok) { setIsModalOpen(false); fetchItems(currentPage); }
+    } catch (err) {
+      console.error(err);
+      alert('Network error occurred while saving.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -131,41 +140,53 @@ export default function BlogManagement() {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-          <div className="bg-white rounded-2xl w-full max-w-2xl relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl w-full max-w-6xl relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <h2 className="text-xl font-bold text-gray-800">{editingId ? 'Edit Post' : 'Add New Post'}</h2>
               <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X size={20} /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Title (EN) *</label><input required value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Title (EN) *</label><input required value={form.title} onChange={e => {
+                  const val = e.target.value;
+                  if (!editingId) {
+                    setForm({...form, title: val, slug: val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')});
+                  } else {
+                    setForm({...form, title: val});
+                  }
+                }} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Title (SI)</label><input value={form.sinhalaTitle} onChange={e => setForm({...form, sinhalaTitle: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Slug *</label><input required value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Author Name *</label><input required value={form.authorName} onChange={e => setForm({...form, authorName: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Author Email</label><input type="email" value={form.authorEmail} onChange={e => setForm({...form, authorEmail: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
                 <div><label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
-                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                    <Upload size={16} className="text-gray-400" />
-                    <span className="text-sm text-gray-500">{imageFile ? imageFile.name : 'Choose image...'}</span>
+                  <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 h-[42px]">
+                    <Upload size={16} className="text-gray-400 shrink-0" />
+                    <span className="text-sm text-gray-500 line-clamp-1">{imageFile ? imageFile.name : 'Choose image...'}</span>
                     <input type="file" accept="image/*" className="hidden" onChange={e => setImageFile(e.target.files?.[0] || null)} />
                   </label>
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Content (EN) *</label>
-                <div className={editingId ? '' : 'h-64 mb-16'}>
-                  <RichTextEditor value={form.content} onChange={value => setForm({...form, content: value})} placeholder="Write blog content in English..." />
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <div className="flex flex-col">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Content (EN) *</label>
+                  <div className="flex-1 min-h-[300px]">
+                    <RichTextEditor value={form.content} onChange={value => setForm({...form, content: value})} placeholder="Write blog content in English..." />
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Content (SI)</label>
+                  <div className="flex-1 min-h-[300px]">
+                    <RichTextEditor value={form.sinhalaContent} onChange={value => setForm({...form, sinhalaContent: value})} placeholder="Write blog content in Sinhala..." />
+                  </div>
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Content (SI)</label>
-                <div className={editingId ? '' : 'h-64 mb-16'}>
-                  <RichTextEditor value={form.sinhalaContent} onChange={value => setForm({...form, sinhalaContent: value})} placeholder="Write blog content in Sinhala..." />
-                </div>
-              </div>
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 font-medium transition-colors">Cancel</button>
-                <button type="submit" className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">{editingId ? 'Update' : 'Publish'}</button>
+              <div className="flex gap-3 pt-4 mt-8 border-t border-gray-100">
+                <button type="button" onClick={() => setIsModalOpen(false)} disabled={isSaving} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 font-medium transition-colors disabled:opacity-50">Cancel</button>
+                <button type="submit" disabled={isSaving} className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex justify-center items-center gap-2 disabled:opacity-50">
+                  {isSaving ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : null}
+                  {isSaving ? 'Saving...' : (editingId ? 'Update' : 'Publish')}
+                </button>
               </div>
             </form>
           </div>
