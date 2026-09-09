@@ -45,6 +45,9 @@ export default function AgroProductDetail() {
   }
 
   if (!mainCategory || !category || !product) return <Navigate to="/agro" replace />;
+  if (product.status === 'UNAVAILABLE') {
+    return <Navigate to={`/agro/${mainCategory.slug}/${category.slug}`} replace />;
+  }
 
   const isSinhala = i18n.language === 'si';
   let productImages: string[] = [];
@@ -76,6 +79,14 @@ export default function AgroProductDetail() {
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             {isSinhala ? (category.sinhalaName || category.name) : category.name}
           </Link>
+
+          {product.status === 'UNAVAILABLE' && (
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-400 text-amber-950 font-bold text-xs uppercase tracking-wider mb-4 w-fit shadow-md border border-amber-300 animate-fadeIn">
+              <span className="w-2 h-2 rounded-full bg-amber-900 animate-pulse" />
+              {t('agro.comingSoon', 'Coming Soon')}
+            </div>
+          )}
+
           <h1 className="text-white text-4xl sm:text-5xl font-black tracking-tight mb-4 drop-shadow-md">
             {isSinhala ? (product.sinhalaName || product.name) : product.name}
           </h1>
@@ -183,7 +194,21 @@ export default function AgroProductDetail() {
                 )}
 
                 <div className="pt-2 space-y-3 border-t border-gray-100 mt-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 mt-4">
+                  <div className="flex justify-between items-center text-sm gap-2">
+                    <span className="text-gray-500">{t('agro.status', 'Status')}:</span>
+                    {product.status === 'UNAVAILABLE' ? (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                        {t('agro.comingSoon', 'Coming Soon')}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                        {t('agro.inStock', 'In Stock')}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-600 mt-2">
                     <MapPin className="w-4 h-4 text-[var(--color-secondary)] shrink-0" />
                     <span className="truncate">{t('agro.from', 'From')} {product.location || 'Sri Lanka'}</span>
                   </div>
@@ -201,32 +226,65 @@ export default function AgroProductDetail() {
           <div className="mt-20 pt-12 border-t border-gray-100">
             <h2 className="text-2xl font-black text-gray-900 mb-8">{t('agro.moreIn', 'More in')} <span className="text-[var(--color-secondary)]">{isSinhala ? (category.sinhalaName || category.name) : category.name}</span></h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
-              {relatedProducts.map((p) => (
-                <Link 
-                  key={p.id} 
-                  to={`/agro/${mainCategory.slug}/${category.slug}/${p.slug}`} 
-                  className="group relative block w-full aspect-square rounded-full-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-100"
-                >
-                  <img
-                    src={
-                      (Array.isArray(p.images) && p.images.length > 0
-                        ? p.images[0]
-                        : (typeof p.images === 'object' && p.images !== null
-                          ? Object.values(p.images)[0]
-                          : p.images)) || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80'
-                    }
-                    alt={isSinhala ? (p.sinhalaName || p.name) : p.name}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  
-                  {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6 backdrop-blur-[2px]">
-                    <h3 className="text-white text-xl font-bold text-center drop-shadow-md translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                      {isSinhala ? (p.sinhalaName || p.name) : p.name}
-                    </h3>
-                  </div>
-                </Link>
-              ))}
+              {relatedProducts.map((p) => {
+                const isUnavail = p.status === 'UNAVAILABLE';
+
+                const cardContent = (
+                  <>
+                    <img
+                      src={
+                        (Array.isArray(p.images) && p.images.length > 0
+                          ? p.images[0]
+                          : (typeof p.images === 'object' && p.images !== null
+                            ? Object.values(p.images)[0]
+                            : p.images)) || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80'
+                      }
+                      alt={isSinhala ? (p.sinhalaName || p.name) : p.name}
+                      className={`w-full h-full object-cover transition-transform duration-700 ${
+                        isUnavail ? 'grayscale opacity-65' : 'group-hover:scale-110'
+                      }`}
+                    />
+
+                    {isUnavail && (
+                      <span className="absolute top-3 right-3 z-10 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50/95 text-amber-800 border border-amber-300 text-[10px] font-extrabold shadow-sm backdrop-blur-xs select-none">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                        {t('agro.comingSoon', 'Coming Soon')}
+                      </span>
+                    )}
+                    
+                    {/* Hover Overlay */}
+                    {!isUnavail && (
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6 backdrop-blur-[2px]">
+                        <h3 className="text-white text-xl font-bold text-center drop-shadow-md translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                          {isSinhala ? (p.sinhalaName || p.name) : p.name}
+                        </h3>
+                      </div>
+                    )}
+                  </>
+                );
+
+                if (isUnavail) {
+                  return (
+                    <div
+                      key={p.id}
+                      className="relative block w-full aspect-square rounded-[24px] overflow-hidden border border-gray-300/80 bg-slate-100/90 select-none cursor-not-allowed opacity-80"
+                      title={t('agro.comingSoon', 'Coming Soon')}
+                    >
+                      {cardContent}
+                    </div>
+                  );
+                }
+
+                return (
+                  <Link 
+                    key={p.id} 
+                    to={`/agro/${mainCategory.slug}/${category.slug}/${p.slug}`} 
+                    className="group relative block w-full aspect-square rounded-[24px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-100"
+                  >
+                    {cardContent}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}
