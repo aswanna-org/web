@@ -117,7 +117,6 @@ export default function AgroCategoryDetail() {
 
               const isUnavailable = product.status === 'UNAVAILABLE';
               const cardBg = isUnavailable ? 'bg-slate-100/90' : color.bg;
-              const cardBorder = isUnavailable ? 'border-gray-300/80' : color.border;
               const titleColor = isUnavailable ? 'text-gray-500' : 'text-[#0A2647]';
 
               const cardContent = (
@@ -134,23 +133,19 @@ export default function AgroCategoryDetail() {
                   />
                   
                   {/* Right side: Content */}
-                  <div className="flex flex-col justify-center items-end h-full gap-2.5 w-full text-right">
-                    <h3 className={`text-[20px] sm:text-[22px] font-black ${titleColor} leading-tight tracking-tight`}>
+                  <div className="flex flex-col justify-center items-center h-full w-full text-center">
+                    <h3 className={`text-[22px] sm:text-[26px] font-black ${titleColor} leading-snug tracking-tight`}>
                       {title}
                     </h3>
                     
-                    <div className="flex justify-end items-center gap-2">
-                      {isUnavailable ? (
+                    {isUnavailable && (
+                      <div className="mt-2 flex justify-center items-center">
                         <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full border border-amber-300/80 bg-amber-50 text-[11px] font-extrabold text-amber-800 tracking-wide shadow-xs select-none">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                           {t('agro.comingSoon', 'Coming Soon')}
                         </span>
-                      ) : (
-                        <span className="inline-flex items-center justify-center px-5 py-1.5 rounded-full border border-white/50 bg-white/40 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] text-xs font-bold text-gray-800 group-hover:bg-white/60 group-hover:shadow-[0_4px_15px_rgba(0,0,0,0.1)] transition-all">
-                          {isSinhala ? 'බලන්න' : 'View'}
-                        </span>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 </>
               );
@@ -159,7 +154,7 @@ export default function AgroCategoryDetail() {
                 return (
                   <div
                     key={product.id}
-                    className={`relative flex flex-row items-center p-6 pl-[110px] sm:pl-[140px] min-h-[130px] rounded-[24px] border ${cardBg} ${cardBorder} shadow-xs select-none cursor-not-allowed opacity-80`}
+                    className={`relative flex flex-row items-center p-6 pl-[110px] sm:pl-[140px] min-h-[130px] rounded-[24px] ${cardBg} shadow-xs select-none cursor-not-allowed opacity-80`}
                     title={t('agro.comingSoon', 'Coming Soon')}
                   >
                     {cardContent}
@@ -171,7 +166,7 @@ export default function AgroCategoryDetail() {
                 <Link 
                   key={product.id}
                   to={`/agro/${mainCategory.slug}/${category.slug}/${product.slug}`}
-                  className={`group relative flex flex-row items-center p-6 pl-[110px] sm:pl-[140px] min-h-[130px] rounded-[24px] border ${cardBg} ${cardBorder} hover:shadow-lg hover:-translate-y-1 transition-all duration-300`}
+                  className={`group relative flex flex-row items-center p-6 pl-[110px] sm:pl-[140px] min-h-[130px] rounded-[24px] ${cardBg} hover:shadow-lg hover:-translate-y-1 transition-all duration-300`}
                 >
                   {cardContent}
                 </Link>

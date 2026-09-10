@@ -130,22 +130,23 @@ export default function AgroMainCategoryDetail() {
                 <p>{t('agro.tryDifferent', 'Try a different search term.')}</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 md:gap-10">
                 {filtered.map((cat) => (
                   <Link
                     key={cat.id}
                     to={`/agro/${mainCategory.slug}/${cat.slug}`}
-                    className="group relative block w-full aspect-square rounded-full-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-100"
+                    className="group flex flex-col items-center text-center transition-transform duration-300 hover:-translate-y-1"
                   >
-                    <img
-                      src={cat.image || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80'}
-                      alt={isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
+                    <div className="w-full aspect-square flex items-center justify-center p-2 overflow-hidden">
+                      <img
+                        src={cat.image || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80'}
+                        alt={isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
+                        className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                      />
+                    </div>
 
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6 backdrop-blur-[2px]">
-                      <h3 className="text-white text-2xl font-bold text-center drop-shadow-md translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                    <div className="w-full text-center mt-2">
+                      <h3 className="text-gray-800 font-bold text-sm sm:text-base group-hover:text-green-700 transition-colors line-clamp-2">
                         {isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
                       </h3>
                     </div>
@@ -188,7 +189,6 @@ export default function AgroMainCategoryDetail() {
 
                       const isUnavailable = product.status === 'UNAVAILABLE';
                       const cardBg = isUnavailable ? 'bg-slate-100/90' : color.bg;
-                      const cardBorder = isUnavailable ? 'border-gray-300/80' : color.border;
                       const titleColor = isUnavailable ? 'text-gray-500' : 'text-[#0A2647]';
 
                       const cardContent = (
@@ -205,23 +205,19 @@ export default function AgroMainCategoryDetail() {
                           />
                           
                           {/* Right side: Content */}
-                          <div className="flex flex-col justify-center items-end h-full gap-2.5 w-full text-right">
-                            <h3 className={`text-[20px] sm:text-[22px] font-black ${titleColor} leading-tight tracking-tight`}>
+                          <div className="flex flex-col justify-center items-center h-full w-full text-center">
+                            <h3 className={`text-[22px] sm:text-[26px] font-black ${titleColor} leading-snug tracking-tight`}>
                               {title}
                             </h3>
                             
-                            <div className="flex justify-end items-center gap-2">
-                              {isUnavailable ? (
+                            {isUnavailable && (
+                              <div className="mt-2 flex justify-center items-center">
                                 <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full border border-amber-300/80 bg-amber-50 text-[11px] font-extrabold text-amber-800 tracking-wide shadow-xs select-none">
                                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                                   {t('agro.comingSoon', 'Coming Soon')}
                                 </span>
-                              ) : (
-                                <span className="inline-flex items-center justify-center px-5 py-1.5 rounded-full border border-white/50 bg-white/40 backdrop-blur-md shadow-[0_2px_10px_rgba(0,0,0,0.05)] text-xs font-bold text-gray-800 group-hover:bg-white/60 group-hover:shadow-[0_4px_15px_rgba(0,0,0,0.1)] transition-all">
-                                  {isSinhala ? 'බලන්න' : 'View'}
-                                </span>
-                              )}
-                            </div>
+                              </div>
+                            )}
                           </div>
                         </>
                       );
@@ -230,7 +226,7 @@ export default function AgroMainCategoryDetail() {
                         return (
                           <div
                             key={product.id}
-                            className={`relative flex flex-row items-center p-6 pl-[110px] sm:pl-[140px] min-h-[130px] rounded-[24px] border ${cardBg} ${cardBorder} shadow-xs select-none cursor-not-allowed opacity-80`}
+                            className={`relative flex flex-row items-center p-6 pl-[110px] sm:pl-[140px] min-h-[130px] rounded-[24px] ${cardBg} shadow-xs select-none cursor-not-allowed opacity-80`}
                             title={t('agro.comingSoon', 'Coming Soon')}
                           >
                             {cardContent}
@@ -242,7 +238,7 @@ export default function AgroMainCategoryDetail() {
                         <Link 
                           key={product.id}
                           to={`/agro/${mainCategory.slug}/${mainCategory.slug}/${product.slug}`}
-                          className={`group relative flex flex-row items-center p-6 pl-[110px] sm:pl-[140px] min-h-[130px] rounded-[24px] border ${cardBg} ${cardBorder} hover:shadow-lg hover:-translate-y-1 transition-all duration-300`}
+                          className={`group relative flex flex-row items-center p-6 pl-[110px] sm:pl-[140px] min-h-[130px] rounded-[24px] ${cardBg} hover:shadow-lg hover:-translate-y-1 transition-all duration-300`}
                         >
                           {cardContent}
                         </Link>

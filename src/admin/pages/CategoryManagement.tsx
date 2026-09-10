@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Plus, Edit, Trash2, X, FolderOpen, Upload, Sprout } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -6,11 +6,11 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 interface Category {
   id: string; 
   name: string; 
-  sinhalaName?: string; 
+  sinhalaName?: string | null; 
   slug: string;
-  parentId?: string; 
+  parentId?: string | null; 
   order?: number; 
-  image?: string;
+  image?: string | null;
   children?: Category[];
 }
 
@@ -22,7 +22,14 @@ export default function CategoryManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...defaultForm });
+  
+  // Image states
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+  const [removeImageFlag, setRemoveImageFlag] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const token = localStorage.getItem('admin_token');
   const authHeaders = { Authorization: `Bearer ${token}` };
@@ -35,14 +42,36 @@ export default function CategoryManagement() {
         const data = await res.json();
         setCategories(data || []);
       }
-    } finally { setIsLoading(false); }
+    } finally { 
+      setIsLoading(false); 
+    }
   };
 
-  useEffect(() => { fetchCategories(); }, []);
+  useEffect(() => { 
+    fetchCategories(); 
+  }, []);
+
+  const handleFileChange = (file: File | null) => {
+    if (!file) return;
+    setImageFile(file);
+    setRemoveImageFlag(false);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setPreviewUrl(null);
+    setExistingImageUrl(null);
+    setRemoveImageFlag(true);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
 
   const openCreate = (parentId = '') => { 
-    setForm({ ...defaultForm, parentId }); 
+    setForm({ ...defaultForm, parentId, order: '0' }); 
     setImageFile(null); 
+    setPreviewUrl(null);
+    setExistingImageUrl(null);
+    setRemoveImageFlag(false);
     setEditingId(null); 
     setIsModalOpen(true); 
   };
@@ -53,42 +82,70 @@ export default function CategoryManagement() {
       sinhalaName: cat.sinhalaName || '', 
       slug: cat.slug, 
       parentId: cat.parentId || '', 
-      order: String(cat.order ?? 0) 
+      order: String(cat.order !== undefined && cat.order !== null ? cat.order : 0) 
     });
     setImageFile(null); 
+    setPreviewUrl(null);
+    setExistingImageUrl(cat.image || null);
+    setRemoveImageFlag(false);
     setEditingId(cat.id); 
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const fd = new FormData();
-    fd.append('name', form.name);
-    fd.append('sinhalaName', form.sinhalaName);
-    fd.append('slug', form.slug);
-    fd.append('parentId', form.parentId);
-    fd.append('order', form.order);
-    if (imageFile) fd.append('image', imageFile);
-    
-    const method = editingId ? 'PUT' : 'POST';
-    const url = editingId ? `${API_BASE_URL}/categories/${editingId}` : `${API_BASE_URL}/categories`;
-    const res = await fetch(url, { method, headers: authHeaders, body: fd });
-    
-    if (res.ok) { 
-      setIsModalOpen(false); 
-      fetchCategories(); 
-    } else { 
-      const err = await res.json(); 
-      alert(err.error || 'Failed to save category'); 
+    setIsSaving(true);
+    try {
+      const fd = new FormData();
+      fd.append('name', form.name);
+      fd.append('sinhalaName', form.sinhalaName || '');
+      fd.append('slug', form.slug);
+      fd.append('parentId', form.parentId || '');
+      fd.append('order', form.order || '0');
+      
+      if (imageFile) {
+        fd.append('image', imageFile);
+      } else if (removeImageFlag) {
+        fd.append('removeImage', 'true');
+      }
+      
+      const method = editingId ? 'PUT' : 'POST';
+      const url = editingId ? `${API_BASE_URL}/categories/${editingId}` : `${API_BASE_URL}/categories`;
+      const res = await fetch(url, { method, headers: authHeaders, body: fd });
+      
+      if (res.ok) { 
+        setIsModalOpen(false); 
+        await fetchCategories(); 
+      } else { 
+        const err = await res.json(); 
+        alert(err.error || 'Failed to save category'); 
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to save category.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this category and all its sub-categories?')) return;
-    const res = await fetch(`${API_BASE_URL}/categories/${id}`, { method: 'DELETE', headers: authHeaders });
-    if (res.ok) fetchCategories();
-    else { const err = await res.json(); alert(err.error || 'Failed to delete'); }
+    try {
+      const res = await fetch(`${API_BASE_URL}/categories/${id}`, { method: 'DELETE', headers: authHeaders });
+      if (res.ok) {
+        fetchCategories();
+      } else { 
+        const err = await res.json(); 
+        alert(err.error || 'Failed to delete'); 
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete category.');
+    }
   };
+
+  const activeImage = previewUrl || existingImageUrl;
+  const isSvg = activeImage?.toLowerCase().includes('.svg') || imageFile?.name.toLowerCase().endsWith('.svg');
 
   return (
     <div className="space-y-6">
@@ -114,7 +171,16 @@ export default function CategoryManagement() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {mainCat.image ? (
-                      <img src={mainCat.image} alt="" className="w-12 h-12 rounded-lg object-cover shadow-sm" />
+                      <div 
+                        className="w-12 h-12 rounded-lg border border-gray-100 flex items-center justify-center overflow-hidden shrink-0 bg-white shadow-xs"
+                        style={{
+                          backgroundImage: `linear-gradient(45deg, #f8fafc 25%, transparent 25%), linear-gradient(-45deg, #f8fafc 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f8fafc 75%), linear-gradient(-45deg, transparent 75%, #f8fafc 75%)`,
+                          backgroundSize: '8px 8px',
+                          backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px'
+                        }}
+                      >
+                        <img src={mainCat.image} alt="" className="w-full h-full object-contain p-1" />
+                      </div>
                     ) : (
                       <div className="w-12 h-12 bg-green-100 text-green-600 rounded-lg flex items-center justify-center">
                         <FolderOpen size={24} />
@@ -144,7 +210,11 @@ export default function CategoryManagement() {
                     {mainCat.children.map(subCat => (
                       <div key={subCat.id} className="flex items-center justify-between bg-white border border-gray-100 p-3 rounded-lg hover:border-green-200 transition-colors">
                         <div className="flex items-center gap-3">
-                          <Sprout size={16} className="text-gray-400" />
+                          {subCat.image ? (
+                            <img src={subCat.image} alt="" className="w-5 h-5 object-contain rounded" />
+                          ) : (
+                            <Sprout size={16} className="text-gray-400" />
+                          )}
                           <div>
                             <p className="font-medium text-gray-800">{subCat.name}</p>
                             <div className="flex items-center gap-2 mt-0.5">
@@ -170,17 +240,26 @@ export default function CategoryManagement() {
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !isSaving && setIsModalOpen(false)} />
           <div className="bg-white rounded-2xl w-full max-w-lg relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <h2 className="text-xl font-bold text-gray-800">{editingId ? 'Edit Category' : (form.parentId ? 'Add Sub Category' : 'Add Main Category')}</h2>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X size={20} /></button>
+              <button onClick={() => setIsModalOpen(false)} disabled={isSaving} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X size={20} /></button>
             </div>
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Name (EN) *</label><input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Name (SI)</label><input value={form.sinhalaName} onChange={e => setForm({...form, sinhalaName: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
-                <div className="col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Slug *</label><input required value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Name (EN) *</label>
+                  <input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Name (SI)</label>
+                  <input value={form.sinhalaName} onChange={e => setForm({...form, sinhalaName: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Slug *</label>
+                  <input required value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" />
+                </div>
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Parent Category</label>
                   <select 
@@ -189,26 +268,95 @@ export default function CategoryManagement() {
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white"
                   >
                     <option value="">None (Top-level Category)</option>
-                    {categories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
+                    {categories
+                      .filter(cat => cat.id !== editingId)
+                      .map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
                   </select>
                 </div>
-                <div className="col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Order</label><input type="number" value={form.order} onChange={e => setForm({...form, order: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div className="col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
+                  <input type="number" value={form.order} onChange={e => setForm({...form, order: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" />
+                </div>
               </div>
               
+              {/* Image & SVG upload with Live Preview */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Image (Main categories usually)</label>
-                <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
-                  <Upload size={16} className="text-gray-400" />
-                  <span className="text-sm text-gray-500">{imageFile ? imageFile.name : 'Choose image...'}</span>
-                  <input type="file" accept="image/*" className="hidden" onChange={e => setImageFile(e.target.files?.[0] || null)} />
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Image / Icon (PNG, SVG, JPG)</label>
+                  <span className="text-xs text-gray-400">PNG & SVG supported</span>
+                </div>
+
+                <input 
+                  id="category-image-file-input"
+                  ref={fileInputRef}
+                  type="file" 
+                  accept="image/png, image/svg+xml, image/jpeg, image/jpg, image/webp, .svg, .png, .jpg, .jpeg, .webp" 
+                  className="hidden" 
+                  onChange={e => {
+                    handleFileChange(e.target.files?.[0] || null);
+                    e.target.value = '';
+                  }} 
+                />
+
+                {activeImage ? (
+                  <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50/50">
+                    <div 
+                      className="w-16 h-16 rounded-lg border border-gray-200 bg-white flex items-center justify-center p-1 overflow-hidden shrink-0"
+                      style={{
+                        backgroundImage: `linear-gradient(45deg, #f1f5f9 25%, transparent 25%), linear-gradient(-45deg, #f1f5f9 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f1f5f9 75%), linear-gradient(-45deg, transparent 75%, #f1f5f9 75%)`,
+                        backgroundSize: '8px 8px',
+                        backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px'
+                      }}
+                    >
+                      <img src={activeImage} alt="Preview" className="max-w-full max-h-full object-contain" />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${isSvg ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-green-50 text-green-700 border-green-200'}`}>
+                          {isSvg ? 'SVG' : 'PNG/Image'}
+                        </span>
+                        <p className="text-xs text-gray-600 truncate">
+                          {imageFile ? imageFile.name : 'Current Image'}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="text-xs font-medium text-blue-600 hover:text-blue-700 cursor-pointer"
+                        >
+                          Change
+                        </button>
+                        <span className="text-gray-300">|</span>
+                        <button
+                          type="button"
+                          onClick={handleRemoveImage}
+                          className="text-xs font-medium text-red-600 hover:text-red-700 cursor-pointer"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <label 
+                    htmlFor="category-image-file-input"
+                    className="flex items-center gap-2 px-3 py-2.5 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 border-dashed transition-colors"
+                  >
+                    <Upload size={16} className="text-gray-400" />
+                    <span className="text-sm text-gray-500">Choose PNG, SVG, or JPG image...</span>
+                  </label>
+                )}
               </div>
               
               <div className="flex gap-3 pt-4">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 font-medium transition-colors">Cancel</button>
-                <button type="submit" className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">{editingId ? 'Update' : 'Create'}</button>
+                <button type="button" disabled={isSaving} onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 font-medium transition-colors">Cancel</button>
+                <button type="submit" disabled={isSaving} className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50">
+                  {isSaving ? 'Saving...' : (editingId ? 'Update' : 'Create')}
+                </button>
               </div>
             </form>
           </div>

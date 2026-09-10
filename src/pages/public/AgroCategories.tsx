@@ -9,7 +9,8 @@ interface Category {
   sinhalaName: string | null;
   slug: string;
   parentId: string | null;
-  images: any;
+  image?: string | null;
+  images?: any;
   order: number;
 }
 
@@ -100,27 +101,28 @@ export default function AgroCategories() {
               <p>{t('agro.tryDifferent', 'Try a different search term.')}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 md:gap-10">
               {filtered.map((cat) => {
-                const imageUrl = Array.isArray(cat.images)
+                const imageUrl = cat.image || (Array.isArray(cat.images)
                   ? cat.images[0]
-                  : (typeof cat.images === 'object' && cat.images !== null ? Object.values(cat.images)[0] : cat.images);
+                  : (typeof cat.images === 'object' && cat.images !== null ? Object.values(cat.images)[0] : cat.images));
 
                 return (
                   <Link 
                     key={cat.id} 
                     to={`/agro/${cat.slug}`} 
-                    className="group relative block w-full aspect-square rounded-full-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-100"
+                    className="group flex flex-col items-center text-center transition-transform duration-300 hover:-translate-y-1"
                   >
-                    <img
-                      src={imageUrl || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80'}
-                      alt={isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
+                    <div className="w-full aspect-square flex items-center justify-center p-2 overflow-hidden">
+                      <img
+                        src={imageUrl || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80'}
+                        alt={isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
+                        className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                      />
+                    </div>
                     
-                    {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6 backdrop-blur-[2px]">
-                      <h3 className="text-white text-2xl font-bold text-center drop-shadow-md translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                    <div className="w-full text-center mt-2">
+                      <h3 className="text-gray-800 font-bold text-sm sm:text-base group-hover:text-green-700 transition-colors line-clamp-2">
                         {isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
                       </h3>
                     </div>
