@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Plus, Edit, Trash2, X, Search, BookOpen, Upload,
   Clock, MapPin, Award, CheckCircle, DollarSign, Users, ExternalLink,
-  Layers, FileText, GraduationCap, Eye,
+  Layers, FileText, GraduationCap, Eye, Calendar,
   ChevronUp, ChevronDown, Check, UserCheck, AlertCircle,
   Phone, Mail, MessageSquare, CheckCircle2, XCircle
 } from 'lucide-react';
@@ -260,6 +260,26 @@ export default function CourseManagement() {
       console.error('Failed to fetch courses:', err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleToggleCourseStatus = async (courseId: string, currentStatus: string) => {
+    const nextStatus = currentStatus === 'Published' ? 'Draft' : 'Published';
+    try {
+      const res = await fetch(`${API_BASE_URL}/courses/${courseId}`, {
+        method: 'PUT',
+        headers: { ...authHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: nextStatus })
+      });
+      if (res.ok) {
+        setCourses(prev => prev.map(c => c.id === courseId ? { ...c, status: nextStatus } : c));
+        if (previewCourse && previewCourse.id === courseId) {
+          setPreviewCourse(prev => prev ? { ...prev, status: nextStatus } : null);
+        }
+        fetchCourses(currentPage);
+      }
+    } catch (err) {
+      console.error('Failed to toggle course status:', err);
     }
   };
 
@@ -883,15 +903,21 @@ export default function CourseManagement() {
                         </td>
 
                         <td className="px-5 py-3.5">
-                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
-                            course.status === 'Published'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : course.status === 'Draft'
-                              ? 'bg-amber-100 text-amber-800'
-                              : 'bg-gray-100 text-gray-600'
-                          }`}>
-                            {course.status}
-                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleCourseStatus(course.id, course.status)}
+                            title={course.status === 'Published' ? "Click to set as Draft (Hide from public website)" : "Click to Publish (Show on public website)"}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border transition-all cursor-pointer shadow-xs hover:scale-105 active:scale-95 ${
+                              course.status === 'Published'
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                                : course.status === 'Draft'
+                                ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                                : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
+                            }`}
+                          >
+                            <span className={`w-2 h-2 rounded-full ${course.status === 'Published' ? 'bg-emerald-600' : 'bg-amber-600'}`} />
+                            <span>{course.status === 'Published' ? 'Published (ප්‍රකාශිතයි)' : 'Draft (කෙටුම්පතක්)'}</span>
+                          </button>
                         </td>
 
                         <td className="px-5 py-3.5 text-right">
@@ -1970,25 +1996,117 @@ export default function CourseManagement() {
       {previewCourse && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setPreviewCourse(null)} />
-          <div className="bg-white rounded-2xl w-[90vw] max-w-5xl h-[88vh] relative z-10 shadow-2xl overflow-hidden flex flex-col border border-gray-200">
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <div>
-                <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider">{previewCourse.category?.categoryNameEn}</span>
-                <h3 className="text-xl font-bold text-gray-900 mt-0.5">{previewCourse.title}</h3>
-                <p className="text-xs text-gray-500 font-mono mt-0.5">{previewCourse.courseCode}</p>
+          <div className="bg-white rounded-3xl w-[92vw] max-w-5xl max-h-[92vh] relative z-10 shadow-2xl overflow-hidden flex flex-col border border-gray-200 animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-emerald-900 to-slate-900 text-white">
+              <div className="flex items-center gap-4">
+                {previewCourse.bannerImageUrl && (
+                  <img
+                    src={previewCourse.bannerImageUrl}
+                    alt=""
+                    className="w-16 h-16 rounded-xl object-cover border-2 border-white/20 shadow-sm shrink-0"
+                  />
+                )}
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider bg-white/10 px-2.5 py-0.5 rounded-full">
+                      {previewCourse.category?.categoryNameEn || 'Course'}
+                    </span>
+                    <span className="text-xs text-slate-300 font-mono">
+                      {previewCourse.courseCode}
+                    </span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-bold text-white mt-1 leading-snug">{previewCourse.title}</h3>
+                </div>
               </div>
               <button
                 onClick={() => setPreviewCourse(null)}
-                className="p-2 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100"
+                className="p-2 text-white/70 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
               >
-                <X size={20} />
+                <X size={22} />
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto space-y-6 text-sm">
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200 text-xs">
+            {/* Modal Scrollable Body */}
+            <div className="p-6 sm:p-8 overflow-y-auto space-y-6 text-sm">
+              {/* Status Banner with Quick Action */}
+              <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                previewCourse.status === 'Published'
+                  ? 'bg-emerald-50/90 border-emerald-200 text-emerald-900'
+                  : 'bg-amber-50/90 border-amber-200 text-amber-900'
+              }`}>
+                <div className="flex items-start gap-3">
+                  {previewCourse.status === 'Published' ? (
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                  )}
+                  <div>
+                    <p className="font-bold text-sm">
+                      Status: {previewCourse.status === 'Published' ? 'Published (ප්‍රකාශිතයි - Live on Website)' : 'Draft (කෙටුම්පතක් - Hidden from Public)'}
+                    </p>
+                    <p className="text-xs opacity-80 mt-0.5">
+                      {previewCourse.status === 'Published'
+                        ? 'මෙම පාඨමාලාව සාමාන්‍ය පරිශීලකයින්ට වෙබ් අඩවියේ (/education) ප්‍රදර්ශනය වේ.'
+                        : 'මෙම පාඨමාලාව දැනට කෙටුම්පතක් ලෙස පවතින බැවින් පොදු වෙබ් අඩවියේ නොපෙන්වයි. වෙබ් අඩවියේ පෙන්වීමට "Publish Course" ක්ලික් කරන්න.'}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleToggleCourseStatus(previewCourse.id, previewCourse.status)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 flex items-center justify-center gap-1.5 ${
+                    previewCourse.status === 'Published'
+                      ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300'
+                      : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+                  }`}
+                >
+                  {previewCourse.status === 'Published' ? '🔒 Set as Draft' : '🚀 Publish Course Now'}
+                </button>
+              </div>
+
+              {/* ── 3 Month Schedule & Important Months Card ── */}
+              <div className="bg-gradient-to-br from-emerald-50 via-teal-50/40 to-slate-50 p-5 rounded-2xl border border-emerald-200/80 space-y-3">
+                <div className="flex items-center gap-2 text-xs font-bold text-emerald-800 uppercase tracking-wider">
+                  <Calendar className="w-4 h-4 text-emerald-700" />
+                  <span>පාඨමාලා කාලසටහන සහ මාස (Course Intake Months & Schedule)</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="bg-white p-3.5 rounded-xl border border-emerald-100 shadow-2xs">
+                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">1. අයදුම්පත් කැඳවන මාසය</span>
+                    <p className="font-bold text-gray-900 text-sm mt-1 text-emerald-900">
+                      {previewCourse.applicationCallingMonth || <span className="text-gray-400 font-normal italic">සඳහන් කර නැත</span>}
+                    </p>
+                  </div>
+
+                  <div className="bg-white p-3.5 rounded-xl border border-emerald-100 shadow-2xs">
+                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">2. බඳවාගන්නා මාසය (Enrollment)</span>
+                    <p className="font-bold text-gray-900 text-sm mt-1 text-teal-900">
+                      {previewCourse.enrollmentMonth || <span className="text-gray-400 font-normal italic">සඳහන් කර නැත</span>}
+                    </p>
+                  </div>
+
+                  <div className="bg-white p-3.5 rounded-xl border border-emerald-100 shadow-2xs">
+                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">3. ආරම්භ කරන මාසය (Start Month)</span>
+                    <p className="font-bold text-gray-900 text-sm mt-1 text-indigo-900">
+                      {previewCourse.startMonth || <span className="text-gray-400 font-normal italic">සඳහන් කර නැත</span>}
+                    </p>
+                  </div>
+                </div>
+
+                {previewCourse.deadlineDate && (
+                  <div className="text-xs text-gray-600 bg-white/80 p-2.5 rounded-lg border border-emerald-100 flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-rose-500" />
+                    <span>අයදුම්පත් භාරගන්නා අවසන් දිනය (Deadline): <strong>{new Date(previewCourse.deadlineDate).toLocaleDateString()}</strong></span>
+                  </div>
+                )}
+              </div>
+
+              {/* ── Key Metrics Grid ── */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-200 text-xs">
                 <div>
-                  <p className="text-gray-400 font-medium">Level</p>
+                  <p className="text-gray-400 font-medium">Qualification Level</p>
                   <p className="font-bold text-gray-900 mt-0.5">{previewCourse.courseLevel}</p>
                 </div>
                 <div>
@@ -1998,44 +2116,148 @@ export default function CourseManagement() {
                 <div>
                   <p className="text-gray-400 font-medium">Course Fee</p>
                   <p className="font-bold text-gray-900 mt-0.5">
-                    {previewCourse.courseFee === 0 ? 'Free' : `Rs. ${previewCourse.courseFee.toLocaleString()}`}
+                    {previewCourse.courseFee === 0 ? <span className="text-emerald-700 font-bold">Free (නොමිලේ)</span> : `Rs. ${previewCourse.courseFee.toLocaleString()} LKR`}
                   </p>
                 </div>
                 <div>
                   <p className="text-gray-400 font-medium">Delivery Mode</p>
-                  <p className="font-bold text-gray-900 mt-0.5">{previewCourse.deliveryMode.replace('_', ' ')}</p>
+                  <p className="font-bold text-gray-900 mt-0.5">{previewCourse.deliveryMode.replace(/_/g, ' ')}</p>
                 </div>
               </div>
 
+              {/* ── Venues & Location Section ── */}
+              <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-2">
+                <div className="flex items-center gap-2 text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <MapPin className="w-4 h-4 text-emerald-700" />
+                  <span>ප්‍රායෝගික පුහුණු ස්ථාන සහ ගොවිපළවල් (Venue Locations)</span>
+                </div>
+                {previewCourse.venueLocations && previewCourse.venueLocations.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                    {previewCourse.venueLocations.map((loc, idx) => (
+                      <div key={idx} className="flex items-center gap-2 bg-white px-3 py-2 rounded-xl border border-gray-200 text-xs font-medium text-gray-800">
+                        <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-[10px] shrink-0">
+                          {idx + 1}
+                        </span>
+                        <span>{loc}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : previewCourse.venueLocation ? (
+                  <p className="text-xs text-gray-800 font-medium bg-white px-3 py-2 rounded-xl border border-gray-200">{previewCourse.venueLocation}</p>
+                ) : (
+                  <p className="text-xs text-gray-400 italic">පුහුණු ස්ථාන සඳහන් කර නැත.</p>
+                )}
+              </div>
+
+              {/* ── Download Application File & Accreditation ── */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Application File */}
+                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-2">
+                  <span className="text-xs font-bold text-gray-700 uppercase tracking-wider block">අයදුම්පත (Application Document)</span>
+                  {previewCourse.applicationFileUrl ? (
+                    <a
+                      href={previewCourse.applicationFileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition shadow-xs"
+                    >
+                      <FileText className="w-4 h-4" />
+                      <span>Download Application PDF</span>
+                      <ExternalLink className="w-3.5 h-3.5 ml-1" />
+                    </a>
+                  ) : (
+                    <p className="text-xs text-gray-400 italic">අයදුම්පත් ලේඛනයක් (PDF/Doc) upload කර නැත.</p>
+                  )}
+                </div>
+
+                {/* Accreditation */}
+                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-1.5 text-xs">
+                  <span className="text-xs font-bold text-gray-700 uppercase tracking-wider block">සහතිකය සහ පිළිගැනීම</span>
+                  <p className="text-gray-800"><strong>සහතිකය:</strong> {previewCourse.certificateType || 'රජයේ පිළිගත් නිපුණතා සහතිකය'}</p>
+                  <p className="text-gray-800"><strong>අනුමැතිය:</strong> {previewCourse.accreditedBy || 'TVEC / කෘෂිකර්ම දෙපාර්තමේන්තුව'}</p>
+                </div>
+              </div>
+
+              {/* ── Rich Text Description ── */}
               {previewCourse.description && (
-                <div>
-                  <h4 className="text-xs font-bold uppercase text-gray-500 tracking-wider mb-1.5">Description</h4>
-                  <p className="text-sm text-gray-700 leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-200">
-                    {previewCourse.description}
-                  </p>
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold uppercase text-gray-600 tracking-wider">පාඨමාලා විස්තරය (Course Description)</h4>
+                  <div
+                    className="p-5 bg-gray-50 rounded-2xl border border-gray-200 text-xs sm:text-sm text-gray-800 leading-relaxed max-w-none prose prose-emerald"
+                    dangerouslySetInnerHTML={{ __html: previewCourse.description }}
+                  />
                 </div>
               )}
 
+              {/* ── Entry Requirements ── */}
+              {previewCourse.entryRequirements && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold uppercase text-gray-600 tracking-wider">ඇතුළත්වීමේ සුදුසුකම් (Entry Requirements)</h4>
+                  <div
+                    className="p-5 bg-gray-50 rounded-2xl border border-gray-200 text-xs sm:text-sm text-gray-800 leading-relaxed max-w-none prose prose-emerald"
+                    dangerouslySetInnerHTML={{ __html: previewCourse.entryRequirements }}
+                  />
+                </div>
+              )}
+
+              {/* ── Curriculum Modules ── */}
               {previewCourse.modules && previewCourse.modules.length > 0 && (
-                <div>
-                  <h4 className="text-xs font-bold uppercase text-gray-500 tracking-wider mb-2">
-                    Curriculum Modules ({previewCourse.modules.length})
+                <div className="space-y-3">
+                  <h4 className="text-xs font-bold uppercase text-gray-600 tracking-wider">
+                    විෂය නිර්දේශයේ මොඩියුල ({previewCourse.modules.length} Modules)
                   </h4>
                   <div className="space-y-2">
                     {previewCourse.modules.map((m, i) => (
-                      <div key={i} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                        <p className="text-sm font-bold text-gray-900">
-                          <span className="text-emerald-700 mr-2">Module {i + 1}:</span>
+                      <div key={i} className="p-3.5 bg-gray-50 rounded-xl border border-gray-200 text-xs">
+                        <p className="font-bold text-gray-900 text-sm">
+                          <span className="text-emerald-700 mr-2">Module {m.moduleOrder || (i + 1)}:</span>
                           {m.moduleTitle}
                         </p>
                         {m.moduleDescription && (
-                          <p className="text-xs text-gray-600 mt-1">{m.moduleDescription}</p>
+                          <p className="text-gray-600 mt-1 leading-relaxed">{m.moduleDescription}</p>
                         )}
                       </div>
                     ))}
                   </div>
                 </div>
               )}
+
+              {/* ── Instructor Info ── */}
+              {previewCourse.instructor && (
+                <div className="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-100 flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-700 text-white flex items-center justify-center font-bold text-lg shrink-0">
+                    {previewCourse.instructor.fullName.charAt(0)}
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">පාඨමාලා සම්පත්දායක / දේශක</span>
+                    <h5 className="font-bold text-gray-900 text-sm">{previewCourse.instructor.fullName}</h5>
+                    <p className="text-xs text-gray-600">{previewCourse.instructor.designation} • {previewCourse.instructor.phone}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-5 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setPreviewCourse(null)}
+                className="px-5 py-2.5 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-100 transition"
+              >
+                Close (වසන්න)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const toEdit = previewCourse;
+                  setPreviewCourse(null);
+                  openEditModal(toEdit);
+                }}
+                className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-sm"
+              >
+                <Edit size={14} />
+                <span>Edit This Course</span>
+              </button>
             </div>
           </div>
         </div>
