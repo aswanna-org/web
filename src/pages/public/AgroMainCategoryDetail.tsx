@@ -136,7 +136,7 @@ export default function AgroMainCategoryDetail() {
   return (
     <div className="w-full min-h-screen bg-white">
       {/* ── Hero ── */}
-      <section className="relative w-full h-[50vh] min-h-[350px] flex flex-col justify-center overflow-hidden">
+      <section className="relative w-full h-[44vh] min-h-[320px] md:min-h-[340px] flex flex-col justify-center overflow-hidden">
         <div
           className="absolute inset-0 z-0 bg-gray-900"
           style={{
@@ -154,7 +154,7 @@ export default function AgroMainCategoryDetail() {
           />
         </div>
 
-        <div className="container mx-auto px-4 lg:px-12 relative z-10 pt-20">
+        <div className="container mx-auto px-4 lg:px-12 relative z-10 pt-28 pb-6">
           {/* Breadcrumb */}
           <Link
             to="/agro"

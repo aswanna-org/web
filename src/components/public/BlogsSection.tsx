@@ -61,14 +61,14 @@ export default function BlogsSection() {
 
       {/* Embla Carousel */}
       <div className="w-full px-4 lg:px-8 relative z-10">
-        <div className="overflow-hidden" ref={emblaRef}>
+        <div className="overflow-hidden py-4 -my-4 px-2 -mx-2" ref={emblaRef}>
           <div className="flex gap-6 touch-pan-y py-4">
             {blogItems.map((item) => (
               <div 
                 key={item.id} 
-                className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_25%] min-w-0 group relative rounded-2xl overflow-hidden transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col bg-transparent"
+                className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_25%] min-w-0 group relative transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col bg-transparent pb-2"
               >
-                <div className="h-full px-2">
+                <div className="h-full px-1 py-1">
                   <Card
                     image={item.image || 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&q=80'}
                     badge="BLOG"

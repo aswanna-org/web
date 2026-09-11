@@ -112,7 +112,7 @@ export default function AgroCategories() {
   return (
     <div className="w-full min-h-screen bg-white">
       {/* ── Hero ── */}
-      <section className="relative w-full h-[60vh] min-h-[400px] flex flex-col justify-center overflow-hidden">
+      <section className="relative w-full h-[44vh] min-h-[320px] md:min-h-[340px] flex flex-col justify-center overflow-hidden">
         <div
           className="absolute inset-0 z-0"
           style={{
@@ -126,15 +126,12 @@ export default function AgroCategories() {
           <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-secondary)]/90 via-black/50 to-transparent" />
         </div>
 
-        <div className="container mx-auto px-4 lg:px-12 relative z-10 pt-40 md:pt-32">
+        <div className="container mx-auto px-4 lg:px-12 relative z-10 pt-24 pb-8">
           <div className="max-w-3xl">
-            <span className="text-white font-thin text-xl sm:text-2xl uppercase tracking-[0.3em] block mb-2 opacity-80">
-              {t('agro.brandName', 'Aswanna')}
-            </span>
-            <h1 className="text-white text-5xl sm:text-6xl md:text-7xl font-black uppercase mb-6 drop-shadow-xl tracking-tight">
+            <h1 className="text-white text-4xl sm:text-5xl md:text-6xl font-black uppercase mb-3 drop-shadow-xl tracking-tight">
               {t('agro.title', 'Agro Technology')}
             </h1>
-            <p className="text-gray-100 text-lg sm:text-xl leading-relaxed max-w-2xl font-light drop-shadow-md">
+            <p className="text-gray-100 text-sm sm:text-base md:text-lg leading-relaxed max-w-2xl font-light drop-shadow-md">
               {t('agro.desc', 'Browse all farming categories — from paddy fields to flower farms — and explore the produce that powers Sri Lanka.')}
             </p>
           </div>
@@ -174,9 +171,9 @@ export default function AgroCategories() {
                 const title = isSinhala ? (cat.sinhalaName || cat.name) : cat.name;
 
                 return (
-                  <Link 
-                    key={cat.id} 
-                    to={`/agro/${cat.slug}`} 
+                  <Link
+                    key={cat.id}
+                    to={`/agro/${cat.slug}`}
                     className="group relative flex flex-col items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-white border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-emerald-200/80 hover:-translate-y-1 transition-all duration-300"
                   >
                     {/* Top: Illustration with large organic cloud pastel background shape */}
@@ -188,7 +185,7 @@ export default function AgroCategories() {
                         className="w-full h-full max-w-[95%] max-h-[95%] object-contain relative z-10 drop-shadow-md transition-transform duration-300 group-hover:scale-110"
                       />
                     </div>
-                    
+
                     {/* Middle: Title */}
                     <div className="w-full text-center my-0.5 px-1">
                       <h3 className="font-bold text-xs sm:text-sm text-gray-800 group-hover:text-emerald-700 transition-colors line-clamp-2">

@@ -1,13 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
-  ArrowLeft, Clock, MapPin, Award, CheckCircle2,
+  Clock, MapPin, Award, CheckCircle2,
   Calendar, BookOpen, Layers, Globe, Check,
   UserCheck, Send, DollarSign, Users,
   GraduationCap, X, ExternalLink
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
+import PageHero from '../../components/public/PageHero';
 
 export default function EducationDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -153,47 +154,13 @@ export default function EducationDetail() {
   return (
     <div className="w-full min-h-screen bg-[#f8fafc] pb-20">
 
-      {/* ── TOP HERO BANNER (Clean, Title only, with ample pt-36 to avoid overlapping navbars) ── */}
-      <section className="relative w-full min-h-[30vh] lg:min-h-[34vh] overflow-hidden flex flex-col justify-end">
-        <img src={heroImage} alt={course.title} className="absolute inset-0 w-full h-full object-cover" />
-
-        {/* Dark Gradient Overlay */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: 'linear-gradient(to right, rgba(5, 46, 22, 0.92) 0%, rgba(5, 46, 22, 0.82) 60%, rgba(0, 0, 0, 0.65) 100%)',
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-        {/* Content in Hero Banner - pt-36 gives space for fixed Navbars */}
-        <div className="relative z-10 container mx-auto px-4 lg:px-12 pt-36 pb-8">
-          <Link
-            to="/education"
-            className="inline-flex items-center gap-2 text-emerald-200 hover:text-white text-xs sm:text-sm font-semibold transition-colors mb-4 group"
-          >
-            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-            ආපසු සියලු පාඨමාලා වෙත (Back to Courses)
-          </Link>
-
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span className="px-3 py-1 rounded-md text-xs font-bold bg-white/10 text-white border border-white/20 font-mono">
-              {course.courseCode}
-            </span>
-            <span className="px-3 py-1 rounded-md text-xs font-semibold bg-emerald-500/30 text-emerald-200 border border-emerald-400/30">
-              {isSinhala ? course.category?.categoryNameSi : course.category?.categoryNameEn}
-            </span>
-            <span className="px-3 py-1 rounded-md text-xs font-bold bg-emerald-400 text-emerald-950">
-              {course.courseLevel}
-            </span>
-          </div>
-
-          {/* Only Course Title in Hero */}
-          <h1 className="text-white text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight drop-shadow-md max-w-4xl leading-tight">
-            {course.title}
-          </h1>
-        </div>
-      </section>
+      {/* ── Page Hero ── */}
+      <PageHero
+        title={course.title}
+        description={course.shortDescription || ''}
+        image={heroImage}
+        gradientColor="#054a29"
+      />
 
       {/* ── MAIN CONTENT: FULL-WIDTH STRUCTURED SPECIFICATION FORM & BOTTOM ACTION BAR ── */}
       <div className="container mx-auto px-4 lg:px-12 py-10 max-w-9xl space-y-8">

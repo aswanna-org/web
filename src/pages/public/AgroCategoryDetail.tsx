@@ -114,7 +114,7 @@ export default function AgroCategoryDetail() {
   return (
     <div className="w-full min-h-screen bg-gray-50">
       {/* ── Hero ── */}
-      <section className="relative w-full h-[50vh] min-h-[350px] flex flex-col justify-center overflow-hidden">
+      <section className="relative w-full h-[44vh] min-h-[320px] md:min-h-[340px] flex flex-col justify-center overflow-hidden">
         <div
           className="absolute inset-0 z-0 bg-gray-900"
           style={{
@@ -132,7 +132,7 @@ export default function AgroCategoryDetail() {
           />
         </div>
 
-        <div className="container mx-auto px-4 lg:px-12 relative z-10 pt-20">
+        <div className="container mx-auto px-4 lg:px-12 relative z-10 pt-28 pb-6">
           {/* Breadcrumb */}
           <Link
             to={`/agro/${mainCategory.slug}`}
@@ -142,9 +142,6 @@ export default function AgroCategoryDetail() {
           </Link>
           <div className="flex items-center gap-4">
             <div>
-              <p className="text-white/60 text-sm font-medium uppercase tracking-widest mb-1">
-                {isSinhala ? (mainCategory.sinhalaName || mainCategory.name) : mainCategory.name}
-              </p>
               <h1 className="text-white text-4xl sm:text-5xl font-black uppercase tracking-tight drop-shadow-xl">
                 {isSinhala ? (category.sinhalaName || category.name) : category.name}
               </h1>
