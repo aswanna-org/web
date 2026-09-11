@@ -6,15 +6,16 @@ import Pagination from '../../components/admin/Pagination';
 
 interface NewsItem {
   id: string;
-  title: string;
-  sinhalaTitle: string | null;
-  slug: string;
-  content: string;
-  sinhalaContent: string | null;
-  image: string | null;
-  authorName: string;
-  authorEmail: string | null;
-  authorAvatar: string | null;
+  title?: string | null;
+  sinhalaTitle?: string | null;
+  slug?: string | null;
+  content?: string | null;
+  sinhalaContent?: string | null;
+  category?: string | null;
+  image?: string | null;
+  authorName?: string | null;
+  authorEmail?: string | null;
+  authorAvatar?: string | null;
   createdAt: string;
 }
 
@@ -89,8 +90,8 @@ export default function News() {
   const handleShare = (type: 'copy' | 'whatsapp' | 'facebook') => {
     if (!selectedNews) return;
     
-    const shareUrl = `${window.location.origin}${window.location.pathname}?slug=${selectedNews.slug}`;
-    const title = isSinhala ? (selectedNews.sinhalaTitle || selectedNews.title) : selectedNews.title;
+    const shareUrl = `${window.location.origin}${window.location.pathname}?slug=${selectedNews.slug || selectedNews.id}`;
+    const title = isSinhala ? (selectedNews.sinhalaTitle || selectedNews.title || '') : (selectedNews.title || selectedNews.sinhalaTitle || '');
 
     if (type === 'copy') {
       navigator.clipboard.writeText(shareUrl);
@@ -169,7 +170,7 @@ export default function News() {
                   >
                     <div className="w-24 h-24 shrink-0 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200">
                       {news.image ? (
-                        <img src={news.image} alt={news.title} className="w-full h-full object-cover" />
+                        <img src={news.image} alt={news.title || ''} className="w-full h-full object-cover" />
                       ) : (
                         <ImageIcon className="text-gray-400" />
                       )}
@@ -181,11 +182,11 @@ export default function News() {
                         </p>
                         <h3 className={`font-bold text-sm leading-snug line-clamp-2 ${selectedNewsId === news.id ? 'text-[var(--color-secondary)]' : 'text-gray-800'
                           }`}>
-                          {isSinhala ? (news.sinhalaTitle || news.title) : news.title}
+                          {isSinhala ? (news.sinhalaTitle || news.title || 'Untitled') : (news.title || news.sinhalaTitle || 'Untitled')}
                         </h3>
                       </div>
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs font-medium text-gray-500">{news.authorName}</span>
+                        <span className="text-xs font-medium text-gray-500">{news.authorName || '-'}</span>
                       </div>
                     </div>
                   </div>
@@ -212,13 +213,13 @@ export default function News() {
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center shrink-0 overflow-hidden border border-gray-200">
                       {selectedNews.authorAvatar ? (
-                        <img src={selectedNews.authorAvatar} alt={selectedNews.authorName} className="w-full h-full object-cover" />
+                        <img src={selectedNews.authorAvatar} alt={selectedNews.authorName || ''} className="w-full h-full object-cover" />
                       ) : (
                         <User className="w-6 h-6 text-gray-400" />
                       )}
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">{t('blogPage.by', 'By')} <span className="font-bold text-gray-800">{selectedNews.authorName}</span></p>
+                      <p className="text-sm text-gray-500">{t('blogPage.by', 'By')} <span className="font-bold text-gray-800">{selectedNews.authorName || '-'}</span></p>
                       <p className="text-xs text-gray-400">{new Date(selectedNews.createdAt).toLocaleDateString()}</p>
                     </div>
                   </div>
@@ -263,20 +264,20 @@ export default function News() {
 
                 {/* Title */}
                 <h1 className="text-3xl md:text-4xl font-black text-gray-900 leading-tight mb-8">
-                  {isSinhala ? (selectedNews.sinhalaTitle || selectedNews.title) : selectedNews.title}
+                  {isSinhala ? (selectedNews.sinhalaTitle || selectedNews.title || 'Untitled') : (selectedNews.title || selectedNews.sinhalaTitle || 'Untitled')}
                 </h1>
 
                 {/* Main Image */}
                 {selectedNews.image && (
                   <div className="w-full h-[400px] rounded-xl overflow-hidden mb-10 shadow-sm">
-                    <img src={selectedNews.image} alt={selectedNews.title} className="w-full h-full object-cover" />
+                    <img src={selectedNews.image} alt={selectedNews.title || ''} className="w-full h-full object-cover" />
                   </div>
                 )}
 
                 {/* Content */}
                 <div 
                   className="prose prose-lg max-w-none rich-content"
-                  dangerouslySetInnerHTML={{ __html: (isSinhala ? (selectedNews.sinhalaContent || selectedNews.content) : selectedNews.content).replace(/&nbsp;|\u00a0/g, ' ') }}
+                  dangerouslySetInnerHTML={{ __html: ((isSinhala ? (selectedNews.sinhalaContent || selectedNews.content) : selectedNews.content) || '').replace(/&nbsp;|\u00a0/g, ' ') }}
                 />
               </>
             ) : (

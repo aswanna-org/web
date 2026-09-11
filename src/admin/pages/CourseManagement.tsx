@@ -7,6 +7,7 @@ import {
   Phone, Mail, MessageSquare, CheckCircle2, XCircle
 } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
+import RichTextEditor from '../components/RichTextEditor';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -44,6 +45,26 @@ export const DURATION_UNITS = [
 
 export const MEDIUM_OPTIONS = ['සිංහල', 'English', 'தமிழ்'];
 export const STATUS_OPTIONS = ['Draft', 'Published', 'Archived'];
+
+export const MONTH_OPTIONS = [
+  { value: '', label: '-- මාසයක් තෝරන්න (Select Month) --' },
+  { value: 'ජනවාරි (January)', label: 'ජනවාරි (January)' },
+  { value: 'පෙබරවාරි (February)', label: 'පෙබරවාරි (February)' },
+  { value: 'මාර්තු (March)', label: 'මාර්තු (March)' },
+  { value: 'අප්‍රේල් (April)', label: 'අප්‍රේල් (April)' },
+  { value: 'මැයි (May)', label: 'මැයි (May)' },
+  { value: 'ජූනි (June)', label: 'ජූනි (June)' },
+  { value: 'ජූලි (July)', label: 'ජූලි (July)' },
+  { value: 'අගෝස්තු (August)', label: 'අගෝස්තු (August)' },
+  { value: 'සැප්තැම්බර් (September)', label: 'සැප්තැම්බර් (September)' },
+  { value: 'ඔක්තෝබර් (October)', label: 'ඔක්තෝබර් (October)' },
+  { value: 'නොවැම්බර් (November)', label: 'නොවැම්බර් (November)' },
+  { value: 'දෙසැම්බර් (December)', label: 'දෙසැම්බර් (December)' },
+  { value: 'සෑම මසකම (Every Month)', label: 'සෑම මසකම (Every Month)' },
+  { value: 'කාර්තුමය වශයෙන් (Quarterly)', label: 'කාර්තුමය වශයෙන් (Quarterly)' },
+  { value: 'වසරකට දෙවරක් (Bi-Annually)', label: 'වසරකට දෙවරක් (Bi-Annually)' },
+  { value: 'විවෘතයි / අවශ්‍යතාවය අනුව (On Demand)', label: 'විවෘතයි / අවශ්‍යතාවය අනුව (On Demand)' }
+];
 
 interface CourseModule {
   id?: string;
@@ -110,14 +131,18 @@ interface Course {
   durationUnit: string;
   startDate?: string | null;
   deadlineDate?: string | null;
+  applicationCallingMonth?: string | null;
+  enrollmentMonth?: string | null;
+  startMonth?: string | null;
   classSchedule?: string | null;
   venueLocation?: string | null;
+  venueLocations?: string[];
   entryRequirements?: string | null;
   certificateType?: string | null;
   accreditedBy?: string | null;
   courseFee: number;
-  maxIntake?: number | null;
   applyUrl?: string | null;
+  applicationFileUrl?: string | null;
   bannerImageUrl?: string | null;
   status: string;
   internalNotes?: string | null;
@@ -142,14 +167,18 @@ const defaultFormData = {
   durationUnit: 'Months',
   startDate: '',
   deadlineDate: '',
+  applicationCallingMonth: '',
+  enrollmentMonth: '',
+  startMonth: '',
   classSchedule: '',
   venueLocation: '',
+  venueLocations: [''],
   entryRequirements: '',
   certificateType: 'රජයේ පිළිගත් නිපුණතා සහතිකය',
   accreditedBy: 'TVEC / කෘෂිකර්ම දෙපාර්තමේන්තුව',
   courseFee: 0,
-  maxIntake: 30,
   applyUrl: '',
+  applicationFileUrl: '',
   bannerImageUrl: '',
   status: 'Draft',
   internalNotes: '',
@@ -196,6 +225,7 @@ export default function CourseManagement() {
   const [modules, setModules] = useState<CourseModule[]>([]);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [applicationFile, setApplicationFile] = useState<File | null>(null);
 
   // Quick Modals for Category & Instructor
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -334,6 +364,7 @@ export default function CourseManagement() {
     ]);
     setImageFile(null);
     setImagePreview(null);
+    setApplicationFile(null);
     setEditingId(null);
     setActiveTab('basic');
     setErrorMsg('');
@@ -355,14 +386,20 @@ export default function CourseManagement() {
       durationUnit: course.durationUnit || 'Months',
       startDate: course.startDate ? course.startDate.split('T')[0] : '',
       deadlineDate: course.deadlineDate ? course.deadlineDate.split('T')[0] : '',
+      applicationCallingMonth: course.applicationCallingMonth || '',
+      enrollmentMonth: course.enrollmentMonth || '',
+      startMonth: course.startMonth || '',
       classSchedule: course.classSchedule || '',
       venueLocation: course.venueLocation || '',
+      venueLocations: (course.venueLocations && Array.isArray(course.venueLocations) && course.venueLocations.length > 0)
+        ? course.venueLocations
+        : (course.venueLocation ? [course.venueLocation] : ['']),
       entryRequirements: course.entryRequirements || '',
       certificateType: course.certificateType || 'රජයේ පිළිගත් නිපුණතා සහතිකය',
       accreditedBy: course.accreditedBy || 'TVEC / කෘෂිකර්ම දෙපාර්තමේන්තුව',
       courseFee: course.courseFee || 0,
-      maxIntake: course.maxIntake || 30,
       applyUrl: course.applyUrl || '',
+      applicationFileUrl: course.applicationFileUrl || '',
       bannerImageUrl: course.bannerImageUrl || '',
       status: course.status || 'Draft',
       internalNotes: course.internalNotes || '',
@@ -381,6 +418,7 @@ export default function CourseManagement() {
 
     setImageFile(null);
     setImagePreview(course.bannerImageUrl || null);
+    setApplicationFile(null);
     setEditingId(course.id);
     setActiveTab('basic');
     setErrorMsg('');
@@ -456,8 +494,8 @@ export default function CourseManagement() {
     try {
       const fd = new FormData();
       Object.entries(form).forEach(([k, v]) => {
-        if (k === 'mediums') {
-          fd.append('mediums', JSON.stringify(v));
+        if (k === 'mediums' || k === 'venueLocations') {
+          fd.append(k, JSON.stringify(v));
         } else if (v !== null && v !== undefined) {
           fd.append(k, String(v));
         }
@@ -468,6 +506,9 @@ export default function CourseManagement() {
 
       if (imageFile) {
         fd.append('image', imageFile);
+      }
+      if (applicationFile) {
+        fd.append('applicationFile', applicationFile);
       }
 
       const method = editingId ? 'PUT' : 'POST';
@@ -1404,12 +1445,10 @@ export default function CourseManagement() {
                     <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
                       පාඨමාලා හැඳින්වීම සහ අරමුණු (Description & Objectives)
                     </label>
-                    <textarea
-                      rows={5}
-                      placeholder="පාඨමාලාව පිළිබඳ සම්පූර්ණ හැඳින්වීම, අරමුණු සහ පුහුණු ක්‍රමවේදය..."
+                    <RichTextEditor
                       value={form.description || ''}
-                      onChange={e => setForm({ ...form, description: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none"
+                      onChange={value => setForm({ ...form, description: value })}
+                      placeholder="පාඨමාලාව පිළිබඳ සම්පූර්ණ හැඳින්වීම, අරමුණු සහ පුහුණු ක්‍රමවේදය ලියන්න..."
                     />
                   </div>
                 </div>
@@ -1535,16 +1574,50 @@ export default function CourseManagement() {
                       />
                     </div>
 
+                    {/* 3 Month Selector Fields */}
                     <div>
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        ආරම්භ වන දිනය (Start Date)
+                        අයදුම්පත් කැඳවන මාසය (Application Calling Month)
                       </label>
-                      <input
-                        type="date"
-                        value={form.startDate}
-                        onChange={e => setForm({ ...form, startDate: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
-                      />
+                      <select
+                        value={form.applicationCallingMonth || ''}
+                        onChange={e => setForm({ ...form, applicationCallingMonth: e.target.value })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-emerald-600 outline-none bg-white"
+                      >
+                        {MONTH_OPTIONS.map(m => (
+                          <option key={m.value} value={m.value}>{m.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
+                        පාඨමාලාව සඳහා බඳවාගන්නා මාසය (Enrollment Month)
+                      </label>
+                      <select
+                        value={form.enrollmentMonth || ''}
+                        onChange={e => setForm({ ...form, enrollmentMonth: e.target.value })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-emerald-600 outline-none bg-white"
+                      >
+                        {MONTH_OPTIONS.map(m => (
+                          <option key={m.value} value={m.value}>{m.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
+                        පාඨමාලාව ආරම්භ කරන මාසය (Course Start Month)
+                      </label>
+                      <select
+                        value={form.startMonth || ''}
+                        onChange={e => setForm({ ...form, startMonth: e.target.value })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-emerald-600 outline-none bg-white"
+                      >
+                        {MONTH_OPTIONS.map(m => (
+                          <option key={m.value} value={m.value}>{m.label}</option>
+                        ))}
+                      </select>
                     </div>
 
                     <div>
@@ -1559,19 +1632,65 @@ export default function CourseManagement() {
                       />
                     </div>
 
-                    <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        ප්‍රායෝගික පුහුණු ගොවිපළ ලිපිනය / ස්ථානය (Venue Location)
-                      </label>
-                      <div className="relative">
-                        <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input
-                          type="text"
-                          placeholder="උදා: පේරාදෙණිය ජාතික කෘෂිකර්ම පුහුණු පර්යේෂණ මධ්‍යස්ථානය"
-                          value={form.venueLocation || ''}
-                          onChange={e => setForm({ ...form, venueLocation: e.target.value })}
-                          className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
-                        />
+                    <div className="md:col-span-2 space-y-3 bg-gray-50/90 p-5 rounded-2xl border border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider">
+                            ප්‍රායෝගික පුහුණු ගොවිපළ ලිපිනයන් / ස්ථාන (Venue Locations)
+                          </label>
+                          <p className="text-xs text-gray-500 mt-0.5">
+                            පුහුණුව පවත්වන ස්ථාන එකකට වඩා තිබේ නම් "+ ස්ථානයක් එක් කරන්න" ක්ලික් කර ඇතුළත් කරන්න.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setForm(prev => ({ ...prev, venueLocations: [...prev.venueLocations, ''] }))}
+                          className="flex items-center gap-1.5 text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold px-3 py-1.5 rounded-lg transition-colors shadow-xs shrink-0"
+                        >
+                          <Plus size={14} /> + ස්ථානයක් එක් කරන්න
+                        </button>
+                      </div>
+
+                      <div className="space-y-2.5">
+                        {form.venueLocations.map((loc, idx) => (
+                          <div key={idx} className="flex items-center gap-2">
+                            <div className="relative flex-1">
+                              <MapPin size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-700" />
+                              <input
+                                type="text"
+                                placeholder={`ස්ථානය ${idx + 1}: උදා: පේරාදෙණිය ජාතික කෘෂිකර්ම පුහුණු මධ්‍යස්ථානය`}
+                                value={loc}
+                                onChange={e => {
+                                  const newLocs = [...form.venueLocations];
+                                  newLocs[idx] = e.target.value;
+                                  setForm(prev => ({
+                                    ...prev,
+                                    venueLocations: newLocs,
+                                    venueLocation: newLocs[0] || ''
+                                  }));
+                                }}
+                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 outline-none transition-all"
+                              />
+                            </div>
+                            {form.venueLocations.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newLocs = form.venueLocations.filter((_, i) => i !== idx);
+                                  setForm(prev => ({
+                                    ...prev,
+                                    venueLocations: newLocs.length > 0 ? newLocs : [''],
+                                    venueLocation: newLocs[0] || ''
+                                  }));
+                                }}
+                                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors shrink-0"
+                                title="Remove Location"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -1582,7 +1701,7 @@ export default function CourseManagement() {
               {activeTab === 'requirements' && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
+                    <div className="md:col-span-2">
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
                         පාඨමාලා ගාස්තුව (Course Fee - LKR) * (0 නම් නොමිලේ)
                       </label>
@@ -1597,20 +1716,6 @@ export default function CourseManagement() {
                           className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl text-sm font-bold focus:ring-1 focus:ring-emerald-600 outline-none"
                         />
                       </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        උපරිම ශිෂ්‍ය ධාරිතාව (Max Intake)
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        placeholder="30"
-                        value={form.maxIntake || ''}
-                        onChange={e => setForm({ ...form, maxIntake: parseInt(e.target.value) || 30 })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
-                      />
                     </div>
 
                     <div>
@@ -1657,14 +1762,60 @@ export default function CourseManagement() {
 
                     <div className="md:col-span-2">
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
+                        අයදුම්පත්‍රය බාගත කිරීම සඳහා ලේඛනය (Application Form / PDF Upload)
+                      </label>
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                        <label className="flex-1 flex items-center gap-2.5 px-4 py-3 border border-dashed border-gray-300 hover:border-emerald-500 rounded-xl cursor-pointer bg-gray-50/60 hover:bg-emerald-50/40 transition-colors text-xs text-gray-600">
+                          <Upload size={16} className="text-emerald-700 shrink-0" />
+                          <span className="truncate font-medium">
+                            {applicationFile ? applicationFile.name : (form.applicationFileUrl ? 'අයදුම්පත්‍ර ලේඛනය පවතී (වෙනස් කිරීමට ක්ලික් කරන්න)' : 'PDF හෝ Document ගොනුවක් තෝරන්න (Upload PDF / Doc)...')}
+                          </span>
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                            className="hidden"
+                            onChange={e => {
+                              const f = e.target.files?.[0];
+                              if (f) setApplicationFile(f);
+                            }}
+                          />
+                        </label>
+                        {form.applicationFileUrl && (
+                          <a
+                            href={form.applicationFileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 rounded-xl transition-all shrink-0"
+                          >
+                            <FileText size={14} /> View / Download
+                          </a>
+                        )}
+                        {(applicationFile || form.applicationFileUrl) && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setApplicationFile(null);
+                              setForm(prev => ({ ...prev, applicationFileUrl: '' }));
+                            }}
+                            className="px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all shrink-0"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-gray-400 mt-1.5">
+                        සිසුන්ට බාගත කර පිරවීම සඳහා අයදුම්පත්‍රය (PDF / Word Format) මෙහි Upload කළ හැක.
+                      </p>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
                         ඇතුළත් වීමේ අවම සුදුසුකම් (Entry Requirements)
                       </label>
-                      <textarea
-                        rows={4}
-                        placeholder="අ.පො.ස. (සා.පෙළ) විභාගයට පෙනී සිටීම හෝ කෘෂිකර්මාන්තයට ඇති උනන්දුව..."
+                      <RichTextEditor
                         value={form.entryRequirements || ''}
-                        onChange={e => setForm({ ...form, entryRequirements: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
+                        onChange={value => setForm({ ...form, entryRequirements: value })}
+                        placeholder="අ.පො.ස. (සා.පෙළ) විභාගයට පෙනී සිටීම හෝ කෘෂිකර්මාන්තයට ඇති උනන්දුව (Bullet points, Bold, Lists භාවිතා කළ හැක)..."
                       />
                     </div>
                   </div>

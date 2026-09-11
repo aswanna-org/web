@@ -75,9 +75,9 @@ export default function NewsSection() {
                   <Card
                     image={item.image || 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&q=80'}
                     badge="NEWS"
-                    title={isSinhala ? (item.sinhalaTitle || item.title) : item.title}
+                    title={isSinhala ? (item.sinhalaTitle || item.title || 'Untitled') : (item.title || item.sinhalaTitle || 'Untitled')}
                     meta={[
-                      { icon: User, text: item.authorName },
+                      { icon: User, text: item.authorName || 'Admin' },
                       { icon: CalendarDays, text: new Date(item.createdAt).toLocaleDateString() }
                     ]}
                     primaryAction={{ text: "Read More", icon: ArrowRight, onClick: () => window.location.href = '/news' }}

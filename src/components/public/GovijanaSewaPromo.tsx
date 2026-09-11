@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
 export default function GovijanaSewaPromo() {
-  const { i18n } = useTranslation();
-  const isSinhala = i18n.language === 'si';
+  const { t } = useTranslation();
 
   return (
     <section className="w-full bg-gray-50/50 relative overflow-hidden py-12 flex justify-center items-center">
@@ -21,25 +20,19 @@ export default function GovijanaSewaPromo() {
           <div className="relative bg-white/40 backdrop-blur-[24px] border-[1.5px] border-white/80 rounded-[40px] py-12 px-6 md:px-12 lg:px-24 overflow-hidden min-h-[300px] flex flex-col justify-center shadow-[inset_0_0_20px_rgba(255,255,255,0.5)]">
             <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white to-transparent"></div>
             <div className="relative z-10 max-w-4xl">
-              <h2 className="text-[2.5rem] md:text-[3.5rem] lg:text-[4rem] font-bold text-[#143d4d] leading-[1.1] tracking-tight mb-4">
-                {isSinhala ? (
-                  <>ගොවිජන සේවා මධ්‍යස්ථාන<br />සොයන්න.</>
-                ) : (
-                  <>Find Agrarian<br />Centers.</>
-                )}
+              <h2 className="text-[2.2rem] md:text-[3.2rem] lg:text-[3.8rem] font-black text-[#0f4d30] leading-[1.15] tracking-tight mb-4">
+                {t('agriHubPromo.subtitle', 'කෘෂි තොරතුරු කේන්ද්‍රය')}
               </h2>
 
-              <p className="text-base md:text-lg text-gray-500 max-w-2xl mb-8 font-medium leading-relaxed">
-                {isSinhala
-                  ? 'දිවයින පුරා පිහිටි ගොවිජන සේවා මධ්‍යස්ථාන වල තොරතුරු, ලිපිනයන් සහ නිලධාරීන්ගේ විස්තර පහසුවෙන් ලබාගන්න.'
-                  : 'High-end access to information, locations, and official contacts for Agrarian Service Centers across the island.'}
+              <p className="text-base md:text-lg text-gray-600 max-w-2xl mb-8 font-medium leading-relaxed">
+                {t('agriHubPromo.desc', 'කෘෂිකර්මාන්තය සම්බන්ධ සියලු තොරතුරු ඔබට එක්තැනින් පහසුවෙන් ලබා ගැනීම.')}
               </p>
 
               <Link
-                to="/govijana-sewa"
-                className="inline-flex items-center gap-3 bg-[var(--color-primary)]/90 border border-[var(--color-primary)]/20 hover:bg-[var(--color-primary)] text-white px-8 py-4 rounded-full font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                to="/agri-info-hub"
+                className="inline-flex items-center gap-3 bg-[#006837] hover:bg-[#00522c] text-white px-8 py-3.5 rounded-full font-bold transition-all duration-300 shadow-md hover:shadow-xl hover:-translate-y-0.5"
               >
-                {isSinhala ? 'දැන් පිවිසෙන්න' : 'Access Directory'}
+                {t('agriHubPromo.button', 'පිවිසෙන්න')}
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </div>

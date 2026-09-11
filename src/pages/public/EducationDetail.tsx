@@ -3,8 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import {
   Clock, MapPin, Award, CheckCircle2,
   Calendar, BookOpen, Layers, Globe, Check,
-  UserCheck, Send, DollarSign, Users,
-  GraduationCap, X, ExternalLink
+  Send, DollarSign,
+  GraduationCap, X, ExternalLink, FileText
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -250,38 +250,57 @@ export default function EducationDetail() {
                 </p>
               </div>
 
-              {/* Field: Start Date */}
-              <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                  ආරම්භ වන දිනය (Start Date)
-                </p>
-                <p className="font-bold text-gray-900 flex items-center gap-1.5">
-                  <Calendar size={16} className="text-gray-500 shrink-0" />
-                  <span>{course.startDate ? course.startDate.split('T')[0] : 'ඉදිරියේදී ආරම්භ වේ'}</span>
-                </p>
-              </div>
+              {/* Field: Application Calling Month */}
+              {course.applicationCallingMonth && (
+                <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                    අයදුම්පත් කැඳවන මාසය
+                  </p>
+                  <p className="font-bold text-gray-900 flex items-center gap-1.5">
+                    <Calendar size={16} className="text-emerald-700 shrink-0" />
+                    <span>{course.applicationCallingMonth}</span>
+                  </p>
+                </div>
+              )}
+
+              {/* Field: Enrollment Month */}
+              {course.enrollmentMonth && (
+                <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                    බඳවාගන්නා මාසය
+                  </p>
+                  <p className="font-bold text-gray-900 flex items-center gap-1.5">
+                    <Calendar size={16} className="text-emerald-700 shrink-0" />
+                    <span>{course.enrollmentMonth}</span>
+                  </p>
+                </div>
+              )}
+
+              {/* Field: Course Start Month */}
+              {course.startMonth && (
+                <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                    පාඨමාලාව ආරම්භය
+                  </p>
+                  <p className="font-bold text-emerald-800 flex items-center gap-1.5">
+                    <Calendar size={16} className="text-emerald-700 shrink-0" />
+                    <span>{course.startMonth}</span>
+                  </p>
+                </div>
+              )}
 
               {/* Field: Deadline */}
-              <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                  අයදුම්පත් භාරගන්නා අවසන් දිනය
-                </p>
-                <p className="font-bold text-red-600 flex items-center gap-1.5">
-                  <Calendar size={16} className="text-red-500 shrink-0" />
-                  <span>{course.deadlineDate ? course.deadlineDate.split('T')[0] : 'විවෘතයි'}</span>
-                </p>
-              </div>
-
-              {/* Field: Intake */}
-              <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                  ශිෂ්‍ය ධාරිතාව (Max Intake)
-                </p>
-                <p className="font-bold text-gray-900 flex items-center gap-1.5">
-                  <Users size={16} className="text-gray-500 shrink-0" />
-                  <span>{course.maxIntake ? `${course.maxIntake} Seats` : '30 Seats'}</span>
-                </p>
-              </div>
+              {course.deadlineDate && (
+                <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
+                  <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                    අයදුම්පත් අවසන් දිනය
+                  </p>
+                  <p className="font-bold text-red-600 flex items-center gap-1.5">
+                    <Calendar size={16} className="text-red-500 shrink-0" />
+                    <span>{course.deadlineDate.split('T')[0]}</span>
+                  </p>
+                </div>
+              )}
 
               {/* Field: Schedule */}
               <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100 sm:col-span-2 lg:col-span-3">
@@ -293,15 +312,29 @@ export default function EducationDetail() {
                 </p>
               </div>
 
-              {/* Field: Venue */}
+              {/* Field: Venue Locations */}
               <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100 sm:col-span-2 lg:col-span-3">
-                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                  ප්‍රායෝගික පුහුණු ගොවිපළ / ස්ථානය (Venue & Practical Farm)
+                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                  ප්‍රායෝගික පුහුණු ගොවිපළ ලිපිනයන් / ස්ථාන (Venue Locations)
                 </p>
-                <p className="font-bold text-gray-900 flex items-center gap-1.5">
-                  <MapPin size={16} className="text-emerald-700 shrink-0" />
-                  <span>{course.venueLocation || 'ජාතික කෘෂිකර්ම පුහුණු සහ පර්යේෂණ මධ්‍යස්ථානය'}</span>
-                </p>
+                {course.venueLocations && Array.isArray(course.venueLocations) && course.venueLocations.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {course.venueLocations.map((loc: string, idx: number) => (
+                      <span
+                        key={idx}
+                        className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-950 border border-emerald-200/80 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold shadow-2xs"
+                      >
+                        <MapPin size={15} className="text-emerald-700 shrink-0" />
+                        <span>{loc}</span>
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="font-bold text-gray-900 flex items-center gap-1.5">
+                    <MapPin size={16} className="text-emerald-700 shrink-0" />
+                    <span>{course.venueLocation || 'ජාතික කෘෂිකර්ම පුහුණු සහ පර්යේෂණ මධ්‍යස්ථානය'}</span>
+                  </p>
+                )}
               </div>
 
               {/* Field: Certificate & Accreditation */}
@@ -325,55 +358,27 @@ export default function EducationDetail() {
               <BookOpen size={18} className="text-emerald-700" />
               පාඨමාලා හැඳින්වීම සහ අරමුණු (Course Overview & Objectives)
             </h3>
-            <p className="text-xs sm:text-sm text-gray-700 leading-relaxed bg-gray-50/60 p-5 rounded-xl border border-gray-100 whitespace-pre-line">
-              {course.description}
-            </p>
+            <div
+              className="text-xs sm:text-sm text-gray-700 leading-relaxed bg-gray-50/60 p-5 rounded-xl border border-gray-100 prose max-w-none prose-emerald rich-content"
+              dangerouslySetInnerHTML={{
+                __html: course.description.replace(/&nbsp;|\u00a0/g, ' ')
+              }}
+            />
           </div>
         )}
 
-        {/* ── 3. ENTRY REQUIREMENTS & INSTRUCTOR IN 2 COLUMNS ── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-          {/* Entry Requirements */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-3">
-            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
-              <CheckCircle2 size={18} className="text-emerald-700" />
-              ඇතුළත් වීමේ අවම සුදුසුකම් (Entry Requirements)
-            </h3>
-            <p className="text-xs sm:text-sm text-gray-700 leading-relaxed bg-gray-50/60 p-4 rounded-xl border border-gray-100">
-              {course.entryRequirements || 'අ.පො.ස. (සා.පෙළ) විභාගයට පෙනී සිටීම හෝ කෘෂිකර්මාන්තයට ඇති උනන්දුව.'}
-            </p>
-          </div>
-
-          {/* Instructor Profile Card */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-3">
-            <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
-              <UserCheck size={18} className="text-emerald-700" />
-              සම්පත්දායකයා / ප්‍රධාන දේශකයා
-            </h3>
-            {course.instructor ? (
-              <div className="p-4 bg-gray-50/80 rounded-xl border border-gray-100 flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-xl bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center shrink-0 text-base">
-                  {course.instructor.profileImageUrl ? (
-                    <img src={course.instructor.profileImageUrl} alt="" className="w-full h-full object-cover rounded-xl" />
-                  ) : (
-                    course.instructor.fullName.charAt(0)
-                  )}
-                </div>
-                <div className="min-w-0">
-                  <p className="font-bold text-sm text-gray-900 truncate">{course.instructor.fullName}</p>
-                  <p className="text-xs text-gray-500 truncate">{course.instructor.designation || 'කෘෂිකර්ම විශේෂඥ'}</p>
-                  {course.instructor.phone && (
-                    <p className="text-xs text-emerald-700 font-mono font-semibold mt-0.5">{course.instructor.phone}</p>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <p className="text-xs text-gray-400 italic bg-gray-50/60 p-4 rounded-xl border border-gray-100">
-                දේශක තොරතුරු සටහන් කර නොමැත.
-              </p>
-            )}
-          </div>
+        {/* ── 3. ENTRY REQUIREMENTS ── */}
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-3">
+          <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+            <CheckCircle2 size={18} className="text-emerald-700" />
+            ඇතුළත් වීමේ අවම සුදුසුකම් (Entry Requirements)
+          </h3>
+          <div
+            className="text-xs sm:text-sm text-gray-700 leading-relaxed bg-gray-50/60 p-4 rounded-xl border border-gray-100 prose max-w-none prose-emerald rich-content"
+            dangerouslySetInnerHTML={{
+              __html: (course.entryRequirements || 'අ.පො.ස. (සා.පෙළ) විභාගයට පෙනී සිටීම හෝ කෘෂිකර්මාන්තයට ඇති උනන්දුව.').replace(/&nbsp;|\u00a0/g, ' ')
+            }}
+          />
         </div>
 
         {/* ── 4. SYLLABUS MODULES (විෂය නිර්දේශයේ සියලු මොඩියුල) ── */}
@@ -416,11 +421,6 @@ export default function EducationDetail() {
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-4 text-xs text-emerald-100/80 mt-2">
-              {course.maxIntake && (
-                <span className="flex items-center gap-1">
-                  <Users size={14} /> ශිෂ්‍ය ධාරිතාව: <strong className="text-white">{course.maxIntake} Seats</strong>
-                </span>
-              )}
               {course.deadlineDate && (
                 <span className="flex items-center gap-1 text-amber-300 font-semibold">
                   <Calendar size={14} /> අයදුම්පත් අවසන් දිනය: {course.deadlineDate.split('T')[0]}
@@ -429,12 +429,25 @@ export default function EducationDetail() {
             </div>
           </div>
 
-          <button
-            onClick={handleApplyClick}
-            className="flex items-center justify-center gap-2.5 bg-emerald-400 hover:bg-emerald-300 text-emerald-950 px-8 py-3.5 rounded-xl font-extrabold text-sm sm:text-base shadow-lg shadow-emerald-950/30 hover:scale-[1.02] transition-all shrink-0"
-          >
-            <Send size={18} /> දැන්ම අයදුම් කරන්න (Apply Now)
-          </button>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+            {course.applicationFileUrl && (
+              <a
+                href={course.applicationFileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                className="flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 text-white px-5 py-3 rounded-xl font-bold text-xs sm:text-sm transition-all"
+              >
+                <FileText size={16} /> අයදුම්පත්‍රය (Download Form)
+              </a>
+            )}
+            <button
+              onClick={handleApplyClick}
+              className="flex items-center justify-center gap-2.5 bg-emerald-400 hover:bg-emerald-300 text-emerald-950 px-8 py-3.5 rounded-xl font-extrabold text-sm sm:text-base shadow-lg shadow-emerald-950/30 hover:scale-[1.02] transition-all"
+            >
+              <Send size={18} /> දැන්ම අයදුම් කරන්න (Apply Now)
+            </button>
+          </div>
         </div>
 
       </div>
@@ -562,18 +575,29 @@ export default function EducationDetail() {
                   />
                 </div>
 
-                {course.applyUrl && (
-                  <div className="pt-1">
+                <div className="space-y-2 pt-1">
+                  {course.applyUrl && (
                     <a
                       href={course.applyUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-emerald-700 hover:underline flex items-center gap-1 font-semibold"
+                      className="text-xs text-emerald-700 hover:underline flex items-center gap-1.5 font-semibold"
                     >
                       <ExternalLink size={13} /> Google Form මඟින් සෘජුවම අයදුම් කිරීමට මෙතැන ක්ලික් කරන්න
                     </a>
-                  </div>
-                )}
+                  )}
+                  {course.applicationFileUrl && (
+                    <a
+                      href={course.applicationFileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download
+                      className="text-xs text-emerald-700 hover:underline flex items-center gap-1.5 font-semibold"
+                    >
+                      <FileText size={13} /> අයදුම්පත්‍රය (PDF Form) බාගත කරගැනීමට මෙතැන ක්ලික් කරන්න
+                    </a>
+                  )}
+                </div>
 
                 {appError && (
                   <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-xs font-medium">

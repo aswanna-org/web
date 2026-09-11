@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function AgroProductDetail() {
@@ -188,10 +188,11 @@ export default function AgroProductDetail() {
                   )}
 
                 {/* Global Agri Data */}
-                {product.globalAgriData && product.globalAgriData.length > 0 && (
+                {((product.globalAgriData && product.globalAgriData.length > 0) || product.highestInTheWorld || product.sinhalaHighestInTheWorld) && (
                   <div className="space-y-3 pt-2">
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2">{t('agro.globalData', 'Global Data')}</p>
-                    {product.globalAgriData.map((g: any, idx: number) => {
+
+                    {product.globalAgriData && product.globalAgriData.map((g: any, idx: number) => {
                       const countryLabel = isSinhala ? (g.sinhalaCountryName || g.countryName) : (g.countryName || g.sinhalaCountryName);
                       return (
                         <div key={idx} className="text-sm bg-gray-50/80 p-2.5 rounded-lg border border-gray-100">
@@ -215,6 +216,41 @@ export default function AgroProductDetail() {
                         </div>
                       );
                     })}
+
+                    {/* Highest in the World - Large Bold Red Banner at the bottom */}
+                    {(product.highestInTheWorld || product.sinhalaHighestInTheWorld) && (
+                      <div className="mt-4 p-4 rounded-2xl bg-gradient-to-br from-red-600 via-rose-600 to-red-700 text-white shadow-lg shadow-red-500/25 border border-red-400/40 relative overflow-hidden">
+                        {/* Background subtle light effects */}
+                        <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full blur-xl pointer-events-none" />
+                        <div className="absolute -left-4 -top-4 w-16 h-16 bg-black/10 rounded-full blur-lg pointer-events-none" />
+                        
+                        <div className="relative z-10">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="p-1.5 bg-white/20 rounded-lg backdrop-blur-sm shadow-inner">
+                              <Globe className="w-4 h-4 text-white" />
+                            </div>
+                            <span className="text-xs font-bold uppercase tracking-wider text-red-100">
+                              {isSinhala ? 'ලොව ඉහළම අගය (Highest in the World)' : 'Highest in the World'}
+                            </span>
+                          </div>
+                          
+                          <div className="mt-1 flex flex-col">
+                            <span className="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow-sm leading-tight">
+                              {isSinhala 
+                                ? (product.sinhalaHighestInTheWorld || product.highestInTheWorld) 
+                                : (product.highestInTheWorld || product.sinhalaHighestInTheWorld)}
+                            </span>
+                            <div className="mt-2 flex items-center gap-2">
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-white text-red-700 shadow-sm">
+                                {product.highestInTheWorldUnit === 'ACRES' 
+                                  ? (isSinhala ? 'අක්කර (Acres)' : 'Acres (අක්කර)') 
+                                  : (isSinhala ? 'හෙක්ටයාර (Hectares)' : 'Hectares (හෙක්ටයාර)')}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

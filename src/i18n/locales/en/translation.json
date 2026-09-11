@@ -231,5 +231,43 @@
   "agroLands": {
     "title": "AGRO LANDS",
     "desc": "Find agricultural lands for sale and lease."
+  },
+  "agriHubPromo": {
+    "subtitle": "Agricultural Information Center",
+    "title": "Agri Information Hub",
+    "desc": "Easily access all agriculture-related information, guides, and updates in one place.",
+    "button": "Access Hub"
+  },
+  "agriInfoHub": {
+    "heroTitle": "AGRI INFORMATION HUB",
+    "heroSubtitle": "KNOWLEDGE & DIRECTORY CENTER",
+    "heroDesc": "A unified platform connecting Sri Lankan farmers and agricultural entrepreneurs with Government institutions, Private agribusinesses, Regional Agriculture Officers, and International organizations.",
+    "searchPlaceholder": "Search institutions, officers, or services...",
+    "all": "All Categories",
+    "enter": "Access",
+    "modalClose": "Close",
+    "contact": "Contact",
+    "website": "Visit Website",
+    "address": "Address",
+    "card1": {
+      "titleSi": "රාජ්‍ය ආයතන තොරතුරු කේන්ද්‍රය",
+      "titleEn": "Government Institutions Information Hub",
+      "desc": "Official directory of ministries, departments, statutory boards, and research institutes supporting agriculture in Sri Lanka."
+    },
+    "card2": {
+      "titleSi": "පුද්ගලික ආයතන තොරතුරු කේන්ද්‍රය",
+      "titleEn": "Private Institutions Information Hub",
+      "desc": "Verified suppliers of seeds, fertilizers, modern farm machinery, greenhouses, and technology solutions."
+    },
+    "card3": {
+      "titleSi": "ඔබේ ප්‍රදේශයේ කෘෂිකර්ම නිලධාරියා සොයාගන්න",
+      "titleEn": "Find Your Area Agricultural Officer",
+      "desc": "Locate Agrarian Service Centers (ASC), Agricultural Instructors (AI), and field officers in your divisional secretariat."
+    },
+    "card4": {
+      "titleSi": "ජාත්‍යන්තර කෘෂිකාර්මික ආයතන",
+      "titleEn": "International Agricultural Institutions",
+      "desc": "Global funding bodies, research organizations (FAO, IFAD, CGIAR, World Bank) driving sustainable agriculture."
+    }
   }
 }

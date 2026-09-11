@@ -22,6 +22,7 @@ import CartModal from './components/public/CartModal';
 import LoginModal from './components/public/LoginModal';
 import RegisterModal from './components/public/RegisterModal';
 import GovijanaSewa from './pages/public/GovijanaSewa';
+import AgriInfoHub from './pages/public/AgriInfoHub';
 
 // Admin imports
 import AdminLayout from './admin/layouts/AdminLayout';
@@ -83,6 +84,7 @@ function App() {
               <Route path="marketplace" element={<Marketplace />} />
               <Route path="plant-finder" element={<PlantFinder />} />
               <Route path="agro-lands" element={<AgroLands />} />
+              <Route path="agri-info-hub" element={<AgriInfoHub />} />
             </Route>
 
             {/* Admin Routes */}

@@ -6,15 +6,15 @@ import Pagination from '../../components/admin/Pagination';
 
 interface BlogItem {
   id: string;
-  title: string;
-  sinhalaTitle: string | null;
-  slug: string;
-  content: string;
-  sinhalaContent: string | null;
-  image: string | null;
-  authorName: string;
-  authorEmail: string | null;
-  authorAvatar: string | null;
+  title?: string | null;
+  sinhalaTitle?: string | null;
+  slug?: string | null;
+  content?: string | null;
+  sinhalaContent?: string | null;
+  image?: string | null;
+  authorName?: string | null;
+  authorEmail?: string | null;
+  authorAvatar?: string | null;
   createdAt: string;
 }
 
@@ -56,7 +56,7 @@ export default function Blog() {
       <PageHero
         title={t('blogPage.title', 'BLOG')}
         description={t('blogPage.desc', 'Read our latest articles, farming guides, and insights from industry experts.')}
-        image="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
+        image="https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=1600&q=80"
         gradientColor="#28b41bff"
       />
 
@@ -66,7 +66,7 @@ export default function Blog() {
 
           {/* Left Column: Blog List (approx 1/3 width) */}
           <div className="w-full lg:w-1/3 flex flex-col">
-            <div className="flex items-center gap-6 border-b border-gray-200 mb-6 pb-2">
+            <div className="flex items-center gap-6 border-b border-gray-200 mb-6 pb-2 justify-between">
               <h2 className="text-xl font-bold text-[var(--color-secondary)] border-b-2 border-[var(--color-secondary)] pb-2 -mb-[10px]">
                 {t('blogPage.latestPosts', 'Latest Posts')}
               </h2>
@@ -96,7 +96,7 @@ export default function Blog() {
                   >
                     <div className="w-24 h-24 shrink-0 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200">
                       {blog.image ? (
-                        <img src={blog.image} alt={blog.title} className="w-full h-full object-cover" />
+                        <img src={blog.image} alt={blog.title || ''} className="w-full h-full object-cover" />
                       ) : (
                         <ImageIcon className="text-gray-400" />
                       )}
@@ -108,11 +108,11 @@ export default function Blog() {
                         </p>
                         <h3 className={`font-bold text-sm leading-snug line-clamp-2 ${selectedBlogId === blog.id ? 'text-[var(--color-secondary)]' : 'text-gray-800'
                           }`}>
-                          {isSinhala ? (blog.sinhalaTitle || blog.title) : blog.title}
+                          {isSinhala ? (blog.sinhalaTitle || blog.title || 'Untitled') : (blog.title || blog.sinhalaTitle || 'Untitled')}
                         </h3>
                       </div>
                       <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs font-medium text-gray-500">{blog.authorName}</span>
+                        <span className="text-xs font-medium text-gray-500">{blog.authorName || '-'}</span>
                       </div>
                     </div>
                   </div>
@@ -139,13 +139,13 @@ export default function Blog() {
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center shrink-0 overflow-hidden border border-gray-200">
                       {selectedBlog.authorAvatar ? (
-                        <img src={selectedBlog.authorAvatar} alt={selectedBlog.authorName} className="w-full h-full object-cover" />
+                        <img src={selectedBlog.authorAvatar} alt={selectedBlog.authorName || ''} className="w-full h-full object-cover" />
                       ) : (
                         <User className="w-6 h-6 text-gray-400" />
                       )}
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">{t('blogPage.by', 'By')} <span className="font-bold text-gray-800">{selectedBlog.authorName}</span></p>
+                      <p className="text-sm text-gray-500">{t('blogPage.by', 'By')} <span className="font-bold text-gray-800">{selectedBlog.authorName || '-'}</span></p>
                       <p className="text-xs text-gray-400">{new Date(selectedBlog.createdAt).toLocaleDateString()}</p>
                     </div>
                   </div>
@@ -157,20 +157,20 @@ export default function Blog() {
 
                 {/* Title */}
                 <h1 className="text-3xl md:text-4xl font-black text-gray-900 leading-tight mb-8">
-                  {isSinhala ? (selectedBlog.sinhalaTitle || selectedBlog.title) : selectedBlog.title}
+                  {isSinhala ? (selectedBlog.sinhalaTitle || selectedBlog.title || 'Untitled') : (selectedBlog.title || selectedBlog.sinhalaTitle || 'Untitled')}
                 </h1>
 
                 {/* Main Image */}
                 {selectedBlog.image && (
                   <div className="w-full h-[400px] rounded-xl overflow-hidden mb-10 shadow-sm">
-                    <img src={selectedBlog.image} alt={selectedBlog.title} className="w-full h-full object-cover" />
+                    <img src={selectedBlog.image} alt={selectedBlog.title || ''} className="w-full h-full object-cover" />
                   </div>
                 )}
 
                 {/* Content */}
                 <div
                   className="prose prose-lg max-w-none rich-content"
-                  dangerouslySetInnerHTML={{ __html: (isSinhala ? (selectedBlog.sinhalaContent || selectedBlog.content) : selectedBlog.content).replace(/&nbsp;|\u00a0/g, ' ') }}
+                  dangerouslySetInnerHTML={{ __html: ((isSinhala ? (selectedBlog.sinhalaContent || selectedBlog.content) : selectedBlog.content) || '').replace(/&nbsp;|\u00a0/g, ' ') }}
                 />
               </>
             ) : (

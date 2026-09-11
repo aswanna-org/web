@@ -67,13 +67,17 @@ export default function GovijanaSewa() {
     // Fetch centers for this district
     try {
       setIsLoading(true);
-      const res = await fetch(`${API_BASE_URL}/asc?district=${encodeURIComponent(district.nameEn)}`);
+      const res = await fetch(`${API_BASE_URL}/asc?district=${encodeURIComponent(district.nameEn)}&limit=200`);
       if (res.ok) {
         const data = await res.json();
-        setCenters(data);
+        const items = Array.isArray(data) ? data : (data.data || []);
+        setCenters(items);
+      } else {
+        setCenters([]);
       }
     } catch (err) {
       console.error('Failed to fetch centers:', err);
+      setCenters([]);
     } finally {
       setIsLoading(false);
     }
@@ -88,10 +92,10 @@ export default function GovijanaSewa() {
     setSelectedASC(null);
   };
 
-  const filteredCenters = centers.filter(center => 
+  const filteredCenters = Array.isArray(centers) ? centers.filter(center => 
     (center.name?.toLowerCase().includes(searchQuery.toLowerCase()) || false) || 
     (center.nameSi?.includes(searchQuery) || false)
-  );
+  ) : [];
 
   // Group districts by province for better display if needed, but the screenshot just lists them.
   // We'll just display them as cards as requested.

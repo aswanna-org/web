@@ -13,12 +13,15 @@ interface GlobalAgriData { rank: number; countryName: string; sinhalaCountryName
 interface Item {
   id: string; name: string; sinhalaName?: string; slug: string; description?: string;
   sinhalaDescription?: string; scientificName?: string; location?: string; sinhalaLocation?: string;
-  status?: string; images?: string | string[]; categoryId?: string; category?: Category; order?: number;
+  status?: string; highestInTheWorld?: string; sinhalaHighestInTheWorld?: string;
+  highestInTheWorldUnit?: string;
+  images?: string | string[]; categoryId?: string; category?: Category; order?: number;
   slAgriData?: SriLankaAgriData; globalAgriData?: GlobalAgriData[];
 }
 
 const defaultForm = {
   name: '', sinhalaName: '', slug: '', scientificName: '', location: '', sinhalaLocation: '', status: 'AVAILABLE',
+  highestInTheWorld: '', sinhalaHighestInTheWorld: '', highestInTheWorldUnit: 'HECTARES',
   description: '', sinhalaDescription: '', categoryId: '', order: '0',
   slAgriData: { cultivationArea: '', sinhalaCultivationArea: '', annualProduction: '', sinhalaAnnualProduction: '', averageYield: '', sinhalaAverageYield: '', districts: [] as DistrictShare[] },
   globalAgriData: [] as GlobalAgriData[]
@@ -72,6 +75,9 @@ export default function ItemManagement() {
       location: item.location || '',
       sinhalaLocation: item.sinhalaLocation || '',
       status: item.status || 'AVAILABLE',
+      highestInTheWorld: item.highestInTheWorld ?? '',
+      sinhalaHighestInTheWorld: item.sinhalaHighestInTheWorld ?? '',
+      highestInTheWorldUnit: item.highestInTheWorldUnit ?? 'HECTARES',
       description: item.description || '',
       sinhalaDescription: item.sinhalaDescription || '',
       categoryId: item.categoryId || '',
@@ -303,8 +309,134 @@ export default function ItemManagement() {
                       </div>
                     </div>
                     {/* Global Data Tab */}
-                    <div className={`h-full overflow-y-auto p-6 space-y-4 ${activeTab === 'GLOBAL_DATA' ? 'block' : 'hidden'}`}>
-                      <div className="flex justify-between items-center"><h4 className="font-semibold text-sm text-gray-700">Global Production Data</h4><button type="button" onClick={() => setForm({ ...form, globalAgriData: [...form.globalAgriData, { rank: form.globalAgriData.length + 1, countryName: '', sinhalaCountryName: '', production: '', cultivationArea: '' }] })} className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded-lg hover:bg-green-200 font-medium">+ Add Country</button></div>
+                    <div className={`h-full overflow-y-auto p-6 space-y-6 ${activeTab === 'GLOBAL_DATA' ? 'block' : 'hidden'}`}>
+                      {/* Highest In The World Field */}
+                      <div className="bg-emerald-50/70 p-5 rounded-2xl border border-emerald-100/90 space-y-4 shadow-sm">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <h4 className="font-bold text-sm text-emerald-950 flex items-center gap-2">
+                              <span>🌍</span> Highest In The World (ලෝකයේ වැඩිම අගය)
+                            </h4>
+                            <p className="text-xs text-emerald-800/80 mt-0.5">
+                              Specify the highest global production or cultivation area in Hectares or Acres (අක්කර).
+                            </p>
+                          </div>
+                          
+                          {/* Unit Toggle: Hectares vs Acres */}
+                          <div className="flex bg-white rounded-xl p-1 border border-emerald-200 shadow-sm shrink-0 self-start sm:self-auto">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const prevUnit = form.highestInTheWorldUnit;
+                                const num = parseFloat(form.highestInTheWorld.replace(/,/g, ''));
+                                let newSi = form.sinhalaHighestInTheWorld;
+                                if (!isNaN(num) && prevUnit === 'ACRES') {
+                                  // converting from ACRES to HECTARES
+                                  const ha = (num / 2.47105).toFixed(2);
+                                  newSi = `හෙක්ටයාර ${ha}`;
+                                } else if (form.highestInTheWorld) {
+                                  newSi = `හෙක්ටයාර ${form.highestInTheWorld}`;
+                                }
+                                setForm({ ...form, highestInTheWorldUnit: 'HECTARES', sinhalaHighestInTheWorld: newSi });
+                              }}
+                              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                                form.highestInTheWorldUnit === 'HECTARES'
+                                  ? 'bg-emerald-600 text-white shadow'
+                                  : 'text-gray-600 hover:text-emerald-700'
+                              }`}
+                            >
+                              Hectares (හෙක්ටයාර)
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const prevUnit = form.highestInTheWorldUnit;
+                                const num = parseFloat(form.highestInTheWorld.replace(/,/g, ''));
+                                let newSi = form.sinhalaHighestInTheWorld;
+                                if (!isNaN(num) && prevUnit === 'HECTARES') {
+                                  // converting from HECTARES to ACRES
+                                  const acres = (num * 2.47105).toFixed(2);
+                                  newSi = `අක්කර ${acres}`;
+                                } else if (form.highestInTheWorld) {
+                                  newSi = `අක්කර ${form.highestInTheWorld}`;
+                                }
+                                setForm({ ...form, highestInTheWorldUnit: 'ACRES', sinhalaHighestInTheWorld: newSi });
+                              }}
+                              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                                form.highestInTheWorldUnit === 'ACRES'
+                                  ? 'bg-emerald-600 text-white shadow'
+                                  : 'text-gray-600 hover:text-emerald-700'
+                              }`}
+                            >
+                              Acres / Akkara (අක්කර)
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                              Highest In The World (EN) <span className="text-emerald-700 font-bold">[{form.highestInTheWorldUnit === 'HECTARES' ? 'Hectares (ha)' : 'Acres (ac)'}]</span>
+                            </label>
+                            <input
+                              type="text"
+                              placeholder={form.highestInTheWorldUnit === 'HECTARES' ? 'e.g. 1,500,000 ha' : 'e.g. 3,700,000 acres'}
+                              value={form.highestInTheWorld}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                const num = parseFloat(val.replace(/,/g, ''));
+                                let autoSi = form.sinhalaHighestInTheWorld;
+                                if (!isNaN(num)) {
+                                  autoSi = form.highestInTheWorldUnit === 'HECTARES' ? `හෙක්ටයාර ${val}` : `අක්කර ${val}`;
+                                }
+                                setForm({ ...form, highestInTheWorld: val, sinhalaHighestInTheWorld: autoSi });
+                              }}
+                              className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 bg-white text-gray-800 shadow-sm"
+                            />
+                            {/* Real-time conversion helper display */}
+                            {(() => {
+                              const num = parseFloat(form.highestInTheWorld.replace(/,/g, ''));
+                              if (!isNaN(num) && num > 0) {
+                                if (form.highestInTheWorldUnit === 'HECTARES') {
+                                  const acres = (num * 2.47105).toLocaleString(undefined, { maximumFractionDigits: 2 });
+                                  return (
+                                    <div className="flex items-center gap-1 text-[11px] text-emerald-800 mt-1.5 font-medium bg-emerald-100/60 px-2.5 py-1 rounded-md w-fit">
+                                      <span>Equivalent:</span> <strong className="font-bold">≈ {acres} Acres (අක්කර)</strong>
+                                    </div>
+                                  );
+                                } else {
+                                  const ha = (num / 2.47105).toLocaleString(undefined, { maximumFractionDigits: 2 });
+                                  return (
+                                    <div className="flex items-center gap-1 text-[11px] text-emerald-800 mt-1.5 font-medium bg-emerald-100/60 px-2.5 py-1 rounded-md w-fit">
+                                      <span>Equivalent:</span> <strong className="font-bold">≈ {ha} Hectares (හෙක්ටයාර)</strong>
+                                    </div>
+                                  );
+                                }
+                              }
+                              return null;
+                            })()}
+                          </div>
+
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                              Highest In The World (SI) <span className="text-emerald-700 font-bold">[{form.highestInTheWorldUnit === 'HECTARES' ? 'හෙක්ටයාර' : 'අක්කර'}]</span>
+                            </label>
+                            <input
+                              type="text"
+                              placeholder={form.highestInTheWorldUnit === 'HECTARES' ? 'උදා: හෙක්ටයාර 1,500,000' : 'උදා: අක්කර 3,700,000'}
+                              value={form.sinhalaHighestInTheWorld}
+                              onChange={(e) => setForm({ ...form, sinhalaHighestInTheWorld: e.target.value })}
+                              className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 bg-white text-gray-800 shadow-sm"
+                            />
+                            <p className="text-[11px] text-gray-400 mt-1.5">සිංහල මාධ්‍යයෙන් පෙන්විය යුතු ආකාරය.</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-between items-center pt-2">
+                        <h4 className="font-semibold text-sm text-gray-700">Global Production Data</h4>
+                        <button type="button" onClick={() => setForm({ ...form, globalAgriData: [...form.globalAgriData, { rank: form.globalAgriData.length + 1, countryName: '', sinhalaCountryName: '', production: '', cultivationArea: '' }] })} className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded-lg hover:bg-green-200 font-medium">+ Add Country</button>
+                      </div>
                       <div className="space-y-3">
                         {form.globalAgriData.map((g, idx) => (
                           <div key={idx} className="bg-gray-50 p-4 rounded-xl border border-gray-200 relative">
