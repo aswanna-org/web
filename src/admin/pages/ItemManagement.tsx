@@ -64,7 +64,39 @@ export default function ItemManagement() {
 
   const openCreate = () => { setForm({ ...defaultForm }); setImageFile1(null); setImageFile2(null); setExistingImages([]); setEditingId(null); setActiveTab('EN'); setSaveError(null); setIsModalOpen(true); };
   const openEdit = (item: Item) => {
-    setForm({ name: item.name, sinhalaName: item.sinhalaName || '', slug: item.slug, scientificName: item.scientificName || '', location: item.location || '', sinhalaLocation: item.sinhalaLocation || '', status: item.status || 'AVAILABLE', description: item.description || '', sinhalaDescription: item.sinhalaDescription || '', categoryId: item.categoryId || '', order: String(item.order ?? 0), slAgriData: item.slAgriData || { cultivationArea: '', sinhalaCultivationArea: '', annualProduction: '', sinhalaAnnualProduction: '', averageYield: '', sinhalaAverageYield: '', districts: [] }, globalAgriData: item.globalAgriData || [] });
+    setForm({
+      name: item.name,
+      sinhalaName: item.sinhalaName || '',
+      slug: item.slug,
+      scientificName: item.scientificName || '',
+      location: item.location || '',
+      sinhalaLocation: item.sinhalaLocation || '',
+      status: item.status || 'AVAILABLE',
+      description: item.description || '',
+      sinhalaDescription: item.sinhalaDescription || '',
+      categoryId: item.categoryId || '',
+      order: String(item.order ?? 0),
+      slAgriData: {
+        cultivationArea: item.slAgriData?.cultivationArea ?? '',
+        sinhalaCultivationArea: item.slAgriData?.sinhalaCultivationArea ?? '',
+        annualProduction: item.slAgriData?.annualProduction ?? '',
+        sinhalaAnnualProduction: item.slAgriData?.sinhalaAnnualProduction ?? '',
+        averageYield: item.slAgriData?.averageYield ?? '',
+        sinhalaAverageYield: item.slAgriData?.sinhalaAverageYield ?? '',
+        districts: (item.slAgriData?.districts ?? []).map(d => ({
+          districtName: d.districtName ?? '',
+          sinhalaDistrictName: d.sinhalaDistrictName ?? '',
+          percentage: d.percentage ?? 0
+        }))
+      },
+      globalAgriData: (item.globalAgriData ?? []).map(g => ({
+        rank: g.rank ?? 1,
+        countryName: g.countryName ?? '',
+        sinhalaCountryName: g.sinhalaCountryName ?? '',
+        production: g.production ?? '',
+        cultivationArea: g.cultivationArea ?? ''
+      }))
+    });
     const imgs = Array.isArray(item.images) ? item.images : (item.images ? [item.images as string] : []);
     setExistingImages(imgs); setImageFile1(null); setImageFile2(null); setEditingId(item.id); setActiveTab('EN'); setSaveError(null); setIsModalOpen(true);
   };

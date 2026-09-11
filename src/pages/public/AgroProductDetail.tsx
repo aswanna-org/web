@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
-import { ArrowLeft, MapPin } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function AgroProductDetail() {
@@ -10,7 +10,6 @@ export default function AgroProductDetail() {
   const [mainCategory, setMainCategory] = useState<any>(null);
   const [category, setCategory] = useState<any>(null);
   const [product, setProduct] = useState<any>(null);
-  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -26,11 +25,6 @@ export default function AgroProductDetail() {
         setMainCategory(mainData);
         setCategory(subData);
         setProduct(productData);
-
-        if (subData && productData) {
-          const related = (subData.items || []).filter((p: any) => p.id !== productData.id && p.status === 'AVAILABLE').slice(0, 4);
-          setRelatedProducts(related);
-        }
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -122,7 +116,7 @@ export default function AgroProductDetail() {
           </div>
           <div className="lg:col-span-1">
             <div className="sticky top-28 rounded-2xl border border-gray-200 p-6">
-              <div className="mt-6 pt-5 border-gray-100 space-y-5">
+              <div className="space-y-5">
                 {product.scientificName && (
                   <div>
                     <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">{t('agro.scientificName', 'Scientific Name')}</p>
@@ -130,164 +124,103 @@ export default function AgroProductDetail() {
                   </div>
                 )}
 
-                {product.slAgriData && (
-                  <div className="space-y-3">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2">{t('agro.slData', 'Sri Lanka Data')}</p>
+                {/* Sri Lanka Agri Data */}
+                {Boolean(
+                  product.slAgriData && (
+                    product.slAgriData.cultivationArea ||
+                    product.slAgriData.sinhalaCultivationArea ||
+                    product.slAgriData.annualProduction ||
+                    product.slAgriData.sinhalaAnnualProduction ||
+                    product.slAgriData.averageYield ||
+                    product.slAgriData.sinhalaAverageYield ||
+                    (product.slAgriData.districts && product.slAgriData.districts.length > 0)
+                  )
+                ) && (
+                    <div className="space-y-3">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2">{t('agro.slData', 'Sri Lanka Data')}</p>
 
-                    {product.slAgriData.cultivationArea && (
-                      <div className="flex justify-between items-center text-sm gap-2">
-                        <span className="text-gray-500">{t('agro.cultivationArea', 'Cultivation Area')}:</span>
-                        <span className="font-medium text-gray-800 text-right">{isSinhala ? (product.slAgriData.sinhalaCultivationArea || product.slAgriData.cultivationArea) : product.slAgriData.cultivationArea}</span>
-                      </div>
-                    )}
-
-                    {product.slAgriData.annualProduction && (
-                      <div className="flex justify-between items-center text-sm gap-2">
-                        <span className="text-gray-500">{t('agro.annualProd', 'Annual Prod')}:</span>
-                        <span className="font-medium text-gray-800 text-right">{isSinhala ? (product.slAgriData.sinhalaAnnualProduction || product.slAgriData.annualProduction) : product.slAgriData.annualProduction}</span>
-                      </div>
-                    )}
-
-                    {product.slAgriData.averageYield && (
-                      <div className="flex justify-between items-center text-sm gap-2">
-                        <span className="text-gray-500">{t('agro.avgYield', 'Avg Yield')}:</span>
-                        <span className="font-medium text-gray-800 text-right">{isSinhala ? (product.slAgriData.sinhalaAverageYield || product.slAgriData.averageYield) : product.slAgriData.averageYield}</span>
-                      </div>
-                    )}
-
-                    {product.slAgriData.districts && product.slAgriData.districts.length > 0 && (
-                      <div className="pt-1">
-                        <p className="text-xs text-gray-500 mb-2">{t('agro.topDistricts', 'Top Districts')}:</p>
-                        <div className="flex flex-wrap gap-1.5">
-                          {product.slAgriData.districts.map((d: any, idx: number) => (
-                            <span key={idx} className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-md border border-green-100 font-medium">
-                              {isSinhala ? (d.sinhalaDistrictName || d.districtName) : d.districtName} {d.percentage}%
-                            </span>
-                          ))}
+                      {(product.slAgriData.cultivationArea || product.slAgriData.sinhalaCultivationArea) && (
+                        <div className="flex justify-between items-center text-sm gap-2">
+                          <span className="text-gray-500">{t('agro.cultivationArea', 'Cultivation Area')}:</span>
+                          <span className="font-medium text-gray-800 text-right">
+                            {isSinhala
+                              ? (product.slAgriData.sinhalaCultivationArea || product.slAgriData.cultivationArea)
+                              : (product.slAgriData.cultivationArea || product.slAgriData.sinhalaCultivationArea)}
+                          </span>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      )}
 
+                      {(product.slAgriData.annualProduction || product.slAgriData.sinhalaAnnualProduction) && (
+                        <div className="flex justify-between items-center text-sm gap-2">
+                          <span className="text-gray-500">{t('agro.annualProd', 'Annual Prod')}:</span>
+                          <span className="font-medium text-gray-800 text-right">
+                            {isSinhala
+                              ? (product.slAgriData.sinhalaAnnualProduction || product.slAgriData.annualProduction)
+                              : (product.slAgriData.annualProduction || product.slAgriData.sinhalaAnnualProduction)}
+                          </span>
+                        </div>
+                      )}
+
+                      {(product.slAgriData.averageYield || product.slAgriData.sinhalaAverageYield) && (
+                        <div className="flex justify-between items-center text-sm gap-2">
+                          <span className="text-gray-500">{t('agro.avgYield', 'Avg Yield')}:</span>
+                          <span className="font-medium text-gray-800 text-right">
+                            {isSinhala
+                              ? (product.slAgriData.sinhalaAverageYield || product.slAgriData.averageYield)
+                              : (product.slAgriData.averageYield || product.slAgriData.sinhalaAverageYield)}
+                          </span>
+                        </div>
+                      )}
+
+                      {product.slAgriData.districts && product.slAgriData.districts.length > 0 && (
+                        <div className="pt-1">
+                          <p className="text-xs text-gray-500 mb-2">{t('agro.topDistricts', 'Top Districts')}:</p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {product.slAgriData.districts.map((d: any, idx: number) => (
+                              <span key={idx} className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-md border border-green-100 font-medium">
+                                {isSinhala ? (d.sinhalaDistrictName || d.districtName) : (d.districtName || d.sinhalaDistrictName)} {d.percentage}%
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                {/* Global Agri Data */}
                 {product.globalAgriData && product.globalAgriData.length > 0 && (
                   <div className="space-y-3 pt-2">
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-widest border-b border-gray-100 pb-2">{t('agro.globalData', 'Global Data')}</p>
-                    {product.globalAgriData.slice(0, 3).map((g: any, idx: number) => (
-                      <div key={idx} className="text-sm bg-gray-50/80 p-2.5 rounded-lg border border-gray-100">
-                        <div className="flex justify-between items-center mb-1.5 border-b border-gray-200/50 pb-1.5">
-                          <span className="font-bold text-gray-800">#{g.rank} {isSinhala ? (g.sinhalaCountryName || g.countryName) : g.countryName}</span>
-                        </div>
-                        <div className="flex flex-col gap-1 text-xs text-gray-500 font-medium">
-                          <div className="flex justify-between items-start gap-2">
-                            <span className="text-gray-400 whitespace-nowrap">{t('agro.production', 'Production')}:</span>
-                            <span className="text-right text-gray-700">{g.production}</span>
+                    {product.globalAgriData.map((g: any, idx: number) => {
+                      const countryLabel = isSinhala ? (g.sinhalaCountryName || g.countryName) : (g.countryName || g.sinhalaCountryName);
+                      return (
+                        <div key={idx} className="text-sm bg-gray-50/80 p-2.5 rounded-lg border border-gray-100">
+                          <div className="flex justify-between items-center mb-1.5 border-b border-gray-200/50 pb-1.5">
+                            <span className="font-bold text-gray-800">#{g.rank || idx + 1} {countryLabel}</span>
                           </div>
-                          <div className="flex justify-between items-start gap-2">
-                            <span className="text-gray-400 whitespace-nowrap">{t('agro.area', 'Area')}:</span>
-                            <span className="text-right text-gray-700">{g.cultivationArea}</span>
+                          <div className="flex flex-col gap-1 text-xs text-gray-500 font-medium">
+                            {g.production && (
+                              <div className="flex justify-between items-start gap-2">
+                                <span className="text-gray-400 whitespace-nowrap">{t('agro.production', 'Production')}:</span>
+                                <span className="text-right text-gray-700">{g.production}</span>
+                              </div>
+                            )}
+                            {g.cultivationArea && (
+                              <div className="flex justify-between items-start gap-2">
+                                <span className="text-gray-400 whitespace-nowrap">{t('agro.area', 'Area')}:</span>
+                                <span className="text-right text-gray-700">{g.cultivationArea}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
-
-                <div className="pt-2 space-y-3 border-t border-gray-100 mt-2">
-                  <div className="flex justify-between items-center text-sm gap-2">
-                    <span className="text-gray-500">{t('agro.status', 'Status')}:</span>
-                    {product.status === 'UNAVAILABLE' ? (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                        {t('agro.comingSoon', 'Coming Soon')}
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-200">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                        {t('agro.inStock', 'In Stock')}
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600 mt-2">
-                    <MapPin className="w-4 h-4 text-[var(--color-secondary)] shrink-0" />
-                    <span className="truncate">{t('agro.from', 'From')} {product.location || 'Sri Lanka'}</span>
-                  </div>
-                  <Link to={`/agro/${mainCategory.slug}/${category.slug}`} className="flex items-center gap-2 text-sm text-[var(--color-secondary)] hover:underline font-medium">
-                    <ArrowLeft className="w-4 h-4 shrink-0" />
-                    <span className="truncate">{t('agro.backTo', 'Back to')} {isSinhala ? (category.sinhalaName || category.name) : category.name}</span>
-                  </Link>
-                </div>
               </div>
             </div>
           </div>
         </div>
-
-        {relatedProducts.length > 0 && (
-          <div className="mt-20 pt-12 border-t border-gray-100">
-            <h2 className="text-2xl font-black text-gray-900 mb-8">{t('agro.moreIn', 'More in')} <span className="text-[var(--color-secondary)]">{isSinhala ? (category.sinhalaName || category.name) : category.name}</span></h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
-              {relatedProducts.map((p) => {
-                const isUnavail = p.status === 'UNAVAILABLE';
-
-                const cardContent = (
-                  <>
-                    <img
-                      src={
-                        (Array.isArray(p.images) && p.images.length > 0
-                          ? p.images[0]
-                          : (typeof p.images === 'object' && p.images !== null
-                            ? Object.values(p.images)[0]
-                            : p.images)) || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80'
-                      }
-                      alt={isSinhala ? (p.sinhalaName || p.name) : p.name}
-                      className={`w-full h-full object-cover transition-transform duration-700 ${
-                        isUnavail ? 'grayscale opacity-65' : 'group-hover:scale-110'
-                      }`}
-                    />
-
-                    {isUnavail && (
-                      <span className="absolute top-3 right-3 z-10 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50/95 text-amber-800 border border-amber-300 text-[10px] font-extrabold shadow-sm backdrop-blur-xs select-none">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                        {t('agro.comingSoon', 'Coming Soon')}
-                      </span>
-                    )}
-                    
-                    {/* Hover Overlay */}
-                    {!isUnavail && (
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6 backdrop-blur-[2px]">
-                        <h3 className="text-white text-xl font-bold text-center drop-shadow-md translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                          {isSinhala ? (p.sinhalaName || p.name) : p.name}
-                        </h3>
-                      </div>
-                    )}
-                  </>
-                );
-
-                if (isUnavail) {
-                  return (
-                    <div
-                      key={p.id}
-                      className="relative block w-full aspect-square rounded-[24px] overflow-hidden border border-gray-300/80 bg-slate-100/90 select-none cursor-not-allowed opacity-80"
-                      title={t('agro.comingSoon', 'Coming Soon')}
-                    >
-                      {cardContent}
-                    </div>
-                  );
-                }
-
-                return (
-                  <Link 
-                    key={p.id} 
-                    to={`/agro/${mainCategory.slug}/${category.slug}/${p.slug}`} 
-                    className="group relative block w-full aspect-square rounded-[24px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 bg-gray-100"
-                  >
-                    {cardContent}
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

@@ -73,30 +73,32 @@ export default function SecondaryNav() {
     <div className={`hidden lg:block fixed z-40 transition-all duration-700 ease-in-out
       top-[130px] right-2 w-auto
       lg:top-[110px] lg:left-0 lg:right-auto lg:w-full
-      ${isScrolled ? 'lg:!top-[130px] lg:!right-6 lg:!left-auto lg:!w-[220px]' : ''}
+      ${isScrolled ? 'lg:!top-[130px] lg:!right-4 lg:!left-auto lg:!w-[175px]' : ''}
     `}>
-      <div className={`w-full ${!isScrolled ? 'lg:container lg:mx-auto lg:px-8 lg:py-4' : 'lg:py-4'}`}>
-        <div className={`flex flex-col gap-3 ${!isScrolled ? 'lg:grid lg:grid-cols-4 lg:gap-4' : 'lg:flex lg:flex-col lg:gap-2'}`}>
+      <div className={`w-full ${!isScrolled ? 'lg:container lg:mx-auto lg:px-8 lg:py-4' : 'lg:py-2'}`}>
+        <div className={`flex flex-col gap-3 ${!isScrolled ? 'lg:grid lg:grid-cols-4 lg:gap-4' : 'lg:flex lg:flex-col lg:gap-1.5'}`}>
           {links.map((link) => (
             <Link
               key={link.id}
               to={link.to}
-              className={`relative overflow-hidden ${link.bgColor} rounded-full p-3 lg:py-3 lg:px-4 transition-all duration-300 group hover:shadow-[0_8px_32px_0_rgba(255,255,255,0.2)] hover:-translate-y-1 flex items-center justify-center lg:justify-start w-full`}
+              className={`relative overflow-hidden ${link.bgColor} rounded-full ${
+                isScrolled ? 'py-2 px-3' : 'p-3 lg:py-3 lg:px-4'
+              } transition-all duration-300 group hover:shadow-[0_8px_32px_0_rgba(255,255,255,0.2)] hover:-translate-y-0.5 flex items-center justify-center lg:justify-start w-full`}
             >
               {/* Background Decorative Icon - Opacity අඩු කර ඇත */}
-              <link.icon className={`hidden lg:block absolute -bottom-3 -right-3 text-white opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-500 ${isScrolled ? 'w-12 h-12' : 'w-16 h-16'}`} />
+              <link.icon className={`hidden lg:block absolute -bottom-3 -right-3 text-white opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-500 ${isScrolled ? 'w-10 h-10' : 'w-16 h-16'}`} />
 
-              <div className="relative z-10 flex items-center gap-4 w-full">
+              <div className={`relative z-10 flex items-center ${isScrolled ? 'gap-2.5' : 'gap-4'} w-full`}>
 
                 <div className="flex-shrink-0 flex items-center justify-center">
-                  <link.icon className={`text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] ${isScrolled ? 'w-6 h-6 lg:w-7 lg:h-7' : 'w-7 h-7 lg:w-8 lg:h-8'}`} />
+                  <link.icon className={`text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] ${isScrolled ? 'w-5 h-5' : 'w-7 h-7 lg:w-8 lg:h-8'}`} />
                 </div>
 
-                <div className="hidden lg:flex flex-col text-left">
-                  <h3 className={`${link.textColor} font-bold leading-none mb-1.5 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] ${isScrolled ? 'text-xs' : 'text-[15px]'}`}>
+                <div className="hidden lg:flex flex-col text-left min-w-0">
+                  <h3 className={`${link.textColor} font-bold leading-tight ${isScrolled ? 'text-xs mb-0.5' : 'text-[15px] mb-1.5'} drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] truncate`}>
                     {isSinhala ? link.titleSi : link.titleEn}
                   </h3>
-                  <p className={`${link.textColor} opacity-90 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] ${isScrolled ? 'text-[10px]' : 'text-[12px]'} leading-tight`}>
+                  <p className={`${link.textColor} opacity-90 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] ${isScrolled ? 'text-[9.5px]' : 'text-[12px]'} leading-tight truncate`}>
                     {isSinhala ? link.descSi : link.descEn}
                   </p>
                 </div>

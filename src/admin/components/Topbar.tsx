@@ -16,7 +16,7 @@ const Topbar = ({ toggleSidebar }: { toggleSidebar: () => void }) => {
 
   const handleLogout = () => {
     logout();
-    navigate('/admin/login');
+    navigate('/');
   };
 
   return (

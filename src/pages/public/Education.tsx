@@ -27,8 +27,8 @@ export default function Education() {
 
   useEffect(() => {
     // Fetch Courses
-    const url = activeCategory === 'All' 
-      ? `${API_BASE_URL}/courses?page=${currentPage}&limit=12` 
+    const url = activeCategory === 'All'
+      ? `${API_BASE_URL}/courses?page=${currentPage}&limit=12`
       : `${API_BASE_URL}/courses?categoryId=${activeCategory}&page=${currentPage}&limit=12`;
 
     setLoading(true);
@@ -66,8 +66,8 @@ export default function Education() {
             <button
               onClick={() => { setActiveCategory('All'); setCurrentPage(1); }}
               className={`px-6 py-2.5 rounded-full text-sm font-bold tracking-wider transition-all duration-300 ${activeCategory === 'All'
-                  ? 'bg-[var(--color-secondary)] text-white shadow-md'
-                  : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 shadow-sm border border-gray-100'
+                ? 'bg-[var(--color-secondary)] text-white shadow-md'
+                : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 shadow-sm border border-gray-100'
                 }`}
             >
               {t('educationPage.all', 'All Categories')}
@@ -77,8 +77,8 @@ export default function Education() {
                 key={cat.id}
                 onClick={() => { setActiveCategory(cat.id); setCurrentPage(1); }}
                 className={`px-6 py-2.5 rounded-full text-sm font-bold tracking-wider transition-all duration-300 ${activeCategory === cat.id
-                    ? 'bg-[var(--color-secondary)] text-white shadow-md'
-                    : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 shadow-sm border border-gray-100'
+                  ? 'bg-[var(--color-secondary)] text-white shadow-md'
+                  : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 shadow-sm border border-gray-100'
                   }`}
               >
                 {isSinhala ? cat.categoryNameSi : cat.categoryNameEn}
@@ -117,10 +117,10 @@ export default function Education() {
               ))}
             </div>
           )}
-          
+
           {totalPages > 1 && (
             <div className="mt-12">
-              <Pagination 
+              <Pagination
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={(page) => setCurrentPage(page)}

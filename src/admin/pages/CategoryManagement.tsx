@@ -11,6 +11,7 @@ interface Category {
   parentId?: string | null; 
   order?: number; 
   image?: string | null;
+  headerImage?: string | null;
   children?: Category[];
 }
 
@@ -23,13 +24,21 @@ export default function CategoryManagement() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...defaultForm });
   
-  // Image states
+  // Card / Icon Image states
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
   const [removeImageFlag, setRemoveImageFlag] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Header / Hero Banner Image states
+  const [headerImageFile, setHeaderImageFile] = useState<File | null>(null);
+  const [headerPreviewUrl, setHeaderPreviewUrl] = useState<string | null>(null);
+  const [existingHeaderImageUrl, setExistingHeaderImageUrl] = useState<string | null>(null);
+  const [removeHeaderImageFlag, setRemoveHeaderImageFlag] = useState(false);
+  const headerFileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const [isSaving, setIsSaving] = useState(false);
 
   const token = localStorage.getItem('admin_token');
   const authHeaders = { Authorization: `Bearer ${token}` };
@@ -51,19 +60,34 @@ export default function CategoryManagement() {
     fetchCategories(); 
   }, []);
 
-  const handleFileChange = (file: File | null) => {
+  const handleCardFileChange = (file: File | null) => {
     if (!file) return;
     setImageFile(file);
     setRemoveImageFlag(false);
     setPreviewUrl(URL.createObjectURL(file));
   };
 
-  const handleRemoveImage = () => {
+  const handleRemoveCardImage = () => {
     setImageFile(null);
     setPreviewUrl(null);
     setExistingImageUrl(null);
     setRemoveImageFlag(true);
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleHeaderFileChange = (file: File | null) => {
+    if (!file) return;
+    setHeaderImageFile(file);
+    setRemoveHeaderImageFlag(false);
+    setHeaderPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleRemoveHeaderImage = () => {
+    setHeaderImageFile(null);
+    setHeaderPreviewUrl(null);
+    setExistingHeaderImageUrl(null);
+    setRemoveHeaderImageFlag(true);
+    if (headerFileInputRef.current) headerFileInputRef.current.value = '';
   };
 
   const openCreate = (parentId = '') => { 
@@ -72,6 +96,10 @@ export default function CategoryManagement() {
     setPreviewUrl(null);
     setExistingImageUrl(null);
     setRemoveImageFlag(false);
+    setHeaderImageFile(null);
+    setHeaderPreviewUrl(null);
+    setExistingHeaderImageUrl(null);
+    setRemoveHeaderImageFlag(false);
     setEditingId(null); 
     setIsModalOpen(true); 
   };
@@ -88,6 +116,10 @@ export default function CategoryManagement() {
     setPreviewUrl(null);
     setExistingImageUrl(cat.image || null);
     setRemoveImageFlag(false);
+    setHeaderImageFile(null);
+    setHeaderPreviewUrl(null);
+    setExistingHeaderImageUrl(cat.headerImage || null);
+    setRemoveHeaderImageFlag(false);
     setEditingId(cat.id); 
     setIsModalOpen(true);
   };
@@ -103,10 +135,18 @@ export default function CategoryManagement() {
       fd.append('parentId', form.parentId || '');
       fd.append('order', form.order || '0');
       
+      // Card image
       if (imageFile) {
         fd.append('image', imageFile);
       } else if (removeImageFlag) {
         fd.append('removeImage', 'true');
+      }
+
+      // Header image
+      if (headerImageFile) {
+        fd.append('headerImage', headerImageFile);
+      } else if (removeHeaderImageFlag) {
+        fd.append('removeHeaderImage', 'true');
       }
       
       const method = editingId ? 'PUT' : 'POST';
@@ -144,8 +184,10 @@ export default function CategoryManagement() {
     }
   };
 
-  const activeImage = previewUrl || existingImageUrl;
-  const isSvg = activeImage?.toLowerCase().includes('.svg') || imageFile?.name.toLowerCase().endsWith('.svg');
+  const activeCardImage = previewUrl || existingImageUrl;
+  const isSvg = activeCardImage?.toLowerCase().includes('.svg') || imageFile?.name.toLowerCase().endsWith('.svg');
+
+  const activeHeaderImage = headerPreviewUrl || existingHeaderImageUrl;
 
   return (
     <div className="space-y-6">
@@ -187,11 +229,20 @@ export default function CategoryManagement() {
                       </div>
                     )}
                     <div>
-                      <h3 className="font-bold text-gray-800 text-lg">{mainCat.name}</h3>
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-bold text-gray-800 text-lg">{mainCat.name}</h3>
+                        {mainCat.headerImage && (
+                          <span className="text-[10px] bg-blue-50 text-blue-600 font-medium px-2 py-0.5 rounded border border-blue-200">
+                            Header Banner
+                          </span>
+                        )}
+                      </div>
                       <div className="flex items-center gap-3 mt-1">
                         <span className="text-sm text-gray-500 font-mono">{mainCat.slug}</span>
                         <span className="text-sm text-gray-400">|</span>
                         <span className="text-sm text-gray-500">{mainCat.sinhalaName || 'No Sinhala Name'}</span>
+                        <span className="text-sm text-gray-400">|</span>
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded font-mono">Order: {mainCat.order ?? 0}</span>
                       </div>
                     </div>
                   </div>
@@ -211,16 +262,25 @@ export default function CategoryManagement() {
                       <div key={subCat.id} className="flex items-center justify-between bg-white border border-gray-100 p-3 rounded-lg hover:border-green-200 transition-colors">
                         <div className="flex items-center gap-3">
                           {subCat.image ? (
-                            <img src={subCat.image} alt="" className="w-5 h-5 object-contain rounded" />
+                            <img src={subCat.image} alt="" className="w-6 h-6 object-contain rounded" />
                           ) : (
                             <Sprout size={16} className="text-gray-400" />
                           )}
                           <div>
-                            <p className="font-medium text-gray-800">{subCat.name}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium text-gray-800">{subCat.name}</p>
+                              {subCat.headerImage && (
+                                <span className="text-[9px] bg-blue-50 text-blue-600 font-medium px-1.5 py-0.2 rounded border border-blue-200">
+                                  Header
+                                </span>
+                              )}
+                            </div>
                             <div className="flex items-center gap-2 mt-0.5">
                               <span className="text-xs text-gray-500 font-mono">{subCat.slug}</span>
                               <span className="text-xs text-gray-400">|</span>
                               <span className="text-xs text-gray-500">{subCat.sinhalaName || 'No Sinhala Name'}</span>
+                              <span className="text-xs text-gray-400">|</span>
+                              <span className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.2 rounded font-mono">Order: {subCat.order ?? 0}</span>
                             </div>
                           </div>
                         </div>
@@ -241,31 +301,31 @@ export default function CategoryManagement() {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !isSaving && setIsModalOpen(false)} />
-          <div className="bg-white rounded-2xl w-full max-w-lg relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl w-full max-w-xl relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between p-6 border-b border-gray-100">
               <h2 className="text-xl font-bold text-gray-800">{editingId ? 'Edit Category' : (form.parentId ? 'Add Sub Category' : 'Add Main Category')}</h2>
               <button onClick={() => setIsModalOpen(false)} disabled={isSaving} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X size={20} /></button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <form onSubmit={handleSubmit} className="p-6 space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Name (EN) *</label>
-                  <input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" />
+                  <input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Name (SI)</label>
-                  <input value={form.sinhalaName} onChange={e => setForm({...form, sinhalaName: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" />
+                  <input value={form.sinhalaName} onChange={e => setForm({...form, sinhalaName: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm" />
                 </div>
                 <div className="col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Slug *</label>
-                  <input required value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" />
+                  <input required value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm font-mono" />
                 </div>
-                <div className="col-span-2">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Parent Category</label>
                   <select 
                     value={form.parentId} 
                     onChange={e => setForm({...form, parentId: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white text-sm"
                   >
                     <option value="">None (Top-level Category)</option>
                     {categories
@@ -275,66 +335,68 @@ export default function CategoryManagement() {
                       ))}
                   </select>
                 </div>
-                <div className="col-span-2">
+                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Order</label>
-                  <input type="number" value={form.order} onChange={e => setForm({...form, order: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" />
+                  <input type="number" value={form.order} onChange={e => setForm({...form, order: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm" />
                 </div>
               </div>
               
-              {/* Image & SVG upload with Live Preview */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="block text-sm font-medium text-gray-700">Image / Icon (PNG, SVG, JPG)</label>
-                  <span className="text-xs text-gray-400">PNG & SVG supported</span>
+              {/* 1st Image: Card / Icon Image */}
+              <div className="border-t border-gray-100 pt-4">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-800">1. Card / Icon Image</label>
+                    <span className="text-xs text-gray-500">Displayed on category cards (SVG, PNG, JPG)</span>
+                  </div>
                 </div>
 
                 <input 
-                  id="category-image-file-input"
+                  id="category-card-image-input"
                   ref={fileInputRef}
                   type="file" 
                   accept="image/png, image/svg+xml, image/jpeg, image/jpg, image/webp, .svg, .png, .jpg, .jpeg, .webp" 
                   className="hidden" 
                   onChange={e => {
-                    handleFileChange(e.target.files?.[0] || null);
+                    handleCardFileChange(e.target.files?.[0] || null);
                     e.target.value = '';
                   }} 
                 />
 
-                {activeImage ? (
-                  <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg bg-gray-50/50">
+                {activeCardImage ? (
+                  <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-xl bg-gray-50/60 mt-2">
                     <div 
-                      className="w-16 h-16 rounded-lg border border-gray-200 bg-white flex items-center justify-center p-1 overflow-hidden shrink-0"
+                      className="w-14 h-14 rounded-lg border border-gray-200 bg-white flex items-center justify-center p-1 overflow-hidden shrink-0"
                       style={{
                         backgroundImage: `linear-gradient(45deg, #f1f5f9 25%, transparent 25%), linear-gradient(-45deg, #f1f5f9 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #f1f5f9 75%), linear-gradient(-45deg, transparent 75%, #f1f5f9 75%)`,
                         backgroundSize: '8px 8px',
                         backgroundPosition: '0 0, 0 4px, 4px -4px, -4px 0px'
                       }}
                     >
-                      <img src={activeImage} alt="Preview" className="max-w-full max-h-full object-contain" />
+                      <img src={activeCardImage} alt="Card Icon Preview" className="max-w-full max-h-full object-contain" />
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${isSvg ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-green-50 text-green-700 border-green-200'}`}>
-                          {isSvg ? 'SVG' : 'PNG/Image'}
+                          {isSvg ? 'SVG Icon' : 'Image'}
                         </span>
                         <p className="text-xs text-gray-600 truncate">
-                          {imageFile ? imageFile.name : 'Current Image'}
+                          {imageFile ? imageFile.name : 'Current Card Image'}
                         </p>
                       </div>
-                      <div className="flex items-center gap-2 mt-2">
+                      <div className="flex items-center gap-3 mt-1.5">
                         <button
                           type="button"
                           onClick={() => fileInputRef.current?.click()}
-                          className="text-xs font-medium text-blue-600 hover:text-blue-700 cursor-pointer"
+                          className="text-xs font-semibold text-blue-600 hover:text-blue-700 cursor-pointer"
                         >
                           Change
                         </button>
                         <span className="text-gray-300">|</span>
                         <button
                           type="button"
-                          onClick={handleRemoveImage}
-                          className="text-xs font-medium text-red-600 hover:text-red-700 cursor-pointer"
+                          onClick={handleRemoveCardImage}
+                          className="text-xs font-semibold text-red-600 hover:text-red-700 cursor-pointer"
                         >
                           Remove
                         </button>
@@ -343,19 +405,76 @@ export default function CategoryManagement() {
                   </div>
                 ) : (
                   <label 
-                    htmlFor="category-image-file-input"
-                    className="flex items-center gap-2 px-3 py-2.5 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 border-dashed transition-colors"
+                    htmlFor="category-card-image-input"
+                    className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-200 border-dashed rounded-xl cursor-pointer hover:border-green-400 hover:bg-green-50/20 transition-all mt-2"
                   >
                     <Upload size={16} className="text-gray-400" />
-                    <span className="text-sm text-gray-500">Choose PNG, SVG, or JPG image...</span>
+                    <span className="text-xs font-medium text-gray-600">Choose Card Icon / Graphic (SVG, PNG)...</span>
+                  </label>
+                )}
+              </div>
+
+              {/* 2nd Image: Header / Hero Banner Image */}
+              <div className="border-t border-gray-100 pt-4">
+                <div className="flex items-center justify-between mb-1.5">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-800">2. Header / Hero Banner Image</label>
+                    <span className="text-xs text-gray-500">Displayed at the top of category detail pages (JPG, PNG, WEBP)</span>
+                  </div>
+                </div>
+
+                <input 
+                  id="category-header-image-input"
+                  ref={headerFileInputRef}
+                  type="file" 
+                  accept="image/png, image/jpeg, image/jpg, image/webp, .png, .jpg, .jpeg, .webp" 
+                  className="hidden" 
+                  onChange={e => {
+                    handleHeaderFileChange(e.target.files?.[0] || null);
+                    e.target.value = '';
+                  }} 
+                />
+
+                {activeHeaderImage ? (
+                  <div className="relative rounded-xl overflow-hidden border border-gray-200 bg-gray-900 group aspect-[16/6] mt-2">
+                    <img 
+                      src={activeHeaderImage} 
+                      alt="Header Banner Preview" 
+                      className="w-full h-full object-cover" 
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => headerFileInputRef.current?.click()}
+                        className="px-3 py-1.5 bg-white text-gray-800 text-xs font-semibold rounded-lg shadow hover:bg-gray-100 transition-colors"
+                      >
+                        Change Banner
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleRemoveHeaderImage}
+                        className="px-3 py-1.5 bg-red-600 text-white text-xs font-semibold rounded-lg shadow hover:bg-red-700 transition-colors"
+                      >
+                        Remove Banner
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <label 
+                    htmlFor="category-header-image-input"
+                    className="flex flex-col items-center justify-center gap-1.5 py-4 border border-gray-200 border-dashed rounded-xl cursor-pointer hover:border-green-400 hover:bg-green-50/20 transition-all mt-2"
+                  >
+                    <Upload size={18} className="text-gray-400" />
+                    <span className="text-xs font-medium text-gray-600">Choose Header Banner Image (JPG, PNG, WEBP)...</span>
+                    <span className="text-[11px] text-gray-400">Recommended wide aspect ratio (1920x600)</span>
                   </label>
                 )}
               </div>
               
-              <div className="flex gap-3 pt-4">
-                <button type="button" disabled={isSaving} onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 font-medium transition-colors">Cancel</button>
-                <button type="submit" disabled={isSaving} className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50">
-                  {isSaving ? 'Saving...' : (editingId ? 'Update' : 'Create')}
+              <div className="flex gap-3 pt-4 border-t border-gray-100">
+                <button type="button" disabled={isSaving} onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 font-medium transition-colors text-sm">Cancel</button>
+                <button type="submit" disabled={isSaving} className="flex-1 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 text-sm shadow-sm">
+                  {isSaving ? 'Saving...' : (editingId ? 'Update Category' : 'Create Category')}
                 </button>
               </div>
             </form>

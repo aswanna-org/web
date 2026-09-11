@@ -8,6 +8,7 @@ import Careers from './pages/public/Careers';
 import News from './pages/public/News';
 import Blog from './pages/public/Blog';
 import Education from './pages/public/Education';
+import EducationDetail from './pages/public/EducationDetail';
 import Gallery from './pages/public/Gallery';
 import AgroCategories from './pages/public/AgroCategories';
 import AgroMainCategoryDetail from './pages/public/AgroMainCategoryDetail';
@@ -18,6 +19,8 @@ import PlantFinder from './pages/public/PlantFinder';
 import AgroLands from './pages/public/AgroLands';
 import { CartProvider } from './context/CartContext';
 import CartModal from './components/public/CartModal';
+import LoginModal from './components/public/LoginModal';
+import RegisterModal from './components/public/RegisterModal';
 import GovijanaSewa from './pages/public/GovijanaSewa';
 
 // Admin imports
@@ -70,6 +73,7 @@ function App() {
               <Route path="news" element={<News />} />
               <Route path="blog" element={<Blog />} />
               <Route path="education" element={<Education />} />
+              <Route path="education/:slug" element={<EducationDetail />} />
               <Route path="gallery" element={<Gallery />} />
               <Route path="govijana-sewa" element={<GovijanaSewa />} />
               <Route path="agro" element={<AgroCategories />} />
@@ -106,6 +110,8 @@ function App() {
             </Route>
           </Routes>
           <CartModal />
+          <LoginModal />
+          <RegisterModal />
         </BrowserRouter>
       </AuthProvider>
     </CartProvider>

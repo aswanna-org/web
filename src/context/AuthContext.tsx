@@ -14,6 +14,12 @@ interface AuthContextType {
   logout: () => void;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isLoginModalOpen: boolean;
+  openLoginModal: () => void;
+  closeLoginModal: () => void;
+  isRegisterModalOpen: boolean;
+  openRegisterModal: () => void;
+  closeRegisterModal: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -22,6 +28,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+
+  const openLoginModal = () => {
+    setIsRegisterModalOpen(false);
+    setIsLoginModalOpen(true);
+  };
+  const closeLoginModal = () => setIsLoginModalOpen(false);
+
+  const openRegisterModal = () => {
+    setIsLoginModalOpen(false);
+    setIsRegisterModalOpen(true);
+  };
+  const closeRegisterModal = () => setIsRegisterModalOpen(false);
 
   useEffect(() => {
     // Check local storage for existing session
@@ -61,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (lastActive && Date.now() - parseInt(lastActive) > 3600000) {
         logout();
         alert('Your session has expired due to 1 hour of inactivity. Please log in again.');
-        window.location.href = '/admin/login';
+        openLoginModal();
       }
     };
 
@@ -86,6 +106,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = (userData: User, newToken: string) => {
     setUser(userData);
     setToken(newToken);
+    setIsLoginModalOpen(false);
+    setIsRegisterModalOpen(false);
     localStorage.setItem('admin_token', newToken);
     localStorage.setItem('admin_user', JSON.stringify(userData));
     localStorage.setItem('admin_last_active', Date.now().toString());
@@ -106,7 +128,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login, 
       logout, 
       isAuthenticated: !!token,
-      isLoading 
+      isLoading,
+      isLoginModalOpen,
+      openLoginModal,
+      closeLoginModal,
+      isRegisterModalOpen,
+      openRegisterModal,
+      closeRegisterModal
     }}>
       {children}
     </AuthContext.Provider>
