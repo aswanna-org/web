@@ -39,6 +39,7 @@ export default function Dashboard() {
       fetchStat('plants?limit=1', 'plants'),
       fetchStat('courses/admin?limit=1', 'courses'),
       fetchStat('careers/openings?limit=1', 'careers'),
+      fetchStat('users/admin/all?limit=1', 'users'),
     ];
     Promise.all(fetches).finally(() => setIsLoading(false));
   }, []);
@@ -121,6 +122,7 @@ export default function Dashboard() {
     { label: 'Plants', count: stats.plants ?? null, icon: <Sprout size={24} />, href: '/admin/plants', color: 'bg-lime-500' },
     { label: 'Courses', count: stats.courses ?? null, icon: <BookOpen size={24} />, href: '/admin/courses', color: 'bg-sky-500' },
     { label: 'Job Openings', count: stats.careers ?? null, icon: <Users size={24} />, href: '/admin/careers', color: 'bg-amber-500' },
+    { label: 'Users', count: stats.users ?? null, icon: <Users size={24} />, href: '/admin/users', color: 'bg-emerald-600' },
   ];
 
   return (
@@ -217,6 +219,7 @@ export default function Dashboard() {
             { label: 'Add Product', href: '/admin/products' },
             { label: 'Add Land', href: '/admin/agrolands' },
             { label: 'Add Course', href: '/admin/courses' },
+            { label: 'Manage Users', href: '/admin/users' },
             { label: 'View Orders', href: '/admin/orders' },
           ].map(action => (
             <Link key={action.label} to={action.href}

@@ -16,7 +16,7 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean, setIsOpen: (val: bool
     { name: 'Blogs', path: '/admin/blogs', icon: FileText },
     { name: 'Careers', path: '/admin/careers', icon: FileText },
     { name: 'Gallery', path: '/admin/gallery', icon: ImageIcon },
-    { name: 'Customers', path: '/admin/customers', icon: Users },
+    { name: 'User Management', path: '/admin/users', icon: Users },
     { name: 'Analytics', path: '/admin/analytics', icon: BarChart3 },
     { name: 'Settings', path: '/admin/settings', icon: Settings },
   ];

@@ -39,6 +39,7 @@ import AgroLandManagement from './admin/pages/AgroLandManagement';
 import AscManagement from './admin/pages/AscManagement';
 import OrderManagement from './admin/pages/OrderManagement';
 import CourseManagement from './admin/pages/CourseManagement';
+import UserManagement from './admin/pages/UserManagement';
 import Login from './admin/pages/Login';
 import { ProtectedRoute } from './admin/components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -108,7 +109,7 @@ function App() {
               <Route path="asc" element={<AscManagement />} />
               <Route path="orders" element={<OrderManagement />} />
               <Route path="courses" element={<CourseManagement />} />
-              {/* Add more admin routes here */}
+              <Route path="users" element={<UserManagement />} />
             </Route>
           </Routes>
           <CartModal />
