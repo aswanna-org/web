@@ -269,12 +269,12 @@ export default function AgriInfoHub() {
       id: 'gov',
       badgeIcon: Landmark,
       badgeBg: 'bg-[#0f4d30]',
-      image: 'https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?w=800&q=80',
+      image: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?w=800&q=80',
       titleSi: 'රාජ්‍ය ආයතන තොරතුරු කේන්ද්‍රය',
       titleEn: 'Government Institutions Information Hub',
       descSi: 'ශ්‍රී ලංකාවේ කෘෂිකර්මාන්තයට සම්බන්ධ අමාත්‍යාංශ, දෙපාර්තමේන්තු සහ පර්යේෂණ ආයතන වල තොරතුරු.',
       descEn: 'Official directory of ministries, statutory boards, and research institutes.',
-      action: () => setActiveModal('gov')
+      action: () => navigate('/agri-info-hub/government-institutions')
     },
     {
       id: 'pvt',
@@ -285,7 +285,7 @@ export default function AgriInfoHub() {
       titleEn: 'Private Institutions Information Hub',
       descSi: 'බීජ, පොහොර, නවීන කෘෂි යන්ත්‍රෝපකරණ සහ කෘෂි තාක්ෂණික සේවා සපයන ලියාපදිංචි ආයතන.',
       descEn: 'Verified suppliers of seeds, fertilizers, greenhouses, and precision farming tools.',
-      action: () => setActiveModal('pvt')
+      action: () => navigate('/agri-info-hub/private-institutions')
     },
     {
       id: 'officer',
@@ -307,7 +307,7 @@ export default function AgriInfoHub() {
       titleEn: 'International Agricultural Institutions',
       descSi: 'තිරසාර කෘෂිකර්මාන්තය නඟාසිටුවීමට දායක වන ගෝලීය ආධාර සහ පර්යේෂණ ආයතන (FAO, IFAD, IWMI).',
       descEn: 'Global bodies driving sustainable agriculture, funding, and international knowledge transfer.',
-      action: () => setActiveModal('intl')
+      action: () => navigate('/agri-info-hub/international-institutions')
     }
   ];
 
@@ -377,7 +377,7 @@ export default function AgriInfoHub() {
                         e.stopPropagation();
                         card.action();
                       }}
-                      className="bg-[#006837] hover:bg-[#00522c] text-white px-5 py-2 rounded-full font-bold text-xs inline-flex items-center gap-2 transition-all duration-300 shadow-md hover:shadow-lg group-hover:gap-2.5"
+                      className="bg-[#006837]/90 hover:bg-[#006837] text-white border border-white/30 backdrop-blur-md px-5 py-2 rounded-full font-bold text-xs inline-flex items-center gap-2 transition-all duration-300 shadow-sm hover:shadow-md group-hover:gap-2.5 cursor-pointer"
                     >
                       {t('agriInfoHub.enter', 'පිවිසෙන්න')}
                       <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />

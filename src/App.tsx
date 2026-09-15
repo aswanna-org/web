@@ -23,6 +23,10 @@ import LoginModal from './components/public/LoginModal';
 import RegisterModal from './components/public/RegisterModal';
 import GovijanaSewa from './pages/public/GovijanaSewa';
 import AgriInfoHub from './pages/public/AgriInfoHub';
+import GovernmentInstitutions from './pages/public/GovernmentInstitutions';
+import PrivateInstitutions from './pages/public/PrivateInstitutions';
+import InternationalInstitutions from './pages/public/InternationalInstitutions';
+import InstitutionDetail from './pages/public/InstitutionDetail';
 
 // Admin imports
 import AdminLayout from './admin/layouts/AdminLayout';
@@ -40,6 +44,7 @@ import AscManagement from './admin/pages/AscManagement';
 import OrderManagement from './admin/pages/OrderManagement';
 import CourseManagement from './admin/pages/CourseManagement';
 import UserManagement from './admin/pages/UserManagement';
+import InstitutionManagement from './admin/pages/InstitutionManagement';
 import Login from './admin/pages/Login';
 import { ProtectedRoute } from './admin/components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -86,6 +91,14 @@ function App() {
               <Route path="plant-finder" element={<PlantFinder />} />
               <Route path="agro-lands" element={<AgroLands />} />
               <Route path="agri-info-hub" element={<AgriInfoHub />} />
+              <Route path="agri-info-hub/government-institutions" element={<GovernmentInstitutions />} />
+              <Route path="agri-info-hub/private-institutions" element={<PrivateInstitutions />} />
+              <Route path="agri-info-hub/international-institutions" element={<InternationalInstitutions />} />
+              <Route path="agri-info-hub/institutions/:slug" element={<InstitutionDetail />} />
+              <Route path="institutions/:slug" element={<InstitutionDetail />} />
+              <Route path="government-institutions" element={<GovernmentInstitutions />} />
+              <Route path="private-institutions" element={<PrivateInstitutions />} />
+              <Route path="international-institutions" element={<InternationalInstitutions />} />
             </Route>
 
             {/* Admin Routes */}
@@ -99,6 +112,7 @@ function App() {
               <Route index element={<Dashboard />} />
               <Route path="categories" element={<CategoryManagement />} />
               <Route path="items" element={<ItemManagement />} />
+              <Route path="institutions" element={<InstitutionManagement />} />
               <Route path="news" element={<NewsManagement />} />
               <Route path="blogs" element={<BlogManagement />} />
               <Route path="careers" element={<CareerManagement />} />

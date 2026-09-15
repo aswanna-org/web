@@ -11,6 +11,20 @@ export interface Course {
   category: string;
 }
 
+export const QUALIFICATION_LEVELS = [
+  'NVQ 3 (සහතිකය)',
+  'NVQ 4 (ශිල්පීය සහතිකය)',
+  'NVQ 5 (ඩිප්ලෝමා)',
+  'NVQ 6 (උසස් ඩිප්ලෝමා)',
+  'NVQ 7 / SLQF 6 (ප්‍රථම උපාධිය)',
+  'SLQF 7 (පශ්චාත් උපාධි සහතිකය)',
+  'SLQF 8 (පශ්චාත් උපාධි ඩිප්ලෝමාව)',
+  'SLQF 9 (ශාස්ත්‍රපති / විද්‍යාපති පාඨමාලා උපාධිය)',
+  'SLQF 10 (පර්යේෂණ සහිත ශාස්ත්‍රපති / විද්‍යාපති උපාධිය)',
+  'SLQF 11 (දර්ශනපති උපාධිය - M.Phil)',
+  'SLQF 12 (ආචාර්ය උපාධිය - Ph.D)'
+];
+
 export const COURSE_CATEGORIES = ['All', 'Farming', 'Technology', 'Business'];
 
 export const EDUCATION_COURSES: Course[] = [
