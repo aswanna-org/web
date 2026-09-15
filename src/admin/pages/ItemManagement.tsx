@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, X, Search, Package, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Search, Package, Upload, Sparkles, Clock, RotateCcw } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import RichTextEditor from '../components/RichTextEditor';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+const ITEM_DRAFT_KEY = 'aswanna_item_draft';
+const DRAFT_EXPIRY_DAYS = 7;
+const DRAFT_EXPIRY_MS = DRAFT_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
 
 interface Category { id: string; name: string; }
 interface DistrictShare { districtName: string; sinhalaDistrictName: string; percentage: number; }
@@ -27,6 +31,47 @@ const defaultForm = {
   globalAgriData: [] as GlobalAgriData[]
 };
 
+interface SavedItemDraft {
+  savedAt: number;
+  form: typeof defaultForm;
+}
+
+const loadItemDraft = (): SavedItemDraft | null => {
+  try {
+    const raw = localStorage.getItem(ITEM_DRAFT_KEY);
+    if (!raw) return null;
+    const parsed: SavedItemDraft = JSON.parse(raw);
+    if (!parsed || !parsed.savedAt || !parsed.form) return null;
+    if (Date.now() - parsed.savedAt > DRAFT_EXPIRY_MS) {
+      localStorage.removeItem(ITEM_DRAFT_KEY);
+      return null;
+    }
+    return parsed;
+  } catch (e) {
+    return null;
+  }
+};
+
+const saveItemDraft = (formData: typeof defaultForm) => {
+  try {
+    const payload: SavedItemDraft = {
+      savedAt: Date.now(),
+      form: formData
+    };
+    localStorage.setItem(ITEM_DRAFT_KEY, JSON.stringify(payload));
+  } catch (e) {
+    console.error('Failed to save item draft:', e);
+  }
+};
+
+const clearItemDraft = () => {
+  try {
+    localStorage.removeItem(ITEM_DRAFT_KEY);
+  } catch (e) {
+    console.error('Failed to clear item draft:', e);
+  }
+};
+
 export default function ItemManagement() {
   const [items, setItems] = useState<Item[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -34,6 +79,7 @@ export default function ItemManagement() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({ ...defaultForm });
+  const [restoredDraftTime, setRestoredDraftTime] = useState<number | null>(null);
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -46,6 +92,28 @@ export default function ItemManagement() {
 
   const token = localStorage.getItem('admin_token');
   const authHeaders = { Authorization: `Bearer ${token}` };
+
+  // Auto-save form draft for 7 days when creating a new item
+  useEffect(() => {
+    if (isModalOpen && !editingId) {
+      const hasData =
+        form.name.trim() ||
+        form.sinhalaName.trim() ||
+        form.scientificName.trim() ||
+        form.location.trim() ||
+        form.sinhalaLocation.trim() ||
+        form.description.trim() ||
+        form.sinhalaDescription.trim() ||
+        form.categoryId ||
+        form.slAgriData.cultivationArea ||
+        form.slAgriData.annualProduction ||
+        form.globalAgriData.length > 0;
+
+      if (hasData) {
+        saveItemDraft(form);
+      }
+    }
+  }, [form, isModalOpen, editingId]);
 
   const fetchItems = async (page = 1) => {
     setIsLoading(true);
@@ -65,8 +133,26 @@ export default function ItemManagement() {
   useEffect(() => { fetchItems(currentPage); }, [currentPage]);
   useEffect(() => { fetchCategories(); }, []);
 
-  const openCreate = () => { setForm({ ...defaultForm }); setImageFile1(null); setImageFile2(null); setExistingImages([]); setEditingId(null); setActiveTab('EN'); setSaveError(null); setIsModalOpen(true); };
+  const openCreate = () => {
+    const draft = loadItemDraft();
+    if (draft && draft.form) {
+      setForm({ ...defaultForm, ...draft.form });
+      setRestoredDraftTime(draft.savedAt);
+    } else {
+      setForm({ ...defaultForm });
+      setRestoredDraftTime(null);
+    }
+    setImageFile1(null);
+    setImageFile2(null);
+    setExistingImages([]);
+    setEditingId(null);
+    setActiveTab('EN');
+    setSaveError(null);
+    setIsModalOpen(true);
+  };
+
   const openEdit = (item: Item) => {
+    setRestoredDraftTime(null);
     setForm({
       name: item.name,
       sinhalaName: item.sinhalaName || '',
@@ -119,7 +205,14 @@ export default function ItemManagement() {
       const method = editingId ? 'PUT' : 'POST';
       const url = editingId ? `${API_BASE_URL}/items/${editingId}` : `${API_BASE_URL}/items`;
       const res = await fetch(url, { method, headers: authHeaders, body: fd });
-      if (res.ok) { setIsModalOpen(false); fetchItems(currentPage); }
+      if (res.ok) {
+        if (!editingId) {
+          clearItemDraft();
+        }
+        setRestoredDraftTime(null);
+        setIsModalOpen(false);
+        fetchItems(currentPage);
+      }
       else { const errData = await res.json().catch(() => ({})); setSaveError(errData.error || `Failed to save item (${res.status}).`); }
     } catch { setSaveError('Network error. Please check your connection.'); } finally { setIsSaving(false); }
   };
@@ -176,6 +269,56 @@ export default function ItemManagement() {
               <div className="flex flex-1 min-h-0">
                 {/* Left Sidebar */}
                 <div className="w-[420px] shrink-0 border-r border-gray-100 overflow-y-auto p-5 space-y-4 bg-gray-50/50">
+                  {/* ── 7-Day Auto-Save Draft Notification ── */}
+                  {!editingId && (
+                    <div
+                      className={`rounded-xl p-3.5 flex flex-col gap-2 transition-all border ${
+                        restoredDraftTime
+                          ? 'bg-amber-50 border-amber-300 text-amber-950 shadow-xs'
+                          : 'bg-green-50/70 border-green-200 text-green-900'
+                      }`}
+                    >
+                      <div className="flex items-start gap-2.5">
+                        <div
+                          className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
+                            restoredDraftTime ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
+                          }`}
+                        >
+                          {restoredDraftTime ? <Sparkles className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-xs font-bold leading-tight">
+                            {restoredDraftTime
+                              ? 'Draft Restored (Auto-Saved)'
+                              : '7-Day Auto-Save Active'}
+                          </p>
+                          <p className="text-[11px] opacity-80 mt-0.5">
+                            {restoredDraftTime
+                              ? `Saved: ${new Date(restoredDraftTime).toLocaleString()} (Retained for 7 days or until submitted)`
+                              : 'Your entered form data will be saved locally for up to 7 days.'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {restoredDraftTime && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (window.confirm('Clear saved draft and start with an empty form?')) {
+                              clearItemDraft();
+                              setForm({ ...defaultForm });
+                              setRestoredDraftTime(null);
+                            }
+                          }}
+                          className="px-2.5 py-1 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs self-start"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          <span>Clear Draft</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+
                   <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Basic Info</label>
                   <div><label className="block text-sm font-medium text-gray-700 mb-1">Name (EN) *</label><input required value={form.name} onChange={e => {
                     const val = e.target.value;

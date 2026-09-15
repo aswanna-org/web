@@ -19,7 +19,10 @@ import {
   PhoneCall,
   Sparkles,
   FileText,
-  Download
+  Download,
+  Landmark,
+  Building2,
+  Globe2
 } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import {
@@ -314,6 +317,48 @@ export default function InstitutionDetail() {
                     {subtitle}
                   </p>
                 )}
+
+                {/* Sector Specific Metadata Row */}
+                <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-gray-600">
+                  {institution.ministry && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-lg font-medium text-gray-700">
+                      <Landmark className="w-3.5 h-3.5 text-emerald-700" />
+                      <span>{institution.ministry}</span>
+                    </span>
+                  )}
+                  {institution.institutionType && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 rounded-lg font-semibold text-emerald-800">
+                      <span>{institution.institutionType}</span>
+                    </span>
+                  )}
+                  {institution.parentConglomerate && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 rounded-lg font-semibold text-blue-800">
+                      <Building2 className="w-3.5 h-3.5 text-blue-600" />
+                      <span>{institution.parentConglomerate}</span>
+                    </span>
+                  )}
+                  {institution.legalEntityType && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-lg font-medium text-gray-700">
+                      <span>{institution.legalEntityType}</span>
+                    </span>
+                  )}
+                  {institution.agencyCategory && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 rounded-lg font-semibold text-indigo-800">
+                      <Globe2 className="w-3.5 h-3.5 text-indigo-600" />
+                      <span>{institution.agencyCategory}</span>
+                    </span>
+                  )}
+                  {institution.globalHQ && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-lg font-medium text-gray-700">
+                      <span>HQ: {institution.globalHQ}</span>
+                    </span>
+                  )}
+                  {institution.operatingCountries && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 rounded-lg font-medium text-amber-800">
+                      <span>{institution.operatingCountries}</span>
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 

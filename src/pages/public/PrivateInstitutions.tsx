@@ -132,7 +132,7 @@ export default function PrivateInstitutions() {
 
     const catParam = selectedCategory !== 'all' ? `&categoryKey=${encodeURIComponent(selectedCategory)}` : '';
     const searchParam = searchQuery.trim() ? `&search=${encodeURIComponent(searchQuery.trim())}` : '';
-    const queryUrl = `${API_BASE_URL}/institutions?type=pvt&page=${currentPage}&limit=${PAGE_SIZE}${catParam}${searchParam}`;
+    const queryUrl = `${API_BASE_URL}/institutions/pvt?page=${currentPage}&limit=${PAGE_SIZE}${catParam}${searchParam}`;
 
     fetch(queryUrl)
       .then((res) => {
@@ -391,7 +391,7 @@ export default function PrivateInstitutions() {
                         </button>
 
                         <a
-                          href={item.website}
+                          href={item.website || '#'}
                           target="_blank"
                           rel="noreferrer"
                           onClick={(e) => e.stopPropagation()}
@@ -508,7 +508,7 @@ export default function PrivateInstitutions() {
               </button>
 
               <a
-                href={selectedDetail.website}
+                href={selectedDetail.website || '#'}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 bg-[#006837]/90 hover:bg-[#006837] text-white border border-white/30 backdrop-blur-md px-6 py-2.5 rounded-full font-bold text-xs shadow-sm hover:shadow-md transition-all"
