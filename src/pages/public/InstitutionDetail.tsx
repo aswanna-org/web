@@ -320,42 +320,43 @@ export default function InstitutionDetail() {
 
                 {/* Sector Specific Metadata Row */}
                 <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-gray-600">
-                  {institution.ministry && (
+                  {(institution.ministry || institution.ministrySi || institution.ministryEn) && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-lg font-medium text-gray-700">
                       <Landmark className="w-3.5 h-3.5 text-emerald-700" />
-                      <span>{institution.ministry}</span>
+                      <span>{isSinhala ? (institution.ministrySi || institution.ministry || institution.ministryEn) : (institution.ministryEn || institution.ministry || institution.ministrySi)}</span>
                     </span>
                   )}
-                  {institution.institutionType && (
+                  {(institution.institutionType || institution.institutionTypeSi || institution.institutionTypeEn) && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 rounded-lg font-semibold text-emerald-800">
-                      <span>{institution.institutionType}</span>
+                      <span>{isSinhala ? (institution.institutionTypeSi || institution.institutionType || institution.institutionTypeEn) : (institution.institutionTypeEn || institution.institutionType || institution.institutionTypeSi)}</span>
                     </span>
                   )}
-                  {institution.parentConglomerate && (
+                  {(institution.parentConglomerate || institution.parentConglomerateSi || institution.parentConglomerateEn) && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 rounded-lg font-semibold text-blue-800">
                       <Building2 className="w-3.5 h-3.5 text-blue-600" />
-                      <span>{institution.parentConglomerate}</span>
+                      <span>{isSinhala ? (institution.parentConglomerateSi || institution.parentConglomerate || institution.parentConglomerateEn) : (institution.parentConglomerateEn || institution.parentConglomerate || institution.parentConglomerateSi)}</span>
                     </span>
                   )}
-                  {institution.legalEntityType && (
+                  {(institution.legalEntityType || institution.legalEntityTypeSi || institution.legalEntityTypeEn) && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-lg font-medium text-gray-700">
-                      <span>{institution.legalEntityType}</span>
+                      <span>{isSinhala ? (institution.legalEntityTypeSi || institution.legalEntityType || institution.legalEntityTypeEn) : (institution.legalEntityTypeEn || institution.legalEntityType || institution.legalEntityTypeSi)}</span>
                     </span>
                   )}
-                  {institution.agencyCategory && (
+                  {(institution.agencyCategory || institution.agencyCategorySi || institution.agencyCategoryEn) && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-indigo-50 rounded-lg font-semibold text-indigo-800">
                       <Globe2 className="w-3.5 h-3.5 text-indigo-600" />
-                      <span>{institution.agencyCategory}</span>
+                      <span>{isSinhala ? (institution.agencyCategorySi || institution.agencyCategory || institution.agencyCategoryEn) : (institution.agencyCategoryEn || institution.agencyCategory || institution.agencyCategorySi)}</span>
                     </span>
                   )}
-                  {institution.globalHQ && (
+                  {(institution.globalHQ || institution.globalHQSi || institution.globalHQEn) && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-lg font-medium text-gray-700">
-                      <span>HQ: {institution.globalHQ}</span>
+                      <span>HQ: {isSinhala ? (institution.globalHQSi || institution.globalHQ || institution.globalHQEn) : (institution.globalHQEn || institution.globalHQ || institution.globalHQSi)}</span>
                     </span>
                   )}
-                  {institution.operatingCountries && (
+                  {(institution.operatingCountries || institution.operatingCountriesSi || institution.operatingCountriesEn) && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-50 rounded-lg font-medium text-amber-800">
-                      <span>{institution.operatingCountries}</span>
+                      <Globe className="w-3.5 h-3.5 text-amber-600" />
+                      <span>{isSinhala ? (institution.operatingCountriesSi || institution.operatingCountries || institution.operatingCountriesEn) : (institution.operatingCountriesEn || institution.operatingCountries || institution.operatingCountriesSi)}</span>
                     </span>
                   )}
                 </div>
@@ -381,7 +382,7 @@ export default function InstitutionDetail() {
               <span>{isSinhala ? 'ඩිජිටල් හා සමාජ මාධ්‍ය පිටු (SOCIAL MEDIA & WEB LINKS)' : 'DIGITAL & SOCIAL MEDIA LINKS'}</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
               {/* Official Website */}
               <a
                 href={institution.website}
@@ -434,7 +435,7 @@ export default function InstitutionDetail() {
                 </div>
               </a>
 
-              {/* TikTok / Other */}
+              {/* TikTok */}
               <a
                 href={institution.tiktokUrl || `https://www.tiktok.com`}
                 target="_blank"
@@ -449,6 +450,24 @@ export default function InstitutionDetail() {
                 <div className="min-w-0">
                   <p className="text-xs font-medium text-gray-500">TikTok</p>
                   <p className="text-xs sm:text-sm font-bold text-gray-800 group-hover:text-black truncate">{isSinhala ? 'වීඩියෝ බලන්න' : 'Watch Videos'}</p>
+                </div>
+              </a>
+
+              {/* LinkedIn */}
+              <a
+                href={institution.linkedinUrl || `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(title)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="group flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl border border-white/80 hover:border-[#0A66C2]/40 bg-white/70 hover:bg-white/95 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+              >
+                <div className="w-10 h-10 rounded-xl bg-[#0A66C2]/10 text-[#0A66C2] border border-[#0A66C2]/20 backdrop-blur-xs flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.45c-.9 0-1.63.73-1.63 1.63s.73 1.63 1.63 1.63 1.63-.73 1.63-1.63c0-.9-.73-1.63-1.63-1.63z" />
+                  </svg>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-gray-500">LinkedIn</p>
+                  <p className="text-xs sm:text-sm font-bold text-gray-800 group-hover:text-[#0A66C2] truncate">{isSinhala ? 'පිටුවට යන්න' : 'Go to Page'}</p>
                 </div>
               </a>
             </div>

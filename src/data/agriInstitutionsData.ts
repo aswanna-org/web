@@ -51,6 +51,7 @@ export interface GovInstitution {
   facebookUrl?: string | null;
   youtubeUrl?: string | null;
   tiktokUrl?: string | null;
+  linkedinUrl?: string | null;
   logoUrl?: string | null;
   order?: number;
   isActive?: boolean;
@@ -83,6 +84,7 @@ export interface PvtInstitution {
   facebookUrl?: string | null;
   youtubeUrl?: string | null;
   tiktokUrl?: string | null;
+  linkedinUrl?: string | null;
   logoUrl?: string | null;
   order?: number;
   isActive?: boolean;
@@ -123,6 +125,7 @@ export interface IntlInstitution {
   facebookUrl?: string | null;
   youtubeUrl?: string | null;
   tiktokUrl?: string | null;
+  linkedinUrl?: string | null;
   logoUrl?: string | null;
   order?: number;
   isActive?: boolean;

@@ -28,6 +28,7 @@ import {
   Languages
 } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
+import CountryMultiSelect from '../components/CountryMultiSelect';
 import type { InstitutionDocument, RegionalCenter } from '../../data/agriInstitutionsData';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -77,6 +78,7 @@ interface BaseInstitution {
   facebookUrl?: string | null;
   youtubeUrl?: string | null;
   tiktokUrl?: string | null;
+  linkedinUrl?: string | null;
   logoUrl?: string | null;
   order: number;
   isActive: boolean;
@@ -140,6 +142,30 @@ interface BaseInstitution {
   reportsAndBriefs?: InstitutionDocument[];
 }
 
+export const GOV_INSTITUTION_TYPES = [
+  { si: 'අමාත්‍යාංශ', en: 'Ministries' },
+  { si: 'දෙපාර්තමේන්තු', en: 'Departments' },
+  { si: 'සංස්ථා', en: 'Corporations' },
+  { si: 'මණ්ඩල', en: 'Boards' },
+  { si: 'අධිකාරි', en: 'Authorities' },
+  { si: 'ආයතන', en: 'Institutes / Institutions' },
+  { si: 'කොමිෂන් සභා', en: 'Commissions' },
+  { si: 'රජය සතු සමාගම්', en: 'State-Owned Enterprises / Companies' },
+];
+
+export const INTL_AGENCY_CATEGORIES = [
+  { si: 'UN සහ අන්තර් රාජ්‍ය ආයතන', en: 'UN & Intergovernmental Organizations' },
+  { si: 'ජාත්‍යන්තර පර්යේෂණ ආයතන', en: 'International Research Institutes' },
+  { si: 'බහුජාතික මව් සමාගම්', en: 'Multinational Parent Companies' },
+  { si: 'කෘෂි වෙළඳ සමාගම්', en: 'Agricultural Trading Companies' },
+  { si: 'යන්ත්‍රෝපකරණ සමාගම්', en: 'Agricultural Machinery Companies' },
+  { si: 'කෘෂි තාක්ෂණික සමාගම්', en: 'Agri-Tech Companies' },
+  { si: 'බීජ හා රසායනික සමාගම්', en: 'Seed & Agro-Chemical Companies' },
+  { si: 'මූල්‍ය හා සංවර්ධන ආයතන', en: 'Financial & Development Institutions' },
+  { si: 'ප්‍රමිතිකරණ හා නියාමන ආයතන', en: 'Standards & Regulatory Bodies' },
+  { si: 'රාජ්‍ය නොවන සංවිධාන', en: 'Non-Governmental Organizations (NGOs / INGOs)' },
+];
+
 const defaultFormData = {
   sector: 'gov' as SectorType,
   slug: '',
@@ -161,14 +187,15 @@ const defaultFormData = {
   facebookUrl: '',
   youtubeUrl: '',
   tiktokUrl: '',
+  linkedinUrl: '',
   logoUrl: '',
   order: 99,
   isActive: true,
 
   // Gov
-  institutionType: 'රජයේ දෙපාර්තමේන්තුව',
-  institutionTypeSi: 'රජයේ දෙපාර්තමේන්තුව',
-  institutionTypeEn: 'Government Department',
+  institutionType: 'දෙපාර්තමේන්තු',
+  institutionTypeSi: 'දෙපාර්තමේන්තු',
+  institutionTypeEn: 'Departments',
   ministry: 'කෘෂිකර්ම, පශු සම්පත්, ඉඩම් සහ වාරිමාර්ග අමාත්‍යාංශය',
   ministrySi: 'කෘෂිකර්ම, පශු සම්පත්, ඉඩම් සහ වාරිමාර්ග අමාත්‍යාංශය',
   ministryEn: 'Ministry of Agriculture, Livestock, Land and Irrigation',
@@ -188,9 +215,9 @@ const defaultFormData = {
   headquartersAddressEn: '',
 
   // Intl
-  agencyCategory: 'එක්සත් ජාතීන්ගේ සංවිධානය (UN)',
-  agencyCategorySi: 'එක්සත් ජාතීන්ගේ සංවිධානය (UN)',
-  agencyCategoryEn: 'United Nations Agency (UN)',
+  agencyCategory: 'UN සහ අන්තර් රාජ්‍ය ආයතන',
+  agencyCategorySi: 'UN සහ අන්තර් රාජ්‍ය ආයතන',
+  agencyCategoryEn: 'UN & Intergovernmental Organizations',
   globalHQ: 'රෝමය, ඉතාලිය',
   globalHQSi: 'රෝමය, ඉතාලිය',
   globalHQEn: 'Rome, Italy',
@@ -507,14 +534,15 @@ export default function InstitutionManagement() {
       facebookUrl: inst.facebookUrl || '',
       youtubeUrl: inst.youtubeUrl || '',
       tiktokUrl: inst.tiktokUrl || '',
+      linkedinUrl: inst.linkedinUrl || '',
       logoUrl: inst.logoUrl || '',
       order: inst.order !== undefined ? inst.order : 99,
       isActive: inst.isActive !== undefined ? inst.isActive : true,
 
       // Gov
-      institutionType: inst.institutionType || inst.institutionTypeSi || 'රජයේ දෙපාර්තමේන්තුව',
-      institutionTypeSi: inst.institutionTypeSi || inst.institutionType || 'රජයේ දෙපාර්තමේන්තුව',
-      institutionTypeEn: inst.institutionTypeEn || '',
+      institutionType: inst.institutionType || inst.institutionTypeSi || 'දෙපාර්තමේන්තු',
+      institutionTypeSi: inst.institutionTypeSi || inst.institutionType || 'දෙපාර්තමේන්තු',
+      institutionTypeEn: inst.institutionTypeEn || (GOV_INSTITUTION_TYPES.find((t) => t.si === (inst.institutionTypeSi || inst.institutionType))?.en || ''),
       ministry: inst.ministry || inst.ministrySi || 'කෘෂිකර්ම, පශු සම්පත්, ඉඩම් සහ වාරිමාර්ග අමාත්‍යාංශය',
       ministrySi: inst.ministrySi || inst.ministry || 'කෘෂිකර්ම, පශු සම්පත්, ඉඩම් සහ වාරිමාර්ග අමාත්‍යාංශය',
       ministryEn: inst.ministryEn || '',
@@ -534,9 +562,9 @@ export default function InstitutionManagement() {
       headquartersAddressEn: inst.headquartersAddressEn || '',
 
       // Intl
-      agencyCategory: inst.agencyCategory || inst.agencyCategorySi || 'එක්සත් ජාතීන්ගේ සංවිධානය (UN)',
-      agencyCategorySi: inst.agencyCategorySi || inst.agencyCategory || 'එක්සත් ජාතීන්ගේ සංවිධානය (UN)',
-      agencyCategoryEn: inst.agencyCategoryEn || '',
+      agencyCategory: inst.agencyCategory || inst.agencyCategorySi || 'UN සහ අන්තර් රාජ්‍ය ආයතන',
+      agencyCategorySi: inst.agencyCategorySi || inst.agencyCategory || 'UN සහ අන්තර් රාජ්‍ය ආයතන',
+      agencyCategoryEn: inst.agencyCategoryEn || (INTL_AGENCY_CATEGORIES.find((t) => t.si === (inst.agencyCategorySi || inst.agencyCategory))?.en || ''),
       globalHQ: inst.globalHQ || inst.globalHQSi || '',
       globalHQSi: inst.globalHQSi || inst.globalHQ || '',
       globalHQEn: inst.globalHQEn || '',
@@ -604,6 +632,7 @@ export default function InstitutionManagement() {
       formData.append('facebookUrl', form.facebookUrl || '');
       formData.append('youtubeUrl', form.youtubeUrl || '');
       formData.append('tiktokUrl', form.tiktokUrl || '');
+      formData.append('linkedinUrl', form.linkedinUrl || '');
       formData.append('order', String(form.order ?? 99));
       formData.append('isActive', String(form.isActive));
 
@@ -1281,25 +1310,59 @@ export default function InstitutionManagement() {
                                 <label className="block text-xs font-medium text-zinc-700 mb-1">
                                   ආයතන වර්ගය (සිංහලෙන්)
                                 </label>
-                                <input
-                                  type="text"
+                                <select
                                   value={form.institutionTypeSi}
-                                  onChange={(e) => setForm({ ...form, institutionTypeSi: e.target.value, institutionType: e.target.value })}
-                                  placeholder="උදා: රජයේ දෙපාර්තමේන්තුව / මණ්ඩලය"
-                                  className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
-                                />
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    const match = GOV_INSTITUTION_TYPES.find((t) => t.si === val);
+                                    setForm({
+                                      ...form,
+                                      institutionTypeSi: val,
+                                      institutionType: val,
+                                      institutionTypeEn: match ? match.en : form.institutionTypeEn,
+                                    });
+                                  }}
+                                  className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 cursor-pointer"
+                                >
+                                  <option value="">-- වර්ගය තෝරන්න (Select Type) --</option>
+                                  {form.institutionTypeSi && !GOV_INSTITUTION_TYPES.some((t) => t.si === form.institutionTypeSi) && (
+                                    <option value={form.institutionTypeSi}>{form.institutionTypeSi}</option>
+                                  )}
+                                  {GOV_INSTITUTION_TYPES.map((t) => (
+                                    <option key={t.si} value={t.si}>
+                                      {t.si} ({t.en})
+                                    </option>
+                                  ))}
+                                </select>
                               </div>
                               <div>
                                 <label className="block text-xs font-medium text-zinc-700 mb-1">
                                   Institution Type (English)
                                 </label>
-                                <input
-                                  type="text"
+                                <select
                                   value={form.institutionTypeEn}
-                                  onChange={(e) => setForm({ ...form, institutionTypeEn: e.target.value })}
-                                  placeholder="e.g. Government Department / Statutory Board"
-                                  className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
-                                />
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    const match = GOV_INSTITUTION_TYPES.find((t) => t.en === val);
+                                    setForm({
+                                      ...form,
+                                      institutionTypeEn: val,
+                                      institutionTypeSi: match ? match.si : form.institutionTypeSi,
+                                      institutionType: match ? match.si : form.institutionType,
+                                    });
+                                  }}
+                                  className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 cursor-pointer"
+                                >
+                                  <option value="">-- Select Type --</option>
+                                  {form.institutionTypeEn && !GOV_INSTITUTION_TYPES.some((t) => t.en === form.institutionTypeEn) && (
+                                    <option value={form.institutionTypeEn}>{form.institutionTypeEn}</option>
+                                  )}
+                                  {GOV_INSTITUTION_TYPES.map((t) => (
+                                    <option key={t.en} value={t.en}>
+                                      {t.en} ({t.si})
+                                    </option>
+                                  ))}
+                                </select>
                               </div>
                             </div>
 
@@ -1397,25 +1460,59 @@ export default function InstitutionManagement() {
                                 <label className="block text-xs font-medium text-zinc-700 mb-1">
                                   නියෝජිතායතන වර්ගය (සිංහලෙන්)
                                 </label>
-                                <input
-                                  type="text"
+                                <select
                                   value={form.agencyCategorySi}
-                                  onChange={(e) => setForm({ ...form, agencyCategorySi: e.target.value, agencyCategory: e.target.value })}
-                                  placeholder="උදා: එක්සත් ජාතීන්ගේ සංවිධානය (UN)"
-                                  className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
-                                />
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    const match = INTL_AGENCY_CATEGORIES.find((t) => t.si === val);
+                                    setForm({
+                                      ...form,
+                                      agencyCategorySi: val,
+                                      agencyCategory: val,
+                                      agencyCategoryEn: match ? match.en : form.agencyCategoryEn,
+                                    });
+                                  }}
+                                  className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 cursor-pointer"
+                                >
+                                  <option value="">-- වර්ගය තෝරන්න (Select Category) --</option>
+                                  {form.agencyCategorySi && !INTL_AGENCY_CATEGORIES.some((t) => t.si === form.agencyCategorySi) && (
+                                    <option value={form.agencyCategorySi}>{form.agencyCategorySi}</option>
+                                  )}
+                                  {INTL_AGENCY_CATEGORIES.map((t) => (
+                                    <option key={t.si} value={t.si}>
+                                      {t.si} ({t.en})
+                                    </option>
+                                  ))}
+                                </select>
                               </div>
                               <div>
                                 <label className="block text-xs font-medium text-zinc-700 mb-1">
                                   Agency Category (English)
                                 </label>
-                                <input
-                                  type="text"
+                                <select
                                   value={form.agencyCategoryEn}
-                                  onChange={(e) => setForm({ ...form, agencyCategoryEn: e.target.value })}
-                                  placeholder="e.g. United Nations Agency (UN) / Multilateral Development Bank"
-                                  className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
-                                />
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    const match = INTL_AGENCY_CATEGORIES.find((t) => t.en === val);
+                                    setForm({
+                                      ...form,
+                                      agencyCategoryEn: val,
+                                      agencyCategorySi: match ? match.si : form.agencyCategorySi,
+                                      agencyCategory: match ? match.si : form.agencyCategory,
+                                    });
+                                  }}
+                                  className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 cursor-pointer"
+                                >
+                                  <option value="">-- Select Category --</option>
+                                  {form.agencyCategoryEn && !INTL_AGENCY_CATEGORIES.some((t) => t.en === form.agencyCategoryEn) && (
+                                    <option value={form.agencyCategoryEn}>{form.agencyCategoryEn}</option>
+                                  )}
+                                  {INTL_AGENCY_CATEGORIES.map((t) => (
+                                    <option key={t.en} value={t.en}>
+                                      {t.en} ({t.si})
+                                    </option>
+                                  ))}
+                                </select>
                               </div>
                             </div>
 
@@ -1446,31 +1543,20 @@ export default function InstitutionManagement() {
                               </div>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              <div>
-                                <label className="block text-xs font-medium text-zinc-700 mb-1">
-                                  ක්‍රියාත්මක වන රටවල් (සිංහලෙන්)
-                                </label>
-                                <input
-                                  type="text"
-                                  value={form.operatingCountriesSi}
-                                  onChange={(e) => setForm({ ...form, operatingCountriesSi: e.target.value, operatingCountries: e.target.value })}
-                                  placeholder="උදා: ලොව පුරා රටවල් 195 කට අධික"
-                                  className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
-                                />
-                              </div>
-                              <div>
-                                <label className="block text-xs font-medium text-zinc-700 mb-1">
-                                  Operating Countries (English)
-                                </label>
-                                <input
-                                  type="text"
-                                  value={form.operatingCountriesEn}
-                                  onChange={(e) => setForm({ ...form, operatingCountriesEn: e.target.value })}
-                                  placeholder="e.g. In over 195 member countries worldwide"
-                                  className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
-                                />
-                              </div>
+                            {/* Operating Countries Multi-Select with World Countries Library */}
+                            <div>
+                              <CountryMultiSelect
+                                valueSi={form.operatingCountriesSi || ''}
+                                valueEn={form.operatingCountriesEn || ''}
+                                onChange={(si, en) => {
+                                  setForm({
+                                    ...form,
+                                    operatingCountriesSi: si,
+                                    operatingCountriesEn: en,
+                                    operatingCountries: si || en,
+                                  });
+                                }}
+                              />
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -2280,6 +2366,19 @@ export default function InstitutionManagement() {
                             value={form.tiktokUrl || ''}
                             onChange={(e) => setForm({ ...form, tiktokUrl: e.target.value })}
                             placeholder="https://www.tiktok.com/@example"
+                            className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-medium text-zinc-700 mb-1">
+                            LinkedIn පිටුව / ගිණුම
+                          </label>
+                          <input
+                            type="url"
+                            value={form.linkedinUrl || ''}
+                            onChange={(e) => setForm({ ...form, linkedinUrl: e.target.value })}
+                            placeholder="https://www.linkedin.com/company/example"
                             className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs"
                           />
                         </div>
