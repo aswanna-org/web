@@ -444,12 +444,7 @@ export default function EducationDetail() {
                   <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center shrink-0 transition-colors">
                     <Briefcase size={18} />
                   </div>
-                  <div>
-                    <h4 className="text-xs sm:text-sm font-bold text-gray-900 leading-snug">{job.name}</h4>
-                    <span className="text-[11px] text-blue-600 font-medium block mt-0.5">
-                      {isSinhala ? 'සුදුසුකම් සහිත රැකියාව' : 'Eligible Role'}
-                    </span>
-                  </div>
+                  <h4 className="text-xs sm:text-sm font-bold text-gray-900 leading-snug">{job.name}</h4>
                 </div>
               ))}
             </div>
