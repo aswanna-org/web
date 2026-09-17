@@ -23,6 +23,7 @@ export interface CardProps {
     onClick?: (e: React.MouseEvent) => void;
   };
   badge?: string | React.ReactNode;
+  topRightBadge?: React.ReactNode;
   to?: string;
 }
 
@@ -36,6 +37,7 @@ export default function Card({
   primaryAction,
   secondaryAction,
   badge,
+  topRightBadge,
   to,
 }: CardProps) {
   const content = (
@@ -56,8 +58,13 @@ export default function Card({
             <FallbackIcon className="w-20 h-20 transition-transform duration-700 group-hover:scale-110" style={{ color: color || '#111' }} />
           ) : null}
           {badge && (
-            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-gray-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
+            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-gray-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm z-10">
               {badge}
+            </div>
+          )}
+          {topRightBadge && (
+            <div className="absolute top-4 right-4 z-10">
+              {topRightBadge}
             </div>
           )}
         </div>

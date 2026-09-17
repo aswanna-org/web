@@ -156,14 +156,14 @@ export default function AgroCategories() {
 
       {/* ── Category Grid ── */}
       <section className="w-full py-16 bg-[#fbfdfa]">
-        <div className="container mx-auto px-4 lg:px-12">
+        <div className="container mx-auto px-2 sm:px-4 lg:px-12">
           {filtered.length === 0 ? (
             <div className="text-center py-20 text-gray-400">
               <p className="text-2xl font-bold mb-2">{t('agro.noCategories', 'No categories found')}</p>
               <p>{t('agro.tryDifferent', 'Try a different search term.')}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-5">
+            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-4 md:gap-5">
               {filtered.map((cat, index) => {
                 const imageUrl = cat.image || (Array.isArray(cat.images)
                   ? cat.images[0]
@@ -174,10 +174,10 @@ export default function AgroCategories() {
                   <Link
                     key={cat.id}
                     to={`/agro/${cat.slug}`}
-                    className="group relative flex flex-col items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-white border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-emerald-200/80 hover:-translate-y-1 transition-all duration-300"
+                    className="group relative flex flex-col items-center justify-between p-1.5 sm:p-2.5 md:p-3 rounded-xl sm:rounded-2xl bg-white border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-emerald-200/80 hover:-translate-y-1 transition-all duration-300"
                   >
                     {/* Top: Illustration with large organic cloud pastel background shape */}
-                    <div className="w-full aspect-square max-w-[135px] sm:max-w-[150px] flex items-center justify-center relative">
+                    <div className="w-full aspect-square max-w-[95px] sm:max-w-[135px] md:max-w-[150px] flex items-center justify-center relative">
                       <CloudBackground index={index} />
                       <img
                         src={imageUrl || 'https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&q=80'}
@@ -187,16 +187,16 @@ export default function AgroCategories() {
                     </div>
 
                     {/* Middle: Title */}
-                    <div className="w-full text-center my-0.5 px-1">
-                      <h3 className="font-bold text-xs sm:text-sm text-gray-800 group-hover:text-emerald-700 transition-colors line-clamp-2">
+                    <div className="w-full text-center my-0.5 px-0.5 sm:px-1">
+                      <h3 className="font-bold text-[10.5px] sm:text-xs md:text-sm text-gray-800 group-hover:text-emerald-700 transition-colors line-clamp-2 leading-tight">
                         {title}
                       </h3>
                     </div>
 
                     {/* Bottom: Circular Green Chevron Button */}
                     <div className="mt-0.5 pb-0.5">
-                      <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-emerald-700 group-hover:bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-700/20 group-hover:shadow-emerald-600/30 group-hover:scale-110 transition-all duration-300">
-                        <ChevronRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full bg-emerald-700 group-hover:bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-700/20 group-hover:shadow-emerald-600/30 group-hover:scale-110 transition-all duration-300">
+                        <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 stroke-[2.5]" />
                       </div>
                     </div>
                   </Link>

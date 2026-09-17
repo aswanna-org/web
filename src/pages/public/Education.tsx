@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Clock, BookOpen, DollarSign, Search, Filter, X } from 'lucide-react';
+import { Clock, BookOpen, DollarSign, Search, Filter, X, Sparkles } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import Card from '../../components/ui/Card';
 import Pagination from '../../components/admin/Pagination';
@@ -227,6 +227,12 @@ export default function Education() {
                       to={`/education/${course.slug || course.id}`}
                       image={course.bannerImageUrl || 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=800&q=80'}
                       badge={course.courseLevel}
+                      topRightBadge={course.applicationCalled ? (
+                        <span className="inline-flex items-center gap-1 bg-amber-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md backdrop-blur-xs">
+                          <Sparkles size={11} className="shrink-0" />
+                          <span>{isSinhala ? 'අයදුම්පත් කැඳවා ඇත' : 'Application Called'}</span>
+                        </span>
+                      ) : null}
                       title={course.title}
                       subtitle={categoryLabel}
                       meta={[

@@ -4,7 +4,8 @@ import {
   Clock, MapPin, Award, CheckCircle, DollarSign, Users, ExternalLink,
   Layers, FileText, GraduationCap, Eye, Calendar,
   ChevronUp, ChevronDown, Check, UserCheck, AlertCircle,
-  Phone, Mail, MessageSquare, CheckCircle2, XCircle
+  Phone, Mail, MessageSquare, CheckCircle2, XCircle,
+  Briefcase, Sparkles
 } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import RichTextEditor from '../components/RichTextEditor';
@@ -92,6 +93,16 @@ interface Instructor {
   profileImageUrl?: string;
 }
 
+interface RelatedJob {
+  id: string;
+  name: string;
+  _count?: {
+    courses: number;
+  };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 interface CourseApplication {
   id: string;
   courseId: string;
@@ -145,10 +156,12 @@ interface Course {
   applicationFileUrl?: string | null;
   bannerImageUrl?: string | null;
   status: string;
+  applicationCalled?: boolean;
   internalNotes?: string | null;
   createdAt: string;
   category?: CourseCategory;
   instructor?: Instructor;
+  relatedJobs?: RelatedJob[];
   modules?: CourseModule[];
   _count?: { modules: number; applications: number };
 }
@@ -181,6 +194,8 @@ const defaultFormData = {
   applicationFileUrl: '',
   bannerImageUrl: '',
   status: 'Draft',
+  applicationCalled: false,
+  relatedJobIds: [] as string[],
   internalNotes: '',
 };
 
@@ -191,6 +206,7 @@ export default function CourseManagement() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [categories, setCategories] = useState<CourseCategory[]>([]);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
+  const [relatedJobs, setRelatedJobs] = useState<RelatedJob[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -227,12 +243,19 @@ export default function CourseManagement() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [applicationFile, setApplicationFile] = useState<File | null>(null);
 
-  // Quick Modals for Category & Instructor
+  // Quick Modals for Category, Instructor, & Related Jobs
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [newCatForm, setNewCatForm] = useState({ categoryNameSi: '', categoryNameEn: '', slug: '', iconClass: 'fa-leaf' });
 
   const [isInstructorModalOpen, setIsInstructorModalOpen] = useState(false);
   const [newInsForm, setNewInsForm] = useState({ fullName: '', designation: '', phone: '', whatsappNumber: '', email: '', bio: '' });
+
+  const [isJobModalOpen, setIsJobModalOpen] = useState(false);
+  const [newJobName, setNewJobName] = useState('');
+  const [editingJobId, setEditingJobId] = useState<string | null>(null);
+  const [editingJobName, setEditingJobName] = useState('');
+  const [isSubmittingJob, setIsSubmittingJob] = useState(false);
+  const [jobSearch, setJobSearch] = useState('');
 
   // Preview Modal
   const [previewCourse, setPreviewCourse] = useState<Course | null>(null);
@@ -280,6 +303,27 @@ export default function CourseManagement() {
       }
     } catch (err) {
       console.error('Failed to toggle course status:', err);
+    }
+  };
+
+  const handleToggleApplicationCalled = async (courseId: string, currentVal: boolean) => {
+    const nextVal = !currentVal;
+    try {
+      const res = await fetch(`${API_BASE_URL}/courses/${courseId}`, {
+        method: 'PUT',
+        headers: { ...authHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ applicationCalled: nextVal })
+      });
+      if (res.ok) {
+        setCourses(prev => prev.map(c => c.id === courseId ? { ...c, applicationCalled: nextVal } : c));
+        if (previewCourse && previewCourse.id === courseId) {
+          setPreviewCourse(prev => prev ? { ...prev, applicationCalled: nextVal } : null);
+        }
+        setSuccessMsg(nextVal ? 'Application intake marked as Called!' : 'Application intake marked as Closed.');
+        setTimeout(() => setSuccessMsg(''), 3000);
+      }
+    } catch (err) {
+      console.error('Failed to toggle application called status:', err);
     }
   };
 
@@ -350,12 +394,14 @@ export default function CourseManagement() {
 
   const fetchCategoriesAndInstructors = async () => {
     try {
-      const [catRes, insRes] = await Promise.all([
+      const [catRes, insRes, jobsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/courses/categories?all=true`),
-        fetch(`${API_BASE_URL}/courses/instructors`)
+        fetch(`${API_BASE_URL}/courses/instructors`),
+        fetch(`${API_BASE_URL}/courses/related-jobs`)
       ]);
       if (catRes.ok) setCategories(await catRes.json());
       if (insRes.ok) setInstructors(await insRes.json());
+      if (jobsRes.ok) setRelatedJobs(await jobsRes.json());
     } catch (err) {
       console.error(err);
     }
@@ -373,11 +419,103 @@ export default function CourseManagement() {
     fetchCategoriesAndInstructors();
   }, []);
 
+  const handleCreateRelatedJob = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newJobName.trim()) return;
+    setIsSubmittingJob(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/courses/related-jobs`, {
+        method: 'POST',
+        headers: { ...authHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newJobName.trim() })
+      });
+      if (res.ok) {
+        const created = await res.json();
+        setRelatedJobs(prev => [...prev, created]);
+        setForm(prev => ({ ...prev, relatedJobIds: [...(prev.relatedJobIds || []), created.id] }));
+        setNewJobName('');
+        setSuccessMsg('Job created successfully!');
+        setTimeout(() => setSuccessMsg(''), 3000);
+      } else {
+        const d = await res.json();
+        alert(d.error || 'Failed to create job.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error creating job.');
+    } finally {
+      setIsSubmittingJob(false);
+    }
+  };
+
+  const handleUpdateRelatedJob = async (id: string) => {
+    if (!editingJobName.trim()) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/courses/related-jobs/${id}`, {
+        method: 'PUT',
+        headers: { ...authHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: editingJobName.trim() })
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setRelatedJobs(prev => prev.map(j => j.id === id ? { ...j, name: updated.name } : j));
+        setEditingJobId(null);
+        setEditingJobName('');
+        setSuccessMsg('Job updated successfully!');
+        setTimeout(() => setSuccessMsg(''), 3000);
+      } else {
+        const d = await res.json();
+        alert(d.error || 'Failed to update job.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error updating job.');
+    }
+  };
+
+  const handleDeleteRelatedJob = async (id: string, name: string, coursesCount = 0) => {
+    const confirmMsg = coursesCount > 0
+      ? `"${name}" රැකියාව දැනට පාඨමාලා ${coursesCount} කට සම්බන්ධ කර ඇත. මෙය පද්ධතියෙන්ම ස්ථිරවම මකා දැමීමට අවශ්‍ය බව තහවුරු කරන්නද? (Warning: This job is linked to ${coursesCount} courses. Are you sure you want to permanently delete it from the system?)`
+      : `Are you sure you want to permanently delete job "${name}" from the system?`;
+    if (!confirm(confirmMsg)) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/courses/related-jobs/${id}`, {
+        method: 'DELETE',
+        headers: authHeaders
+      });
+      if (res.ok) {
+        setRelatedJobs(prev => prev.filter(j => j.id !== id));
+        setForm(prev => ({ ...prev, relatedJobIds: (prev.relatedJobIds || []).filter(jId => jId !== id) }));
+        setSuccessMsg('Job deleted successfully.');
+        setTimeout(() => setSuccessMsg(''), 3000);
+      } else {
+        const d = await res.json();
+        alert(d.error || 'Failed to delete job.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete job.');
+    }
+  };
+
+  const handleToggleJobSelection = (jobId: string) => {
+    setForm(prev => {
+      const current = prev.relatedJobIds || [];
+      if (current.includes(jobId)) {
+        return { ...prev, relatedJobIds: current.filter(id => id !== jobId) };
+      } else {
+        return { ...prev, relatedJobIds: [...current, jobId] };
+      }
+    });
+  };
+
   const openCreateModal = () => {
     setForm({
       ...defaultFormData,
       categoryId: categories.length > 0 ? categories[0].id : '',
       instructorId: instructors.length > 0 ? instructors[0].id : '',
+      applicationCalled: false,
+      relatedJobIds: [],
     });
     setModules([
       { moduleOrder: 1, moduleTitle: '', moduleDescription: '' }
@@ -422,6 +560,8 @@ export default function CourseManagement() {
       applicationFileUrl: course.applicationFileUrl || '',
       bannerImageUrl: course.bannerImageUrl || '',
       status: course.status || 'Draft',
+      applicationCalled: Boolean(course.applicationCalled),
+      relatedJobIds: course.relatedJobs?.map(j => j.id) || [],
       internalNotes: course.internalNotes || '',
     });
 
@@ -514,8 +654,10 @@ export default function CourseManagement() {
     try {
       const fd = new FormData();
       Object.entries(form).forEach(([k, v]) => {
-        if (k === 'mediums' || k === 'venueLocations') {
+        if (k === 'mediums' || k === 'venueLocations' || k === 'relatedJobIds') {
           fd.append(k, JSON.stringify(v));
+        } else if (k === 'applicationCalled') {
+          fd.append(k, String(v));
         } else if (v !== null && v !== undefined) {
           fd.append(k, String(v));
         }
@@ -637,6 +779,12 @@ export default function CourseManagement() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            onClick={() => setIsJobModalOpen(true)}
+            className="flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 px-3.5 py-2 rounded-xl font-medium text-xs border border-blue-200 transition-colors"
+          >
+            <Briefcase size={15} /> Related Jobs ({relatedJobs.length})
+          </button>
           <button
             onClick={() => setIsCategoryModalOpen(true)}
             className="flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 px-3.5 py-2 rounded-xl font-medium text-xs border border-gray-200 transition-colors"
@@ -873,9 +1021,16 @@ export default function CourseManagement() {
                               <p className="font-semibold text-gray-900 truncate text-xs sm:text-sm">
                                 {course.title}
                               </p>
-                              <span className="font-mono text-[11px] text-gray-500 font-medium">
-                                {course.courseCode}
-                              </span>
+                              <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
+                                <span className="font-mono text-[11px] text-gray-500 font-medium">
+                                  {course.courseCode}
+                                </span>
+                                {course.applicationCalled && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">
+                                    <Sparkles size={10} className="text-blue-600" /> App Called
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -883,6 +1038,11 @@ export default function CourseManagement() {
                         <td className="px-5 py-3.5">
                           <p className="font-medium text-gray-800 text-xs">{course.category?.categoryNameEn || '-'}</p>
                           <p className="text-[11px] text-gray-500 truncate max-w-[180px]">{course.courseLevel}</p>
+                          {course.relatedJobs && course.relatedJobs.length > 0 && (
+                            <div className="flex items-center gap-1 mt-1 text-[10px] text-emerald-700 font-semibold">
+                              <Briefcase size={11} /> {course.relatedJobs.length} Related Job{course.relatedJobs.length > 1 ? 's' : ''}
+                            </div>
+                          )}
                         </td>
 
                         <td className="px-5 py-3.5 text-xs text-gray-600">
@@ -903,21 +1063,37 @@ export default function CourseManagement() {
                         </td>
 
                         <td className="px-5 py-3.5">
-                          <button
-                            type="button"
-                            onClick={() => handleToggleCourseStatus(course.id, course.status)}
-                            title={course.status === 'Published' ? "Click to set as Draft (Hide from public website)" : "Click to Publish (Show on public website)"}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold border transition-all cursor-pointer shadow-xs hover:scale-105 active:scale-95 ${
-                              course.status === 'Published'
-                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
-                                : course.status === 'Draft'
-                                ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
-                                : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
-                            }`}
-                          >
-                            <span className={`w-2 h-2 rounded-full ${course.status === 'Published' ? 'bg-emerald-600' : 'bg-amber-600'}`} />
-                            <span>{course.status === 'Published' ? 'Published (ප්‍රකාශිතයි)' : 'Draft (කෙටුම්පතක්)'}</span>
-                          </button>
+                          <div className="flex flex-col gap-1.5 items-start">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleCourseStatus(course.id, course.status)}
+                              title={course.status === 'Published' ? "Click to set as Draft (Hide from public website)" : "Click to Publish (Show on public website)"}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all cursor-pointer shadow-xs hover:scale-105 active:scale-95 ${
+                                course.status === 'Published'
+                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                                  : course.status === 'Draft'
+                                  ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                                  : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
+                              }`}
+                            >
+                              <span className={`w-1.5 h-1.5 rounded-full ${course.status === 'Published' ? 'bg-emerald-600' : 'bg-amber-600'}`} />
+                              <span>{course.status === 'Published' ? 'Published' : 'Draft'}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => handleToggleApplicationCalled(course.id, Boolean(course.applicationCalled))}
+                              title="Click to toggle Application Called status"
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border transition-all cursor-pointer ${
+                                course.applicationCalled
+                                  ? 'bg-blue-50 text-blue-800 border-blue-300 hover:bg-blue-100'
+                                  : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+                              }`}
+                            >
+                              <Sparkles size={10} className={course.applicationCalled ? "text-blue-600" : "text-gray-400"} />
+                              <span>{course.applicationCalled ? 'Calling Open' : 'Calling Closed'}</span>
+                            </button>
+                          </div>
                         </td>
 
                         <td className="px-5 py-3.5 text-right">
@@ -1467,6 +1643,41 @@ export default function CourseManagement() {
                     </div>
                   </div>
 
+                  {/* Highlighted Application Called Toggle Box */}
+                  <div className="bg-gradient-to-r from-blue-50/80 via-indigo-50/50 to-emerald-50/40 p-4 sm:p-5 rounded-2xl border border-blue-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-2xs">
+                    <div className="flex items-start sm:items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                        <Sparkles size={20} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-bold text-gray-900 uppercase tracking-wider">
+                            අයදුම්පත් කැඳවීම (Application Called Status)
+                          </p>
+                          <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${
+                            form.applicationCalled
+                              ? 'bg-blue-600 text-white border-blue-600'
+                              : 'bg-gray-200 text-gray-700 border-gray-300'
+                          }`}>
+                            {form.applicationCalled ? 'ACTIVE (කැඳවා ඇත)' : 'CLOSED (වසා ඇත)'}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600 mt-1">
+                          මෙය සක්‍රීය කළ විට වෙබ් අඩවියේ මෙම පාඨමාලාවේ කාඩ්පත සහ විස්තර පිටුවේ "Application Called" බැජ් එක දිස්වේ.
+                        </p>
+                      </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={form.applicationCalled}
+                        onChange={e => setForm({ ...form, applicationCalled: e.target.checked })}
+                        className="sr-only peer"
+                      />
+                      <div className="w-12 h-6.5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 shadow-inner"></div>
+                    </label>
+                  </div>
+
                   <div>
                     <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
                       පාඨමාලා හැඳින්වීම සහ අරමුණු (Description & Objectives)
@@ -1541,6 +1752,99 @@ export default function CourseManagement() {
                         })}
                       </div>
                     </div>
+                  </div>
+
+                  {/* ── RELATED JOBS SELECTION SECTION ── */}
+                  <div className="bg-white p-6 rounded-2xl border border-gray-200 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-gray-100 pb-3">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                          <Briefcase size={16} className="text-emerald-700" />
+                          අදාළ රැකියා අවස්ථා (Related Jobs / Career Pathways)
+                        </label>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          මෙම පාඨමාලාව හැදෑරීමෙන් පසු යොමුවිය හැකි රැකියා අවස්ථා තෝරන්න (Select careers related to this course).
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsJobModalOpen(true)}
+                        className="inline-flex items-center gap-1.5 text-xs text-emerald-700 hover:text-emerald-800 font-bold bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 transition-colors shrink-0"
+                      >
+                        <Plus size={14} /> Manage Master Job Pool
+                      </button>
+                    </div>
+
+                    {/* Safety & Architecture Callout */}
+                    <div className="bg-blue-50/70 border border-blue-200/70 rounded-xl p-3 text-xs text-blue-900 flex items-start gap-2.5">
+                      <div className="w-5 h-5 rounded-md bg-blue-600 text-white flex items-center justify-center shrink-0 mt-0.5 text-[11px] font-bold">
+                        i
+                      </div>
+                      <p className="leading-relaxed">
+                        <strong>ස්වාධීන රැකියා සංචිතය (Independent Master Job Pool):</strong> පහත ඇති රැකියා මත ක්ලික් කර මෙම පාඨමාලාවට සම්බන්ධ කළ හැක. නැවත ක්ලික් කිරීමෙන් පාඨමාලාවෙන් පමණක් ඉවත් වේ (Unlink). පාඨමාලාවෙන් රැකියාවක් ඉවත් කළද හෝ පාඨමාලාව මැකුවද (Delete Course), රැකියා සංචිතයේ ඇති රැකියා පද්ධතියෙන් කිසිවිටෙකත් මැකී නොයයි.
+                      </p>
+                    </div>
+
+                    {relatedJobs.length === 0 ? (
+                      <div className="p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center space-y-2">
+                        <Briefcase size={28} className="mx-auto text-gray-400" />
+                        <p className="text-xs text-gray-600 font-medium">තවමත් රැකියා වර්ග ඇතුළත් කර නැත.</p>
+                        <button
+                          type="button"
+                          onClick={() => setIsJobModalOpen(true)}
+                          className="inline-flex items-center gap-1 text-xs bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-1.5 rounded-xl font-bold transition shadow-xs"
+                        >
+                          <Plus size={13} /> Add First Job
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="flex flex-wrap gap-2.5">
+                          {relatedJobs.map(job => {
+                            const isSelected = (form.relatedJobIds || []).includes(job.id);
+                            return (
+                              <button
+                                key={job.id}
+                                type="button"
+                                onClick={() => handleToggleJobSelection(job.id)}
+                                title={isSelected ? 'Click to remove from this course' : 'Click to add to this course'}
+                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all border cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-emerald-700 text-white border-emerald-700 shadow-sm shadow-emerald-700/20 scale-[1.02]'
+                                    : 'bg-gray-50/80 text-gray-700 border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/40 hover:text-emerald-900'
+                                }`}
+                              >
+                                {isSelected ? (
+                                  <Check size={14} className="stroke-[3] text-white" />
+                                ) : (
+                                  <Briefcase size={13} className="text-gray-400" />
+                                )}
+                                <span>{job.name}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <div className="flex items-center justify-between text-xs pt-1 text-gray-500">
+                          <span>
+                            {(form.relatedJobIds || []).length > 0 ? (
+                              <strong className="text-emerald-700 font-bold">
+                                {(form.relatedJobIds || []).length} job(s) selected for this course
+                              </strong>
+                            ) : (
+                              'කිසිදු රැකියාවක් තෝරා නැත.'
+                            )}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setIsJobModalOpen(true)}
+                            className="text-xs text-emerald-700 font-bold hover:underline"
+                          >
+                            + Add New Job to Master Pool
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -2042,9 +2346,21 @@ export default function CourseManagement() {
                     <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                   )}
                   <div>
-                    <p className="font-bold text-sm">
-                      Status: {previewCourse.status === 'Published' ? 'Published (ප්‍රකාශිතයි - Live on Website)' : 'Draft (කෙටුම්පතක් - Hidden from Public)'}
-                    </p>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-bold text-sm">
+                        Status: {previewCourse.status === 'Published' ? 'Published (ප්‍රකාශිතයි - Live on Website)' : 'Draft (කෙටුම්පතක් - Hidden from Public)'}
+                      </p>
+                      {previewCourse.applicationCalled ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-500 text-white font-bold text-[11px] rounded-full shadow-xs">
+                          <Sparkles size={11} />
+                          <span>Application Called (අයදුම්පත් කැඳවා ඇත)</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-gray-200 text-gray-700 font-semibold text-[11px] rounded-full">
+                          <span>Application Closed</span>
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs opacity-80 mt-0.5">
                       {previewCourse.status === 'Published'
                         ? 'මෙම පාඨමාලාව සාමාන්‍ය පරිශීලකයින්ට වෙබ් අඩවියේ (/education) ප්‍රදර්ශනය වේ.'
@@ -2053,17 +2369,30 @@ export default function CourseManagement() {
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => handleToggleCourseStatus(previewCourse.id, previewCourse.status)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 flex items-center justify-center gap-1.5 ${
-                    previewCourse.status === 'Published'
-                      ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300'
-                      : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
-                  }`}
-                >
-                  {previewCourse.status === 'Published' ? '🔒 Set as Draft' : '🚀 Publish Course Now'}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleToggleApplicationCalled(previewCourse.id, !!previewCourse.applicationCalled)}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 flex items-center justify-center gap-1.5 ${
+                      previewCourse.applicationCalled
+                        ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+                    }`}
+                  >
+                    {previewCourse.applicationCalled ? 'Mark App Closed' : '📢 Mark App Called'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleCourseStatus(previewCourse.id, previewCourse.status)}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 flex items-center justify-center gap-1.5 ${
+                      previewCourse.status === 'Published'
+                        ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300'
+                        : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
+                    }`}
+                  >
+                    {previewCourse.status === 'Published' ? '🔒 Set as Draft' : '🚀 Publish Now'}
+                  </button>
+                </div>
               </div>
 
               {/* ── 3 Month Schedule & Important Months Card ── */}
@@ -2217,6 +2546,27 @@ export default function CourseManagement() {
                           <p className="text-gray-600 mt-1 leading-relaxed">{m.moduleDescription}</p>
                         )}
                       </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Related Jobs (අදාළ රැකියා අවස්ථා) ── */}
+              {previewCourse.relatedJobs && previewCourse.relatedJobs.length > 0 && (
+                <div className="bg-gradient-to-br from-blue-50/70 to-indigo-50/50 p-5 rounded-2xl border border-blue-100 space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-bold text-blue-900 uppercase tracking-wider">
+                    <Briefcase className="w-4 h-4 text-blue-700" />
+                    <span>අදාළ රැකියා අවස්ථා සහ වෘත්තීය මාර්ග ({previewCourse.relatedJobs.length} Related Jobs)</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {previewCourse.relatedJobs.map((job) => (
+                      <span
+                        key={job.id}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-blue-200 text-blue-900 rounded-xl text-xs font-bold shadow-2xs"
+                      >
+                        <Briefcase size={12} className="text-blue-600" />
+                        {job.name}
+                      </span>
                     ))}
                   </div>
                 </div>
@@ -2405,6 +2755,176 @@ export default function CourseManagement() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================================== */}
+      {/* ── MANAGE RELATED JOBS MODAL ── */}
+      {/* ==================================================================== */}
+      {isJobModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsJobModalOpen(false)} />
+          <div className="bg-white rounded-2xl w-full max-w-lg relative z-10 shadow-2xl p-6 border border-gray-200 max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center font-bold">
+                  <Briefcase size={18} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">Manage Related Jobs</h3>
+                  <p className="text-[11px] text-gray-500">පාඨමාලාවලට අදාළ රැකියා අවස්ථා කළමනාකරණය</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsJobModalOpen(false)}
+                className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Create New Job Form */}
+            <form onSubmit={handleCreateRelatedJob} className="pt-4 pb-3 shrink-0">
+              <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                Create New Related Job (නව රැකියා අවස්ථාවක් එක් කරන්න)
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  required
+                  placeholder="උදා: කාබනික ගොවිපළ කළමනාකරු (Organic Farm Manager)"
+                  value={newJobName}
+                  onChange={e => setNewJobName(e.target.value)}
+                  className="flex-1 px-3.5 py-2.5 border border-gray-300 rounded-xl text-xs sm:text-sm focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={isSubmittingJob || !newJobName.trim()}
+                  className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 shadow-xs"
+                >
+                  <Plus size={15} />
+                  <span>{isSubmittingJob ? 'Adding...' : 'Add Job'}</span>
+                </button>
+              </div>
+            </form>
+
+            {/* Search Filter for Jobs */}
+            <div className="py-2 shrink-0">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search existing jobs..."
+                  value={jobSearch}
+                  onChange={e => setJobSearch(e.target.value)}
+                  className="w-full pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:bg-white focus:border-blue-500"
+                />
+              </div>
+            </div>
+
+            {/* Job Items List */}
+            <div className="overflow-y-auto flex-1 my-2 divide-y divide-gray-100 pr-1 space-y-1">
+              {relatedJobs
+                .filter(j => !jobSearch || j.name.toLowerCase().includes(jobSearch.toLowerCase()))
+                .length === 0 ? (
+                <div className="text-center py-8 px-4 text-gray-400">
+                  <Briefcase className="w-8 h-8 mx-auto mb-2 opacity-40" />
+                  <p className="text-xs">කිසිදු රැකියා අවස්ථාවක් හමු නොවීය.</p>
+                  <p className="text-[11px] mt-0.5">ඉහතින් නව රැකියාවක් ඇතුළත් කරන්න.</p>
+                </div>
+              ) : (
+                relatedJobs
+                  .filter(j => !jobSearch || j.name.toLowerCase().includes(jobSearch.toLowerCase()))
+                  .map(job => (
+                    <div
+                      key={job.id}
+                      className="py-2.5 px-3 rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-between gap-3 group"
+                    >
+                      {editingJobId === job.id ? (
+                        <div className="flex items-center gap-2 flex-1">
+                          <input
+                            type="text"
+                            value={editingJobName}
+                            onChange={e => setEditingJobName(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') handleUpdateRelatedJob(job.id);
+                              if (e.key === 'Escape') { setEditingJobId(null); setEditingJobName(''); }
+                            }}
+                            autoFocus
+                            className="flex-1 px-2.5 py-1.5 border border-blue-400 rounded-lg text-xs font-medium outline-none focus:ring-1 focus:ring-blue-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateRelatedJob(job.id)}
+                            className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                            title="Save changes"
+                          >
+                            <Check size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => { setEditingJobId(null); setEditingJobName(''); }}
+                            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                            title="Cancel"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
+                            <span className="text-xs font-semibold text-gray-800 truncate">{job.name}</span>
+                            {job._count?.courses !== undefined && (
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
+                                job._count.courses > 0
+                                  ? 'bg-blue-50 text-blue-800 border-blue-200'
+                                  : 'bg-gray-100 text-gray-500 border-gray-200'
+                              }`}>
+                                {job._count.courses} {job._count.courses === 1 ? 'course' : 'courses'}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0 opacity-80 group-hover:opacity-100">
+                            <button
+                              type="button"
+                              onClick={() => { setEditingJobId(job.id); setEditingJobName(job.name); }}
+                              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Edit Job Name"
+                            >
+                              <Edit size={14} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteRelatedJob(job.id, job.name, job._count?.courses || 0)}
+                              className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                              title="Delete Job from Master Pool"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="pt-3 border-t border-gray-100 flex justify-between items-center shrink-0">
+              <span className="text-[11px] text-gray-500 font-medium">
+                Total Jobs: {relatedJobs.length}
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsJobModalOpen(false)}
+                className="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-100 transition"
+              >
+                Close (වසන්න)
+              </button>
+            </div>
           </div>
         </div>
       )}

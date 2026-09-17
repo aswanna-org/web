@@ -4,7 +4,8 @@ import {
   Clock, MapPin, Award, CheckCircle2,
   Calendar, BookOpen, Layers, Globe, Check,
   Send, DollarSign,
-  GraduationCap, X, ExternalLink, FileText
+  GraduationCap, X, ExternalLink, FileText,
+  Briefcase, Sparkles
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -167,7 +168,7 @@ export default function EducationDetail() {
 
         {/* ── 1. COURSE SPECIFICATION FORM (ව්‍යුහගත විස්තර පත්‍රිකාව) ── */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="bg-gray-50/80 px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+          <div className="bg-gray-50/80 px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-lg bg-emerald-700 text-white flex items-center justify-center">
                 <GraduationCap size={18} />
@@ -176,9 +177,17 @@ export default function EducationDetail() {
                 පාඨමාලා විස්තර පත්‍රිකාව (Course Specification Sheet)
               </h2>
             </div>
-            <span className="text-xs font-mono font-bold text-gray-500 bg-gray-200/70 px-2.5 py-1 rounded-md">
-              {course.courseCode}
-            </span>
+            <div className="flex items-center gap-2">
+              {course.applicationCalled && (
+                <span className="inline-flex items-center gap-1.5 bg-amber-500 text-white px-3 py-1 rounded-full text-xs font-bold shadow-xs">
+                  <Sparkles size={12} className="shrink-0" />
+                  <span>{isSinhala ? 'අයදුම්පත් කැඳවා ඇත' : 'Application Called'}</span>
+                </span>
+              )}
+              <span className="text-xs font-mono font-bold text-gray-500 bg-gray-200/70 px-2.5 py-1 rounded-md">
+                {course.courseCode}
+              </span>
+            </div>
           </div>
 
           {/* Form Fields Grid: 3 columns on lg screens */}
@@ -409,12 +418,58 @@ export default function EducationDetail() {
           </div>
         )}
 
+        {/* ── 4.5 RELATED JOB OPPORTUNITIES (අදාළ රැකියා අවස්ථා) ── */}
+        {course.relatedJobs && course.relatedJobs.length > 0 && (
+          <div className="bg-white rounded-2xl border border-blue-100/80 shadow-sm p-6 md:p-8 space-y-4 bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/30">
+            <div className="flex items-center justify-between border-b border-blue-100/80 pb-3">
+              <h3 className="text-sm sm:text-base font-bold text-gray-900 flex items-center gap-2">
+                <Briefcase size={18} className="text-blue-700" />
+                <span>{isSinhala ? 'අදාළ රැකියා අවස්ථා සහ වෘත්තීය මාවත්' : 'Related Job Opportunities & Career Paths'}</span>
+              </h3>
+              <span className="text-xs font-bold text-blue-800 bg-blue-100/80 border border-blue-200 px-3 py-1 rounded-full shadow-2xs">
+                {course.relatedJobs.length} {isSinhala ? 'රැකියා අවස්ථා' : 'Careers'}
+              </span>
+            </div>
+            <p className="text-xs text-gray-600">
+              {isSinhala
+                ? 'මෙම පාඨමාලාව සාර්ථකව නිමකිරීමෙන් පසු ඔබට පහත සඳහන් රැකියා අවස්ථා සහ වෘත්තීය ක්ෂේත්‍රයන් සඳහා යොමුවිය හැක.'
+                : 'Upon successful completion of this course, you will be equipped for the following career pathways and job roles.'}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 pt-1">
+              {course.relatedJobs.map((job: any) => (
+                <div
+                  key={job.id}
+                  className="p-4 bg-white rounded-xl border border-blue-100/90 hover:border-blue-300 shadow-xs hover:shadow-md transition-all duration-200 flex items-center gap-3.5 group"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center shrink-0 transition-colors">
+                    <Briefcase size={18} />
+                  </div>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-bold text-gray-900 leading-snug">{job.name}</h4>
+                    <span className="text-[11px] text-blue-600 font-medium block mt-0.5">
+                      {isSinhala ? 'සුදුසුකම් සහිත රැකියාව' : 'Eligible Role'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* ── 5. BOTTOM ACTION BANNER (Fee Info & Apply Now CTA) ── */}
         <div className="bg-gradient-to-r from-emerald-900 via-green-900 to-teal-900 rounded-2xl text-white p-6 md:p-8 shadow-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
-            <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
-              {course.courseCode} • {course.courseLevel}
-            </span>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                {course.courseCode} • {course.courseLevel}
+              </span>
+              {course.applicationCalled && (
+                <span className="inline-flex items-center gap-1 bg-amber-400 text-amber-950 font-black px-2.5 py-0.5 rounded-full text-xs shadow-xs animate-pulse">
+                  <Sparkles size={12} />
+                  <span>{isSinhala ? 'අයදුම්පත් කැඳවා ඇත' : 'Application Called'}</span>
+                </span>
+              )}
+            </div>
             <div className="flex items-baseline gap-2 mt-1">
               <span className="text-2xl md:text-3xl font-black text-white">
                 {course.courseFee === 0 ? 'නොමිලේ (Free)' : `Rs. ${course.courseFee.toLocaleString()} LKR`}
