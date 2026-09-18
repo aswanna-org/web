@@ -74,28 +74,29 @@ export default function SecondaryNav() {
   const isFloating = isScrolled || !isHomePage;
 
   return (
-    <div className={`hidden lg:block fixed z-40 transition-all duration-700 ease-in-out
-      top-[130px] right-2 w-auto
-      lg:top-[110px] lg:left-0 lg:right-auto lg:w-full
+    <div className={`fixed z-40 transition-all duration-500 ease-in-out
+      top-[90px] right-2.5 w-auto flex flex-col gap-2
+      lg:top-[110px] lg:left-0 lg:right-auto lg:w-full lg:block
       ${isFloating ? 'lg:!top-[130px] lg:!right-4 lg:!left-auto lg:!w-[175px]' : ''}
     `}>
       <div className={`w-full ${!isFloating ? 'lg:container lg:mx-auto lg:px-8 lg:py-4' : 'lg:py-2'}`}>
-        <div className={`flex flex-col gap-3 ${!isFloating ? 'lg:grid lg:grid-cols-4 lg:gap-4' : 'lg:flex lg:flex-col lg:gap-1.5'}`}>
+        <div className={`flex flex-col gap-2 ${!isFloating ? 'lg:grid lg:grid-cols-4 lg:gap-4' : 'lg:flex lg:flex-col lg:gap-1.5'}`}>
           {links.map((link) => (
             <Link
               key={link.id}
               to={link.to}
-              className={`relative overflow-hidden ${link.bgColor} rounded-full ${
-                isFloating ? 'py-2 px-3' : 'p-3 lg:py-3 lg:px-4'
-              } transition-all duration-300 group hover:shadow-[0_8px_32px_0_rgba(255,255,255,0.2)] hover:-translate-y-0.5 flex items-center justify-center lg:justify-start w-full`}
+              title={isSinhala ? `${link.titleSi} - ${link.descSi}` : `${link.titleEn} - ${link.descEn}`}
+              className={`relative overflow-hidden ${link.bgColor} rounded-full transition-all duration-300 group hover:shadow-[0_8px_32px_0_rgba(255,255,255,0.2)] hover:-translate-y-0.5 flex items-center justify-center lg:justify-start ${
+                isFloating ? 'w-10 h-10 lg:w-full lg:py-2 lg:px-3' : 'w-10 h-10 lg:w-full lg:p-3 lg:py-3 lg:px-4'
+              }`}
             >
-              {/* Background Decorative Icon - Opacity අඩු කර ඇත */}
+              {/* Background Decorative Icon */}
               <link.icon className={`hidden lg:block absolute -bottom-3 -right-3 text-white opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-500 ${isFloating ? 'w-10 h-10' : 'w-16 h-16'}`} />
 
-              <div className={`relative z-10 flex items-center ${isFloating ? 'gap-2.5' : 'gap-4'} w-full`}>
+              <div className={`relative z-10 flex items-center justify-center lg:justify-start ${isFloating ? 'lg:gap-2.5' : 'lg:gap-4'} w-full`}>
 
                 <div className="flex-shrink-0 flex items-center justify-center">
-                  <link.icon className={`text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] ${isFloating ? 'w-5 h-5' : 'w-7 h-7 lg:w-8 lg:h-8'}`} />
+                  <link.icon className={`text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.35)] w-5 h-5 ${!isFloating ? 'lg:w-8 lg:h-8' : 'lg:w-5 lg:h-5'}`} />
                 </div>
 
                 <div className="hidden lg:flex flex-col text-left min-w-0">
