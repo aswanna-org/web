@@ -2,10 +2,10 @@ import { useState, useEffect } from 'react';
 import {
   Plus, Edit, Trash2, X, Search, BookOpen, Upload,
   Clock, MapPin, Award, CheckCircle, DollarSign, Users, ExternalLink,
-  Layers, FileText, GraduationCap, Eye, Calendar,
+  Layers, FileText, Eye, Calendar,
   ChevronUp, ChevronDown, Check, UserCheck, AlertCircle,
   Phone, Mail, MessageSquare, CheckCircle2, XCircle,
-  Briefcase, Sparkles
+  Briefcase, Sparkles, Lock, Megaphone, Globe
 } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import RichTextEditor from '../components/RichTextEditor';
@@ -16,55 +16,55 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 // CONSTANTS & ENUMS (User Specified)
 // ==========================================
 export const QUALIFICATION_LEVELS = [
-  'NVQ 3 (සහතිකය)',
-  'NVQ 4 (ශිල්පීය සහතිකය)',
-  'NVQ 5 (ඩිප්ලෝමා)',
-  'NVQ 6 (උසස් ඩිප්ලෝමා)',
-  'NVQ 7 / SLQF 6 (ප්‍රථම උපාධිය)',
-  'SLQF 7 (පශ්චාත් උපාධි සහතිකය)',
-  'SLQF 8 (පශ්චාත් උපාධි ඩිප්ලෝමාව)',
-  'SLQF 9 (ශාස්ත්‍රපති / විද්‍යාපති පාඨමාලා උපාධිය)',
-  'SLQF 10 (පර්යේෂණ සහිත ශාස්ත්‍රපති / විද්‍යාපති උපාධිය)',
-  'SLQF 11 (දර්ශනපති උපාධිය - M.Phil)',
-  'SLQF 12 (ආචාර්ය උපාධිය - Ph.D)'
+  'NVQ Level 3 (Certificate)',
+  'NVQ Level 4 (Craft Certificate)',
+  'NVQ Level 5 (Diploma)',
+  'NVQ Level 6 (Higher Diploma)',
+  'NVQ 7 / SLQF 6 (Bachelor\'s Degree)',
+  'SLQF 7 (Postgraduate Certificate)',
+  'SLQF 8 (Postgraduate Diploma)',
+  'SLQF 9 (Master\'s by Coursework)',
+  'SLQF 10 (Master\'s with Research)',
+  'SLQF 11 (Master of Philosophy - M.Phil)',
+  'SLQF 12 (Doctor of Philosophy - Ph.D)'
 ];
 
 export const DELIVERY_MODES = [
-  { value: 'Physical_Farm', label: 'Physical Farm / ක්ෂේත්‍ර පුහුණුව' },
-  { value: 'Hybrid_Blended', label: 'Hybrid (Blended) / මිශ්‍ර ක්‍රමය' },
-  { value: 'Online_Lectures', label: 'Online Lectures / මාර්ගගත දේශන' },
-  { value: 'Full_Time_Residential', label: 'Full Time Residential / පූර්ණකාලීන නේවාසික' }
+  { value: 'Physical_Farm', label: 'Physical Farm' },
+  { value: 'Hybrid_Blended', label: 'Hybrid (Blended)' },
+  { value: 'Online_Lectures', label: 'Online Lectures' },
+  { value: 'Full_Time_Residential', label: 'Full Time Residential' }
 ];
 
 export const DURATION_UNITS = [
-  { value: 'Hours', label: 'Hours / පැය' },
-  { value: 'Days', label: 'Days / දින' },
-  { value: 'Weeks', label: 'Weeks / සති' },
-  { value: 'Months', label: 'Months / මාස' },
-  { value: 'Years', label: 'Years / වසර' }
+  { value: 'Hours', label: 'Hours' },
+  { value: 'Days', label: 'Days' },
+  { value: 'Weeks', label: 'Weeks' },
+  { value: 'Months', label: 'Months' },
+  { value: 'Years', label: 'Years' }
 ];
 
-export const MEDIUM_OPTIONS = ['සිංහල', 'English', 'தமிழ்'];
+export const MEDIUM_OPTIONS = ['Sinhala', 'English', 'Tamil'];
 export const STATUS_OPTIONS = ['Draft', 'Published', 'Archived'];
 
 export const MONTH_OPTIONS = [
-  { value: '', label: '-- මාසයක් තෝරන්න (Select Month) --' },
-  { value: 'ජනවාරි (January)', label: 'ජනවාරි (January)' },
-  { value: 'පෙබරවාරි (February)', label: 'පෙබරවාරි (February)' },
-  { value: 'මාර්තු (March)', label: 'මාර්තු (March)' },
-  { value: 'අප්‍රේල් (April)', label: 'අප්‍රේල් (April)' },
-  { value: 'මැයි (May)', label: 'මැයි (May)' },
-  { value: 'ජූනි (June)', label: 'ජූනි (June)' },
-  { value: 'ජූලි (July)', label: 'ජූලි (July)' },
-  { value: 'අගෝස්තු (August)', label: 'අගෝස්තු (August)' },
-  { value: 'සැප්තැම්බර් (September)', label: 'සැප්තැම්බර් (September)' },
-  { value: 'ඔක්තෝබර් (October)', label: 'ඔක්තෝබර් (October)' },
-  { value: 'නොවැම්බර් (November)', label: 'නොවැම්බර් (November)' },
-  { value: 'දෙසැම්බර් (December)', label: 'දෙසැම්බර් (December)' },
-  { value: 'සෑම මසකම (Every Month)', label: 'සෑම මසකම (Every Month)' },
-  { value: 'කාර්තුමය වශයෙන් (Quarterly)', label: 'කාර්තුමය වශයෙන් (Quarterly)' },
-  { value: 'වසරකට දෙවරක් (Bi-Annually)', label: 'වසරකට දෙවරක් (Bi-Annually)' },
-  { value: 'විවෘතයි / අවශ්‍යතාවය අනුව (On Demand)', label: 'විවෘතයි / අවශ්‍යතාවය අනුව (On Demand)' }
+  { value: '', label: '-- Select Month --' },
+  { value: 'January', label: 'January' },
+  { value: 'February', label: 'February' },
+  { value: 'March', label: 'March' },
+  { value: 'April', label: 'April' },
+  { value: 'May', label: 'May' },
+  { value: 'June', label: 'June' },
+  { value: 'July', label: 'July' },
+  { value: 'August', label: 'August' },
+  { value: 'September', label: 'September' },
+  { value: 'October', label: 'October' },
+  { value: 'November', label: 'November' },
+  { value: 'December', label: 'December' },
+  { value: 'Every Month', label: 'Every Month' },
+  { value: 'Quarterly', label: 'Quarterly' },
+  { value: 'Bi-Annually', label: 'Bi-Annually' },
+  { value: 'On Demand', label: 'On Demand' }
 ];
 
 interface CourseModule {
@@ -766,42 +766,39 @@ export default function CourseManagement() {
   };
 
   return (
-    <div className="space-y-6 pb-12">
-      {/* ── Page Header (Clean & Professional) ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-2xl border border-gray-200 shadow-sm">
+    <div className="space-y-6">
+      {/* ── Page Header ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-emerald-700 text-xs font-bold tracking-wider uppercase mb-1">
-            <GraduationCap size={16} /> Agricultural Education & Training
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">කෘෂිකාර්මික පාඨමාලා කළමනාකරණය</h1>
-          <p className="text-gray-500 text-xs sm:text-sm mt-0.5">
-            Manage course curriculum, NVQ/SLQF qualification standards, syllabus modules, and admissions.
+          <h1 className="text-2xl font-bold text-gray-800">Course Management</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Manage course curriculum, qualification standards, syllabus modules, and admissions
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={() => setIsJobModalOpen(true)}
-            className="flex items-center gap-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 px-3.5 py-2 rounded-xl font-medium text-xs border border-blue-200 transition-colors"
+            className="flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-700 px-3.5 py-2 rounded-lg font-medium text-xs border border-gray-200 shadow-sm transition-colors cursor-pointer"
           >
             <Briefcase size={15} /> Related Jobs ({relatedJobs.length})
           </button>
           <button
             onClick={() => setIsCategoryModalOpen(true)}
-            className="flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 px-3.5 py-2 rounded-xl font-medium text-xs border border-gray-200 transition-colors"
+            className="flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-700 px-3.5 py-2 rounded-lg font-medium text-xs border border-gray-200 shadow-sm transition-colors cursor-pointer"
           >
             <Layers size={15} /> New Category
           </button>
           <button
             onClick={() => setIsInstructorModalOpen(true)}
-            className="flex items-center gap-1.5 bg-gray-50 hover:bg-gray-100 text-gray-700 px-3.5 py-2 rounded-xl font-medium text-xs border border-gray-200 transition-colors"
+            className="flex items-center gap-1.5 bg-white hover:bg-gray-50 text-gray-700 px-3.5 py-2 rounded-lg font-medium text-xs border border-gray-200 shadow-sm transition-colors cursor-pointer"
           >
             <UserCheck size={15} /> New Instructor
           </button>
           <button
             onClick={openCreateModal}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm shadow-sm transition-all"
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg font-medium text-sm shadow-sm transition-colors cursor-pointer"
           >
-            <Plus size={16} /> Add Course
+            <Plus size={18} /> Add Course
           </button>
         </div>
       </div>
@@ -817,7 +814,7 @@ export default function CourseManagement() {
           }`}
         >
           <BookOpen size={17} />
-          <span>පාඨමාලා ලැයිස්තුව (Courses)</span>
+          <span>Courses</span>
           <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${viewMode === 'courses' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'}`}>
             {kpis.total}
           </span>
@@ -835,7 +832,7 @@ export default function CourseManagement() {
           }`}
         >
           <UserCheck size={17} />
-          <span>ලැබුණු අයදුම්පත් (Applications)</span>
+          <span>Applications</span>
           <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${viewMode === 'applications' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'}`}>
             {appKpis.total}
           </span>
@@ -933,9 +930,9 @@ export default function CourseManagement() {
                   onChange={e => { setFilterCategory(e.target.value); setCurrentPage(1); }}
                   className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-600"
                 >
-                  <option value="all">All Categories (සියලු කාණ්ඩ)</option>
+                  <option value="all">All Categories</option>
                   {categories.map(c => (
-                    <option key={c.id} value={c.id}>{c.categoryNameEn} ({c.categoryNameSi})</option>
+                    <option key={c.id} value={c.id}>{c.categoryNameEn}</option>
                   ))}
                 </select>
               </div>
@@ -1222,10 +1219,10 @@ export default function CourseManagement() {
                   className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-600"
                 >
                   <option value="all">All Application Statuses</option>
-                  <option value="Pending">⏳ Pending (සලකා බැලෙමින් පවතී)</option>
-                  <option value="Contacted">📞 Contacted (සම්බන්ධ කරගත්)</option>
-                  <option value="Approved">✅ Approved (අනුමත කළ / ලියාපදිංචි)</option>
-                  <option value="Rejected">❌ Rejected (ප්‍රතික්ෂේපිත)</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Contacted">Contacted</option>
+                  <option value="Approved">Approved</option>
+                  <option value="Rejected">Rejected</option>
                 </select>
               </div>
 
@@ -1235,7 +1232,7 @@ export default function CourseManagement() {
                   onChange={e => { setAppFilterCourse(e.target.value); setAppCurrentPage(1); }}
                   className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-600"
                 >
-                  <option value="all">All Courses (සියලු පාඨමාලා)</option>
+                  <option value="all">All Courses</option>
                   {courses.map(c => (
                     <option key={c.id} value={c.id}>{c.courseCode} - {c.title}</option>
                   ))}
@@ -1363,10 +1360,10 @@ export default function CourseManagement() {
                                 : 'bg-rose-50 text-rose-800 border-rose-300 focus:ring-1 focus:ring-rose-500'
                             }`}
                           >
-                            <option value="Pending">⏳ Pending</option>
-                            <option value="Contacted">📞 Contacted</option>
-                            <option value="Approved">✅ Approved</option>
-                            <option value="Rejected">❌ Rejected</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Contacted">Contacted</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Rejected">Rejected</option>
                           </select>
                         </td>
 
@@ -1429,7 +1426,7 @@ export default function CourseManagement() {
             <div className="flex items-center justify-between px-8 py-4 border-b border-gray-200 bg-white shrink-0">
               <div>
                 <h2 className="text-xl font-bold text-gray-900">
-                  {editingId ? 'පාඨමාලාව සංස්කරණය (Edit Course Details)' : 'නව පාඨමාලාවක් ඇතුළත් කිරීම (Add New Course)'}
+                  {editingId ? 'Edit Course Details' : 'Add New Course'}
                 </h2>
                 <p className="text-xs text-gray-500 mt-0.5">
                   Enter curriculum details, NVQ/SLQF qualification standards, syllabus modules, schedule and fees.
@@ -1463,7 +1460,7 @@ export default function CourseManagement() {
                     : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <BookOpen size={16} /> 1. මූලික විස්තර (Basic Info)
+                <BookOpen size={16} /> 1. Basic Info
               </button>
               <button
                 type="button"
@@ -1474,7 +1471,7 @@ export default function CourseManagement() {
                     : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <Award size={16} /> 2. මට්ටම සහ මාධ්‍ය (Level & Mode)
+                <Award size={16} /> 2. Level & Mode
               </button>
               <button
                 type="button"
@@ -1485,7 +1482,7 @@ export default function CourseManagement() {
                     : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <Clock size={16} /> 3. කාලසටහන සහ ස්ථානය (Schedule & Venue)
+                <Clock size={16} /> 3. Schedule & Venue
               </button>
               <button
                 type="button"
@@ -1496,7 +1493,7 @@ export default function CourseManagement() {
                     : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <DollarSign size={16} /> 4. සුදුසුකම් සහ ගාස්තු (Fees & Requirements)
+                <DollarSign size={16} /> 4. Fees & Requirements
               </button>
               <button
                 type="button"
@@ -1507,7 +1504,7 @@ export default function CourseManagement() {
                     : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
               >
-                <Layers size={16} /> 5. විෂය නිර්දේශයේ මොඩියුල ({modules.length}) (Syllabus)
+                <Layers size={16} /> 5. Syllabus Modules ({modules.length})
               </button>
             </div>
 
@@ -1519,12 +1516,12 @@ export default function CourseManagement() {
                 <div className="space-y-6">
                   <div>
                     <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                      පාඨමාලා නාමය (Course Title) *
+                      Course Title *
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="උදා: වාණිජ කාබනික ගෙවතු වගාව සහ හරිතාගාර තාක්ෂණය"
+                      placeholder="e.g. Commercial Organic Gardening and Greenhouse Technology"
                       value={form.title}
                       onChange={e => handleTitleChange(e.target.value)}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none"
@@ -1534,12 +1531,12 @@ export default function CourseManagement() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     <div>
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        පාඨමාලා අනන්‍ය කේතය (Course Code) *
+                        Course Code *
                       </label>
                       <input
                         type="text"
                         required
-                        placeholder="උදා: AGRI-ORG-2026"
+                        placeholder="e.g. AGRI-ORG-2026"
                         value={form.courseCode}
                         onChange={e => setForm({ ...form, courseCode: e.target.value })}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm font-mono focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none"
@@ -1548,7 +1545,7 @@ export default function CourseManagement() {
 
                     <div>
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        URL Slug (SEO අනන්‍යකාරකය) *
+                        URL Slug (SEO Identifier) *
                       </label>
                       <input
                         type="text"
@@ -1562,23 +1559,23 @@ export default function CourseManagement() {
 
                     <div>
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        ප්‍රකාශන තත්ත්වය (Status) *
+                        Publication Status *
                       </label>
                       <select
                         value={form.status}
                         onChange={e => setForm({ ...form, status: e.target.value })}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none bg-white"
                       >
-                        <option value="Draft">Draft (කටුසටහන - අභ්‍යන්තර භාවිතයට)</option>
-                        <option value="Published">Published (ප්‍රකාශිත - වෙබ් අඩවියේ පෙන්වයි)</option>
-                        <option value="Archived">Archived (ලේඛනගත)</option>
+                        <option value="Draft">Draft (Internal use only)</option>
+                        <option value="Published">Published (Visible on website)</option>
+                        <option value="Archived">Archived</option>
                       </select>
                     </div>
 
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider">
-                          පාඨමාලා කාණ්ඩය (Category) *
+                          Course Category *
                         </label>
                         <button
                           type="button"
@@ -1594,9 +1591,9 @@ export default function CourseManagement() {
                         onChange={e => setForm({ ...form, categoryId: e.target.value })}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none bg-white"
                       >
-                        <option value="">-- කාණ්ඩයක් තෝරන්න (Select Category) --</option>
+                        <option value="">-- Select Category --</option>
                         {categories.map(c => (
-                          <option key={c.id} value={c.id}>{c.categoryNameEn} ({c.categoryNameSi})</option>
+                          <option key={c.id} value={c.id}>{c.categoryNameEn}</option>
                         ))}
                       </select>
                     </div>
@@ -1604,7 +1601,7 @@ export default function CourseManagement() {
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider">
-                          ප්‍රධාන දේශකයා (Instructor)
+                          Primary Instructor
                         </label>
                         <button
                           type="button"
@@ -1619,7 +1616,7 @@ export default function CourseManagement() {
                         onChange={e => setForm({ ...form, instructorId: e.target.value })}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none bg-white"
                       >
-                        <option value="">-- දේශකයෙකු තෝරන්න (Optional) --</option>
+                        <option value="">-- Select Instructor (Optional) --</option>
                         {instructors.map(ins => (
                           <option key={ins.id} value={ins.id}>{ins.fullName} ({ins.designation || ins.phone})</option>
                         ))}
@@ -1628,7 +1625,7 @@ export default function CourseManagement() {
 
                     <div>
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        ප්‍රවර්ධන ඡායාරූපය (Banner Image)
+                        Banner Image
                       </label>
                       <div className="flex items-center gap-3">
                         <label className="flex-1 flex items-center gap-2.5 px-4 py-3 border border-dashed border-gray-300 hover:border-gray-400 rounded-xl cursor-pointer bg-gray-50/60 hover:bg-gray-100 transition-colors text-xs text-gray-600">
@@ -1652,18 +1649,18 @@ export default function CourseManagement() {
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-                            අයදුම්පත් කැඳවීම (Application Called Status)
+                            Application Called Status
                           </p>
                           <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${
                             form.applicationCalled
                               ? 'bg-blue-600 text-white border-blue-600'
                               : 'bg-gray-200 text-gray-700 border-gray-300'
                           }`}>
-                            {form.applicationCalled ? 'ACTIVE (කැඳවා ඇත)' : 'CLOSED (වසා ඇත)'}
+                            {form.applicationCalled ? 'ACTIVE (Calling Open)' : 'CLOSED (Calling Closed)'}
                           </span>
                         </div>
                         <p className="text-xs text-gray-600 mt-1">
-                          මෙය සක්‍රීය කළ විට වෙබ් අඩවියේ මෙම පාඨමාලාවේ කාඩ්පත සහ විස්තර පිටුවේ "Application Called" බැජ් එක දිස්වේ.
+                          When enabled, the "Application Called" badge will appear on this course card and details page.
                         </p>
                       </div>
                     </div>
@@ -1680,12 +1677,12 @@ export default function CourseManagement() {
 
                   <div>
                     <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                      පාඨමාලා හැඳින්වීම සහ අරමුණු (Description & Objectives)
+                      Description & Objectives
                     </label>
                     <RichTextEditor
                       value={form.description || ''}
                       onChange={value => setForm({ ...form, description: value })}
-                      placeholder="පාඨමාලාව පිළිබඳ සම්පූර්ණ හැඳින්වීම, අරමුණු සහ පුහුණු ක්‍රමවේදය ලියන්න..."
+                      placeholder="Enter full course description, curriculum overview, learning objectives and practical training methodology..."
                     />
                   </div>
                 </div>
@@ -1696,7 +1693,7 @@ export default function CourseManagement() {
                 <div className="space-y-6">
                   <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
                     <label className="block text-xs font-bold text-gray-900 uppercase tracking-wider mb-2.5">
-                      පාඨමාලා සුදුසුකම් මට්ටම (Course / Qualification Level) *
+                      Course / Qualification Level *
                     </label>
                     <select
                       value={form.courseLevel}
@@ -1708,14 +1705,14 @@ export default function CourseManagement() {
                       ))}
                     </select>
                     <p className="text-xs text-gray-500 mt-2">
-                      ජාතික වෘත්තීය නිපුණතා (NVQ) සහ ශ්‍රී ලංකා සුදුසුකම් රාමුව (SLQF) අනුව අදාළ නිපුණතා මට්ටම තෝරන්න.
+                      Select the recognized qualification level in accordance with NVQ and SLQF framework standards.
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        පැවැත්වෙන ආකාරය (Delivery Mode) *
+                        Delivery Mode *
                       </label>
                       <select
                         value={form.deliveryMode}
@@ -1730,7 +1727,7 @@ export default function CourseManagement() {
 
                     <div>
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        ඉගැන්වීමේ භාෂා (Mediums of Instruction) *
+                        Mediums of Instruction *
                       </label>
                       <div className="flex flex-wrap gap-2.5 pt-0.5">
                         {MEDIUM_OPTIONS.map(med => {
@@ -1760,10 +1757,10 @@ export default function CourseManagement() {
                       <div>
                         <label className="block text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
                           <Briefcase size={16} className="text-emerald-700" />
-                          අදාළ රැකියා අවස්ථා (Related Jobs / Career Pathways)
+                          Related Jobs / Career Pathways
                         </label>
                         <p className="text-xs text-gray-500 mt-0.5">
-                          මෙම පාඨමාලාව හැදෑරීමෙන් පසු යොමුවිය හැකි රැකියා අවස්ථා තෝරන්න (Select careers related to this course).
+                          Select career opportunities and jobs relevant to this course.
                         </p>
                       </div>
                       <button
@@ -1781,14 +1778,14 @@ export default function CourseManagement() {
                         i
                       </div>
                       <p className="leading-relaxed">
-                        <strong>ස්වාධීන රැකියා සංචිතය (Independent Master Job Pool):</strong> පහත ඇති රැකියා මත ක්ලික් කර මෙම පාඨමාලාවට සම්බන්ධ කළ හැක. නැවත ක්ලික් කිරීමෙන් පාඨමාලාවෙන් පමණක් ඉවත් වේ (Unlink). පාඨමාලාවෙන් රැකියාවක් ඉවත් කළද හෝ පාඨමාලාව මැකුවද (Delete Course), රැකියා සංචිතයේ ඇති රැකියා පද්ධතියෙන් කිසිවිටෙකත් මැකී නොයයි.
+                        <strong>Independent Master Job Pool:</strong> Click jobs below to link/unlink them with this course. Removing a job from this course or deleting the course will never delete the job from the master system pool.
                       </p>
                     </div>
 
                     {relatedJobs.length === 0 ? (
                       <div className="p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center space-y-2">
                         <Briefcase size={28} className="mx-auto text-gray-400" />
-                        <p className="text-xs text-gray-600 font-medium">තවමත් රැකියා වර්ග ඇතුළත් කර නැත.</p>
+                        <p className="text-xs text-gray-600 font-medium">No job roles added yet.</p>
                         <button
                           type="button"
                           onClick={() => setIsJobModalOpen(true)}
@@ -1832,7 +1829,7 @@ export default function CourseManagement() {
                                 {(form.relatedJobIds || []).length} job(s) selected for this course
                               </strong>
                             ) : (
-                              'කිසිදු රැකියාවක් තෝරා නැත.'
+                              'No jobs selected for this course.'
                             )}
                           </span>
                           <button
@@ -1849,11 +1846,11 @@ export default function CourseManagement() {
 
                   <div>
                     <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                      පරිපාලක අභ්‍යන්තර සටහන් (Internal Notes - Confidential)
+                      Internal Notes (Confidential)
                     </label>
                     <textarea
                       rows={4}
-                      placeholder="ආයතනික අභ්‍යන්තර සටහන් (පොදු පරිශීලකයින්ට නොපෙන්වයි)..."
+                      placeholder="Institutional internal notes (never shown to public users)..."
                       value={form.internalNotes || ''}
                       onChange={e => setForm({ ...form, internalNotes: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none"
@@ -1868,7 +1865,7 @@ export default function CourseManagement() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        කාලසීමාව (Duration) *
+                        Duration *
                       </label>
                       <div className="flex gap-2.5">
                         <input
@@ -1893,11 +1890,11 @@ export default function CourseManagement() {
 
                     <div>
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        පන්ති පැවැත්වෙන වේලාවන් (Class Schedule)
+                        Class Schedule
                       </label>
                       <input
                         type="text"
-                        placeholder="උදා: සෑම සෙනසුරාදා දිනකම පෙ.ව. 9:00 - ප.ව. 4:00"
+                        placeholder="e.g. Every Saturday 9:00 AM - 4:00 PM"
                         value={form.classSchedule || ''}
                         onChange={e => setForm({ ...form, classSchedule: e.target.value })}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
@@ -1907,7 +1904,7 @@ export default function CourseManagement() {
                     {/* 3 Month Selector Fields */}
                     <div>
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        අයදුම්පත් කැඳවන මාසය (Application Calling Month)
+                        Application Calling Month
                       </label>
                       <select
                         value={form.applicationCallingMonth || ''}
@@ -1922,7 +1919,7 @@ export default function CourseManagement() {
 
                     <div>
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        පාඨමාලාව සඳහා බඳවාගන්නා මාසය (Enrollment Month)
+                        Enrollment Month
                       </label>
                       <select
                         value={form.enrollmentMonth || ''}
@@ -1937,7 +1934,7 @@ export default function CourseManagement() {
 
                     <div>
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        පාඨමාලාව ආරම්භ කරන මාසය (Course Start Month)
+                        Course Start Month
                       </label>
                       <select
                         value={form.startMonth || ''}
@@ -1952,7 +1949,7 @@ export default function CourseManagement() {
 
                     <div>
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        අයදුම්පත් භාරගන්නා අවසන් දිනය (Deadline Date)
+                        Application Deadline Date
                       </label>
                       <input
                         type="date"
@@ -1966,10 +1963,10 @@ export default function CourseManagement() {
                       <div className="flex items-center justify-between">
                         <div>
                           <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider">
-                            ප්‍රායෝගික පුහුණු ගොවිපළ ලිපිනයන් / ස්ථාන (Venue Locations)
+                            Venue Locations
                           </label>
                           <p className="text-xs text-gray-500 mt-0.5">
-                            පුහුණුව පවත්වන ස්ථාන එකකට වඩා තිබේ නම් "+ ස්ථානයක් එක් කරන්න" ක්ලික් කර ඇතුළත් කරන්න.
+                            If practical sessions take place at multiple locations, click "+ Add Location" to specify each venue.
                           </p>
                         </div>
                         <button
@@ -1977,7 +1974,7 @@ export default function CourseManagement() {
                           onClick={() => setForm(prev => ({ ...prev, venueLocations: [...prev.venueLocations, ''] }))}
                           className="flex items-center gap-1.5 text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold px-3 py-1.5 rounded-lg transition-colors shadow-xs shrink-0"
                         >
-                          <Plus size={14} /> + ස්ථානයක් එක් කරන්න
+                          <Plus size={14} /> + Add Location
                         </button>
                       </div>
 
@@ -1988,7 +1985,7 @@ export default function CourseManagement() {
                               <MapPin size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-700" />
                               <input
                                 type="text"
-                                placeholder={`ස්ථානය ${idx + 1}: උදා: පේරාදෙණිය ජාතික කෘෂිකර්ම පුහුණු මධ්‍යස්ථානය`}
+                                placeholder={`Venue location ${idx + 1}: e.g. National Agriculture Training Center, Peradeniya`}
                                 value={loc}
                                 onChange={e => {
                                   const newLocs = [...form.venueLocations];
@@ -2033,7 +2030,7 @@ export default function CourseManagement() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="md:col-span-2">
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        පාඨමාලා ගාස්තුව (Course Fee - LKR) * (0 නම් නොමිලේ)
+                        Course Fee (LKR) * (Enter 0 for Free courses)
                       </label>
                       <div className="relative">
                         <DollarSign size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -2050,11 +2047,11 @@ export default function CourseManagement() {
 
                     <div>
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        ලබාදෙන සහතිකය (Certificate Type)
+                        Certificate Type
                       </label>
                       <input
                         type="text"
-                        placeholder="උදා: NVQ ජාතික වෘත්තීය සහතිකය"
+                        placeholder="e.g. NVQ National Vocational Certificate"
                         value={form.certificateType || ''}
                         onChange={e => setForm({ ...form, certificateType: e.target.value })}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
@@ -2063,11 +2060,11 @@ export default function CourseManagement() {
 
                     <div>
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        ප්‍රතීතන ආයතනය (Accredited Body)
+                        Accredited Body
                       </label>
                       <input
                         type="text"
-                        placeholder="උදා: TVEC / කෘෂිකර්ම දෙපාර්තමේන්තුව"
+                        placeholder="e.g. TVEC / Department of Agriculture"
                         value={form.accreditedBy || ''}
                         onChange={e => setForm({ ...form, accreditedBy: e.target.value })}
                         className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
@@ -2076,7 +2073,7 @@ export default function CourseManagement() {
 
                     <div className="md:col-span-2">
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        අයදුම්පත් ලින්ක් එක (Application URL / Google Form)
+                        Application Form URL (Google Form / Online Link)
                       </label>
                       <div className="relative">
                         <ExternalLink size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -2092,13 +2089,13 @@ export default function CourseManagement() {
 
                     <div className="md:col-span-2">
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        අයදුම්පත්‍රය බාගත කිරීම සඳහා ලේඛනය (Application Form / PDF Upload)
+                        Application Form Document (PDF / Word Upload)
                       </label>
                       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                         <label className="flex-1 flex items-center gap-2.5 px-4 py-3 border border-dashed border-gray-300 hover:border-emerald-500 rounded-xl cursor-pointer bg-gray-50/60 hover:bg-emerald-50/40 transition-colors text-xs text-gray-600">
                           <Upload size={16} className="text-emerald-700 shrink-0" />
                           <span className="truncate font-medium">
-                            {applicationFile ? applicationFile.name : (form.applicationFileUrl ? 'අයදුම්පත්‍ර ලේඛනය පවතී (වෙනස් කිරීමට ක්ලික් කරන්න)' : 'PDF හෝ Document ගොනුවක් තෝරන්න (Upload PDF / Doc)...')}
+                            {applicationFile ? applicationFile.name : (form.applicationFileUrl ? 'Application document uploaded (Click to replace)' : 'Select PDF or Document file (Upload PDF / Doc)...')}
                           </span>
                           <input
                             type="file"
@@ -2134,18 +2131,18 @@ export default function CourseManagement() {
                         )}
                       </div>
                       <p className="text-[11px] text-gray-400 mt-1.5">
-                        සිසුන්ට බාගත කර පිරවීම සඳහා අයදුම්පත්‍රය (PDF / Word Format) මෙහි Upload කළ හැක.
+                        Upload an application form document (PDF / Word format) for students to download and fill.
                       </p>
                     </div>
 
                     <div className="md:col-span-2">
                       <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        ඇතුළත් වීමේ අවම සුදුසුකම් (Entry Requirements)
+                        Entry Requirements
                       </label>
                       <RichTextEditor
                         value={form.entryRequirements || ''}
                         onChange={value => setForm({ ...form, entryRequirements: value })}
-                        placeholder="අ.පො.ස. (සා.පෙළ) විභාගයට පෙනී සිටීම හෝ කෘෂිකර්මාන්තයට ඇති උනන්දුව (Bullet points, Bold, Lists භාවිතා කළ හැක)..."
+                        placeholder="Minimum educational qualifications, prior experience or general interest in agriculture (Supports bullet points, bold, etc.)..."
                       />
                     </div>
                   </div>
@@ -2157,7 +2154,7 @@ export default function CourseManagement() {
                 <div className="space-y-6">
                   <div className="flex items-center justify-between pb-4 border-b border-gray-200">
                     <div>
-                      <h4 className="font-bold text-gray-900 text-sm md:text-base">විෂය නිර්දේශයේ මොඩියුල (Syllabus Modules)</h4>
+                      <h4 className="font-bold text-gray-900 text-sm md:text-base">Syllabus Modules</h4>
                       <p className="text-xs text-gray-500 mt-0.5">
                         Add, reorder and structure the lessons/topics taught in this training program.
                       </p>
@@ -2215,7 +2212,7 @@ export default function CourseManagement() {
                         <div>
                           <input
                             type="text"
-                            placeholder="මොඩියුලයේ නම / මාතෘකාව (Module Title) *"
+                            placeholder="Module Title / Topic *"
                             value={mod.moduleTitle}
                             onChange={e => updateModule(idx, 'moduleTitle', e.target.value)}
                             className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-emerald-600 outline-none bg-white"
@@ -2225,7 +2222,7 @@ export default function CourseManagement() {
                         <div>
                           <textarea
                             rows={3}
-                            placeholder="මොඩියුලයේ අන්තර්ගත කෙටි විස්තරය (Module Description)..."
+                            placeholder="Module description and summary of topics covered..."
                             value={mod.moduleDescription || ''}
                             onChange={e => updateModule(idx, 'moduleDescription', e.target.value)}
                             className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs focus:ring-1 focus:ring-emerald-600 outline-none bg-white"
@@ -2285,7 +2282,7 @@ export default function CourseManagement() {
                     className="px-7 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm disabled:opacity-50 transition-all flex items-center gap-2"
                   >
                     {isSubmitting && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                    {editingId ? 'Update Course (සුරකින්න)' : 'Create Course (ඇතුළත් කරන්න)'}
+                    {editingId ? 'Update Course' : 'Create Course'}
                   </button>
                 </div>
               </div>
@@ -2348,12 +2345,12 @@ export default function CourseManagement() {
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <p className="font-bold text-sm">
-                        Status: {previewCourse.status === 'Published' ? 'Published (ප්‍රකාශිතයි - Live on Website)' : 'Draft (කෙටුම්පතක් - Hidden from Public)'}
+                        Status: {previewCourse.status === 'Published' ? 'Published (Live on Website)' : 'Draft (Hidden from Public)'}
                       </p>
                       {previewCourse.applicationCalled ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-amber-500 text-white font-bold text-[11px] rounded-full shadow-xs">
                           <Sparkles size={11} />
-                          <span>Application Called (අයදුම්පත් කැඳවා ඇත)</span>
+                          <span>Application Called</span>
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-gray-200 text-gray-700 font-semibold text-[11px] rounded-full">
@@ -2363,8 +2360,8 @@ export default function CourseManagement() {
                     </div>
                     <p className="text-xs opacity-80 mt-0.5">
                       {previewCourse.status === 'Published'
-                        ? 'මෙම පාඨමාලාව සාමාන්‍ය පරිශීලකයින්ට වෙබ් අඩවියේ (/education) ප්‍රදර්ශනය වේ.'
-                        : 'මෙම පාඨමාලාව දැනට කෙටුම්පතක් ලෙස පවතින බැවින් පොදු වෙබ් අඩවියේ නොපෙන්වයි. වෙබ් අඩවියේ පෙන්වීමට "Publish Course" ක්ලික් කරන්න.'}
+                        ? 'This course is currently live and visible to visitors on the public website (/education).'
+                        : 'This course is currently saved as a draft and is hidden from public visitors. Click "Publish Now" to make it visible.'}
                     </p>
                   </div>
                 </div>
@@ -2379,7 +2376,17 @@ export default function CourseManagement() {
                         : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
                     }`}
                   >
-                    {previewCourse.applicationCalled ? 'Mark App Closed' : '📢 Mark App Called'}
+                    {previewCourse.applicationCalled ? (
+                      <>
+                        <XCircle size={14} className="shrink-0" />
+                        <span>Mark App Closed</span>
+                      </>
+                    ) : (
+                      <>
+                        <Megaphone size={14} className="shrink-0" />
+                        <span>Mark App Called</span>
+                      </>
+                    )}
                   </button>
                   <button
                     type="button"
@@ -2390,7 +2397,17 @@ export default function CourseManagement() {
                         : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
                     }`}
                   >
-                    {previewCourse.status === 'Published' ? '🔒 Set as Draft' : '🚀 Publish Now'}
+                    {previewCourse.status === 'Published' ? (
+                      <>
+                        <Lock size={14} className="shrink-0" />
+                        <span>Set as Draft</span>
+                      </>
+                    ) : (
+                      <>
+                        <Globe size={14} className="shrink-0" />
+                        <span>Publish Now</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -2399,27 +2416,27 @@ export default function CourseManagement() {
               <div className="bg-gradient-to-br from-emerald-50 via-teal-50/40 to-slate-50 p-5 rounded-2xl border border-emerald-200/80 space-y-3">
                 <div className="flex items-center gap-2 text-xs font-bold text-emerald-800 uppercase tracking-wider">
                   <Calendar className="w-4 h-4 text-emerald-700" />
-                  <span>පාඨමාලා කාලසටහන සහ මාස (Course Intake Months & Schedule)</span>
+                  <span>Course Intake Months & Schedule</span>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="bg-white p-3.5 rounded-xl border border-emerald-100 shadow-2xs">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">1. අයදුම්පත් කැඳවන මාසය</span>
+                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">1. Application Calling Month</span>
                     <p className="font-bold text-gray-900 text-sm mt-1 text-emerald-900">
-                      {previewCourse.applicationCallingMonth || <span className="text-gray-400 font-normal italic">සඳහන් කර නැත</span>}
+                      {previewCourse.applicationCallingMonth || <span className="text-gray-400 font-normal italic">Not specified</span>}
                     </p>
                   </div>
 
                   <div className="bg-white p-3.5 rounded-xl border border-emerald-100 shadow-2xs">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">2. බඳවාගන්නා මාසය (Enrollment)</span>
+                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">2. Enrollment Month</span>
                     <p className="font-bold text-gray-900 text-sm mt-1 text-teal-900">
-                      {previewCourse.enrollmentMonth || <span className="text-gray-400 font-normal italic">සඳහන් කර නැත</span>}
+                      {previewCourse.enrollmentMonth || <span className="text-gray-400 font-normal italic">Not specified</span>}
                     </p>
                   </div>
 
                   <div className="bg-white p-3.5 rounded-xl border border-emerald-100 shadow-2xs">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">3. ආරම්භ කරන මාසය (Start Month)</span>
+                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">3. Course Start Month</span>
                     <p className="font-bold text-gray-900 text-sm mt-1 text-indigo-900">
-                      {previewCourse.startMonth || <span className="text-gray-400 font-normal italic">සඳහන් කර නැත</span>}
+                      {previewCourse.startMonth || <span className="text-gray-400 font-normal italic">Not specified</span>}
                     </p>
                   </div>
                 </div>
@@ -2427,7 +2444,7 @@ export default function CourseManagement() {
                 {previewCourse.deadlineDate && (
                   <div className="text-xs text-gray-600 bg-white/80 p-2.5 rounded-lg border border-emerald-100 flex items-center gap-2">
                     <Clock className="w-4 h-4 text-rose-500" />
-                    <span>අයදුම්පත් භාරගන්නා අවසන් දිනය (Deadline): <strong>{new Date(previewCourse.deadlineDate).toLocaleDateString()}</strong></span>
+                    <span>Application Deadline: <strong>{new Date(previewCourse.deadlineDate).toLocaleDateString()}</strong></span>
                   </div>
                 )}
               </div>
@@ -2445,7 +2462,7 @@ export default function CourseManagement() {
                 <div>
                   <p className="text-gray-400 font-medium">Course Fee</p>
                   <p className="font-bold text-gray-900 mt-0.5">
-                    {previewCourse.courseFee === 0 ? <span className="text-emerald-700 font-bold">Free (නොමිලේ)</span> : `Rs. ${previewCourse.courseFee.toLocaleString()} LKR`}
+                    {previewCourse.courseFee === 0 ? <span className="text-emerald-700 font-bold">Free</span> : `Rs. ${previewCourse.courseFee.toLocaleString()} LKR`}
                   </p>
                 </div>
                 <div>
@@ -2458,7 +2475,7 @@ export default function CourseManagement() {
               <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-2">
                 <div className="flex items-center gap-2 text-xs font-bold text-gray-700 uppercase tracking-wider">
                   <MapPin className="w-4 h-4 text-emerald-700" />
-                  <span>ප්‍රායෝගික පුහුණු ස්ථාන සහ ගොවිපළවල් (Venue Locations)</span>
+                  <span>Venue Locations</span>
                 </div>
                 {previewCourse.venueLocations && previewCourse.venueLocations.length > 0 ? (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
@@ -2474,7 +2491,7 @@ export default function CourseManagement() {
                 ) : previewCourse.venueLocation ? (
                   <p className="text-xs text-gray-800 font-medium bg-white px-3 py-2 rounded-xl border border-gray-200">{previewCourse.venueLocation}</p>
                 ) : (
-                  <p className="text-xs text-gray-400 italic">පුහුණු ස්ථාන සඳහන් කර නැත.</p>
+                  <p className="text-xs text-gray-400 italic">No venue locations specified.</p>
                 )}
               </div>
 
@@ -2482,7 +2499,7 @@ export default function CourseManagement() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Application File */}
                 <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-2">
-                  <span className="text-xs font-bold text-gray-700 uppercase tracking-wider block">අයදුම්පත (Application Document)</span>
+                  <span className="text-xs font-bold text-gray-700 uppercase tracking-wider block">Application Document</span>
                   {previewCourse.applicationFileUrl ? (
                     <a
                       href={previewCourse.applicationFileUrl}
@@ -2495,22 +2512,22 @@ export default function CourseManagement() {
                       <ExternalLink className="w-3.5 h-3.5 ml-1" />
                     </a>
                   ) : (
-                    <p className="text-xs text-gray-400 italic">අයදුම්පත් ලේඛනයක් (PDF/Doc) upload කර නැත.</p>
+                    <p className="text-xs text-gray-400 italic">No application document uploaded.</p>
                   )}
                 </div>
 
                 {/* Accreditation */}
                 <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-1.5 text-xs">
-                  <span className="text-xs font-bold text-gray-700 uppercase tracking-wider block">සහතිකය සහ පිළිගැනීම</span>
-                  <p className="text-gray-800"><strong>සහතිකය:</strong> {previewCourse.certificateType || 'රජයේ පිළිගත් නිපුණතා සහතිකය'}</p>
-                  <p className="text-gray-800"><strong>අනුමැතිය:</strong> {previewCourse.accreditedBy || 'TVEC / කෘෂිකර්ම දෙපාර්තමේන්තුව'}</p>
+                  <span className="text-xs font-bold text-gray-700 uppercase tracking-wider block">Accreditation & Certification</span>
+                  <p className="text-gray-800"><strong>Certificate:</strong> {previewCourse.certificateType || 'Government Recognized Certificate'}</p>
+                  <p className="text-gray-800"><strong>Accreditation:</strong> {previewCourse.accreditedBy || 'TVEC / Department of Agriculture'}</p>
                 </div>
               </div>
 
               {/* ── Rich Text Description ── */}
               {previewCourse.description && (
                 <div className="space-y-2">
-                  <h4 className="text-xs font-bold uppercase text-gray-600 tracking-wider">පාඨමාලා විස්තරය (Course Description)</h4>
+                  <h4 className="text-xs font-bold uppercase text-gray-600 tracking-wider">Course Description</h4>
                   <div
                     className="p-5 bg-gray-50 rounded-2xl border border-gray-200 text-xs sm:text-sm text-gray-800 leading-relaxed max-w-none prose prose-emerald"
                     dangerouslySetInnerHTML={{ __html: previewCourse.description }}
@@ -2521,7 +2538,7 @@ export default function CourseManagement() {
               {/* ── Entry Requirements ── */}
               {previewCourse.entryRequirements && (
                 <div className="space-y-2">
-                  <h4 className="text-xs font-bold uppercase text-gray-600 tracking-wider">ඇතුළත්වීමේ සුදුසුකම් (Entry Requirements)</h4>
+                  <h4 className="text-xs font-bold uppercase text-gray-600 tracking-wider">Entry Requirements</h4>
                   <div
                     className="p-5 bg-gray-50 rounded-2xl border border-gray-200 text-xs sm:text-sm text-gray-800 leading-relaxed max-w-none prose prose-emerald"
                     dangerouslySetInnerHTML={{ __html: previewCourse.entryRequirements }}
@@ -2533,7 +2550,7 @@ export default function CourseManagement() {
               {previewCourse.modules && previewCourse.modules.length > 0 && (
                 <div className="space-y-3">
                   <h4 className="text-xs font-bold uppercase text-gray-600 tracking-wider">
-                    විෂය නිර්දේශයේ මොඩියුල ({previewCourse.modules.length} Modules)
+                    Syllabus Modules ({previewCourse.modules.length} Modules)
                   </h4>
                   <div className="space-y-2">
                     {previewCourse.modules.map((m, i) => (
@@ -2551,12 +2568,12 @@ export default function CourseManagement() {
                 </div>
               )}
 
-              {/* ── Related Jobs (අදාළ රැකියා අවස්ථා) ── */}
+              {/* ── Related Jobs ── */}
               {previewCourse.relatedJobs && previewCourse.relatedJobs.length > 0 && (
                 <div className="bg-gradient-to-br from-blue-50/70 to-indigo-50/50 p-5 rounded-2xl border border-blue-100 space-y-3">
                   <div className="flex items-center gap-2 text-xs font-bold text-blue-900 uppercase tracking-wider">
                     <Briefcase className="w-4 h-4 text-blue-700" />
-                    <span>අදාළ රැකියා අවස්ථා සහ වෘත්තීය මාර්ග ({previewCourse.relatedJobs.length} Related Jobs)</span>
+                    <span>Career Pathways & Related Jobs ({previewCourse.relatedJobs.length} Related Jobs)</span>
                   </div>
                   <div className="flex flex-wrap gap-2 pt-1">
                     {previewCourse.relatedJobs.map((job) => (
@@ -2579,7 +2596,7 @@ export default function CourseManagement() {
                     {previewCourse.instructor.fullName.charAt(0)}
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">පාඨමාලා සම්පත්දායක / දේශක</span>
+                    <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">Lead Instructor / Resource Person</span>
                     <h5 className="font-bold text-gray-900 text-sm">{previewCourse.instructor.fullName}</h5>
                     <p className="text-xs text-gray-600">{previewCourse.instructor.designation} • {previewCourse.instructor.phone}</p>
                   </div>
@@ -2594,7 +2611,7 @@ export default function CourseManagement() {
                 onClick={() => setPreviewCourse(null)}
                 className="px-5 py-2.5 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-100 transition"
               >
-                Close (වසන්න)
+                Close
               </button>
               <button
                 type="button"
@@ -2631,7 +2648,7 @@ export default function CourseManagement() {
                 <label className="block text-xs font-bold text-gray-700 mb-1">Category Name (Sinhala) *</label>
                 <input
                   required
-                  placeholder="උදා: කාබනික කෘෂිකර්මය"
+                  placeholder="e.g. කාබනික කෘෂිකර්මය"
                   value={newCatForm.categoryNameSi}
                   onChange={e => setNewCatForm({ ...newCatForm, categoryNameSi: e.target.value })}
                   className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
@@ -2685,10 +2702,10 @@ export default function CourseManagement() {
             </div>
             <form onSubmit={handleCreateInstructor} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1">Full Name (සම්පූර්ණ නම) *</label>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Full Name *</label>
                 <input
                   required
-                  placeholder="ආචාර්ය නිමල් සේනාරත්න"
+                  placeholder="e.g. Dr. Nimal Senaratne"
                   value={newInsForm.fullName}
                   onChange={e => setNewInsForm({ ...newInsForm, fullName: e.target.value })}
                   className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
@@ -2696,9 +2713,9 @@ export default function CourseManagement() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 mb-1">Designation (තනතුර)</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Designation</label>
                   <input
-                    placeholder="කෘෂිකර්ම නිලධාරී"
+                    placeholder="e.g. Senior Agricultural Officer"
                     value={newInsForm.designation}
                     onChange={e => setNewInsForm({ ...newInsForm, designation: e.target.value })}
                     className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
@@ -2740,7 +2757,7 @@ export default function CourseManagement() {
                 <label className="block text-xs font-bold text-gray-700 mb-1">Bio / Experience</label>
                 <textarea
                   rows={2}
-                  placeholder="කෙටි විස්තරය සහ පළපුරුද්ද..."
+                  placeholder="Short bio, qualifications and practical training background..."
                   value={newInsForm.bio}
                   onChange={e => setNewInsForm({ ...newInsForm, bio: e.target.value })}
                   className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
@@ -2774,7 +2791,7 @@ export default function CourseManagement() {
                 </div>
                 <div>
                   <h3 className="text-base font-bold text-gray-900">Manage Related Jobs</h3>
-                  <p className="text-[11px] text-gray-500">පාඨමාලාවලට අදාළ රැකියා අවස්ථා කළමනාකරණය</p>
+                  <p className="text-[11px] text-gray-500">Manage master career pathways and job opportunities linked to courses</p>
                 </div>
               </div>
               <button
@@ -2788,13 +2805,13 @@ export default function CourseManagement() {
             {/* Create New Job Form */}
             <form onSubmit={handleCreateRelatedJob} className="pt-4 pb-3 shrink-0">
               <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                Create New Related Job (නව රැකියා අවස්ථාවක් එක් කරන්න)
+                Create New Related Job
               </label>
               <div className="flex gap-2">
                 <input
                   type="text"
                   required
-                  placeholder="උදා: කාබනික ගොවිපළ කළමනාකරු (Organic Farm Manager)"
+                  placeholder="e.g. Organic Farm Manager"
                   value={newJobName}
                   onChange={e => setNewJobName(e.target.value)}
                   className="flex-1 px-3.5 py-2.5 border border-gray-300 rounded-xl text-xs sm:text-sm focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none"
@@ -2831,8 +2848,8 @@ export default function CourseManagement() {
                 .length === 0 ? (
                 <div className="text-center py-8 px-4 text-gray-400">
                   <Briefcase className="w-8 h-8 mx-auto mb-2 opacity-40" />
-                  <p className="text-xs">කිසිදු රැකියා අවස්ථාවක් හමු නොවීය.</p>
-                  <p className="text-[11px] mt-0.5">ඉහතින් නව රැකියාවක් ඇතුළත් කරන්න.</p>
+                  <p className="text-xs">No career opportunities found.</p>
+                  <p className="text-[11px] mt-0.5">Enter a new job above to add to the pool.</p>
                 </div>
               ) : (
                 relatedJobs
@@ -2922,7 +2939,7 @@ export default function CourseManagement() {
                 onClick={() => setIsJobModalOpen(false)}
                 className="px-4 py-2 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-100 transition"
               >
-                Close (වසන්න)
+                Close
               </button>
             </div>
           </div>
@@ -3016,7 +3033,7 @@ export default function CourseManagement() {
                     </div>
                     <h4 className="font-bold text-gray-900 text-sm">{selectedApp.course.title}</h4>
                     <p className="text-xs text-gray-600">
-                      Fee: <strong>{selectedApp.course.courseFee === 0 ? 'Free (නොමිලේ)' : `Rs. ${selectedApp.course.courseFee.toLocaleString()} LKR`}</strong>
+                      Fee: <strong>{selectedApp.course.courseFee === 0 ? 'Free' : `Rs. ${selectedApp.course.courseFee.toLocaleString()} LKR`}</strong>
                     </p>
                   </div>
                 ) : (
@@ -3038,43 +3055,47 @@ export default function CourseManagement() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button
                     onClick={() => handleUpdateAppStatus(selectedApp.id, 'Pending')}
-                    className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all ${
+                    className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all flex items-center justify-center gap-1.5 ${
                       selectedApp.status === 'Pending'
                         ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
                         : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
                     }`}
                   >
-                    ⏳ Pending
+                    <Clock size={13} className="shrink-0" />
+                    <span>Pending</span>
                   </button>
                   <button
                     onClick={() => handleUpdateAppStatus(selectedApp.id, 'Contacted')}
-                    className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all ${
+                    className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all flex items-center justify-center gap-1.5 ${
                       selectedApp.status === 'Contacted'
                         ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                         : 'bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100'
                     }`}
                   >
-                    📞 Contacted
+                    <Phone size={13} className="shrink-0" />
+                    <span>Contacted</span>
                   </button>
                   <button
                     onClick={() => handleUpdateAppStatus(selectedApp.id, 'Approved')}
-                    className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all ${
+                    className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all flex items-center justify-center gap-1.5 ${
                       selectedApp.status === 'Approved'
                         ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                         : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
                     }`}
                   >
-                    ✅ Approved
+                    <CheckCircle2 size={13} className="shrink-0" />
+                    <span>Approved</span>
                   </button>
                   <button
                     onClick={() => handleUpdateAppStatus(selectedApp.id, 'Rejected')}
-                    className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all ${
+                    className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all flex items-center justify-center gap-1.5 ${
                       selectedApp.status === 'Rejected'
                         ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
                         : 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100'
                     }`}
                   >
-                    ❌ Rejected
+                    <XCircle size={13} className="shrink-0" />
+                    <span>Rejected</span>
                   </button>
                 </div>
               </div>

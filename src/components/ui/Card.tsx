@@ -57,14 +57,30 @@ export default function Card({
           ) : FallbackIcon ? (
             <FallbackIcon className="w-20 h-20 transition-transform duration-700 group-hover:scale-110" style={{ color: color || '#111' }} />
           ) : null}
-          {badge && (
-            <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-gray-900 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm z-10">
-              {badge}
-            </div>
-          )}
-          {topRightBadge && (
-            <div className="absolute top-4 right-4 z-10">
-              {topRightBadge}
+          {(badge || topRightBadge) && (
+            <div className="absolute top-3.5 left-3.5 right-3.5 flex flex-col items-start gap-1.5 z-10 pointer-events-none">
+              {/* Row 1: Primary Badge */}
+              {badge && (
+                <div className="pointer-events-auto max-w-full flex">
+                  {typeof badge === 'string' ? (
+                    <div 
+                      className="h-7 inline-flex items-center bg-white/80 backdrop-blur-md text-gray-900 text-xs font-bold px-3 rounded-full shadow-xs border border-white/60 max-w-full"
+                      title={badge}
+                    >
+                      <span className="truncate">{badge}</span>
+                    </div>
+                  ) : (
+                    badge
+                  )}
+                </div>
+              )}
+
+              {/* Row 2: Secondary / Status Badge */}
+              {topRightBadge && (
+                <div className="pointer-events-auto max-w-full flex">
+                  {topRightBadge}
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -195,20 +195,19 @@ export default function AgroLands() {
                       </div>
                     )}
                     
-                    {/* Status Badge */}
-                    <div className="absolute top-4 right-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm backdrop-blur-md ${
+                    {/* Badges Container */}
+                    <div className="absolute top-3.5 inset-x-3.5 flex items-start justify-between gap-2 z-10 pointer-events-none">
+                      <span 
+                        className="px-3 py-1 rounded-full text-xs font-bold shadow-sm backdrop-blur-md bg-blue-600/90 text-white pointer-events-auto min-w-0 max-w-full truncate"
+                        title={isSinhala ? (land.type?.nameSi || land.type?.name) : land.type?.name}
+                      >
+                        {isSinhala ? (land.type?.nameSi || land.type?.name) : land.type?.name}
+                      </span>
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm backdrop-blur-md pointer-events-auto shrink-0 ${
                         land.status === 'Available' ? 'bg-green-500/90 text-white' : 
                         land.status === 'Sold' ? 'bg-red-500/90 text-white' : 'bg-orange-500/90 text-white'
                       }`}>
                         {land.status.toUpperCase()}
-                      </span>
-                    </div>
-
-                    {/* Type Badge */}
-                    <div className="absolute top-4 left-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm backdrop-blur-md bg-blue-600/90 text-white`}>
-                        {isSinhala ? (land.type?.nameSi || land.type?.name) : land.type?.name}
                       </span>
                     </div>
                   </div>

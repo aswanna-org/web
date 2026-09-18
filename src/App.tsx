@@ -22,6 +22,7 @@ import CartModal from './components/public/CartModal';
 import LoginModal from './components/public/LoginModal';
 import RegisterModal from './components/public/RegisterModal';
 import GovijanaSewa from './pages/public/GovijanaSewa';
+import GovijanaSewaDetail from './pages/public/GovijanaSewaDetail';
 import AgriInfoHub from './pages/public/AgriInfoHub';
 import GovernmentInstitutions from './pages/public/GovernmentInstitutions';
 import PrivateInstitutions from './pages/public/PrivateInstitutions';
@@ -83,6 +84,7 @@ function App() {
               <Route path="education/:slug" element={<EducationDetail />} />
               <Route path="gallery" element={<Gallery />} />
               <Route path="govijana-sewa" element={<GovijanaSewa />} />
+              <Route path="govijana-sewa/:id" element={<GovijanaSewaDetail />} />
               <Route path="agro" element={<AgroCategories />} />
               <Route path="agro/:mainSlug" element={<AgroMainCategoryDetail />} />
               <Route path="agro/:mainSlug/:subSlug" element={<AgroCategoryDetail />} />

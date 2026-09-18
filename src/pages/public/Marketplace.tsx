@@ -168,7 +168,10 @@ export default function Marketplace() {
                         </div>
                       )}
                       {product.category && (
-                        <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-md text-xs font-medium text-green-700 shadow-sm">
+                        <div 
+                          className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-md text-xs font-medium text-green-700 shadow-sm max-w-[calc(100%-1.5rem)] truncate"
+                          title={product.categorySinhala ? `${product.category} | ${product.categorySinhala}` : product.category}
+                        >
                           {product.categorySinhala ? `${product.category} | ${product.categorySinhala}` : product.category}
                         </div>
                       )}

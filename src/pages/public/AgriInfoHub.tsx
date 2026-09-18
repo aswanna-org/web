@@ -315,8 +315,8 @@ export default function AgriInfoHub() {
     <div className="w-full min-h-screen bg-[#f7faf8]">
       {/* ── Hero Banner ── */}
       <PageHero
-        title={t('agriInfoHub.heroTitle', 'AGRI INFORMATION HUB')}
-        description={t('agriInfoHub.heroDesc', 'A unified platform connecting Sri Lankan farmers and agricultural entrepreneurs with Government institutions, Private agribusinesses, Regional Agriculture Officers, and International organizations.')}
+        title={t('agriInfoHub.heroTitle', isSinhala ? 'කෘෂි තොරතුරු කේන්ද්‍රය' : 'AGRI INFORMATION HUB')}
+        description={t('agriInfoHub.heroDesc', isSinhala ? 'ශ්‍රී ලංකාවේ ගොවි ප්‍රජාව සහ කෘෂි ව්‍යවසායකයින් සඳහා රාජ්‍ය ආයතන, පුද්ගලික ආයතන, ප්‍රාදේශීය කෘෂිකර්ම නිලධාරීන් සහ ජාත්‍යන්තර ආයතන වල තොරතුරු සපයන ඒකාබද්ධ කේන්ද්‍රස්ථානය.' : 'A unified platform connecting Sri Lankan farmers and agricultural entrepreneurs with Government institutions, Private agribusinesses, Regional Agriculture Officers, and International organizations.')}
         image="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
         gradientColor="#0f4d30"
       />
@@ -328,44 +328,50 @@ export default function AgriInfoHub() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {cards.map((card) => {
             const Icon = card.badgeIcon;
+            const cardTitle = isSinhala ? card.titleSi : card.titleEn;
+            const cardDesc = isSinhala ? card.descSi : card.descEn;
+
             return (
               <div
                 key={card.id}
-                className="bg-white rounded-[28px] border border-gray-100/90 shadow-[0_10px_30px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_40px_rgba(0,104,55,0.12)] transition-all duration-500 overflow-hidden relative group flex flex-col justify-between hover:-translate-y-2 cursor-pointer"
+                className="bg-white rounded-[28px] border border-emerald-900/10 hover:border-emerald-400/60 shadow-[0_8px_25px_rgba(0,0,0,0.04)] hover:shadow-[0_18px_38px_rgba(0,104,55,0.13)] transition-all duration-300 relative group flex flex-col justify-between hover:-translate-y-1.5 cursor-pointer outline-none select-none"
                 onClick={card.action}
               >
                 {/* Top Image Section with Wave Cut */}
-                <div className="relative h-48 w-full overflow-hidden bg-gray-100">
-                  <img
-                    src={card.image}
-                    alt={card.titleEn}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60"></div>
+                <div className="relative h-48 w-full bg-gray-100 rounded-t-[28px]">
+                  {/* Overflow-hidden container only around the image */}
+                  <div className="w-full h-full overflow-hidden rounded-t-[28px] relative">
+                    <img
+                      src={card.image}
+                      alt={cardTitle}
+                      className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500 ease-out"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-60"></div>
+                  </div>
 
-                  {/* Organic Wave Divider matching reference image */}
+                  {/* Organic Wave Divider */}
                   <svg
-                    className="absolute -bottom-[1px] left-0 right-0 w-full h-10 text-white fill-current"
+                    className="absolute -bottom-[1px] left-0 right-0 w-full h-10 text-white fill-current pointer-events-none z-10"
                     viewBox="0 0 500 80"
                     preserveAspectRatio="none"
                   >
                     <path d="M0,35 C150,75 350,0 500,40 L500,80 L0,80 Z" />
                   </svg>
 
-                  {/* Circular Badge Icon */}
-                  <div className={`absolute bottom-[-16px] left-6 ${card.badgeBg} w-13 h-13 rounded-full flex items-center justify-center text-white shadow-lg border-[3px] border-white z-20 transition-transform duration-300 group-hover:scale-110`}>
+                  {/* Circular Badge Icon - Fully Visible & Not Clipped */}
+                  <div className={`absolute -bottom-5 left-6 ${card.badgeBg} w-13 h-13 rounded-full flex items-center justify-center text-white shadow-lg border-[3.5px] border-white z-20 transition-transform duration-300 group-hover:scale-110`}>
                     <Icon className="w-6 h-6" />
                   </div>
                 </div>
 
                 {/* Card Content */}
-                <div className="pt-7 px-6 pb-6 flex flex-col justify-between flex-1 relative z-10">
+                <div className="pt-8 px-6 pb-6 flex flex-col justify-between flex-1 relative z-10">
                   <div>
-                    <h3 className="text-[1.18rem] font-bold text-[#0f4d30] leading-snug tracking-tight mb-1 group-hover:text-[#006837] transition-colors min-h-[54px] flex items-center">
-                      {card.titleSi}
+                    <h3 className="text-[1.16rem] font-bold text-[#0f4d30] leading-snug tracking-tight mb-2 group-hover:text-[#006837] transition-colors min-h-[54px] flex items-center">
+                      {cardTitle}
                     </h3>
-                    <p className="text-xs font-semibold text-gray-500 mb-6 leading-relaxed min-h-[36px]">
-                      {card.titleEn}
+                    <p className="text-xs text-gray-500 mb-6 leading-relaxed line-clamp-3">
+                      {cardDesc}
                     </p>
                   </div>
 
@@ -379,7 +385,7 @@ export default function AgriInfoHub() {
                       }}
                       className="bg-[#006837]/90 hover:bg-[#006837] text-white border border-white/30 backdrop-blur-md px-5 py-2 rounded-full font-bold text-xs inline-flex items-center gap-2 transition-all duration-300 shadow-sm hover:shadow-md group-hover:gap-2.5 cursor-pointer"
                     >
-                      {t('agriInfoHub.enter', 'පිවිසෙන්න')}
+                      {t('agriInfoHub.enter', isSinhala ? 'පිවිසෙන්න' : 'Access')}
                       <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
                     </button>
 

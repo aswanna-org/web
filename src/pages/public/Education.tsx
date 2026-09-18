@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Clock, BookOpen, DollarSign, Search, Filter, X, Sparkles } from 'lucide-react';
+import { Clock, BookOpen, DollarSign, Search, Filter, X, Sparkles, ChevronDown, Check, GraduationCap } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import Card from '../../components/ui/Card';
 import Pagination from '../../components/admin/Pagination';
 import { QUALIFICATION_LEVELS } from '../../data/educationData';
+import { formatQualificationLevel, formatDurationUnit } from './EducationDetail';
 
 export default function Education() {
   const { t, i18n } = useTranslation();
@@ -16,9 +17,22 @@ export default function Education() {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const isSinhala = i18n.language === 'si';
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Debounce search query
   useEffect(() => {
@@ -83,49 +97,127 @@ export default function Education() {
       <div className="container mx-auto px-4 lg:px-12 py-12">
         <div className="flex flex-col lg:flex-row gap-8">
 
-          {/* ── Left Sidebar: Qualification Levels Filter ── */}
+          {/* ── Left Sidebar: Qualification Levels Filter Dropdown ── */}
           <div className="w-full lg:w-1/4 shrink-0">
-            <div className="sticky top-24">
-              <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <Filter size={24} className="text-green-600" />
-                <span>{isSinhala ? 'සුදුසුකම් මට්ටම්' : 'Categories'}</span>
+            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm sticky top-24 space-y-5">
+              <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <Filter size={20} className="text-green-600" />
+                <span>{isSinhala ? 'සුදුසුකම් මට්ටම්' : 'Qualification Levels'}</span>
               </h3>
 
-              <div className="flex flex-col gap-3 max-h-[calc(100vh-10rem)] overflow-y-auto pr-1">
-                {/* All Courses / All Qualifications Button */}
+              {/* Custom Styled Dropdown */}
+              <div className="relative" ref={dropdownRef}>
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center justify-between">
+                  <span>{isSinhala ? 'මට්ටම තෝරන්න' : 'Select Level'}</span>
+                  {selectedLevel !== 'All' && (
+                    <span className="text-[11px] font-bold text-green-700 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
+                      {isSinhala ? 'තෝරා ඇත' : 'Active'}
+                    </span>
+                  )}
+                </label>
+
+                {/* Custom Trigger Button */}
                 <button
-                  onClick={() => handleLevelSelect('All')}
-                  className={`w-full text-left px-5 py-4 rounded-xl shadow-sm border transition-all duration-200 hover:-translate-y-1 ${
-                    selectedLevel === 'All'
-                      ? 'bg-green-600 border-green-600 text-white shadow-green-200/50 shadow-lg font-medium'
-                      : 'bg-white border-gray-100 text-gray-700 hover:border-green-300 hover:shadow-md'
+                  type="button"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl border text-left transition-all duration-200 cursor-pointer shadow-xs ${
+                    isDropdownOpen
+                      ? 'border-green-600 ring-2 ring-green-500/20 bg-white'
+                      : 'border-gray-200 hover:border-green-400 bg-gray-50/70 hover:bg-white'
                   }`}
                 >
-                  <span className="text-base font-medium">
-                    {isSinhala ? 'සියලුම පාඨමාලා' : 'All Courses'}
-                  </span>
+                  <div className="flex items-center gap-2.5 min-w-0 pr-2">
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                      selectedLevel !== 'All' ? 'bg-green-600 text-white' : 'bg-green-100 text-green-700'
+                    }`}>
+                      <GraduationCap size={15} />
+                    </div>
+                    <span className={`text-sm font-semibold truncate ${
+                      selectedLevel !== 'All' ? 'text-gray-900' : 'text-gray-700'
+                    }`}>
+                      {selectedLevel === 'All'
+                        ? (isSinhala ? 'සියලුම පාඨමාලා' : 'All Courses')
+                        : formatQualificationLevel(selectedLevel, isSinhala)}
+                    </span>
+                  </div>
+                  <ChevronDown
+                    size={18}
+                    className={`shrink-0 text-gray-400 transition-transform duration-200 ${
+                      isDropdownOpen ? 'rotate-180 text-green-600' : ''
+                    }`}
+                  />
                 </button>
 
-                {/* Qualification Level Items */}
-                {QUALIFICATION_LEVELS.map((level) => {
-                  const isSelected = selectedLevel === level;
-                  return (
+                {/* Dropdown Menu Popover */}
+                {isDropdownOpen && (
+                  <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-30 bg-white/95 backdrop-blur-xl border border-gray-100 rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.12)] p-2 max-h-80 overflow-y-auto animate-in fade-in zoom-in-95 duration-150">
+                    
+                    {/* All Option */}
                     <button
-                      key={level}
-                      onClick={() => handleLevelSelect(level)}
-                      className={`w-full text-left px-5 py-4 rounded-xl shadow-sm border transition-all duration-200 hover:-translate-y-1 ${
-                        isSelected
-                          ? 'bg-green-600 border-green-600 text-white shadow-green-200/50 shadow-lg font-medium'
-                          : 'bg-white border-gray-100 text-gray-700 hover:border-green-300 hover:shadow-md'
+                      type="button"
+                      onClick={() => {
+                        handleLevelSelect('All');
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all mb-1 ${
+                        selectedLevel === 'All'
+                          ? 'bg-green-600 text-white shadow-sm'
+                          : 'text-gray-700 hover:bg-green-50 hover:text-green-800'
                       }`}
                     >
-                      <span className="text-sm sm:text-base leading-snug">
-                        {level}
-                      </span>
+                      <span>{isSinhala ? 'සියලුම පාඨමාලා' : 'All Courses'}</span>
+                      {selectedLevel === 'All' && <Check size={16} className="shrink-0 text-white" />}
                     </button>
-                  );
-                })}
+
+                    <div className="h-px bg-gray-100 my-1.5" />
+
+                    {/* Qualification Level Items */}
+                    <div className="space-y-1">
+                      {QUALIFICATION_LEVELS.map((level) => {
+                        const isSelected = selectedLevel === level;
+                        return (
+                          <button
+                            key={level}
+                            type="button"
+                            onClick={() => {
+                              handleLevelSelect(level);
+                              setIsDropdownOpen(false);
+                            }}
+                            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs sm:text-sm text-left transition-all ${
+                              isSelected
+                                ? 'bg-green-600 text-white font-bold shadow-sm'
+                                : 'text-gray-700 hover:bg-green-50 hover:text-green-800 font-medium'
+                            }`}
+                          >
+                            <span className="leading-snug pr-2">{formatQualificationLevel(level, isSinhala)}</span>
+                            {isSelected && <Check size={16} className="shrink-0 text-white" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </div>
+
+              {selectedLevel !== 'All' && (
+                <div className="pt-2 border-t border-gray-100">
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-xs">
+                    <span className="text-gray-500 block mb-1 font-medium">
+                      {isSinhala ? 'තෝරාගත් මට්ටම:' : 'Selected Level:'}
+                    </span>
+                    <span className="font-bold text-green-900 block leading-snug">
+                      {formatQualificationLevel(selectedLevel, isSinhala)}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleClearFilter}
+                    className="mt-3 w-full py-2.5 px-4 text-xs font-semibold text-green-700 hover:text-green-800 bg-green-50 hover:bg-green-100/80 rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                  >
+                    <X size={14} />
+                    {isSinhala ? 'පෙරහන ඉවත් කරන්න' : 'Clear Filter'}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -169,7 +261,7 @@ export default function Education() {
                 </span>
                 {selectedLevel !== 'All' && (
                   <span className="text-green-700 font-medium">
-                    • {selectedLevel}
+                    • {formatQualificationLevel(selectedLevel, isSinhala)}
                   </span>
                 )}
               </div>
@@ -219,19 +311,21 @@ export default function Education() {
                     ? (isSinhala ? 'නොමිලේ' : 'Free')
                     : `Rs. ${Number(course.courseFee).toLocaleString()}`;
 
-                  const durationLabel = `${course.durationValue || ''} ${course.durationUnit || ''}`.trim();
+                  const durationLabel = course.durationValue
+                    ? `${course.durationValue} ${formatDurationUnit(course.durationUnit, isSinhala)}`.trim()
+                    : '';
 
                   return (
                     <Card
                       key={course.id}
                       to={`/education/${course.slug || course.id}`}
                       image={course.bannerImageUrl || 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=800&q=80'}
-                      badge={course.courseLevel}
+                      badge={formatQualificationLevel(course.courseLevel, isSinhala)}
                       topRightBadge={course.applicationCalled ? (
-                        <span className="inline-flex items-center gap-1 bg-amber-500 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md backdrop-blur-xs">
-                          <Sparkles size={11} className="shrink-0" />
-                          <span>{isSinhala ? 'අයදුම්පත් කැඳවා ඇත' : 'Application Called'}</span>
-                        </span>
+                        <div className="h-7 inline-flex items-center gap-1.5 bg-amber-500/85 backdrop-blur-md text-white text-xs font-bold px-3 rounded-full shadow-xs border border-amber-300/40 max-w-full">
+                          <Sparkles size={12} className="shrink-0 text-amber-100" />
+                          <span className="truncate">{isSinhala ? 'අයදුම්පත් කැඳවා ඇත' : 'Application Called'}</span>
+                        </div>
                       ) : null}
                       title={course.title}
                       subtitle={categoryLabel}

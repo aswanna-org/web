@@ -872,201 +872,199 @@ export default function InstitutionManagement() {
   ];
 
   return (
-    <div className="p-6 md:p-8 w-full mx-auto min-h-screen font-sans text-zinc-900 bg-zinc-50/40">
+    <div className="space-y-6">
       {/* ── Top Page Bar ── */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-zinc-900 tracking-tight">
-            ආයතන කළමනාකරණය (Institutions Management)
-          </h1>
-          <p className="text-xs sm:text-sm text-zinc-500 mt-0.5">
-            Agricultural Institutions Registry & Bilingual Information System
+          <h1 className="text-2xl font-bold text-gray-800">Institutions Management</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Manage agricultural institutions, ministries, departments, and services
           </p>
         </div>
 
         <button
           onClick={openCreate}
-          className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-xs sm:text-sm px-4 py-2.5 rounded-lg shadow-sm transition-all cursor-pointer active:scale-98"
+          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg font-medium text-sm shadow-sm transition-colors cursor-pointer"
         >
-          <Plus className="w-4 h-4" />
-          <span>නව ආයතනයක් එක් කරන්න (Add Institution)</span>
+          <Plus size={18} />
+          <span>Add Institution</span>
         </button>
       </div>
 
-      {/* ── Segmented Sector Controls ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div className="inline-flex bg-zinc-200/70 p-1 rounded-xl border border-zinc-200 text-xs font-medium">
+      {/* ── Segmented Sector Controls & Search ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="inline-flex bg-gray-100 p-1 rounded-xl border border-gray-200 text-xs font-medium">
           <button
             onClick={() => handleTabChange('gov')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all cursor-pointer ${
               activeTab === 'gov'
-                ? 'bg-white text-zinc-900 font-semibold shadow-xs'
-                : 'text-zinc-600 hover:text-zinc-900'
+                ? 'bg-white text-gray-900 font-semibold shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            <Landmark className="w-3.5 h-3.5 text-zinc-600" />
-            <span>රාජ්‍ය අංශය (Government)</span>
+            <Landmark className="w-3.5 h-3.5 text-gray-600" />
+            <span>Government</span>
           </button>
           <button
             onClick={() => handleTabChange('pvt')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all cursor-pointer ${
               activeTab === 'pvt'
-                ? 'bg-white text-zinc-900 font-semibold shadow-xs'
-                : 'text-zinc-600 hover:text-zinc-900'
+                ? 'bg-white text-gray-900 font-semibold shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            <Building2 className="w-3.5 h-3.5 text-zinc-600" />
-            <span>පුද්ගලික අංශය (Private)</span>
+            <Building2 className="w-3.5 h-3.5 text-gray-600" />
+            <span>Private Sector</span>
           </button>
           <button
             onClick={() => handleTabChange('intl')}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all cursor-pointer ${
               activeTab === 'intl'
-                ? 'bg-white text-zinc-900 font-semibold shadow-xs'
-                : 'text-zinc-600 hover:text-zinc-900'
+                ? 'bg-white text-gray-900 font-semibold shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
             }`}
           >
-            <Globe2 className="w-3.5 h-3.5 text-zinc-600" />
-            <span>ජාත්‍යන්තර සංවිධාන (International)</span>
+            <Globe2 className="w-3.5 h-3.5 text-gray-600" />
+            <span>International</span>
           </button>
         </div>
 
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="text-xs text-zinc-500 font-medium whitespace-nowrap hidden sm:block">
-            මුළු එකතුව: <span className="font-semibold text-zinc-900 font-mono">{totalCount}</span>
+          <div className="text-xs text-gray-500 font-medium whitespace-nowrap hidden sm:block">
+            Total: <span className="font-semibold text-gray-900 font-mono">{totalCount}</span>
           </div>
-          <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <div className="relative w-full sm:w-72">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="නම හෝ අමාත්‍යාංශය සොයන්න..."
+              placeholder="Search institutions, ministries..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full pl-9 pr-3 py-2 bg-white rounded-lg border border-zinc-200 text-xs focus:outline-none focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 transition-all placeholder:text-zinc-400"
+              className="w-full pl-9 pr-3 py-2 bg-white rounded-lg border border-gray-200 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all placeholder:text-gray-400"
             />
           </div>
         </div>
       </div>
 
       {/* ── Table Card ── */}
-      <div className="bg-white rounded-xl border border-zinc-200 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {isLoading ? (
-          <div className="py-24 flex flex-col items-center justify-center gap-2 text-zinc-400">
-            <div className="w-6 h-6 border-2 border-zinc-300 border-t-zinc-900 rounded-full animate-spin"></div>
-            <p className="text-xs">දත්ත පූරණය වෙමින් පවතී...</p>
+          <div className="py-24 flex flex-col items-center justify-center gap-2 text-gray-400">
+            <div className="w-7 h-7 border-2 border-gray-300 border-t-emerald-600 rounded-full animate-spin"></div>
+            <p className="text-xs text-gray-500">Loading institutions data...</p>
           </div>
         ) : institutions.length === 0 ? (
-          <div className="py-20 text-center text-zinc-400">
-            <Landmark className="w-10 h-10 mx-auto text-zinc-300 mb-2 stroke-[1.5]" />
-            <p className="font-medium text-xs text-zinc-700">ආයතන කිසිවක් හමු නොවීය.</p>
-            <p className="text-[11px] text-zinc-400 mt-0.5">ඉහත බොත්තම ක්ලික් කර නව ආයතනයක් එක් කරන්න.</p>
+          <div className="py-20 text-center text-gray-400">
+            <Landmark className="w-10 h-10 mx-auto text-gray-300 mb-2 stroke-[1.5]" />
+            <p className="font-medium text-xs text-gray-700">No institutions found.</p>
+            <p className="text-[11px] text-gray-400 mt-0.5">Click the Add Institution button above to add one.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-zinc-600">
-              <thead className="bg-zinc-50/80 text-zinc-600 font-semibold border-b border-zinc-200 text-[11px] uppercase tracking-wider">
+            <table className="w-full text-left text-xs text-gray-600">
+              <thead className="bg-gray-50/80 text-gray-600 font-semibold border-b border-gray-200 text-[11px] uppercase tracking-wider">
                 <tr>
-                  <th className="py-3 px-4">ආයතනය (Institution)</th>
-                  <th className="py-3 px-4">වර්ගීකරණය (Classification)</th>
-                  <th className="py-3 px-4">සම්බන්ධතා (Contact)</th>
-                  <th className="py-3 px-4">දත්ත (Data)</th>
-                  <th className="py-3 px-4 text-center">පිළිවෙල</th>
-                  <th className="py-3 px-4 text-right">ක්‍රියාමාර්ග</th>
+                  <th className="py-3 px-5">Institution</th>
+                  <th className="py-3 px-5">Classification</th>
+                  <th className="py-3 px-5">Contact</th>
+                  <th className="py-3 px-5">Data Summary</th>
+                  <th className="py-3 px-5 text-center">Order</th>
+                  <th className="py-3 px-5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-100">
+              <tbody className="divide-y divide-gray-100">
                 {institutions.map((inst) => {
                   const docCount = (inst.documents || inst.catalogues || inst.reportsAndBriefs || []).length;
                   const serviceCount = (inst.services || inst.productsAndServices || inst.interventions || []).length;
                   const centerCount = (inst.regionalCenters || inst.dealersAndShowrooms || inst.projectStations || []).length;
 
                   return (
-                    <tr key={inst.id} className="hover:bg-zinc-50/60 transition-colors">
-                      <td className="py-3.5 px-4">
+                    <tr key={inst.id} className="hover:bg-gray-50/60 transition-colors">
+                      <td className="py-3.5 px-5">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-lg bg-zinc-100 border border-zinc-200 flex items-center justify-center shrink-0 overflow-hidden">
+                          <div className="w-9 h-9 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0 overflow-hidden">
                             {inst.logoUrl ? (
                               <img src={inst.logoUrl} alt="" className="w-full h-full object-contain p-0.5" />
                             ) : (
-                              <Landmark className="w-4 h-4 text-zinc-400" />
+                              <Landmark className="w-4 h-4 text-gray-400" />
                             )}
                           </div>
                           <div className="min-w-0">
-                            <p className="font-semibold text-zinc-900 truncate">{inst.nameSi || inst.nameEn || 'නමක් නැත'}</p>
-                            <p className="text-[11px] text-zinc-400 truncate">{inst.nameEn || inst.nameSi || '-'}</p>
+                            <p className="font-semibold text-gray-900 truncate">{inst.nameSi || inst.nameEn || 'Untitled'}</p>
+                            <p className="text-[11px] text-gray-400 truncate">{inst.nameEn || inst.nameSi || '-'}</p>
                           </div>
                         </div>
                       </td>
 
-                      <td className="py-3.5 px-4 text-zinc-700">
+                      <td className="py-3.5 px-5 text-gray-700">
                         {activeTab === 'gov' ? (
                           <div>
-                            <p className="font-medium text-zinc-900 truncate max-w-xs">{inst.ministrySi || inst.ministry || inst.ministryEn || '-'}</p>
-                            <p className="text-[11px] text-zinc-400">{inst.institutionTypeSi || inst.institutionType || inst.institutionTypeEn || '-'}</p>
+                            <p className="font-medium text-gray-900 truncate max-w-xs">{inst.ministrySi || inst.ministry || inst.ministryEn || '-'}</p>
+                            <p className="text-[11px] text-gray-400">{inst.institutionTypeSi || inst.institutionType || inst.institutionTypeEn || '-'}</p>
                           </div>
                         ) : activeTab === 'pvt' ? (
                           <div>
-                            <p className="font-medium text-zinc-900 truncate max-w-xs">{inst.parentConglomerateSi || inst.parentConglomerate || inst.parentConglomerateEn || '-'}</p>
-                            <p className="text-[11px] text-zinc-400">{inst.legalEntityTypeSi || inst.legalEntityType || inst.legalEntityTypeEn || '-'}</p>
+                            <p className="font-medium text-gray-900 truncate max-w-xs">{inst.parentConglomerateSi || inst.parentConglomerate || inst.parentConglomerateEn || '-'}</p>
+                            <p className="text-[11px] text-gray-400">{inst.legalEntityTypeSi || inst.legalEntityType || inst.legalEntityTypeEn || '-'}</p>
                           </div>
                         ) : (
                           <div>
-                            <p className="font-medium text-zinc-900 truncate max-w-xs">{inst.agencyCategorySi || inst.agencyCategory || inst.agencyCategoryEn || '-'}</p>
-                            <p className="text-[11px] text-zinc-400">{inst.globalHQSi || inst.globalHQ || inst.globalHQEn || '-'}</p>
+                            <p className="font-medium text-gray-900 truncate max-w-xs">{inst.agencyCategorySi || inst.agencyCategory || inst.agencyCategoryEn || '-'}</p>
+                            <p className="text-[11px] text-gray-400">{inst.globalHQSi || inst.globalHQ || inst.globalHQEn || '-'}</p>
                           </div>
                         )}
                       </td>
 
-                      <td className="py-3.5 px-4 text-zinc-600">
-                        <p className="font-medium text-zinc-900">{inst.phone || '-'}</p>
-                        <p className="text-[11px] text-zinc-400 truncate max-w-[180px]">{inst.email || '-'}</p>
+                      <td className="py-3.5 px-5 text-gray-600">
+                        <p className="font-medium text-gray-900">{inst.phone || '-'}</p>
+                        <p className="text-[11px] text-gray-400 truncate max-w-[180px]">{inst.email || '-'}</p>
                       </td>
 
-                      <td className="py-3.5 px-4">
-                        <div className="flex items-center gap-2 text-[11px] text-zinc-500 font-mono">
-                          <span>{serviceCount} සේවා</span>
+                      <td className="py-3.5 px-5">
+                        <div className="flex items-center gap-2 text-[11px] text-gray-500 font-mono">
+                          <span>{serviceCount} Services</span>
                           <span>•</span>
-                          <span>{docCount} ලේඛන</span>
+                          <span>{docCount} Docs</span>
                           {centerCount > 0 && (
                             <>
                               <span>•</span>
-                              <span>{centerCount} ශාඛා</span>
+                              <span>{centerCount} Centers</span>
                             </>
                           )}
                         </div>
                       </td>
 
-                      <td className="py-3.5 px-4 text-center font-mono text-zinc-400 text-xs">
+                      <td className="py-3.5 px-5 text-center font-mono text-gray-400 text-xs">
                         {inst.order ?? 99}
                       </td>
 
-                      <td className="py-3.5 px-4 text-right">
+                      <td className="py-3.5 px-5 text-right">
                         <div className="inline-flex items-center gap-1">
                           {inst.slug && (
                             <a
                               href={`/institutions/${inst.slug}`}
                               target="_blank"
                               rel="noreferrer"
-                              className="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-md transition-colors"
-                              title="නරඹන්න"
+                              className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+                              title="View"
                             >
                               <ExternalLink className="w-3.5 h-3.5" />
                             </a>
                           )}
                           <button
                             onClick={() => openEdit(inst)}
-                            className="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-md transition-colors cursor-pointer"
-                            title="සංස්කරණය"
+                            className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
+                            title="Edit"
                           >
                             <Edit className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => handleDelete(inst.id, inst.nameSi || inst.nameEn)}
-                            className="p-1.5 text-zinc-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
-                            title="මකා දමන්න"
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                            title="Delete"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -1081,7 +1079,7 @@ export default function InstitutionManagement() {
         )}
 
         {totalPages > 1 && (
-          <div className="p-3 border-t border-zinc-100 flex justify-end">
+          <div className="p-3 border-t border-gray-100 flex justify-end">
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
           </div>
         )}

@@ -5,11 +5,93 @@ import {
   Calendar, BookOpen, Layers, Globe, Check,
   Send, DollarSign,
   GraduationCap, X, ExternalLink, FileText,
-  Briefcase, Sparkles
+  Briefcase, Sparkles, Copy, Download
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import PageHero from '../../components/public/PageHero';
+
+// Helper to extract or translate bilingual strings like "මාර්තු (March)" based on active language
+export const formatBilingualText = (text: string | undefined | null, isSinhala: boolean): string => {
+  if (!text) return '';
+  const match = text.match(/^(.*?)\s*\((.*?)\)$/);
+  if (match) {
+    const first = match[1].trim();
+    const second = match[2].trim();
+    const firstIsSi = /[\u0D80-\u0DFF]/.test(first);
+    const secondIsSi = /[\u0D80-\u0DFF]/.test(second);
+    
+    if (firstIsSi && !secondIsSi) {
+      return isSinhala ? first : second;
+    } else if (!firstIsSi && secondIsSi) {
+      return isSinhala ? second : first;
+    } else {
+      return isSinhala ? first : second;
+    }
+  }
+  return text;
+};
+
+// Helper for delivery modes
+export const formatDeliveryMode = (mode: string | undefined | null, isSinhala: boolean): string => {
+  if (!mode) return '';
+  switch (mode) {
+    case 'Physical_Farm':
+      return isSinhala ? 'ක්ෂේත්‍ර පුහුණුව' : 'Physical Farm';
+    case 'Hybrid_Blended':
+      return isSinhala ? 'මිශ්‍ර ක්‍රමය (Hybrid)' : 'Hybrid (Blended)';
+    case 'Online_Lectures':
+      return isSinhala ? 'මාර්ගගත දේශන' : 'Online Lectures';
+    case 'Full_Time_Residential':
+      return isSinhala ? 'පූර්ණකාලීන නේවාසික' : 'Full Time Residential';
+    default:
+      return mode.replace(/_/g, ' ');
+  }
+};
+
+// Helper for duration units
+export const formatDurationUnit = (unit: string | undefined | null, isSinhala: boolean): string => {
+  if (!unit) return '';
+  const lower = unit.toLowerCase();
+  if (lower.startsWith('hour')) return isSinhala ? 'පැය' : 'Hours';
+  if (lower.startsWith('day')) return isSinhala ? 'දින' : 'Days';
+  if (lower.startsWith('week')) return isSinhala ? 'සති' : 'Weeks';
+  if (lower.startsWith('month')) return isSinhala ? 'මාස' : 'Months';
+  if (lower.startsWith('year')) return isSinhala ? 'වසර' : 'Years';
+  return unit;
+};
+
+// Helper for qualification levels
+export const formatQualificationLevel = (level: string | undefined | null, isSinhala: boolean): string => {
+  if (!level) return '';
+  const levelMap: Record<string, { si: string; en: string }> = {
+    'NVQ 3 (සහතිකය)': { si: 'NVQ 3 (සහතිකය)', en: 'NVQ Level 3 (Certificate)' },
+    'NVQ 4 (ශිල්පීය සහතිකය)': { si: 'NVQ 4 (ශිල්පීය සහතිකය)', en: 'NVQ Level 4 (Craft Certificate)' },
+    'NVQ 5 (ඩිප්ලෝමා)': { si: 'NVQ 5 (ඩිප්ලෝමා)', en: 'NVQ Level 5 (Diploma)' },
+    'NVQ 6 (උසස් ඩිප්ලෝමා)': { si: 'NVQ 6 (උසස් ඩිප්ලෝමා)', en: 'NVQ Level 6 (Higher Diploma)' },
+    'NVQ 7 / SLQF 6 (ප්‍රථම උපාධිය)': { si: 'NVQ 7 / SLQF 6 (ප්‍රථම උපාධිය)', en: 'NVQ 7 / SLQF 6 (Bachelor\'s Degree)' },
+    'SLQF 7 (පශ්චාත් උපාධි සහතිකය)': { si: 'SLQF 7 (පශ්චාත් උපාධි සහතිකය)', en: 'SLQF 7 (Postgraduate Certificate)' },
+    'SLQF 8 (පශ්චාත් උපාධි ඩිප්ලෝමාව)': { si: 'SLQF 8 (පශ්චාත් උපාධි ඩිප්ලෝමාව)', en: 'SLQF 8 (Postgraduate Diploma)' },
+    'SLQF 9 (ශාස්ත්‍රපති / විද්‍යාපති පාඨමාලා උපාධිය)': { si: 'SLQF 9 (ශාස්ත්‍රපති / විද්‍යාපති පාඨමාලා උපාධිය)', en: 'SLQF 9 (Master\'s by Coursework)' },
+    'SLQF 10 (පර්යේෂණ සහිත ශාස්ත්‍රපති / විද්‍යාපති උපාධිය)': { si: 'SLQF 10 (පර්යේෂණ සහිත ශාස්ත්‍රපති / විද්‍යාපති උපාධිය)', en: 'SLQF 10 (Master\'s with Research)' },
+    'SLQF 11 (දර්ශනපති උපාධිය - M.Phil)': { si: 'SLQF 11 (දර්ශනපති උපාධිය - M.Phil)', en: 'SLQF 11 (Master of Philosophy - M.Phil)' },
+    'SLQF 12 (ආචාර්ය උපාධිය - Ph.D)': { si: 'SLQF 12 (ආචාර්ය උපාධිය - Ph.D)', en: 'SLQF 12 (Doctor of Philosophy - Ph.D)' },
+  };
+
+  if (levelMap[level]) {
+    return isSinhala ? levelMap[level].si : levelMap[level].en;
+  }
+  return formatBilingualText(level, isSinhala);
+};
+
+// Helper for medium
+export const formatMedium = (medium: string | undefined | null, isSinhala: boolean): string => {
+  if (!medium) return '';
+  if (medium === 'සිංහල') return isSinhala ? 'සිංහල' : 'Sinhala';
+  if (medium.toLowerCase() === 'english') return isSinhala ? 'ඉංග්‍රීසි' : 'English';
+  if (medium === 'தமிழ்' || medium.toLowerCase() === 'tamil') return isSinhala ? 'දෙමළ' : 'Tamil';
+  return formatBilingualText(medium, isSinhala);
+};
 
 export default function EducationDetail() {
   const { slug } = useParams<{ slug: string }>();
@@ -19,6 +101,7 @@ export default function EducationDetail() {
 
   const [course, setCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   // Application Modal state
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
@@ -36,6 +119,13 @@ export default function EducationDetail() {
   const [appError, setAppError] = useState('');
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+  const handleCopyLink = (url: string) => {
+    if (!url) return;
+    navigator.clipboard.writeText(url);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2500);
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -140,10 +230,12 @@ export default function EducationDetail() {
     return (
       <div className="w-full min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6 text-center pt-32">
         <BookOpen className="w-16 h-16 text-gray-300 mb-4" />
-        <h2 className="text-2xl font-bold text-gray-800">පාඨමාලාව හමු නොවීය (Course Not Found)</h2>
-        <p className="text-gray-500 mt-2 mb-6">ඔබ සොයන පාඨමාලා විස්තර පත්‍රිකාව දැනට නොපවතී.</p>
+        <h2 className="text-2xl font-bold text-gray-800">{isSinhala ? 'පාඨමාලාව හමු නොවීය' : 'Course Not Found'}</h2>
+        <p className="text-gray-500 mt-2 mb-6">
+          {isSinhala ? 'ඔබ සොයන පාඨමාලා විස්තර පත්‍රිකාව දැනට නොපවතී.' : 'The course specification sheet you are looking for is currently unavailable.'}
+        </p>
         <Link to="/education" className="px-6 py-2.5 bg-emerald-700 text-white rounded-xl font-bold text-sm hover:bg-emerald-800">
-          ආපසු පාඨමාලා වෙත (Back to Courses)
+          {isSinhala ? 'ආපසු පාඨමාලා වෙත' : 'Back to Courses'}
         </Link>
       </div>
     );
@@ -166,7 +258,7 @@ export default function EducationDetail() {
       {/* ── MAIN CONTENT: FULL-WIDTH STRUCTURED SPECIFICATION FORM & BOTTOM ACTION BAR ── */}
       <div className="container mx-auto px-4 lg:px-12 py-10 max-w-9xl space-y-8">
 
-        {/* ── 1. COURSE SPECIFICATION FORM (ව්‍යුහගත විස්තර පත්‍රිකාව) ── */}
+        {/* ── 1. COURSE SPECIFICATION FORM ── */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="bg-gray-50/80 px-6 py-4 border-b border-gray-200 flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2.5">
@@ -174,7 +266,7 @@ export default function EducationDetail() {
                 <GraduationCap size={18} />
               </div>
               <h2 className="text-base font-bold text-gray-900">
-                පාඨමාලා විස්තර පත්‍රිකාව (Course Specification Sheet)
+                {isSinhala ? 'පාඨමාලා විස්තර පත්‍රිකාව' : 'Course Specification Sheet'}
               </h2>
             </div>
             <div className="flex items-center gap-2">
@@ -197,65 +289,69 @@ export default function EducationDetail() {
               {/* Field: Level */}
               <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
                 <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                  සුදුසුකම් මට්ටම (Qualification Level)
+                  {isSinhala ? 'සුදුසුකම් මට්ටම' : 'Qualification Level'}
                 </p>
                 <p className="font-bold text-gray-900 flex items-center gap-1.5">
                   <Award size={16} className="text-emerald-700 shrink-0" />
-                  <span>{course.courseLevel}</span>
+                  <span>{formatQualificationLevel(course.courseLevel, isSinhala)}</span>
                 </p>
               </div>
 
               {/* Field: Category */}
               <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
                 <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                  පාඨමාලා කාණ්ඩය (Category)
+                  {isSinhala ? 'පාඨමාලා කාණ්ඩය' : 'Category'}
                 </p>
                 <p className="font-bold text-gray-900 flex items-center gap-1.5">
                   <Layers size={16} className="text-emerald-700 shrink-0" />
-                  <span>{isSinhala ? course.category?.categoryNameSi : course.category?.categoryNameEn}</span>
+                  <span>{isSinhala ? (course.category?.categoryNameSi || course.category?.categoryNameEn) : (course.category?.categoryNameEn || course.category?.categoryNameSi)}</span>
                 </p>
               </div>
 
               {/* Field: Delivery Mode */}
               <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
                 <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                  පැවැත්වෙන ආකාරය (Delivery Mode)
+                  {isSinhala ? 'පැවැත්වෙන ආකාරය' : 'Delivery Mode'}
                 </p>
                 <p className="font-bold text-gray-900">
-                  {course.deliveryMode.replace(/_/g, ' ')}
+                  {formatDeliveryMode(course.deliveryMode, isSinhala)}
                 </p>
               </div>
 
               {/* Field: Mediums */}
               <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
                 <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                  ඉගැන්වීමේ භාෂා (Mediums)
+                  {isSinhala ? 'ඉගැන්වීමේ භාෂා' : 'Mediums'}
                 </p>
                 <p className="font-bold text-gray-900 flex items-center gap-1.5">
                   <Globe size={16} className="text-emerald-700 shrink-0" />
-                  <span>{Array.isArray(course.mediums) ? course.mediums.join(', ') : 'සිංහල'}</span>
+                  <span>
+                    {Array.isArray(course.mediums) && course.mediums.length > 0
+                      ? course.mediums.map((m: string) => formatMedium(m, isSinhala)).join(', ')
+                      : (isSinhala ? 'සිංහල' : 'Sinhala')}
+                  </span>
                 </p>
               </div>
 
               {/* Field: Duration */}
               <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
                 <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                  කාලසීමාව (Duration)
+                  {isSinhala ? 'කාලසීමාව' : 'Duration'}
                 </p>
                 <p className="font-bold text-gray-900 flex items-center gap-1.5">
                   <Clock size={16} className="text-emerald-700 shrink-0" />
-                  <span>{course.durationValue} {course.durationUnit}</span>
+                  <span>{course.durationValue} {formatDurationUnit(course.durationUnit, isSinhala)}</span>
                 </p>
               </div>
 
               {/* Field: Course Fee */}
               <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
                 <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                  පාඨමාලා ගාස්තුව (Course Fee)
+                  {isSinhala ? 'පාඨමාලා ගාස්තුව' : 'Course Fee'}
                 </p>
                 <p className="font-bold text-emerald-800 flex items-center gap-1">
                   <DollarSign size={16} className="text-emerald-700 shrink-0" />
-                  <span>{course.courseFee === 0 ? 'නොමිලේ (Free)' : `Rs. ${course.courseFee.toLocaleString()} LKR`}</span>
+                  <span>{course.courseFee === 0 ? (isSinhala ? 'නොමිලේ' : 'Free') : `Rs. ${Number(course.courseFee).toLocaleString()} LKR`}</span>
                 </p>
               </div>
 
@@ -263,11 +359,11 @@ export default function EducationDetail() {
               {course.applicationCallingMonth && (
                 <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
                   <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                    අයදුම්පත් කැඳවන මාසය
+                    {isSinhala ? 'අයදුම්පත් කැඳවන මාසය' : 'Application Calling Month'}
                   </p>
                   <p className="font-bold text-gray-900 flex items-center gap-1.5">
                     <Calendar size={16} className="text-emerald-700 shrink-0" />
-                    <span>{course.applicationCallingMonth}</span>
+                    <span>{formatBilingualText(course.applicationCallingMonth, isSinhala)}</span>
                   </p>
                 </div>
               )}
@@ -276,11 +372,11 @@ export default function EducationDetail() {
               {course.enrollmentMonth && (
                 <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
                   <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                    බඳවාගන්නා මාසය
+                    {isSinhala ? 'බඳවාගන්නා මාසය' : 'Enrollment Month'}
                   </p>
                   <p className="font-bold text-gray-900 flex items-center gap-1.5">
                     <Calendar size={16} className="text-emerald-700 shrink-0" />
-                    <span>{course.enrollmentMonth}</span>
+                    <span>{formatBilingualText(course.enrollmentMonth, isSinhala)}</span>
                   </p>
                 </div>
               )}
@@ -289,11 +385,11 @@ export default function EducationDetail() {
               {course.startMonth && (
                 <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
                   <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                    පාඨමාලාව ආරම්භය
+                    {isSinhala ? 'පාඨමාලාව ආරම්භය' : 'Course Start Month'}
                   </p>
                   <p className="font-bold text-emerald-800 flex items-center gap-1.5">
                     <Calendar size={16} className="text-emerald-700 shrink-0" />
-                    <span>{course.startMonth}</span>
+                    <span>{formatBilingualText(course.startMonth, isSinhala)}</span>
                   </p>
                 </div>
               )}
@@ -302,7 +398,7 @@ export default function EducationDetail() {
               {course.deadlineDate && (
                 <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
                   <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                    අයදුම්පත් අවසන් දිනය
+                    {isSinhala ? 'අයදුම්පත් අවසන් දිනය' : 'Application Deadline'}
                   </p>
                   <p className="font-bold text-red-600 flex items-center gap-1.5">
                     <Calendar size={16} className="text-red-500 shrink-0" />
@@ -314,17 +410,17 @@ export default function EducationDetail() {
               {/* Field: Schedule */}
               <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100 sm:col-span-2 lg:col-span-3">
                 <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                  පන්ති පැවැත්වෙන වේලාවන් (Class Schedule)
+                  {isSinhala ? 'පන්ති පැවැත්වෙන වේලාවන්' : 'Class Schedule'}
                 </p>
                 <p className="font-bold text-gray-900">
-                  {course.classSchedule || 'සති අන්තයේ පෙ.ව. 9:00 - ප.ව. 4:00'}
+                  {course.classSchedule || (isSinhala ? 'සති අන්තයේ පෙ.ව. 9:00 - ප.ව. 4:00' : 'Weekends 9:00 AM - 4:00 PM')}
                 </p>
               </div>
 
               {/* Field: Venue Locations */}
               <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100 sm:col-span-2 lg:col-span-3">
                 <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-                  ප්‍රායෝගික පුහුණු ගොවිපළ ලිපිනයන් / ස්ථාන (Venue Locations)
+                  {isSinhala ? 'ප්‍රායෝගික පුහුණු ගොවිපළ ලිපිනයන් / ස්ථාන' : 'Practical Training Venues & Locations'}
                 </p>
                 {course.venueLocations && Array.isArray(course.venueLocations) && course.venueLocations.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
@@ -341,7 +437,7 @@ export default function EducationDetail() {
                 ) : (
                   <p className="font-bold text-gray-900 flex items-center gap-1.5">
                     <MapPin size={16} className="text-emerald-700 shrink-0" />
-                    <span>{course.venueLocation || 'ජාතික කෘෂිකර්ම පුහුණු සහ පර්යේෂණ මධ්‍යස්ථානය'}</span>
+                    <span>{course.venueLocation || (isSinhala ? 'ජාතික කෘෂිකර්ම පුහුණු සහ පර්යේෂණ මධ්‍යස්ථානය' : 'National Agricultural Training and Research Center')}</span>
                   </p>
                 )}
               </div>
@@ -349,13 +445,97 @@ export default function EducationDetail() {
               {/* Field: Certificate & Accreditation */}
               <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100 sm:col-span-2 lg:col-span-3">
                 <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                  ලබාදෙන සහතිකය සහ ප්‍රතීතන ආයතනය (Accredited Certification)
+                  {isSinhala ? 'ලබාදෙන සහතිකය සහ ප්‍රතීතන ආයතනය' : 'Accredited Certification'}
                 </p>
                 <p className="font-bold text-gray-900 flex items-center gap-1.5">
                   <CheckCircle2 size={16} className="text-emerald-700 shrink-0" />
-                  <span>{course.certificateType || 'රජයේ පිළිගත් නිපුණතා සහතිකය'} - {course.accreditedBy || 'TVEC / කෘෂිකර්ම දෙපාර්තමේන්තුව'}</span>
+                  <span>
+                    {course.certificateType || (isSinhala ? 'රජයේ පිළිගත් නිපුණතා සහතිකය' : 'Government Recognized Skill Certificate')}
+                    {' - '}
+                    {course.accreditedBy || (isSinhala ? 'TVEC / කෘෂිකර්ම දෙපාර්තමේන්තුව' : 'TVEC / Department of Agriculture')}
+                  </span>
                 </p>
               </div>
+
+              {/* Field: Online Application URL (Google Form) */}
+              {course.applyUrl && (
+                <div className="p-4 bg-emerald-50/60 rounded-xl border border-emerald-200/80 sm:col-span-2 lg:col-span-3">
+                  <p className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <Globe size={14} className="text-emerald-700 shrink-0" />
+                    <span>{isSinhala ? 'මාර්ගගත අයදුම්පත් සබැඳිය (Google Form)' : 'Online Application Link (Google Form)'}</span>
+                  </p>
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                    <div className="flex-1 bg-white px-3.5 py-2.5 rounded-lg border border-emerald-200 text-xs text-gray-700 font-mono truncate select-all">
+                      {course.applyUrl}
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyLink(course.applyUrl)}
+                        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-white hover:bg-emerald-50 border border-emerald-300 text-emerald-800 rounded-lg text-xs font-bold transition-all shadow-2xs cursor-pointer"
+                      >
+                        {copiedLink ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                        <span>{copiedLink ? (isSinhala ? 'පිටපත් විය!' : 'Copied!') : (isSinhala ? 'ලින්ක් එක Copy කරන්න' : 'Copy Link')}</span>
+                      </button>
+                      <a
+                        href={course.applyUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold transition-all shadow-2xs"
+                      >
+                        <ExternalLink size={14} />
+                        <span>{isSinhala ? 'පෝරමය විවෘත කරන්න' : 'Open Form'}</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Field: Downloadable Application File (PDF / Doc) */}
+              {course.applicationFileUrl && (
+                <div className="p-4 bg-blue-50/60 rounded-xl border border-blue-200/80 sm:col-span-2 lg:col-span-3">
+                  <p className="text-[11px] font-bold text-blue-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <FileText size={14} className="text-blue-700 shrink-0" />
+                    <span>{isSinhala ? 'අයදුම්පත්‍රය බාගත කිරීම සඳහා ලේඛනය (PDF)' : 'Downloadable Application Document (PDF)'}</span>
+                  </p>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-3.5 rounded-lg border border-blue-200">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                        <FileText size={20} />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-gray-900 block">
+                          {isSinhala ? 'නිල පාඨමාලා අයදුම්පත්‍රය' : 'Official Course Application Form'}
+                        </span>
+                        <span className="text-[11px] text-gray-500">
+                          {isSinhala ? 'බාගත කර මුද්‍රණය කර පුරවා භාරදෙන්න' : 'Download, print, fill and submit'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+                      <a
+                        href={course.applicationFileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white hover:bg-blue-50 border border-blue-300 text-blue-800 rounded-lg text-xs font-bold transition-all"
+                      >
+                        <ExternalLink size={14} />
+                        <span>{isSinhala ? 'පෙරදසුන' : 'View'}</span>
+                      </a>
+                      <a
+                        href={course.applicationFileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download
+                        className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition-all shadow-2xs"
+                      >
+                        <Download size={14} />
+                        <span>{isSinhala ? 'බාගත කරන්න' : 'Download'}</span>
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -365,7 +545,7 @@ export default function EducationDetail() {
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 md:p-8 space-y-3">
             <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
               <BookOpen size={18} className="text-emerald-700" />
-              පාඨමාලා හැඳින්වීම සහ අරමුණු (Course Overview & Objectives)
+              {isSinhala ? 'පාඨමාලා හැඳින්වීම සහ අරමුණු' : 'Course Overview & Objectives'}
             </h3>
             <div
               className="text-xs sm:text-sm text-gray-700 leading-relaxed bg-gray-50/60 p-5 rounded-xl border border-gray-100 prose max-w-none prose-emerald rich-content"
@@ -380,23 +560,157 @@ export default function EducationDetail() {
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 space-y-3">
           <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
             <CheckCircle2 size={18} className="text-emerald-700" />
-            ඇතුළත් වීමේ අවම සුදුසුකම් (Entry Requirements)
+            {isSinhala ? 'ඇතුළත් වීමේ අවම සුදුසුකම්' : 'Entry Requirements'}
           </h3>
           <div
             className="text-xs sm:text-sm text-gray-700 leading-relaxed bg-gray-50/60 p-4 rounded-xl border border-gray-100 prose max-w-none prose-emerald rich-content"
             dangerouslySetInnerHTML={{
-              __html: (course.entryRequirements || 'අ.පො.ස. (සා.පෙළ) විභාගයට පෙනී සිටීම හෝ කෘෂිකර්මාන්තයට ඇති උනන්දුව.').replace(/&nbsp;|\u00a0/g, ' ')
+              __html: (course.entryRequirements || (isSinhala ? 'අ.පො.ස. (සා.පෙළ) විභාගයට පෙනී සිටීම හෝ කෘෂිකර්මාන්තයට ඇති උනන්දුව.' : 'G.C.E. (O/L) completion or genuine interest in agriculture.')).replace(/&nbsp;|\u00a0/g, ' ')
             }}
           />
         </div>
 
-        {/* ── 4. SYLLABUS MODULES (විෂය නිර්දේශයේ සියලු මොඩියුල) ── */}
+        {/* ── 3.5 APPLICATION LINKS & DOWNLOADABLE DOCUMENTS ── */}
+        {(course.applyUrl || course.applicationFileUrl) && (
+          <div className="bg-white rounded-2xl border border-emerald-200/80 shadow-sm p-6 md:p-8 space-y-6 bg-gradient-to-br from-white via-emerald-50/20 to-teal-50/20">
+            <div className="flex items-center justify-between border-b border-emerald-100 pb-3.5 flex-wrap gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-700 text-white flex items-center justify-center shrink-0">
+                  <FileText size={18} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">
+                    {isSinhala ? 'අයදුම්පත් සහ බාගත හැකි ලේඛන' : 'Application Links & Downloadable Documents'}
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {isSinhala ? 'මෙම පාඨමාලාවට අයදුම් කිරීමට පහත සබැඳි හෝ ලේඛන භාවිතා කරන්න.' : 'Use the official links and forms below to apply for this course.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              
+              {/* Card 1: Google Form / Online Link */}
+              {course.applyUrl && (
+                <div className="bg-white rounded-xl p-5 border border-emerald-200/90 shadow-2xs flex flex-col justify-between space-y-4 hover:border-emerald-300 transition-all">
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                        <Globe size={13} /> {isSinhala ? 'මාර්ගගත අයදුම්පත' : 'Online Form'}
+                      </span>
+                      <span className="text-[11px] font-mono text-gray-400">Google Form</span>
+                    </div>
+                    <h4 className="text-sm font-bold text-gray-900 leading-snug">
+                      {isSinhala ? 'මාර්ගගතව සෘජුවම අයදුම් කරන්න' : 'Direct Online Application Link'}
+                    </h4>
+                    <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                      {isSinhala
+                        ? 'Google Form සබැඳිය මඟින් ඔබගේ තොරතුරු පහසුවෙන් මාර්ගගතව ඉදිරිපත් කළ හැක.'
+                        : 'Submit your application details directly via the official online form.'}
+                    </p>
+
+                    {/* URL View & Copy Box */}
+                    <div className="mt-3.5 bg-gray-50 p-2.5 rounded-lg border border-gray-200 flex items-center gap-2">
+                      <ExternalLink size={14} className="text-gray-400 shrink-0" />
+                      <span className="text-xs text-gray-700 font-mono truncate select-all flex-1">
+                        {course.applyUrl}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => handleCopyLink(course.applyUrl)}
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3.5 bg-white hover:bg-emerald-50 border border-emerald-300 text-emerald-800 font-bold rounded-xl text-xs transition-all shadow-2xs cursor-pointer"
+                    >
+                      {copiedLink ? <Check size={15} className="text-emerald-600" /> : <Copy size={15} />}
+                      <span>{copiedLink ? (isSinhala ? 'පිටපත් විය!' : 'Copied!') : (isSinhala ? 'ලින්ක් එක Copy කරන්න' : 'Copy Link')}</span>
+                    </button>
+                    <a
+                      href={course.applyUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs transition-all shadow-sm"
+                    >
+                      <ExternalLink size={15} />
+                      <span>{isSinhala ? 'පෝරමය විවෘත කරන්න' : 'Open Form'}</span>
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {/* Card 2: Uploaded PDF / Application File */}
+              {course.applicationFileUrl && (
+                <div className="bg-white rounded-xl p-5 border border-blue-200/90 shadow-2xs flex flex-col justify-between space-y-4 hover:border-blue-300 transition-all">
+                  <div>
+                    <div className="flex items-center justify-between gap-2 mb-2">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-100 text-blue-800">
+                        <FileText size={13} /> {isSinhala ? 'බාගත හැකි ලේඛනය' : 'PDF Document'}
+                      </span>
+                      <span className="text-[11px] font-mono text-gray-400">PDF / Word</span>
+                    </div>
+                    <h4 className="text-sm font-bold text-gray-900 leading-snug">
+                      {isSinhala ? 'නිල පාඨමාලා අයදුම්පත්‍රය' : 'Official Course Application Form'}
+                    </h4>
+                    <p className="text-xs text-gray-600 mt-1 leading-relaxed">
+                      {isSinhala
+                        ? 'මුද්‍රිත අයදුම්පත්‍රය බාගත කර, සම්පූර්ණ කර අදාළ ආයතනය වෙත භාරදීම හෝ තැපැල් කිරීමට භාවිතා කරන්න.'
+                        : 'Download the physical form to print, complete by hand, and submit or post to the center.'}
+                    </p>
+
+                    {/* File Box Preview */}
+                    <div className="mt-3.5 bg-blue-50/50 p-2.5 rounded-lg border border-blue-100 flex items-center gap-2.5">
+                      <FileText size={18} className="text-blue-600 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <span className="text-xs font-bold text-gray-800 block truncate">
+                          {course.title} - {isSinhala ? 'අයදුම්පත්‍රය' : 'Application Form'}
+                        </span>
+                        <span className="text-[10px] text-gray-500 font-mono truncate block">
+                          {course.applicationFileUrl.split('/').pop() || 'application_form.pdf'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 pt-2">
+                    <a
+                      href={course.applicationFileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3.5 bg-white hover:bg-blue-50 border border-blue-300 text-blue-800 font-bold rounded-xl text-xs transition-all shadow-2xs"
+                    >
+                      <ExternalLink size={15} />
+                      <span>{isSinhala ? 'පෙරදසුන' : 'View'}</span>
+                    </a>
+                    <a
+                      href={course.applicationFileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download
+                      className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition-all shadow-sm"
+                    >
+                      <Download size={15} />
+                      <span>{isSinhala ? 'බාගත කරන්න' : 'Download PDF'}</span>
+                    </a>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </div>
+        )}
+
+        {/* ── 4. SYLLABUS MODULES ── */}
         {course.modules && course.modules.length > 0 && (
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 md:p-8 space-y-4">
             <div className="flex items-center justify-between border-b border-gray-100 pb-3">
               <h3 className="text-sm sm:text-base font-bold text-gray-900 flex items-center gap-2">
                 <Layers size={18} className="text-emerald-700" />
-                විෂය නිර්දේශයේ මොඩියුල (Curriculum & Course Modules - {course.modules.length})
+                {isSinhala ? `විෂය නිර්දේශයේ මොඩියුල (${course.modules.length})` : `Curriculum & Course Modules (${course.modules.length})`}
               </h3>
             </div>
 
@@ -418,7 +732,7 @@ export default function EducationDetail() {
           </div>
         )}
 
-        {/* ── 4.5 RELATED JOB OPPORTUNITIES (අදාළ රැකියා අවස්ථා) ── */}
+        {/* ── 4.5 RELATED JOB OPPORTUNITIES ── */}
         {course.relatedJobs && course.relatedJobs.length > 0 && (
           <div className="bg-white rounded-2xl border border-blue-100/80 shadow-sm p-6 md:p-8 space-y-4 bg-gradient-to-br from-white via-blue-50/20 to-indigo-50/30">
             <div className="flex items-center justify-between border-b border-blue-100/80 pb-3">
@@ -451,12 +765,12 @@ export default function EducationDetail() {
           </div>
         )}
 
-        {/* ── 5. BOTTOM ACTION BANNER (Fee Info & Apply Now CTA) ── */}
+        {/* ── 5. BOTTOM ACTION BANNER ── */}
         <div className="bg-gradient-to-r from-emerald-900 via-green-900 to-teal-900 rounded-2xl text-white p-6 md:p-8 shadow-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
-                {course.courseCode} • {course.courseLevel}
+                {course.courseCode} • {formatQualificationLevel(course.courseLevel, isSinhala)}
               </span>
               {course.applicationCalled && (
                 <span className="inline-flex items-center gap-1 bg-amber-400 text-amber-950 font-black px-2.5 py-0.5 rounded-full text-xs shadow-xs animate-pulse">
@@ -467,35 +781,45 @@ export default function EducationDetail() {
             </div>
             <div className="flex items-baseline gap-2 mt-1">
               <span className="text-2xl md:text-3xl font-black text-white">
-                {course.courseFee === 0 ? 'නොමිලේ (Free)' : `Rs. ${course.courseFee.toLocaleString()} LKR`}
+                {course.courseFee === 0 ? (isSinhala ? 'නොමිලේ' : 'Free') : `Rs. ${Number(course.courseFee).toLocaleString()} LKR`}
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-4 text-xs text-emerald-100/80 mt-2">
               {course.deadlineDate && (
                 <span className="flex items-center gap-1 text-amber-300 font-semibold">
-                  <Calendar size={14} /> අයදුම්පත් අවසන් දිනය: {course.deadlineDate.split('T')[0]}
+                  <Calendar size={14} /> {isSinhala ? 'අයදුම්පත් අවසන් දිනය' : 'Application Deadline'}: {course.deadlineDate.split('T')[0]}
                 </span>
               )}
             </div>
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+            {course.applyUrl && (
+              <a
+                href={course.applyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 text-white px-5 py-3 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-xs"
+              >
+                <ExternalLink size={16} /> Google Form
+              </a>
+            )}
             {course.applicationFileUrl && (
               <a
                 href={course.applicationFileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 download
-                className="flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 text-white px-5 py-3 rounded-xl font-bold text-xs sm:text-sm transition-all"
+                className="flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 text-white px-5 py-3 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-xs"
               >
-                <FileText size={16} /> අයදුම්පත්‍රය (Download Form)
+                <Download size={16} /> {isSinhala ? 'අයදුම්පත්‍රය බාගත කරන්න' : 'Download Application Form'}
               </a>
             )}
             <button
               onClick={handleApplyClick}
-              className="flex items-center justify-center gap-2.5 bg-emerald-400 hover:bg-emerald-300 text-emerald-950 px-8 py-3.5 rounded-xl font-extrabold text-sm sm:text-base shadow-lg shadow-emerald-950/30 hover:scale-[1.02] transition-all"
+              className="flex items-center justify-center gap-2.5 bg-emerald-400 hover:bg-emerald-300 text-emerald-950 px-8 py-3.5 rounded-xl font-extrabold text-sm sm:text-base shadow-lg shadow-emerald-950/30 hover:scale-[1.02] transition-all cursor-pointer"
             >
-              <Send size={18} /> දැන්ම අයදුම් කරන්න (Apply Now)
+              <Send size={18} /> {isSinhala ? 'දැන්ම අයදුම් කරන්න' : 'Apply Now'}
             </button>
           </div>
         </div>
@@ -523,7 +847,7 @@ export default function EducationDetail() {
                   {course.courseCode}
                 </span>
                 <h3 className="text-lg font-bold text-gray-900 mt-0.5">
-                  පාඨමාලාවට ලියාපදිංචි වීමේ පෝරමය
+                  {isSinhala ? 'පාඨමාලාවට ලියාපදිංචි වීමේ පෝරමය' : 'Course Application Form'}
                 </h3>
                 <p className="text-xs text-gray-500 truncate max-w-sm mt-0.5">{course.title}</p>
               </div>
@@ -541,20 +865,20 @@ export default function EducationDetail() {
                 <div className="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto">
                   <Check size={32} />
                 </div>
-                <h4 className="text-lg font-bold text-gray-900">අයදුම්පත සාර්ථකව යොමු කෙරිණි!</h4>
+                <h4 className="text-lg font-bold text-gray-900">{isSinhala ? 'අයදුම්පත සාර්ථකව යොමු කෙරිණි!' : 'Application Submitted Successfully!'}</h4>
                 <p className="text-xs text-gray-500 max-w-xs mx-auto">
-                  ඔබගේ අයදුම්පත අප වෙත ලැබුණි. අපගේ නිලධාරියෙකු කඩිනමින් ඔබව සම්බන්ධ කරගනු ඇත.
+                  {isSinhala ? 'ඔබගේ අයදුම්පත අප වෙත ලැබුණි. අපගේ නිලධාරියෙකු කඩිනමින් ඔබව සම්බන්ධ කරගනු ඇත.' : 'We have received your application. Our representative will contact you shortly.'}
                 </p>
               </div>
             ) : (
               <form onSubmit={handleApplicationSubmit} className="space-y-4 text-xs sm:text-sm">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                    අයදුම්කරුගේ සම්පූර්ණ නම (Full Name) *
+                    {isSinhala ? 'අයදුම්කරුගේ සම්පූර්ණ නම *' : 'Full Name *'}
                   </label>
                   <input
                     required
-                    placeholder="ඔබගේ සම්පූර්ණ නම ඇතුළත් කරන්න"
+                    placeholder={isSinhala ? 'ඔබගේ සම්පූර්ණ නම ඇතුළත් කරන්න' : 'Enter your full name'}
                     value={applyForm.applicantName}
                     onChange={e => setApplyForm({ ...applyForm, applicantName: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs sm:text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
@@ -563,11 +887,11 @@ export default function EducationDetail() {
 
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                    දුරකථන අංකය (Phone Number) *
+                    {isSinhala ? 'දුරකථන අංකය *' : 'Phone Number *'}
                   </label>
                   <input
                     required
-                    placeholder="+9477..."
+                    placeholder={isSinhala ? '+9477... (දුරකථන අංකය)' : '+9477... (Phone number)'}
                     value={applyForm.applicantPhone}
                     onChange={e => setApplyForm({ ...applyForm, applicantPhone: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs sm:text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
@@ -577,7 +901,7 @@ export default function EducationDetail() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                      විද්‍යුත් තැපෑල (Email)
+                      {isSinhala ? 'විද්‍යුත් තැපෑල' : 'Email Address'}
                     </label>
                     <input
                       type="email"
@@ -589,7 +913,7 @@ export default function EducationDetail() {
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                      ජාතික හැඳුනුම්පත් අංකය (NIC)
+                      {isSinhala ? 'ජාතික හැඳුනුම්පත් අංකය' : 'National Identity Card (NIC)'}
                     </label>
                     <input
                       placeholder="NIC Number"
@@ -602,10 +926,10 @@ export default function EducationDetail() {
 
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                    දිස්ත්‍රික්කය (District)
+                    {isSinhala ? 'දිස්ත්‍රික්කය' : 'District'}
                   </label>
                   <input
-                    placeholder="උදා: මහනුවර / කුරුණෑගල"
+                    placeholder={isSinhala ? 'උදා: මහනුවර / කුරුණෑගල' : 'e.g. Kandy / Kurunegala'}
                     value={applyForm.applicantDistrict}
                     onChange={e => setApplyForm({ ...applyForm, applicantDistrict: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs sm:text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
@@ -614,11 +938,11 @@ export default function EducationDetail() {
 
                 <div>
                   <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                    විශේෂ සටහන් (Remarks)
+                    {isSinhala ? 'විශේෂ සටහන්' : 'Special Remarks'}
                   </label>
                   <textarea
                     rows={2}
-                    placeholder="අමතර තොරතුරු හෝ විමසීම්..."
+                    placeholder={isSinhala ? 'අමතර තොරතුරු හෝ විමසීම්...' : 'Additional notes or inquiries...'}
                     value={applyForm.remarks}
                     onChange={e => setApplyForm({ ...applyForm, remarks: e.target.value })}
                     className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs focus:ring-1 focus:ring-emerald-600 outline-none"
@@ -633,7 +957,7 @@ export default function EducationDetail() {
                       rel="noopener noreferrer"
                       className="text-xs text-emerald-700 hover:underline flex items-center gap-1.5 font-semibold"
                     >
-                      <ExternalLink size={13} /> Google Form මඟින් සෘජුවම අයදුම් කිරීමට මෙතැන ක්ලික් කරන්න
+                      <ExternalLink size={13} /> {isSinhala ? 'Google Form මඟින් සෘජුවම අයදුම් කිරීමට මෙතැන ක්ලික් කරන්න' : 'Click here to apply directly via Google Form'}
                     </a>
                   )}
                   {course.applicationFileUrl && (
@@ -644,7 +968,7 @@ export default function EducationDetail() {
                       download
                       className="text-xs text-emerald-700 hover:underline flex items-center gap-1.5 font-semibold"
                     >
-                      <FileText size={13} /> අයදුම්පත්‍රය (PDF Form) බාගත කරගැනීමට මෙතැන ක්ලික් කරන්න
+                      <FileText size={13} /> {isSinhala ? 'අයදුම්පත්‍රය (PDF) බාගත කරගැනීමට මෙතැන ක්ලික් කරන්න' : 'Click here to download the printable application form (PDF)'}
                     </a>
                   )}
                 </div>
@@ -661,7 +985,7 @@ export default function EducationDetail() {
                     onClick={() => setIsApplyModalOpen(false)}
                     className="flex-1 py-2.5 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
                   >
-                    Cancel
+                    {isSinhala ? 'අවලංගු කරන්න' : 'Cancel'}
                   </button>
                   <button
                     type="submit"
@@ -669,7 +993,7 @@ export default function EducationDetail() {
                     className="flex-1 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-sm disabled:opacity-50 transition-all flex items-center justify-center gap-2"
                   >
                     {isSubmittingApp && <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                    අයදුම්පත යොමු කරන්න (Submit)
+                    {isSinhala ? 'අයදුම්පත යොමු කරන්න' : 'Submit Application'}
                   </button>
                 </div>
               </form>
