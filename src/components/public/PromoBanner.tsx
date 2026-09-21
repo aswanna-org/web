@@ -43,7 +43,10 @@ export default function PromoBanner() {
               <h2 className="text-3xl lg:text-4xl font-extrabold text-white leading-snug mb-6 drop-shadow-md max-w-lg">
                 {t('promo.title')}
               </h2>
-              <button className="px-8 py-3.5 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 tracking-wider">
+              <button 
+                onClick={() => window.location.href = '/about'}
+                className="glass-btn px-9 py-4 tracking-wider text-sm sm:text-base cursor-pointer"
+              >
                 {t('promo.button')}
               </button>
             </div>

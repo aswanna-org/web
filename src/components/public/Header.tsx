@@ -156,7 +156,7 @@ export default function Header() {
 
           <Link 
             to="/pages/contact" 
-            className="border border-white/50 hover:border-white text-white rounded-full px-5 py-2 text-[14px] font-medium transition-all hover:bg-white/10"
+            className="glass-btn px-5 py-2 text-[14px]"
           >
             {t('header.contact', 'Contact Us')}
           </Link>
@@ -166,27 +166,27 @@ export default function Header() {
               <div className="flex items-center gap-2">
                 <Link 
                   to="/admin" 
-                  className="bg-white text-emerald-900 hover:text-emerald-700 rounded-full px-5 py-2 text-[14px] font-bold transition-all hover:bg-emerald-50 shadow-[0_0_15px_rgba(255,255,255,0.2)]"
+                  className="glass-btn-light px-5 py-2 text-[14px]"
                 >
                   Admin Panel
                 </Link>
                 <button
                   onClick={logout}
                   title="Log out"
-                  className="bg-white/10 hover:bg-white/20 text-white rounded-full p-2 transition-all cursor-pointer"
+                  className="glass-btn !p-2 transition-all cursor-pointer shadow-xs"
                 >
                   <LogOut size={16} />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20 text-white text-xs font-semibold shadow-sm">
+              <div className="flex items-center gap-3 bg-white/15 backdrop-blur-xl px-4 py-1.5 rounded-full border border-white/30 text-white text-xs font-semibold shadow-[0_4px_20px_rgba(0,0,0,0.1)]">
                 <div className="flex items-center gap-1.5">
                   <UserIcon size={14} className="text-emerald-300" />
                   <span className="max-w-[120px] truncate">{user?.name || user?.email}</span>
                 </div>
                 <button
                   onClick={logout}
-                  className="text-white/70 hover:text-white transition-colors cursor-pointer text-xs font-medium ml-1 pl-2 border-l border-white/20 flex items-center gap-1"
+                  className="text-white/80 hover:text-white transition-colors cursor-pointer text-xs font-medium ml-1 pl-2 border-l border-white/20 flex items-center gap-1"
                 >
                   <LogOut size={12} />
                   <span>Logout</span>
@@ -196,7 +196,7 @@ export default function Header() {
           ) : (
             <button 
               onClick={openLoginModal}
-              className="bg-white text-gray-900 hover:text-green-800 rounded-full px-6 py-2 text-[14px] font-bold transition-all hover:bg-gray-100 shadow-[0_0_15px_rgba(255,255,255,0.2)] cursor-pointer"
+              className="glass-btn-light px-6 py-2 text-[14px]"
             >
               Login
             </button>
@@ -332,7 +332,7 @@ export default function Header() {
               <Link 
                 to="/pages/contact" 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full text-center border border-[var(--color-primary)] text-[var(--color-primary)] rounded-full px-5 py-3 font-medium transition-all hover:bg-[var(--color-primary)] hover:text-white"
+                className="glass-btn w-full py-3.5 text-base"
               >
                 {t('header.contact', 'Contact Us')}
               </Link>
@@ -342,7 +342,7 @@ export default function Header() {
                     <Link 
                       to="/admin" 
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="w-full text-center bg-emerald-600 text-white hover:bg-emerald-700 rounded-full px-6 py-3 font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)]"
+                      className="glass-btn-green w-full py-3.5 text-base font-bold"
                     >
                       Admin Panel
                     </Link>
@@ -351,14 +351,13 @@ export default function Header() {
                         setIsMobileMenuOpen(false);
                         logout();
                       }}
-                      className="w-full text-center bg-white/10 text-white rounded-full px-6 py-2.5 text-sm font-semibold transition-all hover:bg-white/20 cursor-pointer flex items-center justify-center gap-2"
+                      className="glass-btn w-full py-3 text-sm font-semibold cursor-pointer"
                     >
-                      <LogOut size={15} />
                       <span>Logout ({user?.name || 'Admin'})</span>
                     </button>
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-2 p-3 bg-white/10 rounded-2xl border border-white/15 text-center">
+                  <div className="flex flex-col gap-2 p-3 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 text-center">
                     <div className="flex items-center justify-center gap-2 text-emerald-300 text-sm font-semibold">
                       <UserIcon size={16} />
                       <span>{user?.name || user?.email}</span>
@@ -368,9 +367,8 @@ export default function Header() {
                         setIsMobileMenuOpen(false);
                         logout();
                       }}
-                      className="w-full text-center bg-white/10 hover:bg-white/20 text-white rounded-full px-5 py-2.5 text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                      className="glass-btn w-full py-2.5 text-xs font-semibold cursor-pointer"
                     >
-                      <LogOut size={14} />
                       <span>Logout (ඉවත් වන්න)</span>
                     </button>
                   </div>
@@ -381,7 +379,7 @@ export default function Header() {
                     setIsMobileMenuOpen(false);
                     openLoginModal();
                   }}
-                  className="w-full text-center bg-white text-gray-900 hover:text-[var(--color-primary)] rounded-full px-6 py-3 font-bold transition-all shadow-[0_0_15px_rgba(255,255,255,0.2)] cursor-pointer"
+                  className="glass-btn-light w-full py-3.5 text-base font-bold cursor-pointer"
                 >
                   Login
                 </button>

@@ -76,34 +76,36 @@ export default function SecondaryNav() {
   return (
     <div className={`fixed z-40 transition-all duration-500 ease-in-out
       top-[90px] right-2.5 w-auto flex flex-col gap-2
-      lg:top-[110px] lg:left-0 lg:right-auto lg:w-full lg:block
-      ${isFloating ? 'lg:!top-[130px] lg:!right-4 lg:!left-auto lg:!w-[175px]' : ''}
+      lg:top-[110px] xl:top-[125px] lg:left-0 lg:right-auto lg:w-full lg:block
+      ${isFloating ? 'lg:!top-[130px] lg:!right-4 lg:!left-auto lg:!w-[185px]' : ''}
     `}>
-      <div className={`w-full ${!isFloating ? 'lg:container lg:mx-auto lg:px-8 lg:py-4' : 'lg:py-2'}`}>
-        <div className={`flex flex-col gap-2 ${!isFloating ? 'lg:grid lg:grid-cols-4 lg:gap-4' : 'lg:flex lg:flex-col lg:gap-1.5'}`}>
+      <div className={`w-full ${!isFloating ? 'lg:container lg:mx-auto lg:px-6 xl:px-8 lg:py-4' : 'lg:py-2'}`}>
+        <div className={`flex flex-col gap-2 ${!isFloating ? 'lg:grid lg:grid-cols-4 lg:gap-4 xl:gap-5' : 'lg:flex lg:flex-col lg:gap-1.5'}`}>
           {links.map((link) => (
             <Link
               key={link.id}
               to={link.to}
               title={isSinhala ? `${link.titleSi} - ${link.descSi}` : `${link.titleEn} - ${link.descEn}`}
-              className={`relative overflow-hidden ${link.bgColor} rounded-full transition-all duration-300 group hover:shadow-[0_8px_32px_0_rgba(255,255,255,0.2)] hover:-translate-y-0.5 flex items-center justify-center lg:justify-start ${
-                isFloating ? 'w-10 h-10 lg:w-full lg:py-2 lg:px-3' : 'w-10 h-10 lg:w-full lg:p-3 lg:py-3 lg:px-4'
+              className={`relative overflow-hidden ${link.bgColor} rounded-full transition-all duration-300 group hover:shadow-[0_8px_32px_0_rgba(255,255,255,0.25)] hover:-translate-y-0.5 flex items-center justify-center lg:justify-start ${
+                isFloating
+                  ? 'w-10 h-10 lg:w-full lg:py-2.5 lg:px-3.5'
+                  : 'w-10 h-10 lg:w-full lg:py-4 lg:px-5 xl:py-5 xl:px-6 lg:min-h-[68px] xl:min-h-[76px]'
               }`}
             >
               {/* Background Decorative Icon */}
-              <link.icon className={`hidden lg:block absolute -bottom-3 -right-3 text-white opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-500 ${isFloating ? 'w-10 h-10' : 'w-16 h-16'}`} />
+              <link.icon className={`hidden lg:block absolute -bottom-4 -right-4 text-white opacity-5 group-hover:opacity-10 group-hover:scale-110 transition-all duration-500 ${isFloating ? 'w-10 h-10' : 'w-20 h-20 xl:w-24 xl:h-24'}`} />
 
-              <div className={`relative z-10 flex items-center justify-center lg:justify-start ${isFloating ? 'lg:gap-2.5' : 'lg:gap-4'} w-full`}>
+              <div className={`relative z-10 flex items-center justify-center lg:justify-start ${isFloating ? 'lg:gap-2.5' : 'lg:gap-4 xl:gap-5'} w-full`}>
 
                 <div className="flex-shrink-0 flex items-center justify-center">
-                  <link.icon className={`text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.35)] w-5 h-5 ${!isFloating ? 'lg:w-8 lg:h-8' : 'lg:w-5 lg:h-5'}`} />
+                  <link.icon className={`text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.35)] w-5 h-5 ${!isFloating ? 'lg:w-9 lg:h-9 xl:w-10 xl:h-10' : 'lg:w-5 lg:h-5'}`} />
                 </div>
 
                 <div className="hidden lg:flex flex-col text-left min-w-0">
-                  <h3 className={`${link.textColor} font-bold leading-tight ${isFloating ? 'text-xs mb-0.5' : 'text-[15px] mb-1.5'} drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] truncate`}>
+                  <h3 className={`${link.textColor} font-bold leading-tight ${isFloating ? 'text-xs mb-0.5' : 'text-[16px] xl:text-[17px] mb-1'} drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] truncate`}>
                     {isSinhala ? link.titleSi : link.titleEn}
                   </h3>
-                  <p className={`${link.textColor} opacity-90 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] ${isFloating ? 'text-[9.5px]' : 'text-[12px]'} leading-tight truncate`}>
+                  <p className={`${link.textColor} opacity-90 font-medium drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] ${isFloating ? 'text-[10px]' : 'text-[12.5px] xl:text-[13.5px]'} leading-tight truncate`}>
                     {isSinhala ? link.descSi : link.descEn}
                   </p>
                 </div>

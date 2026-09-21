@@ -47,7 +47,10 @@ export default function ProductsSection() {
               {t('products.subtitle')}
             </h3>
 
-            <button className="px-8 py-4 bg-white/10 backdrop-blur-md hover:bg-yellow-500/20 text-black font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 uppercase tracking-wider">
+            <button 
+              onClick={() => window.location.href = '/marketplace'}
+              className="glass-btn-light px-9 py-4 uppercase tracking-wider text-sm sm:text-base"
+            >
               {t('products.more')}
             </button>
           </div>

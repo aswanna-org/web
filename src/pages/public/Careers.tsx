@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, ChevronDown, ChevronRight, X } from 'lucide-react';
+import { Search, ChevronDown, X } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import Pagination from '../../components/admin/Pagination';
 
@@ -113,14 +113,14 @@ export default function Careers() {
               />
             </div>
             {/* Filters */}
-            <div className="w-full md:w-auto flex flex-wrap items-center gap-2">
+            <div className="w-full md:w-auto flex flex-wrap items-center gap-2.5">
               {JOB_TYPES.map((type) => (
                 <button
                   key={type}
                   onClick={() => setActiveFilter(type)}
-                  className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all duration-300 shadow-sm ${activeFilter === type
-                    ? 'bg-[var(--color-primary)] text-white shadow-md'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  className={`px-5 py-2 rounded-full text-sm font-semibold transition-all duration-300 ${activeFilter === type
+                    ? 'glass-btn-green'
+                    : 'glass-btn-light'
                     }`}
                 >
                   {t(`careers.types.${type.toLowerCase().replace(' ', '')}`, type)}
@@ -149,7 +149,7 @@ export default function Careers() {
               </div>
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="mt-8 px-8 py-4 bg-[var(--color-primary)]/80 hover:bg-[var(--color-primary)] border border-[var(--color-primary)]/50 backdrop-blur-md flex items-center justify-center text-white font-bold rounded-lg shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-all duration-300 uppercase tracking-wider w-full sm:w-auto"
+                className="glass-btn-green mt-8 px-8 py-4 text-sm sm:text-base tracking-wider uppercase w-full sm:w-auto"
               >
                 Post a Job (Daily Wage)
               </button>
@@ -179,16 +179,16 @@ export default function Careers() {
 
                       <div className="flex items-center gap-4 mt-4 sm:mt-0">
                         <button
-                          className={`w-12 h-12 rounded-full border border-[var(--color-primary)]/30 flex items-center justify-center transition-all duration-300 hidden sm:flex shrink-0 ${expandedJob === job.id ? 'bg-[var(--color-primary)] text-white rotate-180' : 'hover:bg-[var(--color-primary)]/10 text-[var(--color-primary)]'}`}
+                          className={`w-11 h-11 rounded-full border border-[var(--color-secondary)]/30 flex items-center justify-center transition-all duration-300 hidden sm:flex shrink-0 ${expandedJob === job.id ? 'bg-[var(--color-secondary)] text-white rotate-180' : 'hover:bg-[var(--color-secondary)]/10 text-[var(--color-secondary)]'}`}
                           onClick={(e) => { e.stopPropagation(); setExpandedJob(expandedJob === job.id ? null : job.id); }}
                         >
                           <ChevronDown className="w-5 h-5" />
                         </button>
                         <button
-                          className="px-8 py-4 bg-[var(--color-primary)]/80 hover:bg-[var(--color-primary)] border border-[var(--color-primary)]/50 backdrop-blur-md flex items-center justify-center text-white font-bold rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.2)] transition-all duration-300 uppercase tracking-wider shrink-0 w-full sm:w-auto"
+                          className="glass-btn-green px-8 py-3.5 text-sm sm:text-base uppercase tracking-wider shrink-0 w-full sm:w-auto"
                           onClick={(e) => { e.stopPropagation(); /* apply logic */ }}
                         >
-                          Submit Application <ChevronRight className="w-4 h-4 ml-2" />
+                          Submit Application
                         </button>
                       </div>
                     </div>
@@ -237,9 +237,9 @@ export default function Careers() {
           <div className="bg-white rounded-3xl w-full max-w-lg relative z-10 p-8 shadow-2xl">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-6 right-6 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+              className="absolute top-6 right-6 w-9 h-9 flex items-center justify-center rounded-full glass-btn-light !p-0 cursor-pointer"
             >
-              <X className="w-5 h-5 text-gray-600" />
+              <X className="w-5 h-5 text-gray-700" />
             </button>
 
             <h3 className="text-3xl font-black text-[#143d4d] mb-2">Post a Job</h3>
@@ -283,7 +283,7 @@ export default function Careers() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="mt-4 w-full py-4 bg-[var(--color-primary)] hover:bg-[var(--color-secondary)] disabled:bg-gray-400 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all uppercase tracking-wider"
+                className="mt-4 w-full py-4 glass-btn-green text-sm sm:text-base tracking-wider uppercase font-bold disabled:opacity-50"
               >
                 {isSubmitting ? 'Publishing...' : 'Publish Job'}
               </button>

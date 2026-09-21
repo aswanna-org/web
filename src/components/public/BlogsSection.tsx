@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { PenTool, ArrowRight, User, CalendarDays } from 'lucide-react';
+import { PenTool, User, CalendarDays } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { useCallback, useEffect, useState } from 'react';
 import Card from '../../components/ui/Card';
@@ -29,31 +29,31 @@ export default function BlogsSection() {
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/blogs?limit=5`)
+    fetch(`${API_BASE_URL}/blogs?limit=4`)
       .then(res => res.json())
       .then(data => {
         const items = data.data || data;
-        setBlogItems(items);
+        setBlogItems(Array.isArray(items) ? items : []);
       })
       .catch(err => console.error("Error fetching blogs:", err));
   }, []);
 
   return (
-    <section className="w-full py-20 bg-[#f4f7f6] relative">
+    <section className="w-full py-12 sm:py-16 lg:py-20 bg-[#f4f7f6] relative">
       
       {/* Background Decor */}
       <div className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-br from-white/50 to-transparent pointer-events-none rounded-br-full"></div>
 
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         {/* Section Header */}
-        <div className="flex flex-col items-center text-center mb-12">
+        <div className="flex flex-col items-center text-center mb-8 sm:mb-12">
           <div className="flex items-center gap-2 mb-2">
-            <PenTool className="w-5 h-5 text-[var(--color-primary)]" />
-            <span className="text-gray-500 font-bold text-sm tracking-widest uppercase">
+            <PenTool className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-primary)]" />
+            <span className="text-gray-500 font-bold text-xs sm:text-sm tracking-widest uppercase">
               {t('blogs.subtitle')}
             </span>
           </div>
-          <h2 className="text-4xl font-extrabold text-[var(--color-secondary)]">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--color-secondary)]">
             {t('blogs.title')}
           </h2>
         </div>
@@ -76,7 +76,7 @@ export default function BlogsSection() {
                         { icon: User, text: item.authorName || 'Admin' },
                         { icon: CalendarDays, text: new Date(item.createdAt).toLocaleDateString() }
                       ]}
-                      primaryAction={{ text: "Read More", icon: ArrowRight, onClick: () => window.location.href = '/blog' }}
+                      primaryAction={{ text: isSinhala ? "තව කියවන්න" : "Read More", onClick: () => window.location.href = `/blog?slug=${item.slug || item.id}` }}
                     />
                   </div>
                 </div>
@@ -85,10 +85,10 @@ export default function BlogsSection() {
           </div>
         </div>
 
-        {/* Carousel Dots */}
-        <div className="mt-12">
-          <div className="flex justify-center gap-2">
-            {emblaApi?.scrollSnapList().map((_, index) => (
+        {/* Carousel Dots (shown on mobile/tablet or when scrolling is possible) */}
+        {emblaApi?.scrollSnapList() && emblaApi.scrollSnapList().length > 1 && (
+          <div className="mt-8 sm:mt-12 flex justify-center gap-2">
+            {emblaApi.scrollSnapList().map((_, index) => (
               <button
                 key={index}
                 onClick={() => scrollTo(index)}
@@ -99,7 +99,7 @@ export default function BlogsSection() {
               />
             ))}
           </div>
-        </div>
+        )}
       </div>
 
     </section>

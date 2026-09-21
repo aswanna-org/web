@@ -126,9 +126,8 @@ export default function Card({
                     primaryAction.onClick(e);
                   }
                 }}
-                className="flex-1 bg-[var(--color-secondary)] hover:bg-[var(--color-secondary)]/90 text-white py-3 px-5 rounded-full font-semibold text-sm flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-md hover:-translate-y-0.5 active:translate-y-0"
+                className="glass-btn-green flex-1 py-3 px-6 text-sm font-bold tracking-wide"
               >
-                {primaryAction.icon && <primaryAction.icon className="w-4 h-4" />}
                 {primaryAction.text}
               </button>
             )}
@@ -141,7 +140,7 @@ export default function Card({
                     secondaryAction.onClick(e);
                   }
                 }}
-                className="w-11 h-11 shrink-0 flex items-center justify-center rounded-full border border-gray-200 hover:border-red-200 hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors bg-white"
+                className="w-11 h-11 shrink-0 flex items-center justify-center rounded-full bg-white/80 backdrop-blur-md border border-gray-200/80 hover:border-red-200 hover:bg-red-50 text-gray-500 hover:text-red-500 transition-all duration-300 shadow-2xs hover:shadow-md cursor-pointer"
               >
                 <secondaryAction.icon className="w-5 h-5" />
               </button>

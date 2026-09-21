@@ -86,7 +86,7 @@ export default function HeroCarousel() {
             {t(slides[currentSlide].descKey)}
           </p>
 
-          <button className="px-8 py-4 bg-white/10 backdrop-blur-md hover:bg-white/20 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 uppercase tracking-wider">
+          <button className="glass-btn px-9 py-4 uppercase tracking-wider text-sm sm:text-base">
             {t('hero.discoverMore')}
           </button>
         </div>
@@ -96,13 +96,15 @@ export default function HeroCarousel() {
       <div className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-2 sm:gap-4 hidden sm:flex">
         <button
           onClick={prevSlide}
-          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/50 flex items-center justify-center hover:bg-white/20 transition-colors backdrop-blur-sm"
+          className="glass-btn w-11 h-11 sm:w-13 sm:h-13 !p-0"
+          aria-label="Previous slide"
         >
           <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>
         <button
           onClick={nextSlide}
-          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/50 flex items-center justify-center hover:bg-white/20 transition-colors backdrop-blur-sm"
+          className="glass-btn w-11 h-11 sm:w-13 sm:h-13 !p-0"
+          aria-label="Next slide"
         >
           <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
         </button>

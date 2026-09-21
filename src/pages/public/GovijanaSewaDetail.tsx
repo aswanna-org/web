@@ -7,18 +7,11 @@ import {
   Phone,
   Mail,
   MessageSquare,
-  ExternalLink,
-  ArrowLeft,
-  Users,
-  User,
-  StickyNote,
   Copy,
   Check,
-  Share2,
-  ShieldCheck,
-  Compass,
   Search,
-  PhoneCall
+  PhoneCall,
+  ChevronRight
 } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 
@@ -194,9 +187,8 @@ export default function GovijanaSewaDetail() {
         </p>
         <button
           onClick={() => navigate('/govijana-sewa')}
-          className="inline-flex items-center gap-2 px-6 py-3 bg-[#006837] hover:bg-[#00522c] text-white rounded-2xl font-bold text-sm transition-all shadow-sm"
+          className="glass-btn-green px-6 py-3 text-sm font-bold cursor-pointer"
         >
-          <ArrowLeft size={16} />
           <span>{isSinhala ? 'ගොවිජන සේවා නාමාවලියට' : 'Back to ASC Directory'}</span>
         </button>
       </div>
@@ -240,27 +232,20 @@ export default function GovijanaSewaDetail() {
             <button
               type="button"
               onClick={handleShare}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold transition-colors cursor-pointer"
+              className="glass-btn-light px-3.5 py-1.5 text-xs font-semibold cursor-pointer"
               title="Share Center Details"
             >
               {copiedField === 'share' ? (
-                <>
-                  <Check size={14} className="text-emerald-700" />
-                  <span className="text-emerald-800">{isSinhala ? 'පිටපත් විය' : 'Link Copied'}</span>
-                </>
+                <span className="text-emerald-800 font-bold">{isSinhala ? 'පිටපත් විය' : 'Link Copied'}</span>
               ) : (
-                <>
-                  <Share2 size={14} />
-                  <span>{isSinhala ? 'බෙදාගන්න' : 'Share'}</span>
-                </>
+                <span>{isSinhala ? 'බෙදාගන්න' : 'Share'}</span>
               )}
             </button>
 
             <Link
               to="/govijana-sewa"
-              className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 text-xs font-bold transition-all"
+              className="glass-btn-green px-4 py-1.5 text-xs font-bold"
             >
-              <ArrowLeft size={14} />
               <span>{isSinhala ? 'නැවත නාමාවලියට' : 'Back to Directory'}</span>
             </Link>
           </div>
@@ -274,29 +259,23 @@ export default function GovijanaSewaDetail() {
         <div className="bg-white rounded-3xl border border-gray-200/90 shadow-sm p-6 sm:p-8 relative overflow-hidden mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
             <div>
-              {/* Badges Bar */}
-              <div className="flex flex-wrap items-center gap-2 mb-3">
-                <span className="font-mono text-xs sm:text-sm font-black px-3 py-1 rounded-xl bg-emerald-700 text-white shadow-2xs tracking-wider">
+              {/* Metadata Bar */}
+              <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 font-medium mb-3">
+                <span className="font-mono text-emerald-800 font-bold bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
                   {center.ascId}
                 </span>
-
-                <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-200">
-                  <MapPin size={13} className="text-emerald-700" />
-                  <span>{center.district} District</span>
-                </span>
-
-                <span className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1 rounded-xl bg-gray-100 text-gray-700">
-                  <Compass size={13} className="text-gray-500" />
-                  <span>{center.province} Province</span>
-                </span>
+                <span>•</span>
+                <span className="font-semibold text-gray-700">{center.district} District</span>
+                <span>•</span>
+                <span className="text-gray-500">{center.province} Province</span>
               </div>
 
               {/* Title & Secondary Title */}
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight leading-tight">
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight leading-tight">
                 {centerName}
               </h1>
               {secondaryName && secondaryName !== centerName && (
-                <p className="text-sm sm:text-base font-medium text-gray-400 mt-1">
+                <p className="text-sm sm:text-base font-normal text-gray-500 mt-1">
                   {secondaryName}
                 </p>
               )}
@@ -307,9 +286,9 @@ export default function GovijanaSewaDetail() {
               {primaryPhone && (
                 <a
                   href={`tel:${primaryPhone.replace(/\D/g, '')}`}
-                  className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm transition-all shadow-sm hover:shadow-md cursor-pointer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm transition-all shadow-sm hover:shadow-md cursor-pointer"
                 >
-                  <PhoneCall size={16} />
+                  <PhoneCall size={15} />
                   <span>{primaryPhone}</span>
                 </a>
               )}
@@ -319,9 +298,9 @@ export default function GovijanaSewaDetail() {
                   href={`https://wa.me/94${center.mobilePhone.replace(/\D/g, '').replace(/^0/, '')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-xs sm:text-sm transition-all shadow-sm hover:shadow-md cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold text-xs sm:text-sm transition-all shadow-sm hover:shadow-md cursor-pointer"
                 >
-                  <MessageSquare size={16} />
+                  <MessageSquare size={15} />
                   <span>WhatsApp</span>
                 </a>
               )}
@@ -329,9 +308,9 @@ export default function GovijanaSewaDetail() {
               {primaryEmail && (
                 <a
                   href={`mailto:${primaryEmail}`}
-                  className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 font-bold text-xs sm:text-sm transition-all cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 font-bold text-xs sm:text-sm transition-all cursor-pointer"
                 >
-                  <Mail size={16} />
+                  <Mail size={15} />
                   <span>{isSinhala ? 'විද්‍යුත් තැපෑල' : 'Email Office'}</span>
                 </a>
               )}
@@ -347,10 +326,7 @@ export default function GovijanaSewaDetail() {
             
             {/* Special Notice Alert (If Available) */}
             {(center.specialNote || center.specialNoteSi) && (
-              <div className="p-5 rounded-3xl bg-amber-50/90 border border-amber-200/90 shadow-2xs flex items-start gap-4">
-                <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center shrink-0 mt-0.5">
-                  <StickyNote size={20} />
-                </div>
+              <div className="p-5 rounded-3xl bg-amber-50/90 border border-amber-200/90 shadow-2xs flex items-start gap-3">
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-amber-950 text-sm sm:text-base">
                     {isSinhala ? 'විශේෂ නිවේදනය / දැනුම්දීම' : 'Official Special Notice'}
@@ -364,26 +340,21 @@ export default function GovijanaSewaDetail() {
 
             {/* In-Charge Head Officer Spotlight Card */}
             <div className="bg-white rounded-3xl border border-gray-200/90 p-6 sm:p-7 shadow-sm">
-              <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs uppercase tracking-wider mb-4 pb-3 border-b border-gray-100">
-                <ShieldCheck size={16} />
+              <div className="text-emerald-800 font-bold text-xs uppercase tracking-wider mb-4 pb-3 border-b border-gray-100">
                 <span>{isSinhala ? 'ප්‍රධාන භාරකාර නිලධාරී' : 'Officer In-Charge (Head of Center)'}</span>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-100 to-emerald-200 text-emerald-800 flex items-center justify-center shrink-0 shadow-2xs font-bold text-xl">
-                  <User size={30} />
-                </div>
-
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
                 <div className="flex-1 min-w-0 space-y-1">
-                  <div className="inline-block px-2.5 py-0.5 rounded-md bg-emerald-100 text-emerald-900 text-[10px] font-bold uppercase tracking-wider">
+                  <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
                     {isSinhala ? 'භාරකාර නිලධාරී' : 'Officer In-Charge'}
-                  </div>
+                  </span>
                   <h2 className="text-xl font-bold text-gray-900 truncate">
                     {primary
                       ? (isSinhala ? (primary.nameSi || primary.name) : primary.name)
                       : (center.officerInCharge || (isSinhala ? 'පත් කර නොමැත' : 'Not Assigned'))}
                   </h2>
-                  <p className="text-xs sm:text-sm text-gray-500 font-medium">
+                  <p className="text-xs sm:text-sm text-gray-500 font-normal">
                     {primary
                       ? (isSinhala ? (primary.positionSi || primary.position) : primary.position)
                       : (center.officerDesignation || 'Agrarian Development Officer (ADO)')}
@@ -420,13 +391,12 @@ export default function GovijanaSewaDetail() {
             <div className="bg-white rounded-3xl border border-gray-200/90 p-6 sm:p-7 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-gray-100">
                 <div>
-                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs uppercase tracking-wider mb-1">
-                    <Users size={16} />
-                    <span>{isSinhala ? 'නිලධාරී හා කාර්ය මණ්ඩල ලැයිස්තුව' : 'Appointed Staff Directory'}</span>
-                  </div>
                   <h3 className="text-lg sm:text-xl font-bold text-gray-900">
-                    {isSinhala ? 'සියලුම නිලධාරීන්ගේ තොරතුරු' : 'Officers & Agricultural Staff'}
+                    {isSinhala ? 'නිලධාරී හා කාර්ය මණ්ඩල ලැයිස්තුව' : 'Officers & Agricultural Staff'}
                   </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    {isSinhala ? 'මධ්‍යස්ථානයට අනුයුක්ත සියලුම නිලධාරීන්ගේ තොරතුරු' : 'All officers and staff attached to this Agrarian Center'}
+                  </p>
                 </div>
 
                 {allOfficers.length > 3 && (
@@ -437,7 +407,7 @@ export default function GovijanaSewaDetail() {
                       placeholder={isSinhala ? "නිලධාරී නම, තනතුර සොයන්න..." : "Search officer or position..."}
                       value={officerSearch}
                       onChange={e => setOfficerSearch(e.target.value)}
-                      className="w-full pl-9 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-600"
+                      className="w-full pl-9 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-700"
                     />
                   </div>
                 )}
@@ -445,7 +415,6 @@ export default function GovijanaSewaDetail() {
 
               {filteredStaff.length === 0 ? (
                 <div className="py-12 text-center text-gray-400">
-                  <Users size={32} className="mx-auto mb-2 opacity-50" />
                   <p className="text-xs">
                     {officerSearch
                       ? (isSinhala ? 'සෙවුමට ගැලපෙන නිලධාරීන් හමු නොවීය.' : 'No officers found matching your search.')
@@ -467,34 +436,33 @@ export default function GovijanaSewaDetail() {
                             : 'bg-gray-50/70 hover:bg-gray-50 border-gray-200'
                         }`}
                       >
-                        <div className="flex items-start gap-3.5 min-w-0">
-                          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 font-bold text-xs ${
-                            officer.isPrimary
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-white border border-gray-200 text-gray-600'
-                          }`}>
-                            {idx + 1}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-bold text-gray-900 text-sm truncate">
+                              {offName}
+                            </h4>
+                            {officer.isPrimary && (
+                              <span className="text-[10px] font-bold text-emerald-800">
+                                ({isSinhala ? 'ප්‍රධාන නිලධාරී' : 'Primary'})
+                              </span>
+                            )}
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <h4 className="font-bold text-gray-900 text-sm truncate">
-                                {offName}
-                              </h4>
-                              {officer.isPrimary && (
-                                <span className="px-2 py-0.5 rounded text-[9px] font-bold bg-emerald-100 text-emerald-900 uppercase">
-                                  {isSinhala ? 'ප්‍රධාන' : 'Primary'}
-                                </span>
-                              )}
-                            </div>
-                            <p className="text-xs text-blue-700 font-semibold mt-0.5 truncate">
-                              {offPosition}
-                            </p>
-                          </div>
+                          <p className="text-xs text-gray-600 font-normal mt-0.5 truncate">
+                            {offPosition}
+                          </p>
+                          {officer.email && (
+                            <a
+                              href={`mailto:${officer.email}`}
+                              className="text-xs text-emerald-800 hover:underline break-all block mt-1 font-medium"
+                            >
+                              {officer.email}
+                            </a>
+                          )}
                         </div>
 
                         {/* Officer Contact Buttons */}
-                        <div className="flex items-center gap-2 shrink-0 pt-1 sm:pt-0">
-                          {officer.phone && (
+                        {officer.phone && (
+                          <div className="shrink-0 pt-1 sm:pt-0">
                             <a
                               href={`tel:${officer.phone.replace(/\D/g, '')}`}
                               className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-emerald-50 text-emerald-800 border border-gray-200 hover:border-emerald-300 rounded-xl text-xs font-semibold transition-colors"
@@ -503,18 +471,8 @@ export default function GovijanaSewaDetail() {
                               <Phone size={12} />
                               <span>{officer.phone}</span>
                             </a>
-                          )}
-
-                          {officer.email && (
-                            <a
-                              href={`mailto:${officer.email}`}
-                              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white hover:bg-blue-50 text-gray-700 hover:text-blue-800 border border-gray-200 rounded-xl text-xs transition-colors"
-                              title={officer.email}
-                            >
-                              <Mail size={12} />
-                            </a>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -529,22 +487,21 @@ export default function GovijanaSewaDetail() {
             
             {/* Quick Contact & Info Card */}
             <div className="bg-white rounded-3xl border border-gray-200/90 p-6 shadow-sm">
-              <h3 className="font-bold text-gray-900 text-base mb-4 pb-3 border-b border-gray-100 flex items-center gap-2">
-                <Phone size={16} className="text-emerald-700" />
+              <h3 className="font-bold text-gray-900 text-base mb-4 pb-3 border-b border-gray-100">
                 <span>{isSinhala ? 'සම්බන්ධතා විස්තර' : 'Direct Contacts'}</span>
               </h3>
 
               <div className="space-y-4 text-xs">
                 {/* Office Phone */}
                 {center.officePhone && (
-                  <div className="flex items-start justify-between gap-2 p-3 rounded-2xl bg-gray-50 border border-gray-200">
+                  <div className="flex items-start justify-between gap-2 p-3.5 rounded-2xl bg-gray-50 border border-gray-200">
                     <div className="min-w-0">
                       <span className="text-gray-400 font-medium block text-[10px] uppercase">
                         {isSinhala ? 'කාර්යාල දුරකථන' : 'Office Landline'}
                       </span>
                       <a
                         href={`tel:${center.officePhone.replace(/\D/g, '')}`}
-                        className="font-bold text-gray-900 hover:text-emerald-800 text-sm"
+                        className="font-bold text-gray-900 hover:text-emerald-800 text-sm block mt-0.5"
                       >
                         {center.officePhone}
                       </a>
@@ -562,14 +519,14 @@ export default function GovijanaSewaDetail() {
 
                 {/* Mobile Phone */}
                 {center.mobilePhone && (
-                  <div className="flex items-start justify-between gap-2 p-3 rounded-2xl bg-gray-50 border border-gray-200">
+                  <div className="flex items-start justify-between gap-2 p-3.5 rounded-2xl bg-gray-50 border border-gray-200">
                     <div className="min-w-0">
                       <span className="text-gray-400 font-medium block text-[10px] uppercase">
                         {isSinhala ? 'ජංගම දුරකථන / WhatsApp' : 'Mobile / WhatsApp'}
                       </span>
                       <a
                         href={`tel:${center.mobilePhone.replace(/\D/g, '')}`}
-                        className="font-bold text-gray-900 hover:text-emerald-800 text-sm"
+                        className="font-bold text-gray-900 hover:text-emerald-800 text-sm block mt-0.5"
                       >
                         {center.mobilePhone}
                       </a>
@@ -585,16 +542,16 @@ export default function GovijanaSewaDetail() {
                   </div>
                 )}
 
-                {/* Email Address */}
+                {/* Email Address - Fully Displayed */}
                 {center.email && (
-                  <div className="flex items-start justify-between gap-2 p-3 rounded-2xl bg-gray-50 border border-gray-200">
+                  <div className="flex items-start justify-between gap-2 p-3.5 rounded-2xl bg-gray-50 border border-gray-200">
                     <div className="min-w-0 flex-1">
                       <span className="text-gray-400 font-medium block text-[10px] uppercase">
                         {isSinhala ? 'විද්‍යුත් තැපෑල' : 'Email Address'}
                       </span>
                       <a
                         href={`mailto:${center.email}`}
-                        className="font-bold text-gray-900 hover:text-emerald-800 text-xs truncate block"
+                        className="font-semibold text-emerald-800 hover:text-emerald-950 hover:underline text-xs break-all block mt-0.5"
                       >
                         {center.email}
                       </a>
@@ -636,10 +593,9 @@ export default function GovijanaSewaDetail() {
                     href={center.googleMapsUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="w-full py-3 px-4 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm"
+                    className="glass-btn-green w-full py-3 text-xs font-bold"
                   >
                     <span>{isSinhala ? 'Google Maps හි බලන්න' : 'Open in Google Maps'}</span>
-                    <ExternalLink size={14} />
                   </a>
                 ) : (
                   <a
@@ -648,10 +604,9 @@ export default function GovijanaSewaDetail() {
                     )}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="w-full py-3 px-4 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs flex items-center justify-center gap-2 transition-all"
+                    className="glass-btn-light w-full py-3 text-xs font-bold"
                   >
                     <span>{isSinhala ? 'Google Maps හි සොයන්න' : 'Search on Google Maps'}</span>
-                    <ExternalLink size={14} />
                   </a>
                 )}
               </div>
@@ -685,7 +640,7 @@ export default function GovijanaSewaDetail() {
                           {isSinhala ? (dc.nameSi || dc.name) : dc.name}
                         </h4>
                       </div>
-                      <ArrowLeft size={12} className="rotate-180 text-gray-400 group-hover:text-emerald-700 shrink-0" />
+                      <ChevronRight size={14} className="text-gray-400 group-hover:text-emerald-700 shrink-0" />
                     </button>
                   ))}
                 </div>

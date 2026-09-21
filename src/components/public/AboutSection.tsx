@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import { Users, Leaf } from 'lucide-react';
 
 export default function AboutSection() {
@@ -83,9 +84,12 @@ export default function AboutSection() {
             </div>
 
             <div>
-              <button className="mt-8 px-8 py-4 bg-black/5 backdrop-blur-md hover:bg-black/10 text-gray-800 font-bold rounded-full shadow-sm hover:shadow-md transition-all duration-300 uppercase tracking-wider">
-            {t('about.button')}
-          </button>
+              <Link 
+                to="/about"
+                className="glass-btn-light mt-8 px-9 py-4 uppercase tracking-wider text-sm sm:text-base"
+              >
+                {t('about.button', 'Discover More')}
+              </Link>
             </div>
             
           </div>

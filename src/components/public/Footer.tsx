@@ -24,15 +24,12 @@ export default function Footer() {
                             <Link to="/" className="mb-3 sm:mb-4 inline-block bg-white/50 p-2 sm:p-2.5 rounded-2xl backdrop-blur-sm border border-white/40 shadow-2xs">
                                <img src="/images/aswanna_logo.png" alt="Aswanna Logo" className="h-7 sm:h-9 w-auto object-contain" />
                             </Link>
-                            <p className="text-gray-900 text-xs sm:text-sm leading-relaxed mb-3 sm:mb-5 font-medium sm:font-bold max-w-sm">
+                            <p className="text-gray-900 text-xs sm:text-sm leading-relaxed font-medium sm:font-bold max-w-sm">
                                 {isSinhala 
                                     ? "අස්වැන්න කෘෂිකර්මාන්තය සරල කරයි. කිසිදු අතරමැදියෙකු නොමැතිව ඔබේ කෘෂිකාර්මික සිහිනයට පහසු මාවතක්."
                                     : "Aswanna makes agriculture simple, with no middlemen—just an easy path to your agricultural success."
                                 }
                             </p>
-                            <Link to="/pages/contact" className="bg-[#1c7454] hover:bg-[#145a40] text-white px-4 py-1.5 sm:px-5 sm:py-2 rounded-full font-bold text-xs sm:text-sm transition-all shadow-sm hover:shadow-md">
-                                {t('header.contact', 'Contact Us')}
-                            </Link>
                         </div>
 
                         {/* Right Column - Links Grid (3 columns on mobile, 4 on desktop) */}

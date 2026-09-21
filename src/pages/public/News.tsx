@@ -121,36 +121,36 @@ export default function News() {
       />
 
       {/* ── Content ── */}
-      <div className="container mx-auto px-4 lg:px-12 py-12">
-        <div className="flex flex-col lg:flex-row gap-10">
+      <div className="container mx-auto px-4 lg:px-12 py-8 lg:py-12">
+        <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
 
-          {/* Left Column: News List (approx 1/3 width) */}
-          <div className="w-full lg:w-1/3 flex flex-col">
-            <div className="flex items-center gap-6 border-b border-gray-200 mb-6 pb-2 justify-between">
-              <h2 className="text-xl font-bold text-[var(--color-secondary)] border-b-2 border-[var(--color-secondary)] pb-2 -mb-[10px]">
+          {/* Column 1 on Mobile / Left Column on Desktop: News List */}
+          <div className="w-full lg:w-1/3 flex flex-col order-2 lg:order-1">
+            <div className="flex items-center gap-6 border-b border-gray-200 mb-4 sm:mb-6 pb-2 justify-between">
+              <h2 className="text-lg sm:text-xl font-bold text-[var(--color-secondary)] border-b-2 border-[var(--color-secondary)] pb-2 -mb-[10px]">
                 {t('newsPage.latest', 'Latest')}
               </h2>
             </div>
 
-            <div className="mb-6">
+            <div className="mb-4 sm:mb-6">
               <select 
                 value={selectedCategory} 
                 onChange={(e) => {
                   setSelectedCategory(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)]/50 bg-white shadow-sm text-sm font-medium text-gray-700"
+                className="w-full px-3 py-2 sm:px-4 sm:py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)]/50 bg-white shadow-sm text-xs sm:text-sm font-medium text-gray-700"
               >
                 <option value="">{t('newsPage.allCategories', 'All Categories')}</option>
                 {NEWS_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
               </select>
             </div>
 
-            <div className="flex flex-col gap-6 overflow-y-auto max-h-[800px] pr-2 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+            <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5 overflow-y-auto max-h-[500px] sm:max-h-[600px] lg:max-h-[800px] pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
               {isLoading ? (
-                <div className="p-10 text-center text-gray-500">{t('newsPage.loading', 'Loading news...')}</div>
+                <div className="p-8 sm:p-10 text-center text-sm text-gray-500">{t('newsPage.loading', 'Loading news...')}</div>
               ) : newsList.length === 0 ? (
-                <div className="p-10 text-center text-gray-500">{t('newsPage.noNews', 'No news articles found.')}</div>
+                <div className="p-8 sm:p-10 text-center text-sm text-gray-500">{t('newsPage.noNews', 'No news articles found.')}</div>
               ) : (
                 newsList.map((news) => (
                   <div
@@ -163,30 +163,30 @@ export default function News() {
                         }, 100);
                       }
                     }}
-                    className={`flex gap-4 p-3 rounded-xl cursor-pointer transition-all duration-300 ${selectedNewsId === news.id
+                    className={`flex gap-3 sm:gap-4 p-2 sm:p-2.5 lg:p-3 rounded-xl cursor-pointer transition-all duration-300 ${selectedNewsId === news.id
                         ? 'bg-white shadow-md border border-[var(--color-secondary)]/20'
                         : 'hover:bg-white hover:shadow-sm border border-transparent'
                       }`}
                   >
-                    <div className="w-24 h-24 shrink-0 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200">
+                    <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200">
                       {news.image ? (
                         <img src={news.image} alt={news.title || ''} className="w-full h-full object-cover" />
                       ) : (
                         <ImageIcon className="text-gray-400" />
                       )}
                     </div>
-                    <div className="flex flex-col justify-between py-1">
+                    <div className="flex flex-col justify-between py-0.5 sm:py-1">
                       <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                        <p className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
                           <Clock className="w-3 h-3" /> {new Date(news.createdAt).toLocaleDateString()}
                         </p>
-                        <h3 className={`font-bold text-sm leading-snug line-clamp-2 ${selectedNewsId === news.id ? 'text-[var(--color-secondary)]' : 'text-gray-800'
+                        <h3 className={`font-bold text-xs sm:text-sm leading-snug line-clamp-2 ${selectedNewsId === news.id ? 'text-[var(--color-secondary)]' : 'text-gray-800'
                           }`}>
                           {isSinhala ? (news.sinhalaTitle || news.title || 'Untitled') : (news.title || news.sinhalaTitle || 'Untitled')}
                         </h3>
                       </div>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs font-medium text-gray-500">{news.authorName || '-'}</span>
+                      <div className="flex items-center gap-2 mt-1.5 sm:mt-2">
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-500">{news.authorName || '-'}</span>
                       </div>
                     </div>
                   </div>
@@ -194,7 +194,7 @@ export default function News() {
               )}
             </div>
             {totalPages > 1 && (
-              <div className="mt-6 pr-2">
+              <div className="mt-4 sm:mt-6 pr-2">
                 <Pagination 
                   currentPage={currentPage}
                   totalPages={totalPages}
@@ -204,55 +204,55 @@ export default function News() {
             )}
           </div>
 
-          {/* Right Column: News Details (approx 2/3 width) */}
-          <div id="news-detail-section" className="w-full lg:w-2/3 bg-white rounded-2xl shadow-sm border border-gray-100 p-8 lg:p-12 min-h-[500px]">
+          {/* Top on Mobile / Right Column on Desktop: News Details */}
+          <div id="news-detail-section" className="w-full lg:w-2/3 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-10 xl:p-12 min-h-[350px] lg:min-h-[500px] order-1 lg:order-2">
             {selectedNews ? (
               <>
                 {/* Author and Share Row */}
-                <div className="flex items-center justify-between mb-8 pb-6 border-b border-gray-100">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center shrink-0 overflow-hidden border border-gray-200">
+                <div className="flex items-center justify-between mb-4 pb-3 sm:mb-6 sm:pb-5 lg:mb-8 lg:pb-6 border-b border-gray-100">
+                  <div className="flex items-center gap-2.5 sm:gap-4">
+                    <div className="w-9 h-9 sm:w-11 sm:h-11 bg-gray-100 rounded-full flex items-center justify-center shrink-0 overflow-hidden border border-gray-200">
                       {selectedNews.authorAvatar ? (
                         <img src={selectedNews.authorAvatar} alt={selectedNews.authorName || ''} className="w-full h-full object-cover" />
                       ) : (
-                        <User className="w-6 h-6 text-gray-400" />
+                        <User className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
                       )}
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">{t('blogPage.by', 'By')} <span className="font-bold text-gray-800">{selectedNews.authorName || '-'}</span></p>
-                      <p className="text-xs text-gray-400">{new Date(selectedNews.createdAt).toLocaleDateString()}</p>
+                      <p className="text-xs sm:text-sm text-gray-500">{t('blogPage.by', 'By')} <span className="font-bold text-gray-800">{selectedNews.authorName || '-'}</span></p>
+                      <p className="text-[10px] sm:text-xs text-gray-400">{new Date(selectedNews.createdAt).toLocaleDateString()}</p>
                     </div>
                   </div>
 
                   <div className="relative" ref={shareMenuRef}>
                     <button 
                       onClick={() => setShowShareMenu(!showShareMenu)}
-                      className="flex items-center gap-2 px-4 py-2 bg-[var(--color-secondary)] hover:bg-[var(--color-secondary)]/90 text-white rounded-full text-sm font-bold transition-colors shadow-sm"
+                      className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-[var(--color-secondary)] hover:bg-[var(--color-secondary)]/90 text-white rounded-full text-xs sm:text-sm font-bold transition-colors shadow-sm"
                     >
-                      {t('blogPage.share', 'Share')} <Share2 className="w-4 h-4" />
+                      {t('blogPage.share', 'Share')} <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                     </button>
                     
                     {showShareMenu && (
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-10 flex flex-col animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="absolute right-0 mt-2 w-44 sm:w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-10 flex flex-col animate-in fade-in slide-in-from-top-2 duration-200">
                         <button 
                           onClick={() => handleShare('copy')}
-                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-medium text-gray-700 transition-colors"
+                          className="flex items-center gap-2.5 px-3.5 py-2 hover:bg-gray-50 text-xs sm:text-sm font-medium text-gray-700 transition-colors"
                         >
                           {copied ? <Check className="w-4 h-4 text-green-500" /> : <LinkIcon className="w-4 h-4 text-gray-500" />}
                           {copied ? t('newsPage.copied', 'Copied!') : t('newsPage.copyLink', 'Copy Link')}
                         </button>
                         <button 
                           onClick={() => handleShare('whatsapp')}
-                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-medium text-gray-700 transition-colors"
+                          className="flex items-center gap-2.5 px-3.5 py-2 hover:bg-gray-50 text-xs sm:text-sm font-medium text-gray-700 transition-colors"
                         >
                           <MessageCircle className="w-4 h-4 text-[#25D366]" />
                           {t('newsPage.shareWhatsApp', 'WhatsApp')}
                         </button>
                         <button 
                           onClick={() => handleShare('facebook')}
-                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm font-medium text-gray-700 transition-colors"
+                          className="flex items-center gap-2.5 px-3.5 py-2 hover:bg-gray-50 text-xs sm:text-sm font-medium text-gray-700 transition-colors"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1877F2]">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1877F2]">
                             <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
                           </svg>
                           {t('newsPage.shareFacebook', 'Facebook')}
@@ -263,25 +263,25 @@ export default function News() {
                 </div>
 
                 {/* Title */}
-                <h1 className="text-3xl md:text-4xl font-black text-gray-900 leading-tight mb-8">
+                <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold md:font-black text-gray-900 leading-snug sm:leading-tight mb-4 sm:mb-6">
                   {isSinhala ? (selectedNews.sinhalaTitle || selectedNews.title || 'Untitled') : (selectedNews.title || selectedNews.sinhalaTitle || 'Untitled')}
                 </h1>
 
                 {/* Main Image */}
                 {selectedNews.image && (
-                  <div className="w-full h-[400px] rounded-xl overflow-hidden mb-10 shadow-sm">
+                  <div className="w-full h-48 sm:h-64 md:h-80 lg:h-[400px] rounded-xl overflow-hidden mb-5 sm:mb-8 shadow-sm">
                     <img src={selectedNews.image} alt={selectedNews.title || ''} className="w-full h-full object-cover" />
                   </div>
                 )}
 
                 {/* Content */}
                 <div 
-                  className="prose prose-lg max-w-none rich-content"
+                  className="w-full !max-w-full max-w-none lg:!max-w-none rich-content prose prose-sm sm:prose lg:prose-lg text-xs sm:text-sm md:text-base leading-relaxed text-gray-700"
                   dangerouslySetInnerHTML={{ __html: ((isSinhala ? (selectedNews.sinhalaContent || selectedNews.content) : selectedNews.content) || '').replace(/&nbsp;|\u00a0/g, ' ') }}
                 />
               </>
             ) : (
-              <div className="flex items-center justify-center h-full text-gray-400 font-medium">
+              <div className="flex items-center justify-center h-full text-gray-400 font-medium text-sm">
                 {t('newsPage.selectToRead', 'Select an article to read')}
               </div>
             )}
