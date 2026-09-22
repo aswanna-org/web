@@ -322,25 +322,24 @@ export default function AgriInfoHub() {
       />
 
       {/* ── Main Cards Container ── */}
-      <div className="container mx-auto px-4 lg:px-12 py-16">
+      <div className="container mx-auto px-3 sm:px-6 lg:px-12 py-8 sm:py-12 lg:py-16">
 
-        {/* 4 Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* 4 Cards Grid - 2 per row on mobile, 4 on desktop */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-8">
           {cards.map((card) => {
             const Icon = card.badgeIcon;
             const cardTitle = isSinhala ? card.titleSi : card.titleEn;
-            const cardDesc = isSinhala ? card.descSi : card.descEn;
 
             return (
               <div
                 key={card.id}
-                className="bg-white rounded-[28px] border border-emerald-900/10 hover:border-emerald-400/60 shadow-[0_8px_25px_rgba(0,0,0,0.04)] hover:shadow-[0_18px_38px_rgba(0,104,55,0.13)] transition-all duration-300 relative group flex flex-col justify-between hover:-translate-y-1.5 cursor-pointer outline-none select-none"
+                className="bg-white rounded-2xl sm:rounded-[28px] border border-emerald-900/10 hover:border-emerald-400/60 shadow-[0_4px_16px_rgba(0,0,0,0.03)] sm:shadow-[0_8px_25px_rgba(0,0,0,0.04)] hover:shadow-[0_18px_38px_rgba(0,104,55,0.13)] transition-all duration-300 relative group flex flex-col justify-between hover:-translate-y-1.5 cursor-pointer outline-none select-none"
                 onClick={card.action}
               >
                 {/* Top Image Section with Wave Cut */}
-                <div className="relative h-48 w-full bg-gray-100 rounded-t-[28px]">
+                <div className="relative h-28 sm:h-40 lg:h-48 w-full bg-gray-100 rounded-t-2xl sm:rounded-t-[28px]">
                   {/* Overflow-hidden container only around the image */}
-                  <div className="w-full h-full overflow-hidden rounded-t-[28px] relative">
+                  <div className="w-full h-full overflow-hidden rounded-t-2xl sm:rounded-t-[28px] relative">
                     <img
                       src={card.image}
                       alt={cardTitle}
@@ -351,7 +350,7 @@ export default function AgriInfoHub() {
 
                   {/* Organic Wave Divider */}
                   <svg
-                    className="absolute -bottom-[1px] left-0 right-0 w-full h-10 text-white fill-current pointer-events-none z-10"
+                    className="absolute -bottom-[1px] left-0 right-0 w-full h-6 sm:h-8 lg:h-10 text-white fill-current pointer-events-none z-10"
                     viewBox="0 0 500 80"
                     preserveAspectRatio="none"
                   >
@@ -359,20 +358,17 @@ export default function AgriInfoHub() {
                   </svg>
 
                   {/* Circular Badge Icon - Fully Visible & Not Clipped */}
-                  <div className={`absolute -bottom-5 left-6 ${card.badgeBg} w-13 h-13 rounded-full flex items-center justify-center text-white shadow-lg border-[3.5px] border-white z-20 transition-transform duration-300 group-hover:scale-110`}>
-                    <Icon className="w-6 h-6" />
+                  <div className={`absolute -bottom-3 sm:-bottom-4 lg:-bottom-5 left-3 sm:left-4 lg:left-6 ${card.badgeBg} w-8 h-8 sm:w-11 sm:h-11 lg:w-13 lg:h-13 rounded-full flex items-center justify-center text-white shadow-md sm:shadow-lg border-2 sm:border-[3.5px] border-white z-20 transition-transform duration-300 group-hover:scale-110`}>
+                    <Icon className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
                   </div>
                 </div>
 
                 {/* Card Content */}
-                <div className="pt-8 px-6 pb-6 flex flex-col justify-between flex-1 relative z-10">
-                  <div>
-                    <h3 className="text-[1.16rem] font-bold text-[#0f4d30] leading-snug tracking-tight mb-2 group-hover:text-[#006837] transition-colors min-h-[54px] flex items-center">
+                <div className="pt-4 sm:pt-6 lg:pt-8 px-2.5 sm:px-5 lg:px-6 pb-3 sm:pb-5 lg:pb-6 flex flex-col justify-between flex-1 relative z-10">
+                  <div className="mb-2 sm:mb-4">
+                    <h3 className="text-xs sm:text-base lg:text-[1.16rem] font-bold text-[#0f4d30] leading-snug tracking-tight group-hover:text-[#006837] transition-colors min-h-[34px] sm:min-h-[44px] lg:min-h-[50px] flex items-center line-clamp-2">
                       {cardTitle}
                     </h3>
-                    <p className="text-xs text-gray-500 mb-6 leading-relaxed line-clamp-3">
-                      {cardDesc}
-                    </p>
                   </div>
 
                   {/* Bottom Action and Green Leaves Decor */}
@@ -383,15 +379,15 @@ export default function AgriInfoHub() {
                         e.stopPropagation();
                         card.action();
                       }}
-                      className="bg-[#006837]/90 hover:bg-[#006837] text-white border border-white/30 backdrop-blur-md px-5 py-2 rounded-full font-bold text-xs inline-flex items-center gap-2 transition-all duration-300 shadow-sm hover:shadow-md group-hover:gap-2.5 cursor-pointer"
+                      className="bg-[#006837]/90 hover:bg-[#006837] text-white border border-white/30 backdrop-blur-md px-2.5 py-1 sm:px-4 sm:py-2 rounded-full font-bold text-[10px] sm:text-xs inline-flex items-center gap-1 sm:gap-2 transition-all duration-300 shadow-sm hover:shadow-md group-hover:gap-2.5 cursor-pointer"
                     >
-                      {t('agriInfoHub.enter', isSinhala ? 'පිවිසෙන්න' : 'Access')}
-                      <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+                      <span>{t('agriInfoHub.enter', isSinhala ? 'පිවිසෙන්න' : 'Access')}</span>
+                      <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform group-hover:translate-x-0.5" />
                     </button>
 
                     {/* Green Leaves Illustration Decor in Bottom Right */}
-                    <div className="pointer-events-none opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300">
-                      <svg width="48" height="42" viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <div className="pointer-events-none opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300 shrink-0">
+                      <svg className="w-5 h-4 sm:w-10 sm:h-8 lg:w-12 lg:h-10" viewBox="0 0 100 90" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M90 85C72 55 40 50 20 68C15 56 28 35 50 30C72 25 90 42 90 85Z" fill="#4ade80" fillOpacity="0.8" />
                         <path d="M95 90C82 68 62 62 50 76C46 66 56 50 72 45C88 40 96 58 95 90Z" fill="#22c55e" />
                         <path d="M80 92C65 82 50 85 42 92C38 86 44 75 58 70C72 66 82 75 80 92Z" fill="#15803d" />
