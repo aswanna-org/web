@@ -44,7 +44,7 @@ export default function HeroCarousel() {
   };
 
   return (
-    <section className="relative w-full h-screen min-h-[700px] overflow-hidden bg-[var(--color-secondary)] text-white pt-[88px]">
+    <section className="relative w-full h-[55vh] min-h-[400px] sm:h-screen sm:min-h-[700px] overflow-hidden bg-[var(--color-secondary)] text-white pt-16 sm:pt-[88px]">
       {/* Background Slides */}
       {slides.map((slide, index) => (
         <div
@@ -67,12 +67,12 @@ export default function HeroCarousel() {
 
       {/* Content */}
       <div className="relative z-20 container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
-        <div className="max-w-2xl mt-20 lg:mt-0">
-          <p className="uppercase tracking-widest text-xs sm:text-sm font-semibold mb-2 sm:mb-4 opacity-90">
+        <div className="max-w-2xl mt-4 sm:mt-20 lg:mt-0">
+          <p className="uppercase tracking-widest text-[11px] sm:text-sm font-semibold mb-1.5 sm:mb-4 opacity-90">
             {t('hero.welcome')}
           </p>
 
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-4 sm:mb-6 leading-tight relative">
+          <h1 className="text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-2 sm:mb-6 leading-tight relative">
             {t(slides[currentSlide].titleKey)}
             {/* Simple decoration */}
             <span className="absolute -top-4 -right-8 lg:-right-12 text-[var(--color-primary)] opacity-80 select-none hidden sm:block">
@@ -82,11 +82,11 @@ export default function HeroCarousel() {
             </span>
           </h1>
 
-          <p className="text-base sm:text-lg md:text-xl mb-8 sm:mb-10 opacity-90 max-w-lg leading-relaxed">
+          <p className="text-xs sm:text-base md:text-xl mb-4 sm:mb-10 opacity-90 max-w-lg leading-relaxed line-clamp-3 sm:line-clamp-none">
             {t(slides[currentSlide].descKey)}
           </p>
 
-          <button className="glass-btn px-9 py-4 uppercase tracking-wider text-sm sm:text-base">
+          <button className="glass-btn px-6 py-2.5 sm:px-9 sm:py-4 uppercase tracking-wider text-xs sm:text-base">
             {t('hero.discoverMore')}
           </button>
         </div>

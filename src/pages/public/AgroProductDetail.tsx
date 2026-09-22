@@ -58,7 +58,7 @@ export default function AgroProductDetail() {
 
   return (
     <div className="w-full min-h-screen bg-white">
-      <section className="relative w-full min-h-[40vh] overflow-hidden flex flex-col justify-center">
+      <section className="relative w-full min-h-[26vh] sm:min-h-[40vh] overflow-hidden flex flex-col justify-center">
         <img src={headerImage} alt={product.name} className="absolute inset-0 w-full h-full object-cover" />
         <div
           className="absolute inset-0"
@@ -68,31 +68,31 @@ export default function AgroProductDetail() {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
-        <div className="relative z-10 container mx-auto px-4 lg:px-12 pt-32 pb-12 flex flex-col mt-auto">
-          <Link to={`/agro/${mainCategory.slug}/${category.slug}`} className="inline-flex items-center w-fit gap-2 text-white/70 hover:text-white text-sm transition-colors group mb-8">
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+        <div className="relative z-10 container mx-auto px-4 lg:px-12 pt-16 sm:pt-32 pb-4 sm:pb-12 flex flex-col mt-auto">
+          <Link to={`/agro/${mainCategory.slug}/${category.slug}`} className="inline-flex items-center w-fit gap-2 text-white/70 hover:text-white text-xs sm:text-sm transition-colors group mb-3 sm:mb-8">
+            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:-translate-x-1 transition-transform" />
             {isSinhala ? (category.sinhalaName || category.name) : category.name}
           </Link>
 
           {product.status === 'UNAVAILABLE' && (
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-400 text-amber-950 font-bold text-xs uppercase tracking-wider mb-4 w-fit shadow-md border border-amber-300 animate-fadeIn">
+            <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-amber-400 text-amber-950 font-bold text-[10px] sm:text-xs uppercase tracking-wider mb-2 sm:mb-4 w-fit shadow-md border border-amber-300 animate-fadeIn">
               <span className="w-2 h-2 rounded-full bg-amber-900 animate-pulse" />
               {t('agro.comingSoon', 'Coming Soon')}
             </div>
           )}
 
-          <h1 className="text-white text-4xl sm:text-5xl font-black tracking-tight mb-4 drop-shadow-md">
+          <h1 className="text-white text-2xl sm:text-5xl font-black tracking-tight mb-2 sm:mb-4 drop-shadow-md">
             {isSinhala ? (product.sinhalaName || product.name) : product.name}
           </h1>
         </div>
       </section>
 
-      <div className="container mx-auto px-4 lg:px-12 py-14">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
+      <div className="container mx-auto px-4 lg:px-12 py-8 sm:py-14">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-16">
           <div className="lg:col-span-2 min-w-0">
             {product.price && (
-              <div className="flex items-baseline gap-3 mb-8 pb-8 border-b border-gray-100">
-                <span className="text-5xl font-black text-[var(--color-secondary)]">Rs. {product.price}</span>
+              <div className="flex items-baseline gap-3 mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-gray-100">
+                <span className="text-3xl sm:text-5xl font-black text-[var(--color-secondary)]">Rs. {product.price}</span>
                 <span className="text-gray-400 text-lg">{t('agro.per', 'per')} {product.unit || t('agro.unit', 'unit')}</span>
               </div>
             )}

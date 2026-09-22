@@ -10,6 +10,14 @@
   --font-caveat: "Caveat Brush", cursive;
 }
 
+/* ── Mobile font scale ── */
+/* Scale down root font size on small screens so all rem-based text shrinks */
+@media (max-width: 640px) {
+  html {
+    font-size: 87.5%; /* 14px base instead of 16px → ~13% smaller across the board */
+  }
+}
+
 body {
   font-family: var(--font-sans);
   background-color: #f9f9f9;

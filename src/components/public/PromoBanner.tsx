@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 export default function PromoBanner() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   return (
-    <section className="container mx-auto px-4 lg:px-8 py-10 mt-16 mb-16 font-roboto">
-      <div className="relative w-full rounded-3xl overflow-hidden bg-[var(--color-secondary)] shadow-xl">
+    <section className="container mx-auto px-4 lg:px-8 py-4 sm:py-6 my-4 sm:my-8 font-roboto">
+      <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-[var(--color-secondary)] shadow-lg">
         <div
           className="absolute inset-0 opacity-20 mix-blend-overlay pointer-events-none"
           style={{
@@ -16,36 +18,36 @@ export default function PromoBanner() {
           }}
         ></div>
         
-        <div className="relative z-10 px-6 py-12 lg:py-16">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center min-h-[250px]">
+        <div className="relative z-10 px-5 sm:px-8 lg:px-12 py-5 sm:py-7 lg:py-9">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 items-center">
             
             {/* Left Side: Images */}
-            <div className="relative h-[300px] flex items-center justify-center lg:justify-start">
-              <div className="absolute left-4 lg:left-12 top-0 w-[200px] sm:w-[240px] h-[280px] lg:h-[300px] shadow-2xl z-20">
+            <div className="relative h-[170px] sm:h-[210px] lg:h-[230px] flex items-center justify-center lg:justify-start">
+              <div className="absolute left-4 sm:left-8 lg:left-6 top-0 w-[140px] sm:w-[180px] lg:w-[200px] h-[160px] sm:h-[200px] lg:h-[220px] shadow-xl z-20">
                 <img
                   src="https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&q=80"
                   alt="Agriculture Watering"
-                  className="w-full h-full object-cover rounded-xl border-4 border-white/20"
+                  className="w-full h-full object-cover rounded-xl border-2 sm:border-3 border-white/25"
                 />
               </div>
               
-              <div className="absolute left-[160px] sm:left-[220px] lg:left-[240px] top-12 w-[150px] sm:w-[180px] h-[200px] lg:h-[220px] shadow-xl z-10">
+              <div className="absolute left-[125px] sm:left-[170px] lg:left-[185px] top-4 sm:top-6 w-[110px] sm:w-[140px] lg:w-[155px] h-[130px] sm:h-[165px] lg:h-[180px] shadow-lg z-10">
                 <img
                   src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=600&q=80"
-                  alt="Windmill Farm"
-                  className="w-full h-full object-cover rounded-xl border-4 border-white/20"
+                  alt="Fresh Vegetables"
+                  className="w-full h-full object-cover rounded-xl border-2 sm:border-3 border-white/25"
                 />
               </div>
             </div>
 
             {/* Right Side: Text and Button */}
-            <div className="flex flex-col items-start lg:pl-16 relative z-20 mt-8 lg:mt-0">
-              <h2 className="text-3xl lg:text-4xl font-extrabold text-white leading-snug mb-6 drop-shadow-md max-w-lg">
+            <div className="flex flex-col items-start lg:pl-6 relative z-20 mt-2 lg:mt-0">
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white leading-snug mb-3 sm:mb-4 drop-shadow-md max-w-lg">
                 {t('promo.title')}
               </h2>
               <button 
-                onClick={() => window.location.href = '/about'}
-                className="glass-btn px-9 py-4 tracking-wider text-sm sm:text-base cursor-pointer"
+                onClick={() => navigate('/about')}
+                className="glass-btn px-6 py-2.5 sm:px-8 sm:py-3 tracking-wider text-xs sm:text-sm font-semibold cursor-pointer"
               >
                 {t('promo.button')}
               </button>
@@ -57,3 +59,4 @@ export default function PromoBanner() {
     </section>
   );
 }
+

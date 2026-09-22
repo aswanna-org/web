@@ -114,7 +114,7 @@ export default function AgroCategoryDetail() {
   return (
     <div className="w-full min-h-screen bg-gray-50">
       {/* ── Hero ── */}
-      <section className="relative w-full h-[44vh] min-h-[320px] md:min-h-[340px] flex flex-col justify-center overflow-hidden">
+      <section className="relative w-full h-[28vh] sm:h-[36vh] md:h-[44vh] min-h-[200px] sm:min-h-[260px] md:min-h-[340px] flex flex-col justify-center overflow-hidden">
         <div
           className="absolute inset-0 z-0 bg-gray-900"
           style={{
@@ -132,17 +132,17 @@ export default function AgroCategoryDetail() {
           />
         </div>
 
-        <div className="container mx-auto px-4 lg:px-12 relative z-10 pt-28 pb-6">
+        <div className="container mx-auto px-4 lg:px-12 relative z-10 pt-16 sm:pt-28 pb-4 sm:pb-6">
           {/* Breadcrumb */}
           <Link
             to={`/agro/${mainCategory.slug}`}
-            className="inline-flex items-center gap-2 text-white/70 hover:text-white text-sm mb-4 transition-colors"
+            className="inline-flex items-center gap-2 text-white/70 hover:text-white text-xs sm:text-sm mb-2 sm:mb-4 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" /> {isSinhala ? (mainCategory.sinhalaName || mainCategory.name) : mainCategory.name}
+            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> {isSinhala ? (mainCategory.sinhalaName || mainCategory.name) : mainCategory.name}
           </Link>
           <div className="flex items-center gap-4">
             <div>
-              <h1 className="text-white text-4xl sm:text-5xl font-black uppercase tracking-tight drop-shadow-xl">
+              <h1 className="text-white text-2xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight drop-shadow-xl">
                 {isSinhala ? (category.sinhalaName || category.name) : category.name}
               </h1>
             </div>

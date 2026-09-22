@@ -112,7 +112,7 @@ export default function AgroCategories() {
   return (
     <div className="w-full min-h-screen bg-white">
       {/* ── Hero ── */}
-      <section className="relative w-full h-[44vh] min-h-[320px] md:min-h-[340px] flex flex-col justify-center overflow-hidden">
+      <section className="relative w-full h-[28vh] sm:h-[36vh] md:h-[44vh] min-h-[200px] sm:min-h-[260px] md:min-h-[340px] flex flex-col justify-center overflow-hidden">
         <div
           className="absolute inset-0 z-0"
           style={{
@@ -126,12 +126,12 @@ export default function AgroCategories() {
           <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-secondary)]/90 via-black/50 to-transparent" />
         </div>
 
-        <div className="container mx-auto px-4 lg:px-12 relative z-10 pt-24 pb-8">
+        <div className="container mx-auto px-4 lg:px-12 relative z-10 pt-16 sm:pt-24 pb-4 sm:pb-8">
           <div className="max-w-3xl">
-            <h1 className="text-white text-4xl sm:text-5xl md:text-6xl font-black uppercase mb-3 drop-shadow-xl tracking-tight">
+            <h1 className="text-white text-2xl sm:text-4xl md:text-6xl font-black uppercase mb-2 sm:mb-3 drop-shadow-xl tracking-tight">
               {t('agro.title', 'Agro Technology')}
             </h1>
-            <p className="text-gray-100 text-sm sm:text-base md:text-lg leading-relaxed max-w-2xl font-light drop-shadow-md">
+            <p className="text-gray-100 text-xs sm:text-base md:text-lg leading-relaxed max-w-2xl font-light drop-shadow-md line-clamp-2 sm:line-clamp-none">
               {t('agro.desc', 'Browse all farming categories — from paddy fields to flower farms — and explore the produce that powers Sri Lanka.')}
             </p>
           </div>
