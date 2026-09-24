@@ -49,7 +49,7 @@ export default function NewsSection() {
 
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         {/* Section Header */}
-        <div className="flex flex-col items-center text-center mb-8 sm:mb-12">
+        <div className="reveal-fade-up flex flex-col items-center text-center mb-8 sm:mb-12">
           <div className="flex items-center gap-2 mb-2">
             <Leaf className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-primary)]" />
             <span className="text-gray-500 font-bold text-xs sm:text-sm tracking-widest uppercase">
@@ -62,7 +62,7 @@ export default function NewsSection() {
         </div>
 
         {/* Embla Carousel */}
-        <div className="w-full relative">
+        <div className="reveal-fade-up delay-150 w-full relative">
           <div className="overflow-hidden py-4 -my-4 px-2 -mx-2" ref={emblaRef}>
             <div className="flex gap-6 touch-pan-y py-4">
               {newsItems.map((item) => (

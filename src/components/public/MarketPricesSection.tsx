@@ -52,7 +52,7 @@ export default function MarketPricesSection() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
           
           {/* Left Column: Market Prices */}
-          <div className="lg:col-span-7 flex flex-col">
+          <div className="reveal-fade-right lg:col-span-7 flex flex-col">
             <div className="mb-10 text-left">
               <h2 className="text-3xl sm:text-4xl font-extrabold text-[var(--color-secondary)] mb-3">
                 {t('market.title')}
@@ -121,7 +121,7 @@ export default function MarketPricesSection() {
           </div>
 
           {/* Right Column: Market Insights & Subscribe */}
-          <div className="lg:col-span-5 relative mt-4 lg:mt-0 flex flex-col">
+          <div className="reveal-fade-left delay-150 lg:col-span-5 relative mt-4 lg:mt-0 flex flex-col">
              <div className="relative rounded-3xl overflow-hidden shadow-2xl h-[450px] lg:h-full flex-1">
                 <img 
                   src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80" 

@@ -30,7 +30,7 @@ export default function ProductsSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center mb-8 sm:mb-32">
 
           {/* Left Title Area */}
-          <div className="flex flex-col items-center lg:items-start text-center lg:text-left max-w-lg mx-auto lg:mx-0">
+          <div className="reveal-fade-right flex flex-col items-center lg:items-start text-center lg:text-left max-w-lg mx-auto lg:mx-0">
             {/* Custom 3-leaf icon */}
             <div className="text-[var(--color-primary)] mb-2 sm:mb-6 flex justify-center lg:justify-start w-full">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="sm:w-12 sm:h-12 opacity-80">
@@ -49,7 +49,7 @@ export default function ProductsSection() {
 
             <button 
               onClick={() => window.location.href = '/marketplace'}
-              className="glass-btn-light px-6 py-2.5 sm:px-9 sm:py-4 uppercase tracking-wider text-xs sm:text-base"
+              className="glass-btn-light px-6 py-2.5 sm:px-9 sm:py-4 uppercase tracking-wider text-xs sm:text-base cursor-pointer"
             >
               {t('products.more')}
             </button>
@@ -57,22 +57,25 @@ export default function ProductsSection() {
 
           {/* Right Grid Area */}
           <div className="grid grid-cols-4 gap-y-4 gap-x-2 sm:gap-y-12 sm:gap-x-6 w-full max-w-2xl mx-auto lg:mr-0 pt-2 lg:pt-0">
-            {products.map((item, index) => (
-              <div key={index} className="flex flex-col items-center justify-center group cursor-pointer">
-                <div className="text-3xl sm:text-6xl mb-1.5 sm:mb-4 group-hover:scale-110 transition-transform duration-300 drop-shadow-md">
-                  {item.emoji}
+            {products.map((item, index) => {
+              const delays = ['delay-75', 'delay-150', 'delay-200', 'delay-250', 'delay-300', 'delay-350', 'delay-400', 'delay-500'];
+              return (
+                <div key={index} className={`reveal-fade-up ${delays[index % delays.length]} flex flex-col items-center justify-center group cursor-pointer`}>
+                  <div className="text-3xl sm:text-6xl mb-1.5 sm:mb-4 group-hover:scale-110 transition-transform duration-300 drop-shadow-md">
+                    {item.emoji}
+                  </div>
+                  <span className="text-xs sm:text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors text-center">
+                    {item.name}
+                  </span>
                 </div>
-                <span className="text-xs sm:text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors text-center">
-                  {item.name}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
         </div>
 
         {/* Bottom Half: Handwritten Typography */}
-        <div className="flex justify-center text-center mt-6 sm:mt-12 w-full relative z-10">
+        <div className="reveal-fade-up delay-200 flex justify-center text-center mt-6 sm:mt-12 w-full relative z-10">
           <h2 className="font-caveat text-[2.2rem] sm:text-[6rem] lg:text-[8rem] leading-[1] drop-shadow-sm w-full">
             <span className="text-[#6c6742] inline-block hover:scale-105 transition-transform">{t('products.healthy')}</span>
             <span className="text-[#ff535c] inline-block hover:scale-105 transition-transform ml-2">{t('products.life')}</span>

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { getAgroTheme } from '../../utils/agroTheme';
 
 const CLOUD_PALETTE = [
   { fill: '#e2f5dc' }, // 1. Soft Leaf Green
@@ -110,39 +111,69 @@ export default function AgroCategoryDetail() {
   const isSinhala = i18n.language === 'si';
 
   const items = (category.items || []).sort((a: any, b: any) => a.order - b.order);
+  const theme = getAgroTheme(category.slug || subSlug, category.name);
 
   return (
     <div className="w-full min-h-screen bg-gray-50">
       {/* ── Hero ── */}
-      <section className="relative w-full h-[28vh] sm:h-[36vh] md:h-[44vh] min-h-[200px] sm:min-h-[260px] md:min-h-[340px] flex flex-col justify-center overflow-hidden">
-        <div
-          className="absolute inset-0 z-0 bg-gray-900"
-          style={{
-            backgroundImage: (category.headerImage || category.image) ? `url(${category.headerImage || category.image})` : 'url(https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        >
+      <section className="relative z-20 w-full h-[24vh] sm:h-[34vh] md:h-[44vh] min-h-[160px] sm:min-h-[250px] md:min-h-[360px] flex flex-col justify-center">
+        {/* Background - clipped */}
+        <div className="absolute inset-0 z-0 bg-gray-900 overflow-hidden">
+          <img
+            src={(category.headerImage || category.image) ? (category.headerImage || category.image) : 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80'}
+            alt={category.name}
+            className="w-full h-full object-cover"
+          />
           <div className="absolute inset-0 bg-black/40" />
           <div
             className="absolute inset-0"
             style={{
-              background: `linear-gradient(to right, #2E7D32dd 0%, rgba(0,0,0,0.5) 55%, transparent 100%)`,
+              background: `linear-gradient(to right, ${theme.primary}ee 0%, rgba(0,0,0,0.45) 55%, transparent 100%)`,
             }}
           />
         </div>
 
-        <div className="container mx-auto px-4 lg:px-12 relative z-10 pt-16 sm:pt-28 pb-4 sm:pb-6">
+        {/* ── Bottom Wave & Floating Badge (Permanently Anchored) ── */}
+        <div className="absolute -bottom-[1px] left-0 right-0 w-full pointer-events-none z-30">
+          {/* Wave SVG */}
+          <svg
+            className="w-full h-10 sm:h-14 md:h-18 lg:h-22 text-[#fbfdfa] fill-current block pointer-events-none"
+            viewBox="0 0 1440 120"
+            preserveAspectRatio="none"
+          >
+            <path d="M0,32 C240,65 480,80 720,45 C960,10 1200,55 1440,30 L1440,120 L0,120 Z" />
+          </svg>
+
+          {/* Circular Badge Icon with Category Image from Backend */}
+          <div className="container mx-auto px-4 lg:px-12 absolute inset-x-0 -bottom-1 sm:-bottom-0.5 md:bottom-0.5 lg:bottom-1 pointer-events-none">
+            <div
+              className="pointer-events-auto bg-white w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-full flex items-center justify-center text-white shadow-xl border-2 sm:border-[3px] md:border-4 border-white overflow-hidden transition-transform duration-300 hover:scale-105"
+              style={{ boxShadow: `0 14px 28px -4px ${theme.primary}50, 0 8px 16px -4px rgba(0,0,0,0.12)` }}
+            >
+              {category.image ? (
+                <img
+                  src={category.image}
+                  alt={category.name}
+                  className="w-full h-full object-contain p-1.5 sm:p-2.5 md:p-3"
+                />
+              ) : (
+                <span className="w-5 h-5 sm:w-7 sm:h-7 rounded-full" style={{ backgroundColor: theme.secondary }} />
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="container mx-auto px-4 lg:px-12 relative z-10 flex flex-col justify-center h-full pt-10 sm:pt-16 md:pt-20 pb-6 sm:pb-12 lg:pb-16">
           {/* Breadcrumb */}
           <Link
             to={`/agro/${mainCategory.slug}`}
-            className="inline-flex items-center gap-2 text-white/70 hover:text-white text-xs sm:text-sm mb-2 sm:mb-4 transition-colors"
+            className="inline-flex items-center gap-1.5 sm:gap-2 text-white/80 hover:text-white text-xs sm:text-sm mb-1 sm:mb-2 transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> {isSinhala ? (mainCategory.sinhalaName || mainCategory.name) : mainCategory.name}
           </Link>
           <div className="flex items-center gap-4">
             <div>
-              <h1 className="text-white text-2xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight drop-shadow-xl">
+              <h1 className="text-white text-lg sm:text-2xl md:text-4xl lg:text-5xl font-black uppercase tracking-tight drop-shadow-xl">
                 {isSinhala ? (category.sinhalaName || category.name) : category.name}
               </h1>
             </div>
@@ -153,9 +184,6 @@ export default function AgroCategoryDetail() {
       {/* ── Products Grid ── */}
       <section className="w-full py-16 bg-[#fbfdfa]">
         <div className="container mx-auto px-2 sm:px-4 lg:px-12">
-          <p className="text-xs sm:text-sm text-gray-500 uppercase tracking-widest font-bold mb-4 sm:mb-8">
-            {items.length} {t('agro.productsInCategory', 'Products in this category')}
-          </p>
 
           <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-4 md:gap-5">
             {items.map((product: any, index: number) => {
@@ -217,7 +245,8 @@ export default function AgroCategoryDetail() {
                 return (
                   <div
                     key={product.id}
-                    className="relative flex flex-col items-center justify-between p-1.5 sm:p-2.5 md:p-3 rounded-xl sm:rounded-2xl bg-white border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] opacity-75 cursor-not-allowed select-none"
+                    style={{ animationDelay: `${Math.min(index * 45, 600)}ms` }}
+                    className="animate-card-pop relative flex flex-col items-center justify-between p-1.5 sm:p-2.5 md:p-3 rounded-xl sm:rounded-2xl bg-white border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] opacity-75 cursor-not-allowed select-none"
                     title={t('agro.comingSoon', 'Coming Soon')}
                   >
                     {cardContent}
@@ -229,7 +258,8 @@ export default function AgroCategoryDetail() {
                 <Link 
                   key={product.id}
                   to={`/agro/${mainCategory.slug}/${category.slug}/${product.slug}`}
-                  className="group relative flex flex-col items-center justify-between p-1.5 sm:p-2.5 md:p-3 rounded-xl sm:rounded-2xl bg-white border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-emerald-200/80 hover:-translate-y-1 transition-all duration-300"
+                  style={{ animationDelay: `${Math.min(index * 45, 600)}ms` }}
+                  className="animate-card-pop group relative flex flex-col items-center justify-between p-1.5 sm:p-2.5 md:p-3 rounded-xl sm:rounded-2xl bg-white border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-emerald-200/80 hover:-translate-y-1 transition-all duration-300"
                 >
                   {cardContent}
                 </Link>

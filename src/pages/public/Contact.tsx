@@ -12,6 +12,9 @@ export default function Contact() {
         description={t('contact.desc')} 
         image="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
         gradientColor="#e87f3b"
+        icon={Phone}
+        badgeBg="bg-[#e87f3b]"
+        waveColor="text-white"
       />
 
       {/* Info Section */}

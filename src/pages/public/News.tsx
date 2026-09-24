@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Share2, Clock, User, Image as ImageIcon, Link as LinkIcon, MessageCircle, Check } from 'lucide-react';
+import { Share2, Clock, User, Image as ImageIcon, Link as LinkIcon, MessageCircle, Check, Newspaper } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import { useTranslation } from 'react-i18next';
 import Pagination from '../../components/admin/Pagination';
+import CustomDropdown from '../../components/ui/CustomDropdown';
 
 interface NewsItem {
   id: string;
@@ -117,7 +118,10 @@ export default function News() {
         title={t('newsPage.title', 'NEWS')}
         description={t('newsPage.desc', 'Stay informed with the latest news, updates, and announcements from Aswanna.')}
         image="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
-        gradientColor="#28b41bff"
+        gradientColor="#991b1b"
+        icon={Newspaper}
+        badgeBg="bg-[#dc2626]"
+        waveColor="text-gray-50"
       />
 
       {/* ── Content ── */}
@@ -133,17 +137,17 @@ export default function News() {
             </div>
 
             <div className="mb-4 sm:mb-6">
-              <select 
-                value={selectedCategory} 
-                onChange={(e) => {
-                  setSelectedCategory(e.target.value);
+              <CustomDropdown
+                value={selectedCategory}
+                onChange={(val) => {
+                  setSelectedCategory(val);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-2 sm:px-4 sm:py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-secondary)]/50 bg-white shadow-sm text-xs sm:text-sm font-medium text-gray-700"
-              >
-                <option value="">{t('newsPage.allCategories', 'All Categories')}</option>
-                {NEWS_CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-              </select>
+                options={[
+                  { value: '', label: t('newsPage.allCategories', 'All Categories') },
+                  ...NEWS_CATEGORIES.map(cat => ({ value: cat, label: cat }))
+                ]}
+              />
             </div>
 
             <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5 overflow-y-auto max-h-[500px] sm:max-h-[600px] lg:max-h-[800px] pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
@@ -152,9 +156,10 @@ export default function News() {
               ) : newsList.length === 0 ? (
                 <div className="p-8 sm:p-10 text-center text-sm text-gray-500">{t('newsPage.noNews', 'No news articles found.')}</div>
               ) : (
-                newsList.map((news) => (
+                newsList.map((news, index) => (
                   <div
                     key={news.id}
+                    style={{ animationDelay: `${Math.min(index * 45, 600)}ms` }}
                     onClick={() => {
                       setSelectedNewsId(news.id);
                       if (window.innerWidth < 1024) {
@@ -163,7 +168,7 @@ export default function News() {
                         }, 100);
                       }
                     }}
-                    className={`flex gap-3 sm:gap-4 p-2 sm:p-2.5 lg:p-3 rounded-xl cursor-pointer transition-all duration-300 ${selectedNewsId === news.id
+                    className={`animate-card-pop flex gap-3 sm:gap-4 p-2 sm:p-2.5 lg:p-3 rounded-xl cursor-pointer transition-all duration-300 ${selectedNewsId === news.id
                         ? 'bg-white shadow-md border border-[var(--color-secondary)]/20'
                         : 'hover:bg-white hover:shadow-sm border border-transparent'
                       }`}

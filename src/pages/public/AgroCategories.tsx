@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, ChevronRight } from 'lucide-react';
+import { Search, ChevronRight, Layers, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import PageHero from '../../components/public/PageHero';
 
 interface Category {
   id: string;
@@ -112,44 +113,39 @@ export default function AgroCategories() {
   return (
     <div className="w-full min-h-screen bg-white">
       {/* ── Hero ── */}
-      <section className="relative w-full h-[28vh] sm:h-[36vh] md:h-[44vh] min-h-[200px] sm:min-h-[260px] md:min-h-[340px] flex flex-col justify-center overflow-hidden">
-        <div
-          className="absolute inset-0 z-0"
-          style={{
-            backgroundImage:
-              'url(https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80)',
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-          }}
-        >
-          <div className="absolute inset-0 bg-black/40" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-secondary)]/90 via-black/50 to-transparent" />
-        </div>
+      <PageHero
+        title={t('agro.title', 'Agro Technology')}
+        description={t('agro.desc', 'Browse all farming categories — from paddy fields to flower farms — and explore the produce that powers Sri Lanka.')}
+        image="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
+        gradientColor="#2E7D32"
+        icon={Layers}
+        badgeBg="bg-[#2E7D32]"
+        waveColor="text-white"
+      />
 
-        <div className="container mx-auto px-4 lg:px-12 relative z-10 pt-16 sm:pt-24 pb-4 sm:pb-8">
-          <div className="max-w-3xl">
-            <h1 className="text-white text-2xl sm:text-4xl md:text-6xl font-black uppercase mb-2 sm:mb-3 drop-shadow-xl tracking-tight">
-              {t('agro.title', 'Agro Technology')}
-            </h1>
-            <p className="text-gray-100 text-xs sm:text-base md:text-lg leading-relaxed max-w-2xl font-light drop-shadow-md line-clamp-2 sm:line-clamp-none">
-              {t('agro.desc', 'Browse all farming categories — from paddy fields to flower farms — and explore the produce that powers Sri Lanka.')}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ── Search ── */}
-      <section className="w-full py-10 bg-white border-b border-gray-100 shadow-sm z-20">
-        <div className="container mx-auto px-4 lg:px-12">
-          <div className="max-w-xl ml-auto relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+      {/* ── Search Bar (Sleek, Modern, Right-Aligned) ── */}
+      <section className="animate-fade-smooth w-full py-4 sm:py-6 bg-white border-b border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
+        <div className="container mx-auto px-4 lg:px-12 flex justify-end">
+          <div className="relative w-full sm:w-80 md:w-96 group">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-emerald-700">
+              <Search className="w-4 h-4" />
+            </div>
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('agro.searchPlaceholder', 'Search categories... (e.g. Vegetable, Flower)')}
-              className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--color-secondary)] focus:ring-2 focus:ring-[var(--color-secondary)]/20 outline-none transition-all shadow-sm text-gray-700"
+              className="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-xl sm:rounded-full border border-gray-200/90 bg-gray-50/70 hover:bg-white focus:bg-white hover:border-emerald-500/60 focus:border-[#006837] focus:ring-3 focus:ring-[#006837]/15 outline-none transition-all duration-200 text-xs sm:text-sm text-gray-800 shadow-xs"
             />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-200/80 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all cursor-pointer hover:scale-105"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </div>
       </section>
@@ -174,7 +170,8 @@ export default function AgroCategories() {
                   <Link
                     key={cat.id}
                     to={`/agro/${cat.slug}`}
-                    className="group relative flex flex-col items-center justify-between p-1.5 sm:p-2.5 md:p-3 rounded-xl sm:rounded-2xl bg-white border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-emerald-200/80 hover:-translate-y-1 transition-all duration-300"
+                    style={{ animationDelay: `${Math.min(index * 45, 600)}ms` }}
+                    className="animate-card-pop group relative flex flex-col items-center justify-between p-1.5 sm:p-2.5 md:p-3 rounded-xl sm:rounded-2xl bg-white border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-emerald-200/80 hover:-translate-y-1 transition-all duration-300"
                   >
                     {/* Top: Illustration with large organic cloud pastel background shape */}
                     <div className="w-full aspect-square max-w-[95px] sm:max-w-[135px] md:max-w-[150px] flex items-center justify-center relative">

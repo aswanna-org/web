@@ -252,7 +252,11 @@ export default function EducationDetail() {
         title={course.title}
         description={course.shortDescription || ''}
         image={heroImage}
-        gradientColor="#054a29"
+        gradientColor="#4c1d95"
+        iconUrl={course.iconUrl || course.category?.image}
+        icon={GraduationCap}
+        badgeBg="bg-[#7c3aed]"
+        waveColor="text-[#f8fafc]"
       />
 
       {/* ── MAIN CONTENT: FULL-WIDTH STRUCTURED SPECIFICATION FORM & BOTTOM ACTION BAR ── */}

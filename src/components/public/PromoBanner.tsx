@@ -7,7 +7,7 @@ export default function PromoBanner() {
 
   return (
     <section className="container mx-auto px-4 lg:px-8 py-4 sm:py-6 my-4 sm:my-8 font-roboto">
-      <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-[var(--color-secondary)] shadow-lg">
+      <div className="reveal-scale relative w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-[var(--color-secondary)] shadow-lg">
         <div
           className="absolute inset-0 opacity-20 mix-blend-overlay pointer-events-none"
           style={{
@@ -22,7 +22,7 @@ export default function PromoBanner() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 items-center">
             
             {/* Left Side: Images */}
-            <div className="relative h-[170px] sm:h-[210px] lg:h-[230px] flex items-center justify-center lg:justify-start">
+            <div className="reveal-fade-right delay-100 relative h-[170px] sm:h-[210px] lg:h-[230px] flex items-center justify-center lg:justify-start">
               <div className="absolute left-4 sm:left-8 lg:left-6 top-0 w-[140px] sm:w-[180px] lg:w-[200px] h-[160px] sm:h-[200px] lg:h-[220px] shadow-xl z-20">
                 <img
                   src="https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&q=80"
@@ -41,7 +41,7 @@ export default function PromoBanner() {
             </div>
 
             {/* Right Side: Text and Button */}
-            <div className="flex flex-col items-start lg:pl-6 relative z-20 mt-2 lg:mt-0">
+            <div className="reveal-fade-left delay-200 flex flex-col items-start lg:pl-6 relative z-20 mt-2 lg:mt-0">
               <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white leading-snug mb-3 sm:mb-4 drop-shadow-md max-w-lg">
                 {t('promo.title')}
               </h2>

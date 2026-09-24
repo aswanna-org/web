@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import PageHero from '../../components/public/PageHero';
 import { useTranslation } from 'react-i18next';
-import { Search, ShoppingCart, Filter, ShoppingBag } from 'lucide-react';
+import { Search, ShoppingCart, Filter, ShoppingBag, X } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import Pagination from '../../components/admin/Pagination';
 
@@ -74,6 +74,9 @@ export default function Marketplace() {
         description={t('marketplace.desc', 'Buy seeds, fertilizers, and agricultural equipment.')} 
         image="https://images.unsplash.com/photo-1592681890287-1b0337c8b0eb?w=1600&q=80"
         gradientColor="#e6b800"
+        icon={ShoppingBag}
+        badgeBg="bg-[#e6b800]"
+        waveColor="text-gray-50"
       />
       
       {/* Floating Cart Button (Optional, can also put in Navbar) */}
@@ -129,15 +132,26 @@ export default function Marketplace() {
           <div className="w-full lg:w-3/4">
             
             {/* Search Bar */}
-            <div className="mb-8 relative">
+            <div className="mb-6 relative group">
+              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-emerald-700">
+                <Search className="w-4 h-4" />
+              </div>
               <input 
                 type="text" 
                 placeholder="Search products..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500/50 shadow-sm transition-shadow"
+                className="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-xl sm:rounded-full border border-gray-200/90 bg-gray-50/70 hover:bg-white focus:bg-white hover:border-emerald-500/60 focus:border-[#006837] focus:ring-3 focus:ring-[#006837]/15 outline-none transition-all duration-200 text-xs sm:text-sm text-gray-800 shadow-xs"
               />
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-200/80 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all cursor-pointer hover:scale-105"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
             
             {/* Product Grid */}
@@ -153,8 +167,12 @@ export default function Marketplace() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {products.map(product => (
-                  <div key={product.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all group">
+                {products.map((product, index) => (
+                  <div 
+                    key={product.id} 
+                    style={{ animationDelay: `${Math.min(index * 45, 600)}ms` }}
+                    className="animate-card-pop bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all group"
+                  >
                     <div className="relative h-48 bg-gray-100 overflow-hidden">
                       {product.image ? (
                         <img 

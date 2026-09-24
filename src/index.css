@@ -11,10 +11,10 @@
 }
 
 /* ── Mobile font scale ── */
-/* Scale down root font size on small screens so all rem-based text shrinks */
+/* Scale down root font size on small screens so all rem-based text shrinks cleanly */
 @media (max-width: 640px) {
   html {
-    font-size: 87.5%; /* 14px base instead of 16px → ~13% smaller across the board */
+    font-size: 87.5%; /* 14px base instead of 16px */
   }
 }
 
@@ -101,16 +101,18 @@ body {
 .tiptap h3 {
   font-weight: 700;
   line-height: 1.4;
-  margin-top: 1.25em;
-  margin-bottom: 0.5em;
+  margin-top: 1.1em;
+  margin-bottom: 0.4em;
 }
-.rich-content h1, .tiptap h1 { font-size: 1.75rem; }
-.rich-content h2, .tiptap h2 { font-size: 1.4rem; }
-.rich-content h3, .tiptap h3 { font-size: 1.2rem; }
+
+.rich-content h1, .tiptap h1 { font-size: 1.65rem; }
+.rich-content h2, .tiptap h2 { font-size: 1.35rem; }
+.rich-content h3, .tiptap h3 { font-size: 1.15rem; }
+.rich-content h4, .tiptap h4 { font-size: 1rem; }
 
 .rich-content p,
 .tiptap p {
-  margin-bottom: 0.9em;
+  margin-bottom: 0.85em;
   line-height: 1.7;
 }
 
@@ -118,8 +120,8 @@ body {
 .rich-content ol,
 .tiptap ul,
 .tiptap ol {
-  padding-left: 1.75em;
-  margin-bottom: 0.9em;
+  padding-left: 1.5em;
+  margin-bottom: 0.85em;
 }
 .rich-content ul, .tiptap ul { list-style-type: disc; }
 .rich-content ol, .tiptap ol { list-style-type: decimal; }
@@ -133,6 +135,62 @@ body {
 .rich-content em { font-style: italic; }
 .rich-content u { text-decoration: underline; }
 .rich-content s { text-decoration: line-through; }
+
+/* ── Mobile Responsive Rich Content Adjustments ── */
+@media (max-width: 640px) {
+  .rich-content,
+  .rich-content.prose,
+  .prose.rich-content,
+  .prose.max-w-none,
+  .tiptap {
+    font-size: 0.875rem !important; /* ~12-14px clean mobile reading */
+    line-height: 1.62 !important;
+  }
+
+  .rich-content p,
+  .rich-content div,
+  .rich-content li,
+  .rich-content span,
+  .tiptap p,
+  .tiptap div,
+  .tiptap li,
+  .tiptap span {
+    font-size: 0.875rem !important;
+    line-height: 1.62 !important;
+    margin-bottom: 0.7em !important;
+  }
+
+  .rich-content h1, .tiptap h1 {
+    font-size: 1.25rem !important;
+    line-height: 1.3 !important;
+    margin-top: 0.8em !important;
+    margin-bottom: 0.3em !important;
+  }
+  .rich-content h2, .tiptap h2 {
+    font-size: 1.1rem !important;
+    line-height: 1.35 !important;
+    margin-top: 0.75em !important;
+    margin-bottom: 0.25em !important;
+  }
+  .rich-content h3, .tiptap h3 {
+    font-size: 0.98rem !important;
+    line-height: 1.35 !important;
+    margin-top: 0.65em !important;
+    margin-bottom: 0.2em !important;
+  }
+  .rich-content h4, .tiptap h4 {
+    font-size: 0.9rem !important;
+    line-height: 1.35 !important;
+  }
+
+  /* Clear oversized desktop inline font-sizes inside rich content on mobile */
+  .rich-content [style*="font-size"],
+  .rich-content span[style*="font-size"],
+  .rich-content p[style*="font-size"],
+  .rich-content div[style*="font-size"] {
+    font-size: inherit !important;
+  }
+}
 
 .rich-content blockquote {
   border-left: 4px solid #d1d5db;
@@ -402,4 +460,23 @@ body {
 
 .glass-btn-light:active {
   transform: translateY(0);
+}
+
+/* Custom Dropdown Scrollbar */
+.dropdown-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.dropdown-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.dropdown-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+.dropdown-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+.dropdown-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
 }

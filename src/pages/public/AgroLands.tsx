@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import PageHero from '../../components/public/PageHero';
 import { useTranslation } from 'react-i18next';
-import { Search, MapPin, Maximize, Phone, Tag } from 'lucide-react';
+import { Search, MapPin, Maximize, Phone, Tag, X } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
+import CustomDropdown from '../../components/ui/CustomDropdown';
 
 interface Lookup {
   id: string;
@@ -96,45 +97,50 @@ export default function AgroLands() {
         description={t('agroLands.desc', 'Find agricultural lands for sale and lease.')} 
         image="https://images.unsplash.com/photo-1629731215450-4591e1d0ed53?w=1600&q=80"
         gradientColor="#2b6cb0"
+        icon={MapPin}
+        badgeBg="bg-[#2b6cb0]"
+        waveColor="text-gray-50"
       />
       
       <div className="container mx-auto px-4 lg:px-12 mt-12 flex flex-col lg:flex-row gap-8">
         
         {/* Sidebar Filters */}
-        <div className="w-full lg:w-1/4 space-y-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="w-full lg:w-1/4 space-y-6 relative z-30">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-lg font-bold text-gray-800 mb-6 pb-4 border-b border-gray-100">
               {t('plantFinder.filters', 'Filters')}
             </h3>
             
             {/* Type Filter */}
-            <div className="mb-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Type</label>
-              <select 
+            <div className="mb-5">
+              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Type</label>
+              <CustomDropdown
                 value={selectedType}
-                onChange={(e) => setSelectedType(e.target.value)}
-                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-              >
-                <option value="">{t('common.all', 'All')}</option>
-                {filters.types.map(t => (
-                  <option key={t.id} value={t.id}>{isSinhala ? (t.nameSi || t.name) : t.name}</option>
-                ))}
-              </select>
+                onChange={(val) => setSelectedType(val)}
+                options={[
+                  { value: '', label: t('common.all', 'All Types') },
+                  ...filters.types.map(t => ({
+                    value: t.id,
+                    label: isSinhala ? (t.nameSi || t.name) : t.name
+                  }))
+                ]}
+              />
             </div>
 
             {/* Location Filter */}
-            <div className="mb-6">
-              <label className="block text-sm font-semibold text-gray-700 mb-3">Location</label>
-              <select 
+            <div className="mb-5">
+              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Location</label>
+              <CustomDropdown
                 value={selectedLocation}
-                onChange={(e) => setSelectedLocation(e.target.value)}
-                className="w-full p-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50"
-              >
-                <option value="">{t('common.all', 'All')}</option>
-                {filters.locations.map(loc => (
-                  <option key={loc} value={loc}>{loc}</option>
-                ))}
-              </select>
+                onChange={(val) => setSelectedLocation(val)}
+                options={[
+                  { value: '', label: t('common.all', 'All Locations') },
+                  ...filters.locations.map(loc => ({
+                    value: loc,
+                    label: loc
+                  }))
+                ]}
+              />
             </div>
 
             {(selectedType || selectedLocation) && (
@@ -155,15 +161,26 @@ export default function AgroLands() {
         <div className="w-full lg:w-3/4">
           
           {/* Search Bar */}
-          <div className="relative mb-8">
+          <div className="relative mb-6 group">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-emerald-700">
+              <Search className="w-4 h-4" />
+            </div>
             <input 
               type="text" 
               placeholder={t('plantFinder.searchPlaceholder', 'Search...')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-14 pr-4 py-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/50 shadow-sm transition-shadow text-lg"
+              className="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-xl sm:rounded-full border border-gray-200/90 bg-gray-50/70 hover:bg-white focus:bg-white hover:border-emerald-500/60 focus:border-[#006837] focus:ring-3 focus:ring-[#006837]/15 outline-none transition-all duration-200 text-xs sm:text-sm text-gray-800 shadow-xs"
             />
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={24} />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-200/80 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all cursor-pointer hover:scale-105"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
           
           {/* Results Grid */}
@@ -179,8 +196,12 @@ export default function AgroLands() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {lands.map(land => (
-                <div key={land.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all group flex flex-col">
+              {lands.map((land, index) => (
+                <div 
+                  key={land.id} 
+                  style={{ animationDelay: `${Math.min(index * 45, 600)}ms` }}
+                  className="animate-card-pop bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all group flex flex-col"
+                >
                   
                   <div className="relative h-48 bg-gray-100 overflow-hidden shrink-0">
                     {land.image ? (

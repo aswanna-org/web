@@ -16,7 +16,7 @@ export default function Footer() {
             <div className="container mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 md:py-16 relative z-10 max-w-[1400px]">
                 
                 {/* Glassy Box */}
-                <div className="bg-white/70 backdrop-blur-xl border border-white/60 shadow-[0_8px_32px_0_rgba(0,0,0,0.08)] rounded-2xl sm:rounded-3xl p-4 sm:p-7 md:p-10">
+                <div className="reveal-fade-up bg-white/70 backdrop-blur-xl border border-white/60 shadow-[0_8px_32px_0_rgba(0,0,0,0.08)] rounded-2xl sm:rounded-3xl p-4 sm:p-7 md:p-10">
                     {/* Top Section */}
                     <div className="flex flex-col lg:flex-row justify-between gap-6 sm:gap-8 lg:gap-16 mb-4 sm:mb-8">
                         {/* Left Column - Brand & Info */}

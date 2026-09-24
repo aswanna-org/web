@@ -1,0 +1,126 @@
+/* ==========================================================================
+   Aswanna Lightweight Scroll Reveal & Micro-Animation System
+   (Zero external libraries, pure performant CSS + IntersectionObserver)
+   ========================================================================== */
+
+/* ── Base Reveal Selectors ── */
+.reveal-fade-up,
+.reveal-fade-down,
+.reveal-fade-left,
+.reveal-fade-right,
+.reveal-fade-in,
+.reveal-scale {
+  opacity: 0;
+  will-change: opacity, transform;
+  transition-property: opacity, transform;
+  transition-duration: 1.15s;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ── Initial Hidden Transforms ── */
+.reveal-fade-up {
+  transform: translate3d(0, 28px, 0);
+}
+
+.reveal-fade-down {
+  transform: translate3d(0, -28px, 0);
+}
+
+.reveal-fade-left {
+  transform: translate3d(-30px, 0, 0);
+}
+
+.reveal-fade-right {
+  transform: translate3d(30px, 0, 0);
+}
+
+.reveal-fade-in {
+  transform: none;
+}
+
+.reveal-scale {
+  transform: scale3d(0.95, 0.95, 1) translate3d(0, 18px, 0);
+}
+
+/* ── Active (Revealed) State ── */
+.reveal-fade-up.is-revealed,
+.reveal-fade-down.is-revealed,
+.reveal-fade-left.is-revealed,
+.reveal-fade-right.is-revealed,
+.reveal-fade-in.is-revealed,
+.reveal-scale.is-revealed {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+}
+
+/* ── Staggered Delays for Grid Cards / Lists ── */
+.delay-75  { transition-delay: 100ms; }
+.delay-100 { transition-delay: 140ms; }
+.delay-150 { transition-delay: 200ms; }
+.delay-200 { transition-delay: 280ms; }
+.delay-250 { transition-delay: 360ms; }
+.delay-300 { transition-delay: 440ms; }
+.delay-350 { transition-delay: 520ms; }
+.delay-400 { transition-delay: 600ms; }
+.delay-500 { transition-delay: 750ms; }
+.delay-600 { transition-delay: 900ms; }
+
+/* ── Direct Entrance Keyframes (For dynamically rendered cards & page navigation) ── */
+@keyframes cardPopIn {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0) scale3d(0.95, 0.95, 1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+  }
+}
+
+@keyframes fadeInSmooth {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-card-pop {
+  opacity: 0;
+  animation: cardPopIn 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: opacity, transform;
+}
+
+.animate-fade-smooth {
+  opacity: 0;
+  animation: fadeInSmooth 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: opacity, transform;
+}
+
+/* ── Subtle Interactive Micro-Animations ── */
+.hover-subtle-lift {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hover-subtle-lift:hover {
+  transform: translateY(-4px);
+}
+
+/* ── Accessibility / Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  .reveal-fade-up,
+  .reveal-fade-down,
+  .reveal-fade-left,
+  .reveal-fade-right,
+  .reveal-fade-in,
+  .reveal-scale,
+  .animate-card-pop,
+  .animate-fade-smooth {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}

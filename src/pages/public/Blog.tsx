@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Share2, Clock, User, Image as ImageIcon, Link as LinkIcon, MessageCircle, Check } from 'lucide-react';
+import { Share2, Clock, User, Image as ImageIcon, Link as LinkIcon, MessageCircle, Check, BookOpen } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import { useTranslation } from 'react-i18next';
 import Pagination from '../../components/admin/Pagination';
@@ -102,7 +102,10 @@ export default function Blog() {
         title={t('blogPage.title', 'BLOG')}
         description={t('blogPage.desc', 'Read our latest articles, farming guides, and insights from industry experts.')}
         image="https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=1600&q=80"
-        gradientColor="#28b41bff"
+        gradientColor="#7c2d12"
+        icon={BookOpen}
+        badgeBg="bg-[#c2410c]"
+        waveColor="text-gray-50"
       />
 
       {/* ── Content ── */}
@@ -123,9 +126,10 @@ export default function Blog() {
               ) : blogList.length === 0 ? (
                 <div className="p-8 sm:p-10 text-center text-sm text-gray-500">{t('blogPage.noPosts', 'No blog posts found.')}</div>
               ) : (
-                blogList.map((blog) => (
+                blogList.map((blog, index) => (
                   <div
                     key={blog.id}
+                    style={{ animationDelay: `${Math.min(index * 45, 600)}ms` }}
                     onClick={() => {
                       setSelectedBlogId(blog.id);
                       if (window.innerWidth < 1024) {
@@ -134,7 +138,7 @@ export default function Blog() {
                         }, 100);
                       }
                     }}
-                    className={`flex gap-3 sm:gap-4 p-2 sm:p-2.5 lg:p-3 rounded-xl cursor-pointer transition-all duration-300 ${selectedBlogId === blog.id
+                    className={`animate-card-pop flex gap-3 sm:gap-4 p-2 sm:p-2.5 lg:p-3 rounded-xl cursor-pointer transition-all duration-300 ${selectedBlogId === blog.id
                       ? 'bg-white shadow-md border border-[var(--color-secondary)]/20'
                       : 'hover:bg-white hover:shadow-sm border border-transparent'
                       }`}

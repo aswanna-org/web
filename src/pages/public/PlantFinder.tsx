@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import PageHero from '../../components/public/PageHero';
 import { useTranslation } from 'react-i18next';
-import { Search, Filter, Sprout, MapPin, Layers, Clock } from 'lucide-react';
+import { Search, Sprout, MapPin, Layers, Clock, X } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
+import CustomDropdown from '../../components/ui/CustomDropdown';
 
 interface Lookup {
   id: string;
@@ -93,74 +94,78 @@ export default function PlantFinder() {
         description={t('plantFinder.desc', 'Find the best plants for your climatic zone and soil type.')} 
         image="https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=1600&q=80"
         gradientColor="#2e7d32"
+        icon={Sprout}
+        badgeBg="bg-[#2e7d32]"
+        waveColor="text-gray-50"
       />
       
       <div className="container mx-auto px-4 lg:px-12 py-12">
         <div className="flex flex-col lg:flex-row gap-8">
           
           {/* Sidebar / Filters */}
-          <div className="w-full lg:w-1/4 space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 sticky top-24">
-              <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                <Filter size={24} className="text-green-600" />
+          <div className="w-full lg:w-1/4 relative z-30">
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24 space-y-5">
+              <h3 className="text-lg font-bold text-gray-800 pb-4 border-b border-gray-100">
                 {t('plantFinder.filters', 'Filters')}
               </h3>
               
-              <div className="space-y-6">
+              <div className="space-y-5">
                 {/* Climatic Zone Filter */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <MapPin size={16} className="text-green-600"/>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
                     {t('plantFinder.climaticZone', 'Climatic Zone')}
                   </label>
-                  <select 
+                  <CustomDropdown
                     value={selectedZone}
-                    onChange={(e) => setSelectedZone(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-gray-50"
-                  >
-                    <option value="">{t('plantFinder.all', 'All')}</option>
-                    {availableFilters.climaticZones.map(zone => (
-                      <option key={zone.id} value={zone.id}>{isSinhala ? (zone.nameSi || zone.name) : zone.name}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setSelectedZone(val)}
+                    options={[
+                      { value: '', label: t('plantFinder.all', 'All Climatic Zones') },
+                      ...availableFilters.climaticZones.map(zone => ({
+                        value: zone.id,
+                        label: isSinhala ? (zone.nameSi || zone.name) : zone.name
+                      }))
+                    ]}
+                  />
                 </div>
                 
                 {/* Soil Type Filter */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <Layers size={16} className="text-green-600"/>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
                     {t('plantFinder.soilType', 'Soil Type')}
                   </label>
-                  <select 
+                  <CustomDropdown
                     value={selectedSoil}
-                    onChange={(e) => setSelectedSoil(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-gray-50"
-                  >
-                    <option value="">{t('plantFinder.all', 'All')}</option>
-                    {availableFilters.soilTypes.map(soil => (
-                      <option key={soil.id} value={soil.id}>{isSinhala ? (soil.nameSi || soil.name) : soil.name}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setSelectedSoil(val)}
+                    options={[
+                      { value: '', label: t('plantFinder.all', 'All Soil Types') },
+                      ...availableFilters.soilTypes.map(soil => ({
+                        value: soil.id,
+                        label: isSinhala ? (soil.nameSi || soil.name) : soil.name
+                      }))
+                    ]}
+                  />
                 </div>
                 
                 {/* Harvest Time Filter */}
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <Clock size={16} className="text-green-600"/>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
                     {t('plantFinder.harvestTime', 'Harvest Time')}
                   </label>
-                  <select 
+                  <CustomDropdown
                     value={selectedTime}
-                    onChange={(e) => setSelectedTime(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-gray-50"
-                  >
-                    <option value="">{t('plantFinder.all', 'All')}</option>
-                    {availableFilters.harvestTimes.map(time => (
-                      <option key={time.id} value={time.id}>{isSinhala ? (time.nameSi || time.name) : time.name}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setSelectedTime(val)}
+                    options={[
+                      { value: '', label: t('plantFinder.all', 'All Harvest Times') },
+                      ...availableFilters.harvestTimes.map(time => ({
+                        value: time.id,
+                        label: isSinhala ? (time.nameSi || time.name) : time.name
+                      }))
+                    ]}
+                  />
                 </div>
+              </div>
                 
+              {(selectedZone || selectedSoil || selectedTime || searchQuery) && (
                 <button 
                   onClick={() => {
                     setSelectedZone('');
@@ -168,11 +173,11 @@ export default function PlantFinder() {
                     setSelectedTime('');
                     setSearchQuery('');
                   }}
-                  className="w-full py-3 text-green-700 bg-green-50 hover:bg-green-100 rounded-lg font-medium transition-colors"
+                  className="w-full py-2.5 text-emerald-700 font-medium hover:bg-emerald-50 rounded-xl transition-colors text-xs sm:text-sm border border-emerald-100 cursor-pointer"
                 >
                   {t('plantFinder.clearFilters', 'Clear Filters')}
                 </button>
-              </div>
+              )}
             </div>
           </div>
           
@@ -180,15 +185,26 @@ export default function PlantFinder() {
           <div className="w-full lg:w-3/4">
             
             {/* Search Bar */}
-            <div className="mb-8 relative">
+            <div className="mb-6 relative group">
+              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-emerald-700">
+                <Search className="w-4 h-4" />
+              </div>
               <input 
                 type="text" 
                 placeholder={t('plantFinder.searchPlaceholder', 'Search plants by name or description...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-14 pr-4 py-4 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-green-500/50 shadow-sm transition-shadow text-lg"
+                className="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-xl sm:rounded-full border border-gray-200/90 bg-gray-50/70 hover:bg-white focus:bg-white hover:border-emerald-500/60 focus:border-[#006837] focus:ring-3 focus:ring-[#006837]/15 outline-none transition-all duration-200 text-xs sm:text-sm text-gray-800 shadow-xs"
               />
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400" size={24} />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-200/80 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all cursor-pointer hover:scale-105"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
             
             {/* Results Grid */}
@@ -204,8 +220,12 @@ export default function PlantFinder() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {plants.map(plant => (
-                  <div key={plant.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all group flex flex-col">
+                {plants.map((plant, index) => (
+                  <div 
+                    key={plant.id} 
+                    style={{ animationDelay: `${Math.min(index * 45, 600)}ms` }}
+                    className="animate-card-pop bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-all group flex flex-col"
+                  >
                     <div className="relative h-48 bg-gray-100 overflow-hidden shrink-0">
                       {plant.image ? (
                         <img 

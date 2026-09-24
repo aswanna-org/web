@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, ChevronDown, X } from 'lucide-react';
+import { Search, ChevronDown, X, Briefcase } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import Pagination from '../../components/admin/Pagination';
 
@@ -92,25 +92,37 @@ export default function Careers() {
         title={t('careers.title', 'CAREERS')} 
         description={t('careers.desc', 'Be part of the agricultural revolution. Explore opportunities across government, private sector, NGOs, and daily wage roles.')} 
         image="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
-        gradientColor="var(--color-secondary)"
+        gradientColor="#1e3a8a"
+        icon={Briefcase}
+        badgeBg="bg-[#2563eb]"
+        waveColor="text-white"
       />
 
       {/* Filter and Search Section */}
-      <section className="w-full py-16 bg-white border-b border-gray-100 shadow-sm relative z-20">
+      <section className="w-full py-6 sm:py-8 bg-white border-b border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
         <div className="container mx-auto px-4 lg:px-12">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
             {/* Search Bar */}
-            <div className="w-full md:w-1/2 relative">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <Search className="h-6 w-6 text-gray-400" />
+            <div className="w-full md:w-96 relative group">
+              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-emerald-700">
+                <Search className="w-4 h-4" />
               </div>
               <input
                 type="text"
-                className="w-full pl-12 pr-4 py-4 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[var(--color-primary)] focus:ring-2 focus:ring-[var(--color-primary)]/20 outline-none transition-all text-gray-700 shadow-sm"
+                className="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-xl sm:rounded-full border border-gray-200/90 bg-gray-50/70 hover:bg-white focus:bg-white hover:border-emerald-500/60 focus:border-[#006837] focus:ring-3 focus:ring-[#006837]/15 outline-none transition-all duration-200 text-xs sm:text-sm text-gray-800 shadow-xs"
                 placeholder={t('careers.searchPlaceholder', 'Search for jobs, roles, or locations...')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-200/80 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all cursor-pointer hover:scale-105"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
             {/* Filters */}
             <div className="w-full md:w-auto flex flex-wrap items-center gap-2.5">
@@ -158,8 +170,12 @@ export default function Careers() {
             {/* Right Job List */}
             <div className="w-full lg:w-2/3 flex flex-col">
               {filteredJobs.length > 0 ? (
-                filteredJobs.map((job) => (
-                  <div key={job.id} className="border-b border-gray-200 flex flex-col">
+                filteredJobs.map((job, index) => (
+                  <div 
+                    key={job.id} 
+                    style={{ animationDelay: `${Math.min(index * 45, 600)}ms` }}
+                    className="animate-card-pop border-b border-gray-200 flex flex-col"
+                  >
                     <div
                       className="py-8 flex flex-col sm:flex-row sm:items-center justify-between gap-6 group cursor-pointer"
                       onClick={() => setExpandedJob(expandedJob === job.id ? null : job.id)}

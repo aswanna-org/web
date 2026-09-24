@@ -318,7 +318,10 @@ export default function AgriInfoHub() {
         title={t('agriInfoHub.heroTitle', isSinhala ? 'කෘෂි තොරතුරු කේන්ද්‍රය' : 'AGRI INFORMATION HUB')}
         description={t('agriInfoHub.heroDesc', isSinhala ? 'ශ්‍රී ලංකාවේ ගොවි ප්‍රජාව සහ කෘෂි ව්‍යවසායකයින් සඳහා රාජ්‍ය ආයතන, පුද්ගලික ආයතන, ප්‍රාදේශීය කෘෂිකර්ම නිලධාරීන් සහ ජාත්‍යන්තර ආයතන වල තොරතුරු සපයන ඒකාබද්ධ කේන්ද්‍රස්ථානය.' : 'A unified platform connecting Sri Lankan farmers and agricultural entrepreneurs with Government institutions, Private agribusinesses, Regional Agriculture Officers, and International organizations.')}
         image="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
-        gradientColor="#0f4d30"
+        gradientColor="#312e81"
+        icon={Landmark}
+        badgeBg="bg-[#4338ca]"
+        waveColor="text-[#f7faf8]"
       />
 
       {/* ── Main Cards Container ── */}
@@ -428,15 +431,26 @@ export default function AgriInfoHub() {
 
             {/* Search Input */}
             <div className="p-4 md:p-6 bg-gray-50 border-b border-gray-100">
-              <div className="relative">
-                <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
+              <div className="relative group">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-emerald-700">
+                  <Search className="w-4 h-4" />
+                </div>
                 <input
                   type="text"
                   placeholder={t('agriInfoHub.searchPlaceholder', 'Search institutions, officers, or services...')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#006837]/30 bg-white text-sm font-medium text-gray-800 shadow-sm"
+                  className="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-xl sm:rounded-full border border-gray-200/90 bg-white hover:border-emerald-500/60 focus:border-[#006837] focus:ring-3 focus:ring-[#006837]/15 outline-none transition-all duration-200 text-xs sm:text-sm text-gray-800 shadow-xs"
                 />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-200/80 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all cursor-pointer hover:scale-105"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             </div>
 

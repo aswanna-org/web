@@ -9,7 +9,7 @@ export default function GovijanaSewaPromo() {
       <div className="container mx-auto px-4 lg:px-8 relative z-10 flex justify-center">
 
         {/* Outer Banner Card */}
-        <div className="relative w-full rounded-[24px] sm:rounded-[44px] overflow-hidden shadow-[0_16px_45px_rgba(0,0,0,0.12)] border border-white/60 min-h-[260px] sm:min-h-[400px] lg:min-h-[460px] flex items-center">
+        <div className="reveal-scale relative w-full rounded-[24px] sm:rounded-[44px] overflow-hidden shadow-[0_16px_45px_rgba(0,0,0,0.12)] border border-white/60 min-h-[260px] sm:min-h-[400px] lg:min-h-[460px] flex items-center">
           
           {/* 100% Sharp and Clear Background Image */}
           <img
@@ -22,7 +22,7 @@ export default function GovijanaSewaPromo() {
           <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent pointer-events-none"></div>
 
           {/* Floating High-Transparency Liquid Glass Panel */}
-          <div className="relative z-10 m-3 sm:m-8 lg:m-12 max-w-xl">
+          <div className="reveal-fade-left delay-150 relative z-10 m-3 sm:m-8 lg:m-12 max-w-xl">
             <div className="relative overflow-hidden bg-white/25 hover:bg-white/30 backdrop-blur-xl border border-white/60 rounded-[20px] sm:rounded-[36px] p-4 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.22),inset_0_1.5px_2px_rgba(255,255,255,0.8),inset_0_-1.5px_2px_rgba(0,0,0,0.15)] transition-all duration-300">
               
               {/* Specular glass reflection overlay */}

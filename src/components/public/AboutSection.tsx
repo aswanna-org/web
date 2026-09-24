@@ -11,7 +11,7 @@ export default function AboutSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-8 items-center">
           
           {/* Left Side: Images */}
-          <div className="relative max-w-lg mx-auto lg:mx-0 w-full lg:w-11/12 mt-4 lg:mt-0">
+          <div className="reveal-fade-right relative max-w-lg mx-auto lg:mx-0 w-full lg:w-11/12 mt-4 lg:mt-0">
             {/* Main Image */}
             <div className="relative rounded-lg overflow-hidden shadow-xl aspect-[4/3] sm:aspect-[3/4] w-full sm:w-[85%] ml-auto">
               <img 
@@ -40,7 +40,7 @@ export default function AboutSection() {
           </div>
 
           {/* Right Side: Content */}
-          <div className="flex flex-col pt-6 lg:pt-0 lg:pl-12">
+          <div className="reveal-fade-left delay-150 flex flex-col pt-6 lg:pt-0 lg:pl-12">
             <div className="flex items-center gap-2 mb-2 sm:mb-4">
               <div className="w-5 h-5 sm:w-6 sm:h-6 text-[var(--color-primary)]">
                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">

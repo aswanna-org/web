@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import { Building } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 
 export default function About() {
@@ -12,6 +13,9 @@ export default function About() {
         description={t('aboutPage.desc')} 
         image="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
         gradientColor="#0f8b8d"
+        icon={Building}
+        badgeBg="bg-[#0f8b8d]"
+        waveColor="text-white"
       />
 
       {/* Info Section */}
@@ -21,12 +25,12 @@ export default function About() {
 
             {/* Left Content */}
             <div className="flex-1 w-full max-w-4xl">
-              <h2 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-black text-gray-900 mb-8 uppercase tracking-wide leading-tight">
+              <h2 className="text-2xl sm:text-4xl lg:text-[3.5rem] font-black text-gray-900 mb-6 sm:mb-8 uppercase tracking-wide leading-tight">
                 {t('aboutPage.weAre')} <br className="hidden sm:block lg:hidden" />
                 <span className="font-thin text-gray-400">{t('aboutPage.farm')}</span>
               </h2>
 
-              <div className="space-y-6 text-gray-500 font-light leading-relaxed text-lg max-w-2xl">
+              <div className="space-y-4 sm:space-y-6 text-gray-500 font-light leading-relaxed text-sm sm:text-base lg:text-lg max-w-2xl">
                 <p>
                   We believe in helping brands create through strategy, <span className="text-[var(--color-primary)] font-medium">story-telling, digital products</span>, and integrated experiences on web, mobile, and in the world. And you're here, friends, because you also believe.
                 </p>

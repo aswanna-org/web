@@ -7,6 +7,7 @@ import {
   MapPin,
   Globe,
   Search,
+  X,
   Check,
   Clock,
   BookOpen,
@@ -227,7 +228,11 @@ export default function InstitutionDetail() {
       <PageHero
         title={institution.shortName || title}
         image="https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?w=1600&q=80"
-        gradientColor="#0f4d30"
+        gradientColor={institution.type === 'pvt' ? '#034e7b' : institution.type === 'intl' ? '#0e4f5a' : '#0f4d30'}
+        iconUrl={institution.logoUrl}
+        icon={institution.type === 'pvt' ? Building2 : institution.type === 'intl' ? Globe2 : Landmark}
+        badgeBg={institution.type === 'pvt' ? 'bg-[#0284c7]' : institution.type === 'intl' ? 'bg-[#0891b2]' : 'bg-[#0f4d30]'}
+        waveColor="text-white"
       />
 
       {/* ── Breadcrumb Bar ── */}
@@ -309,7 +314,7 @@ export default function InstitutionDetail() {
                 </div>
 
                 {/* Main Titles */}
-                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 tracking-tight leading-tight">
+                <h1 className="text-xl sm:text-3xl lg:text-4xl font-black text-gray-900 tracking-tight leading-tight">
                   {title}
                 </h1>
                 {subtitle && (
@@ -545,15 +550,26 @@ export default function InstitutionDetail() {
                 </p>
 
                 {/* Filter Input */}
-                <div className="relative mb-6">
-                  <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <div className="relative mb-6 group">
+                  <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-emerald-700">
+                    <Search className="w-4 h-4" />
+                  </div>
                   <input
                     type="text"
                     value={centerSearch}
                     onChange={(e) => setCenterSearch(e.target.value)}
                     placeholder={isSinhala ? 'ප්‍රාදේශීය කාර්යාලයක් හෝ දිස්ත්‍රික්කයක් සොයන්න...' : 'Search station or district...'}
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-[#006837] focus:ring-2 focus:ring-[#006837]/20 outline-none text-xs sm:text-sm text-gray-800 bg-gray-50/60 focus:bg-white transition-all shadow-inner"
+                    className="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-xl sm:rounded-full border border-gray-200/90 bg-gray-50/70 hover:bg-white focus:bg-white hover:border-emerald-500/60 focus:border-[#006837] focus:ring-3 focus:ring-[#006837]/15 outline-none transition-all duration-200 text-xs sm:text-sm text-gray-800 shadow-xs"
                   />
+                  {centerSearch && (
+                    <button
+                      type="button"
+                      onClick={() => setCenterSearch('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-200/80 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all cursor-pointer hover:scale-105"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
 
                 {/* Centers 2-Column Grid */}

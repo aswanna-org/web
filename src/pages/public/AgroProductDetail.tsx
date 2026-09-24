@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { getAgroTheme } from '../../utils/agroTheme';
 
 export default function AgroProductDetail() {
   const { mainSlug, subSlug, productId } = useParams<{ mainSlug: string; subSlug: string; productId: string }>();
@@ -55,60 +56,100 @@ export default function AgroProductDetail() {
 
   const defaultImage = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80';
   const headerImage = (productImages.length > 1 && productImages[1]) ? productImages[1] : (productImages[0] || defaultImage);
+  const theme = getAgroTheme(productId || product?.slug || subSlug, product?.name || category?.name);
 
   return (
     <div className="w-full min-h-screen bg-white">
-      <section className="relative w-full min-h-[26vh] sm:min-h-[40vh] overflow-hidden flex flex-col justify-center">
-        <img src={headerImage} alt={product.name} className="absolute inset-0 w-full h-full object-cover" />
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `linear-gradient(to right, #2E7D32cc 0%, rgba(0,0,0,0.35) 55%, transparent 100%)`,
-          }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+      <section className="relative z-20 w-full h-[24vh] sm:h-[34vh] md:h-[44vh] min-h-[160px] sm:min-h-[250px] md:min-h-[360px] flex flex-col justify-center">
+        {/* Background Image Container - clipped */}
+        <div className="absolute inset-0 overflow-hidden z-0">
+          <img src={headerImage} alt={product.name} className="w-full h-full object-cover" />
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(to right, ${theme.primary}ee 0%, rgba(0,0,0,0.4) 55%, transparent 100%)`,
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+        </div>
 
-        <div className="relative z-10 container mx-auto px-4 lg:px-12 pt-16 sm:pt-32 pb-4 sm:pb-12 flex flex-col mt-auto">
-          <Link to={`/agro/${mainCategory.slug}/${category.slug}`} className="inline-flex items-center w-fit gap-2 text-white/70 hover:text-white text-xs sm:text-sm transition-colors group mb-3 sm:mb-8">
+        {/* ── Bottom Wave & Floating Badge (Permanently Anchored) ── */}
+        <div className="absolute -bottom-[1px] left-0 right-0 w-full pointer-events-none z-30">
+          {/* Wave SVG */}
+          <svg
+            className="w-full h-10 sm:h-14 md:h-18 lg:h-22 text-white fill-current block pointer-events-none"
+            viewBox="0 0 1440 120"
+            preserveAspectRatio="none"
+          >
+            <path d="M0,32 C240,65 480,80 720,45 C960,10 1200,55 1440,30 L1440,120 L0,120 Z" />
+          </svg>
+
+          {/* Circular Badge Icon with Backend Product/Category Image */}
+          <div className="container mx-auto px-4 lg:px-12 absolute inset-x-0 -bottom-1 sm:-bottom-0.5 md:bottom-0.5 lg:bottom-1 pointer-events-none">
+            <div
+              className="pointer-events-auto bg-white w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 rounded-full flex items-center justify-center text-white shadow-xl border-2 sm:border-[3px] md:border-4 border-white overflow-hidden transition-transform duration-300 hover:scale-105"
+              style={{ boxShadow: `0 14px 28px -4px ${theme.primary}50, 0 8px 16px -4px rgba(0,0,0,0.12)` }}
+            >
+              {productImages.length > 0 ? (
+                <img
+                  src={productImages[0]}
+                  alt={product.name}
+                  className="w-full h-full object-contain p-1.5 sm:p-2.5 md:p-3"
+                />
+              ) : category?.image ? (
+                <img
+                  src={category.image}
+                  alt={category.name}
+                  className="w-full h-full object-contain p-1.5 sm:p-2.5 md:p-3"
+                />
+              ) : (
+                <span className="w-5 h-5 sm:w-7 sm:h-7 rounded-full" style={{ backgroundColor: theme.secondary }} />
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="relative z-10 container mx-auto px-4 lg:px-12 flex flex-col justify-center h-full pt-10 sm:pt-16 md:pt-20 pb-6 sm:pb-12 lg:pb-16">
+          <Link to={`/agro/${mainCategory.slug}/${category.slug}`} className="inline-flex items-center w-fit gap-1.5 sm:gap-2 text-white/80 hover:text-white text-xs sm:text-sm transition-colors group mb-1 sm:mb-2">
             <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:-translate-x-1 transition-transform" />
             {isSinhala ? (category.sinhalaName || category.name) : category.name}
           </Link>
 
           {product.status === 'UNAVAILABLE' && (
-            <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-4 sm:py-1.5 rounded-full bg-amber-400 text-amber-950 font-bold text-[10px] sm:text-xs uppercase tracking-wider mb-2 sm:mb-4 w-fit shadow-md border border-amber-300 animate-fadeIn">
-              <span className="w-2 h-2 rounded-full bg-amber-900 animate-pulse" />
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-4 sm:py-1.5 rounded-full bg-amber-400 text-amber-950 font-bold text-[9px] sm:text-xs uppercase tracking-wider mb-1.5 sm:mb-3 w-fit shadow-md border border-amber-300 animate-fadeIn">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-900 animate-pulse" />
               {t('agro.comingSoon', 'Coming Soon')}
             </div>
           )}
 
-          <h1 className="text-white text-2xl sm:text-5xl font-black tracking-tight mb-2 sm:mb-4 drop-shadow-md">
+          <h1 className="text-white text-lg sm:text-2xl md:text-4xl lg:text-5xl font-black tracking-tight drop-shadow-md">
             {isSinhala ? (product.sinhalaName || product.name) : product.name}
           </h1>
         </div>
       </section>
 
-      <div className="container mx-auto px-4 lg:px-12 py-8 sm:py-14">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-16">
+      <div className="container mx-auto px-4 lg:px-12 py-6 sm:py-14">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-12 lg:gap-16">
           <div className="lg:col-span-2 min-w-0">
             {product.price && (
-              <div className="flex items-baseline gap-3 mb-6 sm:mb-8 pb-6 sm:pb-8 border-b border-gray-100">
-                <span className="text-3xl sm:text-5xl font-black text-[var(--color-secondary)]">Rs. {product.price}</span>
-                <span className="text-gray-400 text-lg">{t('agro.per', 'per')} {product.unit || t('agro.unit', 'unit')}</span>
+              <div className="flex items-baseline gap-2 sm:gap-3 mb-5 sm:mb-8 pb-4 sm:pb-8 border-b border-gray-100">
+                <span className="text-2xl sm:text-4xl lg:text-5xl font-black text-[var(--color-secondary)]">Rs. {product.price}</span>
+                <span className="text-gray-400 text-sm sm:text-lg">{t('agro.per', 'per')} {product.unit || t('agro.unit', 'unit')}</span>
               </div>
             )}
 
-            <div className="mb-10">
+            <div className="mb-8 sm:mb-10">
               <div
-                className="text-gray-700 text-lg leading-relaxed prose max-w-none rich-content"
+                className="text-gray-700 text-sm sm:text-base lg:text-lg leading-relaxed prose max-w-none rich-content"
                 dangerouslySetInnerHTML={{ __html: (isSinhala ? (product.sinhalaDescription || product.description || '') : (product.description || '')).replace(/&nbsp;|\u00a0/g, ' ') }}
               />
             </div>
 
             {(product.farmingGuide || product.sinhalaFarmingGuide) && (
-              <div className="mb-10 p-6 bg-green-50 rounded-2xl border border-green-100 overflow-hidden">
-                <p className="text-xs font-bold text-green-700 uppercase tracking-widest mb-3">{t('agro.farmingGuide', 'Farming Guide')}</p>
+              <div className="mb-8 sm:mb-10 p-4 sm:p-6 bg-green-50 rounded-2xl border border-green-100 overflow-hidden">
+                <p className="text-[11px] sm:text-xs font-bold text-green-700 uppercase tracking-widest mb-2 sm:mb-3">{t('agro.farmingGuide', 'Farming Guide')}</p>
                 <div
-                  className="text-gray-800 leading-relaxed prose max-w-none prose-green rich-content"
+                  className="text-gray-800 text-xs sm:text-sm md:text-base leading-relaxed prose max-w-none prose-green rich-content"
                   dangerouslySetInnerHTML={{ __html: (isSinhala ? (product.sinhalaFarmingGuide || product.farmingGuide || '') : (product.farmingGuide || '')).replace(/&nbsp;|\u00a0/g, ' ') }}
                 />
               </div>
@@ -235,7 +276,7 @@ export default function AgroProductDetail() {
                           </div>
                           
                           <div className="mt-1 flex flex-col">
-                            <span className="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow-sm leading-tight">
+                            <span className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight drop-shadow-sm leading-tight">
                               {isSinhala 
                                 ? (product.sinhalaHighestInTheWorld || product.highestInTheWorld) 
                                 : (product.highestInTheWorld || product.sinhalaHighestInTheWorld)}

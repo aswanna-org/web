@@ -10,6 +10,7 @@ import {
   Copy,
   Check,
   Search,
+  X,
   PhoneCall,
   ChevronRight
 } from 'lucide-react';
@@ -206,11 +207,14 @@ export default function GovijanaSewaDetail() {
             : `Official directory and contact information for ${center.name} Agrarian Service Center in ${center.district} district.`
         }
         image="https://images.unsplash.com/photo-1592982537447-6f232490287b?w=1600&q=80"
-        gradientColor="#0f5132"
+        gradientColor="#854d0e"
+        icon={Building}
+        badgeBg="bg-[#a16207]"
+        waveColor="text-white"
       />
 
       {/* ── Breadcrumb & Quick Actions Bar ── */}
-      <div className="bg-white border-b border-gray-200/80 sticky top-0 z-30 shadow-2xs">
+      <div className="bg-white border-b border-gray-200/80 sticky top-0 z-20 shadow-2xs">
         <div className="container mx-auto px-4 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
           {/* Breadcrumb Links */}
           <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 font-medium truncate">
@@ -271,7 +275,7 @@ export default function GovijanaSewaDetail() {
               </div>
 
               {/* Title & Secondary Title */}
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight leading-tight">
+              <h1 className="text-xl sm:text-3xl lg:text-4xl font-bold text-gray-900 tracking-tight leading-tight">
                 {centerName}
               </h1>
               {secondaryName && secondaryName !== centerName && (
@@ -400,15 +404,26 @@ export default function GovijanaSewaDetail() {
                 </div>
 
                 {allOfficers.length > 3 && (
-                  <div className="relative w-full sm:w-64">
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+                  <div className="relative w-full sm:w-72 group">
+                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-emerald-700">
+                      <Search className="w-4 h-4" />
+                    </div>
                     <input
                       type="text"
                       placeholder={isSinhala ? "නිලධාරී නම, තනතුර සොයන්න..." : "Search officer or position..."}
                       value={officerSearch}
                       onChange={e => setOfficerSearch(e.target.value)}
-                      className="w-full pl-9 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:bg-white focus:outline-none focus:ring-1 focus:ring-emerald-700"
+                      className="w-full pl-10 pr-10 py-2 sm:py-2.5 rounded-xl sm:rounded-full border border-gray-200/90 bg-gray-50/70 hover:bg-white focus:bg-white hover:border-emerald-500/60 focus:border-[#006837] focus:ring-3 focus:ring-[#006837]/15 outline-none transition-all duration-200 text-xs text-gray-800 shadow-xs"
                     />
+                    {officerSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setOfficerSearch('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-gray-200/80 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all cursor-pointer hover:scale-105"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

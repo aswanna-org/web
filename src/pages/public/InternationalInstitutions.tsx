@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import {
   Search,
   ExternalLink,
@@ -8,13 +8,13 @@ import {
   Mail,
   MapPin,
   Globe2,
-  ArrowLeft,
   X,
   Info,
   Globe
 } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import Pagination from '../../components/admin/Pagination';
+import CustomDropdown from '../../components/ui/CustomDropdown';
 import { type AgriInstitution } from '../../data/agriInstitutionsData';
 
 const CLOUD_PALETTE = [
@@ -188,99 +188,59 @@ export default function InternationalInstitutions() {
         description={pageSubtitle}
         image="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1600&q=80"
         gradientColor="#0e4f5a"
+        icon={Globe2}
+        badgeBg="bg-[#0891b2]"
+        waveColor="text-[#fbfdfa]"
       />
 
-      {/* ── Breadcrumb Bar ── */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-30 shadow-xs">
-        <div className="container mx-auto px-4 lg:px-12 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 font-medium">
-            <Link to="/" className="hover:text-[#006837] transition-colors">
-              {t('header.home', 'මුල් පිටුව')}
-            </Link>
-            <span>/</span>
-            <Link to="/agri-info-hub" className="hover:text-[#006837] transition-colors flex items-center gap-1">
-              {t('agriInfoHub.heroTitle', 'කෘෂි තොරතුරු කේන්ද්‍රය')}
-            </Link>
-            <span>/</span>
-            <span className="text-[#0f4d30] font-bold truncate">
-              {isSinhala ? 'ජාත්‍යන්තර ආයතන' : 'International Institutions'}
-            </span>
+      {/* ── Search & Filter Controls (Sleek, Modern, Right-Aligned) ── */}
+      <section className="w-full py-4 sm:py-6 bg-white border-b border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)]">
+        <div className="container mx-auto px-4 lg:px-12 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2.5 sm:gap-3.5">
+          {/* Category Dropdown */}
+          <div className="w-full sm:w-64 md:w-72">
+            <CustomDropdown
+              value={selectedCategory}
+              onChange={(val) => {
+                setSelectedCategory(val);
+                setCurrentPage(1);
+              }}
+              options={categoryFilters.map((cat) => ({
+                value: cat.key,
+                label: isSinhala ? cat.labelSi : cat.labelEn,
+              }))}
+            />
           </div>
 
-          <Link
-            to="/agri-info-hub"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-[#006837] px-3.5 py-1.5 rounded-full bg-emerald-50/60 hover:bg-emerald-100/70 border border-emerald-600/20 hover:border-emerald-600/40 backdrop-blur-md shadow-2xs hover:shadow-xs transition-all"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>{isSinhala ? 'කෘෂි තොරතුරු කේන්ද්‍රයට' : 'Back to Agri Hub'}</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* ── Search & Filter Controls ── */}
-      <section className="w-full py-8 bg-white border-b border-gray-100">
-        <div className="container mx-auto px-4 lg:px-12 space-y-6">
-          <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-black text-[#0f4d30] tracking-tight">
-                {pageTitle}
-              </h2>
-              <p className="text-xs sm:text-sm text-gray-500 font-medium mt-1">
-                {isSinhala
-                  ? `${totalCount} ක ආයතන සංඛ්‍යාවක් සොයා ගන්නා ලදී (පිටුව ${currentPage} / ${totalPages})`
-                  : `Showing ${totalCount} international institutions (Page ${currentPage} of ${totalPages})`}
-              </p>
+          {/* Search Input Box */}
+          <div className="relative w-full sm:w-72 md:w-80 group">
+            <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-emerald-700">
+              <Search className="w-4 h-4" />
             </div>
-
-            {/* Search Input Box */}
-            <div className="relative w-full lg:max-w-md">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-gray-400" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                placeholder={
-                  isSinhala
-                    ? 'නම, සංවිධානය (FAO, IWMI, IFAD) හෝ සේවාව සොයන්න...'
-                    : 'Search organization (FAO, IWMI, IFAD), or domain...'
-                }
-                className="w-full pl-11 pr-10 py-3 rounded-full border border-gray-200 bg-gray-50/80 focus:bg-white focus:border-[#006837] focus:ring-2 focus:ring-[#006837]/20 outline-none transition-all text-sm text-gray-800 shadow-inner"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => {
-                    setSearchQuery('');
-                    setCurrentPage(1);
-                  }}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-200/70 hover:bg-gray-300/90 text-gray-600 border border-white/50 backdrop-blur-xs flex items-center justify-center transition-all cursor-pointer"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Category Filter Chips */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-            {categoryFilters.map((cat) => (
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              placeholder={
+                isSinhala
+                  ? 'නම, සංවිධානය (FAO, IFAD) සොයන්න...'
+                  : 'Search organization (FAO, IFAD), service...'
+              }
+              className="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-xl sm:rounded-full border border-gray-200/90 bg-gray-50/70 hover:bg-white focus:bg-white hover:border-emerald-500/60 focus:border-[#006837] focus:ring-3 focus:ring-[#006837]/15 outline-none transition-all duration-200 text-xs sm:text-sm text-gray-800 shadow-xs"
+            />
+            {searchQuery && (
               <button
-                key={cat.key}
                 onClick={() => {
-                  setSelectedCategory(cat.key);
+                  setSearchQuery('');
                   setCurrentPage(1);
                 }}
-                className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-300 cursor-pointer ${
-                  selectedCategory === cat.key
-                    ? 'bg-[#006837]/15 text-[#006837] border border-[#006837]/35 backdrop-blur-md shadow-2xs'
-                    : 'bg-white/70 hover:bg-white/95 text-gray-700 border border-gray-200/80 hover:border-emerald-300 backdrop-blur-xs shadow-2xs'
-                }`}
+                className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-200/80 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all cursor-pointer hover:scale-105"
               >
-                {isSinhala ? cat.labelSi : cat.labelEn}
+                <X className="w-3.5 h-3.5" />
               </button>
-            ))}
+            )}
           </div>
         </div>
       </section>
@@ -328,7 +288,8 @@ export default function InternationalInstitutions() {
                     <div
                       key={item.id}
                       onClick={() => handleCardClick(item)}
-                      className="group relative flex flex-col items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-white border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-emerald-300 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer text-left"
+                      style={{ animationDelay: `${Math.min(index * 45, 600)}ms` }}
+                      className="animate-card-pop group relative flex flex-col items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-white border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-emerald-300 hover:-translate-y-1.5 transition-all duration-300 cursor-pointer text-left"
                       title={isSinhala ? `${title} තොරතුරු බලන්න` : `View ${title} Details`}
                     >
                       {/* Top: Logo on Organic Cloud Background */}

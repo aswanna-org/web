@@ -58,7 +58,10 @@ export default function Gallery() {
         title={t('galleryPage.title', 'GALLERY')}
         description={t('contact.desc')}
         image="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
-        gradientColor="#054a29"
+        gradientColor="#9f1239"
+        icon={ImageIcon}
+        badgeBg="bg-[#e11d48]"
+        waveColor="text-gray-50"
       />
 
       {/* ── Main Content ── */}
@@ -103,10 +106,11 @@ export default function Gallery() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredItems.map((item) => (
+              {filteredItems.map((item, index) => (
                 <div
                   key={item.id}
-                  className="bg-white rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-400 border border-gray-100 group p-2"
+                  style={{ animationDelay: `${Math.min(index * 45, 600)}ms` }}
+                  className="animate-card-pop bg-white rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-400 border border-gray-100 group p-2"
                 >
                   <div className="relative h-64 w-full rounded-[24px] overflow-hidden bg-gray-100">
                     {item.type === 'IMAGE' ? (

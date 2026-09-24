@@ -8,8 +8,11 @@ import GovijanaSewaPromo from '../../components/public/GovijanaSewaPromo';
 import NewsSection from '../../components/public/NewsSection';
 import BlogsSection from '../../components/public/BlogsSection';
 import Footer from '../../components/public/Footer';
+import useScrollReveal from '../../utils/useScrollReveal';
 
 export default function Home() {
+  useScrollReveal();
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <main className="flex-grow">
