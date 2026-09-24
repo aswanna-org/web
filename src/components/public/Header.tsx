@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import LanguageSwitcher from './LanguageSwitcher';
 
 interface Category {
   id: string;
@@ -136,57 +137,45 @@ export default function Header() {
         </nav>
 
         {/* Desktop Actions */}
-        <div className="hidden xl:flex items-center gap-4">
-          {/* Language Switcher */}
-          <div className="flex items-center gap-2 text-sm font-bold tracking-wider mr-2">
-            <button
-              onClick={() => i18n.changeLanguage('en')}
-              className={`transition-colors ${i18n.language === 'en' ? 'text-white' : 'text-white/60 hover:text-white'}`}
-            >
-              EN
-            </button>
-            <span className="text-white/30">|</span>
-            <button
-              onClick={() => i18n.changeLanguage('si')}
-              className={`transition-colors ${i18n.language === 'si' ? 'text-white' : 'text-white/60 hover:text-white'}`}
-            >
-              SI
-            </button>
-          </div>
+        <div className="hidden xl:flex items-center gap-3">
+          {/* Language Switcher Pill */}
+          <LanguageSwitcher />
 
+          {/* Contact Us Glass Pill */}
           <Link 
             to="/pages/contact" 
-            className="glass-btn px-5 py-2 text-[14px]"
+            className="glass-btn h-[38px] px-5 text-xs sm:text-sm tracking-wide font-bold"
           >
             {t('header.contact', 'Contact Us')}
           </Link>
 
+          {/* Login / User Profile / Admin Pill */}
           {isAuthenticated ? (
             user?.role === 'ADMIN' ? (
               <div className="flex items-center gap-2">
                 <Link 
                   to="/admin" 
-                  className="glass-btn-light px-5 py-2 text-[14px]"
+                  className="glass-btn h-[38px] px-5 text-xs sm:text-sm font-bold"
                 >
                   Admin Panel
                 </Link>
                 <button
                   onClick={logout}
                   title="Log out"
-                  className="glass-btn !p-2 transition-all cursor-pointer shadow-xs"
+                  className="glass-btn h-[38px] w-[38px] !p-0 flex items-center justify-center text-white/90 hover:text-white"
                 >
                   <LogOut size={16} />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-3 bg-white/15 backdrop-blur-xl px-4 py-1.5 rounded-full border border-white/30 text-white text-xs font-semibold shadow-[0_4px_20px_rgba(0,0,0,0.1)]">
+              <div className="glass-btn h-[38px] px-3.5 flex items-center gap-2.5 text-xs font-bold">
                 <div className="flex items-center gap-1.5">
                   <UserIcon size={14} className="text-emerald-300" />
-                  <span className="max-w-[120px] truncate">{user?.name || user?.email}</span>
+                  <span className="max-w-[120px] truncate text-white">{user?.name || user?.email}</span>
                 </div>
                 <button
                   onClick={logout}
-                  className="text-white/80 hover:text-white transition-colors cursor-pointer text-xs font-medium ml-1 pl-2 border-l border-white/20 flex items-center gap-1"
+                  className="text-white/80 hover:text-white transition-colors cursor-pointer text-xs font-bold ml-1 pl-2 border-l border-white/25 flex items-center gap-1"
                 >
                   <LogOut size={12} />
                   <span>Logout</span>
@@ -196,7 +185,7 @@ export default function Header() {
           ) : (
             <button 
               onClick={openLoginModal}
-              className="glass-btn-light px-6 py-2 text-[14px]"
+              className="glass-btn h-[38px] px-6 text-xs sm:text-sm tracking-wide font-bold"
             >
               Login
             </button>
@@ -204,27 +193,13 @@ export default function Header() {
         </div>
 
         {/* Mobile Menu Toggle & Mini Actions */}
-        <div className="flex xl:hidden items-center gap-5">
-          <div className="flex items-center gap-2 text-xs font-bold tracking-wider">
-            <button
-              onClick={() => i18n.changeLanguage('en')}
-              className={`transition-colors ${i18n.language === 'en' ? 'text-[var(--color-primary)]' : 'text-white hover:text-[var(--color-primary)]'}`}
-            >
-              EN
-            </button>
-            <span className="text-white/30">|</span>
-            <button
-              onClick={() => i18n.changeLanguage('si')}
-              className={`transition-colors ${i18n.language === 'si' ? 'text-[var(--color-primary)]' : 'text-white hover:text-[var(--color-primary)]'}`}
-            >
-              SI
-            </button>
-          </div>
+        <div className="flex xl:hidden items-center gap-3 sm:gap-4">
+          <LanguageSwitcher variant="transparent" />
           <button className="text-white hover:text-[var(--color-primary)]">
             <ShoppingCart className="w-5 h-5" />
           </button>
           <button
-            className="text-white hover:text-[var(--color-primary)] ml-2"
+            className="text-white hover:text-[var(--color-primary)] ml-1"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
