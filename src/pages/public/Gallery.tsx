@@ -26,6 +26,7 @@ export default function Gallery() {
 
   useEffect(() => {
     const fetchGallery = async (page = 1) => {
+      setIsLoading(true);
       try {
         const res = await fetch(`${API_BASE_URL}/gallery?page=${page}&limit=12&type=${activeTab}`);
         if (res.ok) {
@@ -44,7 +45,7 @@ export default function Gallery() {
     fetchGallery(currentPage);
   }, [API_BASE_URL, currentPage, activeTab]);
 
-  const filteredItems = items;
+  const filteredItems = items.filter(item => item.type === activeTab);
 
   const getYoutubeThumbnail = (url: string) => {
     const videoId = url.split('v=')[1]?.split('&')[0] || url.split('youtu.be/')[1]?.split('?')[0];

@@ -14,6 +14,8 @@ import {
   PhoneCall,
   ChevronRight
 } from 'lucide-react';
+import ManIcon from '@mui/icons-material/Man';
+import WomanIcon from '@mui/icons-material/Woman';
 import PageHero from '../../components/public/PageHero';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -26,6 +28,8 @@ interface AscOfficer {
   positionSi?: string | null;
   phone?: string | null;
   email?: string | null;
+  avatar?: string | null;
+  gender?: string | null;
   isPrimary?: boolean;
   order?: number;
 }
@@ -328,16 +332,34 @@ export default function GovijanaSewaDetail() {
           {/* ── Left 2-Column Content Area ── */}
           <div className="lg:col-span-2 space-y-6">
             
-            {/* Special Notice Alert (If Available) */}
+            {/* Special Notice Alert (If Available - Rich Content Supported) */}
             {(center.specialNote || center.specialNoteSi) && (
-              <div className="p-5 rounded-3xl bg-amber-50/90 border border-amber-200/90 shadow-2xs flex items-start gap-3">
+              <div className="p-5 sm:p-6 rounded-3xl bg-amber-50/90 border border-amber-200/90 shadow-2xs flex items-start gap-3.5">
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-amber-950 text-sm sm:text-base">
-                    {isSinhala ? 'විශේෂ නිවේදනය / දැනුම්දීම' : 'Official Special Notice'}
+                  <h3 className="font-bold text-amber-950 text-sm sm:text-base mb-1.5 flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-amber-600 animate-pulse" />
+                    <span>{isSinhala ? 'විශේෂ නිවේදනය / දැනුම්දීම' : 'Official Special Notice'}</span>
                   </h3>
-                  <p className="text-amber-950/90 text-xs sm:text-sm leading-relaxed mt-1 whitespace-pre-line font-medium">
-                    {isSinhala ? (center.specialNoteSi || center.specialNote) : (center.specialNote || center.specialNoteSi)}
-                  </p>
+                  {(() => {
+                    const noteContent = isSinhala
+                      ? (center.specialNoteSi || center.specialNote)
+                      : (center.specialNote || center.specialNoteSi);
+                    if (!noteContent) return null;
+                    const hasHtml = /<[a-z][\s\S]*>/i.test(noteContent);
+                    if (hasHtml) {
+                      return (
+                        <div
+                          className="text-amber-950 text-xs sm:text-sm leading-relaxed rich-content prose prose-sm max-w-none font-medium"
+                          dangerouslySetInnerHTML={{ __html: noteContent }}
+                        />
+                      );
+                    }
+                    return (
+                      <p className="text-amber-950/90 text-xs sm:text-sm leading-relaxed whitespace-pre-line font-medium">
+                        {noteContent}
+                      </p>
+                    );
+                  })()}
                 </div>
               </div>
             )}
@@ -349,20 +371,45 @@ export default function GovijanaSewaDetail() {
               </div>
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
-                <div className="flex-1 min-w-0 space-y-1">
-                  <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
-                    {isSinhala ? 'භාරකාර නිලධාරී' : 'Officer In-Charge'}
-                  </span>
-                  <h2 className="text-xl font-bold text-gray-900 truncate">
-                    {primary
-                      ? (isSinhala ? (primary.nameSi || primary.name) : primary.name)
-                      : (center.officerInCharge || (isSinhala ? 'පත් කර නොමැත' : 'Not Assigned'))}
-                  </h2>
-                  <p className="text-xs sm:text-sm text-gray-500 font-normal">
-                    {primary
-                      ? (isSinhala ? (primary.positionSi || primary.position) : primary.position)
-                      : (center.officerDesignation || 'Agrarian Development Officer (ADO)')}
-                  </p>
+                <div className="flex items-center gap-4 min-w-0 flex-1">
+                  {/* Officer Avatar / Badge */}
+                  {primary?.avatar ? (
+                    <img
+                      src={primary.avatar}
+                      alt={primary.name}
+                      loading="eager"
+                      decoding="async"
+                      className="w-16 h-16 rounded-full object-cover shadow-sm border-2 border-emerald-500/30 shrink-0 bg-gray-100"
+                    />
+                  ) : (
+                    <div className={`w-16 h-16 rounded-full flex items-center justify-center text-white shrink-0 shadow-sm border-2 border-white ring-2 ${
+                      primary?.gender === 'FEMALE'
+                        ? 'ring-pink-200 bg-gradient-to-tr from-pink-500 via-rose-500 to-amber-400'
+                        : 'ring-emerald-200 bg-gradient-to-tr from-emerald-600 via-teal-600 to-sky-500'
+                    }`}>
+                      {primary?.gender === 'FEMALE' ? (
+                        <WomanIcon style={{ fontSize: 38 }} />
+                      ) : (
+                        <ManIcon style={{ fontSize: 38 }} />
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
+                      {isSinhala ? 'භාරකාර නිලධාරී' : 'Officer In-Charge'}
+                    </span>
+                    <h2 className="text-xl font-bold text-gray-900 truncate">
+                      {primary
+                        ? (isSinhala ? (primary.nameSi || primary.name) : primary.name)
+                        : (center.officerInCharge || (isSinhala ? 'පත් කර නොමැත' : 'Not Assigned'))}
+                    </h2>
+                    <p className="text-xs sm:text-sm text-gray-500 font-normal">
+                      {primary
+                        ? (isSinhala ? (primary.positionSi || primary.position) : primary.position)
+                        : (center.officerDesignation || 'Agrarian Development Officer (ADO)')}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Direct Connect Quick Buttons */}
@@ -445,34 +492,59 @@ export default function GovijanaSewaDetail() {
                     return (
                       <div
                         key={idx}
-                        className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                        className={`p-4 rounded-2xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 ${
                           officer.isPrimary
                             ? 'bg-emerald-50/40 border-emerald-200'
                             : 'bg-gray-50/70 hover:bg-gray-50 border-gray-200'
                         }`}
                       >
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="font-bold text-gray-900 text-sm truncate">
-                              {offName}
-                            </h4>
-                            {officer.isPrimary && (
-                              <span className="text-[10px] font-bold text-emerald-800">
-                                ({isSinhala ? 'ප්‍රධාන නිලධාරී' : 'Primary'})
-                              </span>
+                        <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                          {/* Officer Avatar / Gender Icon */}
+                          {officer.avatar ? (
+                            <img
+                              src={officer.avatar}
+                              alt={offName}
+                              loading="lazy"
+                              decoding="async"
+                              className="w-11 h-11 rounded-full object-cover shadow-2xs border border-gray-200 shrink-0 bg-gray-100"
+                            />
+                          ) : (
+                            <div className={`w-11 h-11 rounded-full flex items-center justify-center text-white shrink-0 shadow-2xs border border-white ring-1 ${
+                              officer.gender === 'FEMALE'
+                                ? 'ring-pink-200 bg-gradient-to-tr from-pink-500 via-rose-500 to-amber-400'
+                                : 'ring-emerald-200 bg-gradient-to-tr from-emerald-600 via-teal-600 to-sky-500'
+                            }`}>
+                              {officer.gender === 'FEMALE' ? (
+                                <WomanIcon style={{ fontSize: 28 }} />
+                              ) : (
+                                <ManIcon style={{ fontSize: 28 }} />
+                              )}
+                            </div>
+                          )}
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-bold text-gray-900 text-sm truncate">
+                                {offName}
+                              </h4>
+                              {officer.isPrimary && (
+                                <span className="text-[10px] font-bold text-emerald-800">
+                                  ({isSinhala ? 'ප්‍රධාන නිලධාරී' : 'Primary'})
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-600 font-normal mt-0.5 truncate">
+                              {offPosition}
+                            </p>
+                            {officer.email && (
+                              <a
+                                href={`mailto:${officer.email}`}
+                                className="text-xs text-emerald-800 hover:underline break-all block mt-0.5 font-medium"
+                              >
+                                {officer.email}
+                              </a>
                             )}
                           </div>
-                          <p className="text-xs text-gray-600 font-normal mt-0.5 truncate">
-                            {offPosition}
-                          </p>
-                          {officer.email && (
-                            <a
-                              href={`mailto:${officer.email}`}
-                              className="text-xs text-emerald-800 hover:underline break-all block mt-1 font-medium"
-                            >
-                              {officer.email}
-                            </a>
-                          )}
                         </div>
 
                         {/* Officer Contact Buttons */}

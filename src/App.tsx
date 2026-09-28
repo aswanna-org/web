@@ -50,6 +50,8 @@ import Login from './admin/pages/Login';
 import { ProtectedRoute } from './admin/components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 
+import ScrollToTop from './components/common/ScrollToTop';
+
 // Simple layouts for demonstration
 function PublicLayout() {
   return (
@@ -68,6 +70,7 @@ function App() {
     <CartProvider>
       <AuthProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<PublicLayout />}>

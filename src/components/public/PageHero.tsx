@@ -54,11 +54,14 @@ export default function PageHero({
   return (
     <section className="relative z-30 w-full h-[24vh] sm:h-[34vh] md:h-[44vh] min-h-[160px] sm:min-h-[250px] md:min-h-[360px] flex flex-col justify-center">
       {/* Background Image with Overlay */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
+      <div className="absolute inset-0 z-0 overflow-hidden bg-emerald-950">
         <img
-          src={image}
+          src={image.includes('unsplash.com') && !image.includes('auto=format') ? `${image}&auto=format&fit=crop&q=80` : image}
           alt={title}
-          className="w-full h-full object-cover"
+          loading="eager"
+          decoding="async"
+          fetchPriority="high"
+          className="w-full h-full object-cover transition-opacity duration-300"
         />
         <div className="absolute inset-0 bg-black/40" />
         <div 

@@ -10,6 +10,8 @@ import {
 } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import CustomDropdown from '../../components/ui/CustomDropdown';
+import ManIcon from '@mui/icons-material/Man';
+import WomanIcon from '@mui/icons-material/Woman';
 
 export interface AscOfficerItem {
   id?: string;
@@ -19,6 +21,8 @@ export interface AscOfficerItem {
   positionSi?: string | null;
   phone?: string | null;
   email?: string | null;
+  avatar?: string | null;
+  gender?: string | null;
   isPrimary?: boolean;
   order?: number;
 }
@@ -360,16 +364,33 @@ export default function GovijanaSewa() {
                     </div>
 
                     {/* Officer Details */}
-                    <div className="pt-3 border-t border-gray-100">
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block mb-1">
-                        {isSinhala ? 'භාරකාර නිලධාරී' : 'Officer In-Charge'}
-                      </span>
-                      <div className="font-bold text-gray-900 text-sm">
-                        {primaryName || (isSinhala ? 'පත් කර නොමැත' : 'Not Assigned')}
+                    <div className="pt-3 border-t border-gray-100 flex items-center gap-3">
+                      {primary?.avatar ? (
+                        <img
+                          src={primary.avatar}
+                          alt={primaryName || ''}
+                          className="w-10 h-10 rounded-full object-cover shadow-2xs border border-emerald-500/30 shrink-0 bg-gray-100"
+                        />
+                      ) : (
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white shrink-0 shadow-2xs border border-white ring-1 ${
+                          primary?.gender === 'FEMALE'
+                            ? 'ring-pink-200 bg-gradient-to-tr from-pink-500 via-rose-500 to-amber-400'
+                            : 'ring-emerald-200 bg-gradient-to-tr from-emerald-600 via-teal-600 to-sky-500'
+                        }`}>
+                          {primary?.gender === 'FEMALE' ? <WomanIcon style={{ fontSize: 24 }} /> : <ManIcon style={{ fontSize: 24 }} />}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 block">
+                          {isSinhala ? 'භාරකාර නිලධාරී' : 'Officer In-Charge'}
+                        </span>
+                        <div className="font-bold text-gray-900 text-sm truncate">
+                          {primaryName || (isSinhala ? 'පත් කර නොමැත' : 'Not Assigned')}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5 truncate">
+                          {primaryPosition || (isSinhala ? 'ගොවිජන සංවර්ධන නිලධාරී' : 'Agrarian Dev Officer')}
+                        </p>
                       </div>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        {primaryPosition || (isSinhala ? 'ගොවිජන සංවර්ධන නිලධාරී' : 'Agrarian Dev Officer')}
-                      </p>
                     </div>
 
                     {/* Quick Contacts - Showing Complete Email clearly */}
@@ -427,7 +448,9 @@ export default function GovijanaSewa() {
                         onClick={e => e.stopPropagation()}
                       >
                         <p className="text-xs text-amber-950 font-medium line-clamp-2 leading-relaxed">
-                          {isSinhala ? (center.specialNoteSi || center.specialNote) : (center.specialNote || center.specialNoteSi)}
+                          {(isSinhala
+                            ? (center.specialNoteSi || center.specialNote)
+                            : (center.specialNote || center.specialNoteSi))?.replace(/<[^>]*>?/gm, '') || ''}
                         </p>
                       </div>
                     )}

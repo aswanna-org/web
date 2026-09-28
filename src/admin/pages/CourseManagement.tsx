@@ -1,9 +1,21 @@
 import { useState, useEffect } from 'react';
 import {
-  Plus, Edit, Trash2, X, Search, BookOpen, Upload,
-  Clock, MapPin, Award, CheckCircle, DollarSign, Users, ExternalLink,
-  Layers, FileText, Eye, Calendar,
-  ChevronUp, ChevronDown, Check, UserCheck, AlertCircle,
+  Box, Button, Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, InputAdornment, Paper, IconButton, Typography, CircularProgress,
+  Chip, Switch,  Tabs, Tab, MenuItem
+} from '@mui/material';
+import {
+  Add as AddIcon, Delete as DeleteIcon, Book as BookIcon, CloudUpload as UploadIcon,
+  Close as CloseIcon, Work as WorkIcon, Layers as LayersIcon,
+  School as SchoolIcon, Schedule as ScheduleIcon, AttachMoney as MoneyIcon,
+  Check as CheckIcon, ArrowBack as ArrowBackIcon, ArrowForward as ArrowForwardIcon,
+  ArrowUpward as ArrowUpwardIcon, ArrowDownward as ArrowDownwardIcon,
+  LocationOn as LocationOnIcon, Description as DescriptionIcon
+} from '@mui/icons-material';
+import {
+  Plus, Edit, Trash2, X, Search, BookOpen,
+  Clock, MapPin, Award, CheckCircle, Users, ExternalLink,
+  Layers, FileText, Eye, Calendar,Check, UserCheck, AlertCircle,
   Phone, Mail, MessageSquare, CheckCircle2, XCircle,
   Briefcase, Sparkles, Lock, Megaphone, Globe
 } from 'lucide-react';
@@ -15,7 +27,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 // ==========================================
 // CONSTANTS & ENUMS (User Specified)
 // ==========================================
-export const QUALIFICATION_LEVELS = [
+const QUALIFICATION_LEVELS = [
   'NVQ Level 3 (Certificate)',
   'NVQ Level 4 (Craft Certificate)',
   'NVQ Level 5 (Diploma)',
@@ -29,14 +41,14 @@ export const QUALIFICATION_LEVELS = [
   'SLQF 12 (Doctor of Philosophy - Ph.D)'
 ];
 
-export const DELIVERY_MODES = [
+const DELIVERY_MODES = [
   { value: 'Physical_Farm', label: 'Physical Farm' },
   { value: 'Hybrid_Blended', label: 'Hybrid (Blended)' },
   { value: 'Online_Lectures', label: 'Online Lectures' },
   { value: 'Full_Time_Residential', label: 'Full Time Residential' }
 ];
 
-export const DURATION_UNITS = [
+const DURATION_UNITS = [
   { value: 'Hours', label: 'Hours' },
   { value: 'Days', label: 'Days' },
   { value: 'Weeks', label: 'Weeks' },
@@ -44,10 +56,9 @@ export const DURATION_UNITS = [
   { value: 'Years', label: 'Years' }
 ];
 
-export const MEDIUM_OPTIONS = ['Sinhala', 'English', 'Tamil'];
-export const STATUS_OPTIONS = ['Draft', 'Published', 'Archived'];
+const MEDIUM_OPTIONS = ['Sinhala', 'English', 'Tamil'];
 
-export const MONTH_OPTIONS = [
+const MONTH_OPTIONS = [
   { value: '', label: '-- Select Month --' },
   { value: 'January', label: 'January' },
   { value: 'February', label: 'February' },
@@ -1409,887 +1420,584 @@ export default function CourseManagement() {
       )}
 
       {/* ==================================================================== */}
-      {/* ── EXTRA LARGE, ULTRA-WIDE POPUP MODAL (w-[96vw] max-w-7xl h-[94vh]) ── */}
+      {/* ── MUI COURSE CREATION / EDIT DIALOG MODAL ── */}
       {/* ==================================================================== */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 overflow-hidden">
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-            onClick={() => !isSubmitting && setIsModalOpen(false)}
-          />
+      <Dialog
+        open={isModalOpen}
+        onClose={() => !isSubmitting && setIsModalOpen(false)}
+        maxWidth="xl"
+        fullWidth
+        slotProps={{ paper: { sx: { borderRadius: 3, maxHeight: '94vh', width: '95vw' } } }}
+      >
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              {editingId ? 'Edit Course Details' : 'Add New Course'}
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              Enter curriculum details, NVQ/SLQF qualification standards, syllabus modules, schedule and fees.
+            </Typography>
+          </Box>
+          <IconButton onClick={() => setIsModalOpen(false)} disabled={isSubmitting} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
 
-          {/* Modal Container: Extra Wide max-w-7xl (almost full screen), Height 94vh */}
-          <div className="bg-white rounded-2xl w-[96vw] max-w-7xl h-[94vh] relative z-10 shadow-2xl overflow-hidden flex flex-col border border-gray-200 animate-in fade-in zoom-in-95 duration-150">
-            
-            {/* Clean Modal Header */}
-            <div className="flex items-center justify-between px-8 py-4 border-b border-gray-200 bg-white shrink-0">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">
-                  {editingId ? 'Edit Course Details' : 'Add New Course'}
-                </h2>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Enter curriculum details, NVQ/SLQF qualification standards, syllabus modules, schedule and fees.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-colors"
-              >
-                <X size={22} />
-              </button>
-            </div>
+        {errorMsg && (
+          <Box sx={{ mx: 3, mt: 2, p: 1.5, bgcolor: 'error.50', borderRadius: 2, border: '1px solid', borderColor: 'error.200' }}>
+            <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 500 }}>
+              {errorMsg}
+            </Typography>
+          </Box>
+        )}
 
-            {/* Error Message */}
-            {errorMsg && (
-              <div className="mx-8 mt-4 p-3.5 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2 shrink-0 font-medium">
-                <AlertCircle size={16} className="shrink-0" />
-                <span>{errorMsg}</span>
-              </div>
+        {/* Clean Navigation Tabs */}
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', bgcolor: 'grey.50', px: 3 }}>
+          <Tabs
+            value={activeTab}
+            onChange={(_, val) => setActiveTab(val)}
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              '& .MuiTab-root': { textTransform: 'none', fontWeight: 600, minHeight: 48 },
+              '& .Mui-selected': { color: '#16a34a' },
+              '& .MuiTabs-indicator': { bgcolor: '#16a34a' }
+            }}
+          >
+            <Tab icon={<BookIcon fontSize="small" />} iconPosition="start" label="1. Basic Info" value="basic" />
+            <Tab icon={<SchoolIcon fontSize="small" />} iconPosition="start" label="2. Level & Mode" value="classification" />
+            <Tab icon={<ScheduleIcon fontSize="small" />} iconPosition="start" label="3. Schedule & Venue" value="schedule" />
+            <Tab icon={<MoneyIcon fontSize="small" />} iconPosition="start" label="4. Fees & Requirements" value="requirements" />
+            <Tab icon={<LayersIcon fontSize="small" />} iconPosition="start" label={`5. Syllabus Modules (${modules.length})`} value="modules" />
+          </Tabs>
+        </Box>
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+          <DialogContent sx={{ p: 3, overflowY: 'auto' }}>
+            {/* ── TAB 1: BASIC INFO ── */}
+            {activeTab === 'basic' && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                <TextField
+                  label="Course Title *"
+                  size="small"
+                  required
+                  fullWidth
+                  placeholder="e.g. Commercial Organic Gardening and Greenhouse Technology"
+                  value={form.title}
+                  onChange={e => handleTitleChange(e.target.value)}
+                />
+
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr 1fr' }, gap: 2 }}>
+                  <TextField
+                    label="Course Code *"
+                    size="small"
+                    required
+                    fullWidth
+                    placeholder="e.g. AGRI-ORG-2026"
+                    value={form.courseCode}
+                    onChange={e => setForm({ ...form, courseCode: e.target.value })}
+                  />
+
+                  <TextField
+                    label="URL Slug (SEO Identifier) *"
+                    size="small"
+                    required
+                    fullWidth
+                    placeholder="commercial-organic-gardening-2026"
+                    value={form.slug}
+                    onChange={e => setForm({ ...form, slug: e.target.value })}
+                  />
+
+                  <TextField
+                    select
+                    label="Publication Status *"
+                    size="small"
+                    fullWidth
+                    value={form.status}
+                    onChange={e => setForm({ ...form, status: e.target.value })}
+                  >
+                    <MenuItem value="Draft">Draft (Internal use only)</MenuItem>
+                    <MenuItem value="Published">Published (Visible on website)</MenuItem>
+                    <MenuItem value="Archived">Archived</MenuItem>
+                  </TextField>
+
+                  <Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>Course Category *</Typography>
+                      <Button size="small" onClick={() => setIsCategoryModalOpen(true)} sx={{ textTransform: 'none', p: 0, minWidth: 'auto', fontSize: '0.75rem', color: '#16a34a' }}>
+                        + New Category
+                      </Button>
+                    </Box>
+                    <TextField
+                      select
+                      size="small"
+                      required
+                      fullWidth
+                      value={form.categoryId}
+                      onChange={e => setForm({ ...form, categoryId: e.target.value })}
+                    >
+                      <MenuItem value="">-- Select Category --</MenuItem>
+                      {categories.map(c => (
+                        <MenuItem key={c.id} value={c.id}>{c.categoryNameEn}</MenuItem>
+                      ))}
+                    </TextField>
+                  </Box>
+
+                  <Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                      <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary' }}>Primary Instructor</Typography>
+                      <Button size="small" onClick={() => setIsInstructorModalOpen(true)} sx={{ textTransform: 'none', p: 0, minWidth: 'auto', fontSize: '0.75rem', color: '#16a34a' }}>
+                        + New Instructor
+                      </Button>
+                    </Box>
+                    <TextField
+                      select
+                      size="small"
+                      fullWidth
+                      value={form.instructorId || ''}
+                      onChange={e => setForm({ ...form, instructorId: e.target.value })}
+                    >
+                      <MenuItem value="">-- Select Instructor (Optional) --</MenuItem>
+                      {instructors.map(ins => (
+                        <MenuItem key={ins.id} value={ins.id}>{ins.fullName} ({ins.designation || ins.phone})</MenuItem>
+                      ))}
+                    </TextField>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Button component="label" variant="outlined" startIcon={<UploadIcon />} size="small" fullWidth
+                      sx={{ textTransform: 'none', borderColor: 'grey.300', color: 'text.secondary', height: 40, justifyContent: 'flex-start', px: 2 }}>
+                      {imageFile ? imageFile.name : 'Upload Banner Image...'}
+                      <input type="file" hidden accept="image/*" onChange={handleImageChange} />
+                    </Button>
+                    {imagePreview && (
+                      <Box component="img" src={imagePreview} sx={{ width: 44, height: 40, objectFit: 'cover', borderRadius: 1.5, border: '1px solid', borderColor: 'grey.300' }} />
+                    )}
+                  </Box>
+                </Box>
+
+                {/* Highlighted Application Called Status Switch */}
+                <Paper elevation={0} sx={{ p: 2, bgcolor: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#0369a1' }}>
+                        APPLICATION CALLED STATUS
+                      </Typography>
+                      <Chip
+                        label={form.applicationCalled ? 'ACTIVE (Calling Open)' : 'CLOSED (Calling Closed)'}
+                        size="small"
+                        sx={{ fontSize: '0.65rem', height: 20, bgcolor: form.applicationCalled ? '#0284c7' : '#e2e8f0', color: form.applicationCalled ? '#fff' : '#475569', fontWeight: 700 }}
+                      />
+                    </Box>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
+                      When enabled, the "Application Called" badge will appear on this course card and details page.
+                    </Typography>
+                  </Box>
+                  <Switch
+                    checked={form.applicationCalled}
+                    onChange={e => setForm({ ...form, applicationCalled: e.target.checked })}
+                    sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: '#0284c7' }, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#0284c7' } }}
+                  />
+                </Paper>
+
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, color: "text.secondary" }}>
+                    Description & Objectives
+                  </Typography>
+                  <RichTextEditor
+                    value={form.description || ''}
+                    onChange={value => setForm({ ...form, description: value })}
+                    placeholder="Enter full course description, curriculum overview, learning objectives and practical training methodology..."
+                  />
+                </Box>
+              </Box>
             )}
 
-            {/* Clean Tab Navigation */}
-            <div className="flex border-b border-gray-200 bg-gray-50/80 px-8 overflow-x-auto shrink-0 gap-2 pt-2.5">
-              <button
-                type="button"
-                onClick={() => setActiveTab('basic')}
-                className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 ${
-                  activeTab === 'basic'
-                    ? 'border-emerald-600 text-emerald-950 bg-white font-bold shadow-sm'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <BookOpen size={16} /> 1. Basic Info
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('classification')}
-                className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 ${
-                  activeTab === 'classification'
-                    ? 'border-emerald-600 text-emerald-950 bg-white font-bold shadow-sm'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <Award size={16} /> 2. Level & Mode
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('schedule')}
-                className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 ${
-                  activeTab === 'schedule'
-                    ? 'border-emerald-600 text-emerald-950 bg-white font-bold shadow-sm'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <Clock size={16} /> 3. Schedule & Venue
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('requirements')}
-                className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 ${
-                  activeTab === 'requirements'
-                    ? 'border-emerald-600 text-emerald-950 bg-white font-bold shadow-sm'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <DollarSign size={16} /> 4. Fees & Requirements
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('modules')}
-                className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 ${
-                  activeTab === 'modules'
-                    ? 'border-emerald-600 text-emerald-950 bg-white font-bold shadow-sm'
-                    : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                <Layers size={16} /> 5. Syllabus Modules ({modules.length})
-              </button>
-            </div>
+            {/* ── TAB 2: LEVEL & MODE ── */}
+            {activeTab === 'classification' && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                <TextField
+                  select
+                  label="Course / Qualification Level *"
+                  size="small"
+                  fullWidth
+                  value={form.courseLevel}
+                  onChange={e => setForm({ ...form, courseLevel: e.target.value })}
+                  helperText="Select the recognized qualification level in accordance with NVQ and SLQF framework standards."
+                >
+                  {QUALIFICATION_LEVELS.map(lvl => (
+                    <MenuItem key={lvl} value={lvl}>{lvl}</MenuItem>
+                  ))}
+                </TextField>
 
-            {/* Modal Body Form - Spacious with smooth scrolling */}
-            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
-              
-              {/* ── TAB 1: BASIC INFO ── */}
-              {activeTab === 'basic' && (
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                      Course Title *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="e.g. Commercial Organic Gardening and Greenhouse Technology"
-                      value={form.title}
-                      onChange={e => handleTitleChange(e.target.value)}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        Course Code *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="e.g. AGRI-ORG-2026"
-                        value={form.courseCode}
-                        onChange={e => setForm({ ...form, courseCode: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm font-mono focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        URL Slug (SEO Identifier) *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="commercial-organic-gardening-2026"
-                        value={form.slug}
-                        onChange={e => setForm({ ...form, slug: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm font-mono text-gray-600 focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        Publication Status *
-                      </label>
-                      <select
-                        value={form.status}
-                        onChange={e => setForm({ ...form, status: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none bg-white"
-                      >
-                        <option value="Draft">Draft (Internal use only)</option>
-                        <option value="Published">Published (Visible on website)</option>
-                        <option value="Archived">Archived</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider">
-                          Course Category *
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => setIsCategoryModalOpen(true)}
-                          className="text-xs text-emerald-700 hover:underline font-semibold"
-                        >
-                          + New Category
-                        </button>
-                      </div>
-                      <select
-                        required
-                        value={form.categoryId}
-                        onChange={e => setForm({ ...form, categoryId: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none bg-white"
-                      >
-                        <option value="">-- Select Category --</option>
-                        {categories.map(c => (
-                          <option key={c.id} value={c.id}>{c.categoryNameEn}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider">
-                          Primary Instructor
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => setIsInstructorModalOpen(true)}
-                          className="text-xs text-emerald-700 hover:underline font-semibold"
-                        >
-                          + New Instructor
-                        </button>
-                      </div>
-                      <select
-                        value={form.instructorId || ''}
-                        onChange={e => setForm({ ...form, instructorId: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none bg-white"
-                      >
-                        <option value="">-- Select Instructor (Optional) --</option>
-                        {instructors.map(ins => (
-                          <option key={ins.id} value={ins.id}>{ins.fullName} ({ins.designation || ins.phone})</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        Banner Image
-                      </label>
-                      <div className="flex items-center gap-3">
-                        <label className="flex-1 flex items-center gap-2.5 px-4 py-3 border border-dashed border-gray-300 hover:border-gray-400 rounded-xl cursor-pointer bg-gray-50/60 hover:bg-gray-100 transition-colors text-xs text-gray-600">
-                          <Upload size={16} className="text-gray-400 shrink-0" />
-                          <span className="truncate">{imageFile ? imageFile.name : 'Upload file to S3...'}</span>
-                          <input type="file" accept="image/*" className="hidden" onChange={handleImageChange} />
-                        </label>
-                        {imagePreview && (
-                          <img src={imagePreview} alt="" className="w-12 h-11 object-cover rounded-lg border border-gray-200 shrink-0" />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Highlighted Application Called Toggle Box */}
-                  <div className="bg-gradient-to-r from-blue-50/80 via-indigo-50/50 to-emerald-50/40 p-4 sm:p-5 rounded-2xl border border-blue-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-2xs">
-                    <div className="flex items-start sm:items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm">
-                        <Sparkles size={20} />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs font-bold text-gray-900 uppercase tracking-wider">
-                            Application Called Status
-                          </p>
-                          <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${
-                            form.applicationCalled
-                              ? 'bg-blue-600 text-white border-blue-600'
-                              : 'bg-gray-200 text-gray-700 border-gray-300'
-                          }`}>
-                            {form.applicationCalled ? 'ACTIVE (Calling Open)' : 'CLOSED (Calling Closed)'}
-                          </span>
-                        </div>
-                        <p className="text-xs text-gray-600 mt-1">
-                          When enabled, the "Application Called" badge will appear on this course card and details page.
-                        </p>
-                      </div>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
-                      <input
-                        type="checkbox"
-                        checked={form.applicationCalled}
-                        onChange={e => setForm({ ...form, applicationCalled: e.target.checked })}
-                        className="sr-only peer"
-                      />
-                      <div className="w-12 h-6.5 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 shadow-inner"></div>
-                    </label>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                      Description & Objectives
-                    </label>
-                    <RichTextEditor
-                      value={form.description || ''}
-                      onChange={value => setForm({ ...form, description: value })}
-                      placeholder="Enter full course description, curriculum overview, learning objectives and practical training methodology..."
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* ── TAB 2: CLASSIFICATION & MEDIUMS ── */}
-              {activeTab === 'classification' && (
-                <div className="space-y-6">
-                  <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200">
-                    <label className="block text-xs font-bold text-gray-900 uppercase tracking-wider mb-2.5">
-                      Course / Qualification Level *
-                    </label>
-                    <select
-                      value={form.courseLevel}
-                      onChange={e => setForm({ ...form, courseLevel: e.target.value })}
-                      className="w-full px-4 py-3.5 border border-gray-300 rounded-xl text-sm font-semibold text-gray-900 bg-white focus:ring-1 focus:ring-emerald-600 outline-none"
-                    >
-                      {QUALIFICATION_LEVELS.map(lvl => (
-                        <option key={lvl} value={lvl}>{lvl}</option>
-                      ))}
-                    </select>
-                    <p className="text-xs text-gray-500 mt-2">
-                      Select the recognized qualification level in accordance with NVQ and SLQF framework standards.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        Delivery Mode *
-                      </label>
-                      <select
-                        value={form.deliveryMode}
-                        onChange={e => setForm({ ...form, deliveryMode: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none bg-white"
-                      >
-                        {DELIVERY_MODES.map(mode => (
-                          <option key={mode.value} value={mode.value}>{mode.label}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        Mediums of Instruction *
-                      </label>
-                      <div className="flex flex-wrap gap-2.5 pt-0.5">
-                        {MEDIUM_OPTIONS.map(med => {
-                          const isSelected = form.mediums.includes(med);
-                          return (
-                            <button
-                              key={med}
-                              type="button"
-                              onClick={() => handleMediumToggle(med)}
-                              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
-                                isSelected
-                                  ? 'bg-emerald-700 text-white border-emerald-700 shadow-sm'
-                                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                              }`}
-                            >
-                              {isSelected && <Check size={15} />} {med}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ── RELATED JOBS SELECTION SECTION ── */}
-                  <div className="bg-white p-6 rounded-2xl border border-gray-200 space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b border-gray-100 pb-3">
-                      <div>
-                        <label className="block text-xs font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
-                          <Briefcase size={16} className="text-emerald-700" />
-                          Related Jobs / Career Pathways
-                        </label>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          Select career opportunities and jobs relevant to this course.
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setIsJobModalOpen(true)}
-                        className="inline-flex items-center gap-1.5 text-xs text-emerald-700 hover:text-emerald-800 font-bold bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-xl border border-emerald-200 transition-colors shrink-0"
-                      >
-                        <Plus size={14} /> Manage Master Job Pool
-                      </button>
-                    </div>
-
-                    {/* Safety & Architecture Callout */}
-                    <div className="bg-blue-50/70 border border-blue-200/70 rounded-xl p-3 text-xs text-blue-900 flex items-start gap-2.5">
-                      <div className="w-5 h-5 rounded-md bg-blue-600 text-white flex items-center justify-center shrink-0 mt-0.5 text-[11px] font-bold">
-                        i
-                      </div>
-                      <p className="leading-relaxed">
-                        <strong>Independent Master Job Pool:</strong> Click jobs below to link/unlink them with this course. Removing a job from this course or deleting the course will never delete the job from the master system pool.
-                      </p>
-                    </div>
-
-                    {relatedJobs.length === 0 ? (
-                      <div className="p-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-center space-y-2">
-                        <Briefcase size={28} className="mx-auto text-gray-400" />
-                        <p className="text-xs text-gray-600 font-medium">No job roles added yet.</p>
-                        <button
-                          type="button"
-                          onClick={() => setIsJobModalOpen(true)}
-                          className="inline-flex items-center gap-1 text-xs bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-1.5 rounded-xl font-bold transition shadow-xs"
-                        >
-                          <Plus size={13} /> Add First Job
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="space-y-3">
-                        <div className="flex flex-wrap gap-2.5">
-                          {relatedJobs.map(job => {
-                            const isSelected = (form.relatedJobIds || []).includes(job.id);
-                            return (
-                              <button
-                                key={job.id}
-                                type="button"
-                                onClick={() => handleToggleJobSelection(job.id)}
-                                title={isSelected ? 'Click to remove from this course' : 'Click to add to this course'}
-                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all border cursor-pointer ${
-                                  isSelected
-                                    ? 'bg-emerald-700 text-white border-emerald-700 shadow-sm shadow-emerald-700/20 scale-[1.02]'
-                                    : 'bg-gray-50/80 text-gray-700 border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/40 hover:text-emerald-900'
-                                }`}
-                              >
-                                {isSelected ? (
-                                  <Check size={14} className="stroke-[3] text-white" />
-                                ) : (
-                                  <Briefcase size={13} className="text-gray-400" />
-                                )}
-                                <span>{job.name}</span>
-                              </button>
-                            );
-                          })}
-                        </div>
-
-                        <div className="flex items-center justify-between text-xs pt-1 text-gray-500">
-                          <span>
-                            {(form.relatedJobIds || []).length > 0 ? (
-                              <strong className="text-emerald-700 font-bold">
-                                {(form.relatedJobIds || []).length} job(s) selected for this course
-                              </strong>
-                            ) : (
-                              'No jobs selected for this course.'
-                            )}
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setIsJobModalOpen(true)}
-                            className="text-xs text-emerald-700 font-bold hover:underline"
-                          >
-                            + Add New Job to Master Pool
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                      Internal Notes (Confidential)
-                    </label>
-                    <textarea
-                      rows={4}
-                      placeholder="Institutional internal notes (never shown to public users)..."
-                      value={form.internalNotes || ''}
-                      onChange={e => setForm({ ...form, internalNotes: e.target.value })}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* ── TAB 3: SCHEDULE & VENUE ── */}
-              {activeTab === 'schedule' && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        Duration *
-                      </label>
-                      <div className="flex gap-2.5">
-                        <input
-                          type="number"
-                          min="1"
-                          required
-                          value={form.durationValue}
-                          onChange={e => setForm({ ...form, durationValue: parseInt(e.target.value) || 1 })}
-                          className="w-32 px-4 py-3 border border-gray-300 rounded-xl text-sm font-bold focus:ring-1 focus:ring-emerald-600 outline-none"
-                        />
-                        <select
-                          value={form.durationUnit}
-                          onChange={e => setForm({ ...form, durationUnit: e.target.value })}
-                          className="flex-1 px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 outline-none bg-white"
-                        >
-                          {DURATION_UNITS.map(u => (
-                            <option key={u.value} value={u.value}>{u.label}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        Class Schedule
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. Every Saturday 9:00 AM - 4:00 PM"
-                        value={form.classSchedule || ''}
-                        onChange={e => setForm({ ...form, classSchedule: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
-                      />
-                    </div>
-
-                    {/* 3 Month Selector Fields */}
-                    <div>
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        Application Calling Month
-                      </label>
-                      <select
-                        value={form.applicationCallingMonth || ''}
-                        onChange={e => setForm({ ...form, applicationCallingMonth: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-emerald-600 outline-none bg-white"
-                      >
-                        {MONTH_OPTIONS.map(m => (
-                          <option key={m.value} value={m.value}>{m.label}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        Enrollment Month
-                      </label>
-                      <select
-                        value={form.enrollmentMonth || ''}
-                        onChange={e => setForm({ ...form, enrollmentMonth: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-emerald-600 outline-none bg-white"
-                      >
-                        {MONTH_OPTIONS.map(m => (
-                          <option key={m.value} value={m.value}>{m.label}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        Course Start Month
-                      </label>
-                      <select
-                        value={form.startMonth || ''}
-                        onChange={e => setForm({ ...form, startMonth: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-emerald-600 outline-none bg-white"
-                      >
-                        {MONTH_OPTIONS.map(m => (
-                          <option key={m.value} value={m.value}>{m.label}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        Application Deadline Date
-                      </label>
-                      <input
-                        type="date"
-                        value={form.deadlineDate}
-                        onChange={e => setForm({ ...form, deadlineDate: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
-                      />
-                    </div>
-
-                    <div className="md:col-span-2 space-y-3 bg-gray-50/90 p-5 rounded-2xl border border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider">
-                            Venue Locations
-                          </label>
-                          <p className="text-xs text-gray-500 mt-0.5">
-                            If practical sessions take place at multiple locations, click "+ Add Location" to specify each venue.
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setForm(prev => ({ ...prev, venueLocations: [...prev.venueLocations, ''] }))}
-                          className="flex items-center gap-1.5 text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold px-3 py-1.5 rounded-lg transition-colors shadow-xs shrink-0"
-                        >
-                          <Plus size={14} /> + Add Location
-                        </button>
-                      </div>
-
-                      <div className="space-y-2.5">
-                        {form.venueLocations.map((loc, idx) => (
-                          <div key={idx} className="flex items-center gap-2">
-                            <div className="relative flex-1">
-                              <MapPin size={17} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-700" />
-                              <input
-                                type="text"
-                                placeholder={`Venue location ${idx + 1}: e.g. National Agriculture Training Center, Peradeniya`}
-                                value={loc}
-                                onChange={e => {
-                                  const newLocs = [...form.venueLocations];
-                                  newLocs[idx] = e.target.value;
-                                  setForm(prev => ({
-                                    ...prev,
-                                    venueLocations: newLocs,
-                                    venueLocation: newLocs[0] || ''
-                                  }));
-                                }}
-                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-600 outline-none transition-all"
-                              />
-                            </div>
-                            {form.venueLocations.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const newLocs = form.venueLocations.filter((_, i) => i !== idx);
-                                  setForm(prev => ({
-                                    ...prev,
-                                    venueLocations: newLocs.length > 0 ? newLocs : [''],
-                                    venueLocation: newLocs[0] || ''
-                                  }));
-                                }}
-                                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors shrink-0"
-                                title="Remove Location"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ── TAB 4: FEES & REQUIREMENTS ── */}
-              {activeTab === 'requirements' && (
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        Course Fee (LKR) * (Enter 0 for Free courses)
-                      </label>
-                      <div className="relative">
-                        <DollarSign size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={form.courseFee}
-                          onChange={e => setForm({ ...form, courseFee: parseFloat(e.target.value) || 0 })}
-                          className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl text-sm font-bold focus:ring-1 focus:ring-emerald-600 outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        Certificate Type
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. NVQ National Vocational Certificate"
-                        value={form.certificateType || ''}
-                        onChange={e => setForm({ ...form, certificateType: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        Accredited Body
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="e.g. TVEC / Department of Agriculture"
-                        value={form.accreditedBy || ''}
-                        onChange={e => setForm({ ...form, accreditedBy: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
-                      />
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        Application Form URL (Google Form / Online Link)
-                      </label>
-                      <div className="relative">
-                        <ExternalLink size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input
-                          type="url"
-                          placeholder="https://forms.gle/..."
-                          value={form.applyUrl || ''}
-                          onChange={e => setForm({ ...form, applyUrl: e.target.value })}
-                          className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        Application Form Document (PDF / Word Upload)
-                      </label>
-                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                        <label className="flex-1 flex items-center gap-2.5 px-4 py-3 border border-dashed border-gray-300 hover:border-emerald-500 rounded-xl cursor-pointer bg-gray-50/60 hover:bg-emerald-50/40 transition-colors text-xs text-gray-600">
-                          <Upload size={16} className="text-emerald-700 shrink-0" />
-                          <span className="truncate font-medium">
-                            {applicationFile ? applicationFile.name : (form.applicationFileUrl ? 'Application document uploaded (Click to replace)' : 'Select PDF or Document file (Upload PDF / Doc)...')}
-                          </span>
-                          <input
-                            type="file"
-                            accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                            className="hidden"
-                            onChange={e => {
-                              const f = e.target.files?.[0];
-                              if (f) setApplicationFile(f);
-                            }}
-                          />
-                        </label>
-                        {form.applicationFileUrl && (
-                          <a
-                            href={form.applicationFileUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="flex items-center gap-1.5 px-3 py-2 text-xs font-bold text-emerald-800 bg-emerald-100 hover:bg-emerald-200 rounded-xl transition-all shrink-0"
-                          >
-                            <FileText size={14} /> View / Download
-                          </a>
-                        )}
-                        {(applicationFile || form.applicationFileUrl) && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setApplicationFile(null);
-                              setForm(prev => ({ ...prev, applicationFileUrl: '' }));
-                            }}
-                            className="px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 rounded-xl transition-all shrink-0"
-                          >
-                            Remove
-                          </button>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-gray-400 mt-1.5">
-                        Upload an application form document (PDF / Word format) for students to download and fill.
-                      </p>
-                    </div>
-
-                    <div className="md:col-span-2">
-                      <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">
-                        Entry Requirements
-                      </label>
-                      <RichTextEditor
-                        value={form.entryRequirements || ''}
-                        onChange={value => setForm({ ...form, entryRequirements: value })}
-                        placeholder="Minimum educational qualifications, prior experience or general interest in agriculture (Supports bullet points, bold, etc.)..."
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* ── TAB 5: SYLLABUS MODULES BUILDER ── */}
-              {activeTab === 'modules' && (
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between pb-4 border-b border-gray-200">
-                    <div>
-                      <h4 className="font-bold text-gray-900 text-sm md:text-base">Syllabus Modules</h4>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        Add, reorder and structure the lessons/topics taught in this training program.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={addModule}
-                      className="flex items-center gap-2 bg-gray-900 hover:bg-gray-800 text-white px-4 py-2.5 rounded-xl text-xs font-semibold transition-all shadow-sm"
-                    >
-                      <Plus size={15} /> Add Module
-                    </button>
-                  </div>
-
-                  <div className="space-y-4">
-                    {modules.map((mod, idx) => (
-                      <div key={idx} className="p-5 bg-gray-50 rounded-2xl border border-gray-200 space-y-3.5">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2.5">
-                            <span className="w-7 h-7 rounded-lg bg-gray-800 text-white font-bold text-xs flex items-center justify-center">
-                              {idx + 1}
-                            </span>
-                            <span className="text-xs font-bold text-gray-800">Module #{idx + 1}</span>
-                          </div>
-
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => moveModule(idx, 'up')}
-                              disabled={idx === 0}
-                              className="p-1.5 text-gray-400 hover:text-gray-700 disabled:opacity-30 rounded-lg hover:bg-gray-200 transition-colors"
-                              title="Move Up"
-                            >
-                              <ChevronUp size={18} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => moveModule(idx, 'down')}
-                              disabled={idx === modules.length - 1}
-                              className="p-1.5 text-gray-400 hover:text-gray-700 disabled:opacity-30 rounded-lg hover:bg-gray-200 transition-colors"
-                              title="Move Down"
-                            >
-                              <ChevronDown size={18} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => removeModule(idx)}
-                              className="p-1.5 text-red-500 hover:text-red-700 rounded-lg hover:bg-red-50 transition-colors ml-1"
-                              title="Remove Module"
-                            >
-                              <Trash2 size={18} />
-                            </button>
-                          </div>
-                        </div>
-
-                        <div>
-                          <input
-                            type="text"
-                            placeholder="Module Title / Topic *"
-                            value={mod.moduleTitle}
-                            onChange={e => updateModule(idx, 'moduleTitle', e.target.value)}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-emerald-600 outline-none bg-white"
-                          />
-                        </div>
-
-                        <div>
-                          <textarea
-                            rows={3}
-                            placeholder="Module description and summary of topics covered..."
-                            value={mod.moduleDescription || ''}
-                            onChange={e => updateModule(idx, 'moduleDescription', e.target.value)}
-                            className="w-full px-4 py-2.5 border border-gray-300 rounded-xl text-xs focus:ring-1 focus:ring-emerald-600 outline-none bg-white"
-                          />
-                        </div>
-                      </div>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                  <TextField
+                    select
+                    label="Delivery Mode *"
+                    size="small"
+                    fullWidth
+                    value={form.deliveryMode}
+                    onChange={e => setForm({ ...form, deliveryMode: e.target.value })}
+                  >
+                    {DELIVERY_MODES.map(mode => (
+                      <MenuItem key={mode.value} value={mode.value}>{mode.label}</MenuItem>
                     ))}
-                  </div>
-                </div>
+                  </TextField>
+
+                  <Box>
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', display: 'block', mb: 1 }}>
+                      Mediums of Instruction *
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      {MEDIUM_OPTIONS.map(med => {
+                        const isSelected = form.mediums.includes(med);
+                        return (
+                          <Chip
+                            key={med}
+                            label={med}
+                            clickable
+                            onClick={() => handleMediumToggle(med)}
+                            color={isSelected ? 'success' : 'default'}
+                            variant={isSelected ? 'filled' : 'outlined'}
+                            sx={{ fontWeight: 600, bgcolor: isSelected ? '#16a34a' : undefined }}
+                          />
+                        );
+                      })}
+                    </Box>
+                  </Box>
+                </Box>
+
+                {/* Related Jobs Section */}
+                <Paper elevation={0} sx={{ p: 2.5, border: '1px solid', borderColor: 'grey.200', borderRadius: 2.5 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, pb: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                        Related Jobs / Career Pathways
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                        Select career opportunities and jobs relevant to this course from master pool.
+                      </Typography>
+                    </Box>
+                    <Button size="small" onClick={() => setIsJobModalOpen(true)} startIcon={<AddIcon />} sx={{ textTransform: 'none', color: '#16a34a', fontWeight: 600 }}>
+                      Manage Master Job Pool
+                    </Button>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
+                    {relatedJobs.map(job => {
+                      const isSelected = (form.relatedJobIds || []).includes(job.id);
+                      return (
+                        <Chip
+                          key={job.id}
+                          label={job.name}
+                          clickable
+                          onClick={() => handleToggleJobSelection(job.id)}
+                          icon={isSelected ? <CheckIcon fontSize="small" /> : <WorkIcon fontSize="small" />}
+                          sx={{
+                            fontWeight: 600,
+                            bgcolor: isSelected ? '#16a34a' : 'grey.100',
+                            color: isSelected ? '#fff' : 'text.primary',
+                            '&:hover': { bgcolor: isSelected ? '#15803d' : 'grey.200' }
+                          }}
+                        />
+                      );
+                    })}
+                  </Box>
+                </Paper>
+
+                <TextField
+                  label="Internal Notes (Confidential)"
+                  multiline
+                  rows={3}
+                  fullWidth
+                  placeholder="Institutional internal notes (never shown to public users)..."
+                  value={form.internalNotes || ''}
+                  onChange={e => setForm({ ...form, internalNotes: e.target.value })}
+                />
+              </Box>
+            )}
+
+            {/* ── TAB 3: SCHEDULE & VENUE ── */}
+            {activeTab === 'schedule' && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <TextField
+                      label="Duration Value *"
+                      type="number"
+                      size="small"
+                      required
+                      value={form.durationValue}
+                      onChange={e => setForm({ ...form, durationValue: parseInt(e.target.value) || 1 })}
+                      sx={{ width: 140 }}
+                    />
+                    <TextField
+                      select
+                      label="Duration Unit *"
+                      size="small"
+                      fullWidth
+                      value={form.durationUnit}
+                      onChange={e => setForm({ ...form, durationUnit: e.target.value })}
+                    >
+                      {DURATION_UNITS.map(u => (
+                        <MenuItem key={u.value} value={u.value}>{u.label}</MenuItem>
+                      ))}
+                    </TextField>
+                  </Box>
+
+                  <TextField
+                    label="Class Schedule"
+                    size="small"
+                    fullWidth
+                    placeholder="e.g. Every Saturday 9:00 AM - 4:00 PM"
+                    value={form.classSchedule || ''}
+                    onChange={e => setForm({ ...form, classSchedule: e.target.value })}
+                  />
+
+                  <TextField
+                    select
+                    label="Application Calling Month"
+                    size="small"
+                    fullWidth
+                    value={form.applicationCallingMonth || ''}
+                    onChange={e => setForm({ ...form, applicationCallingMonth: e.target.value })}
+                  >
+                    {MONTH_OPTIONS.map(m => (
+                      <MenuItem key={m.value} value={m.value}>{m.label}</MenuItem>
+                    ))}
+                  </TextField>
+
+                  <TextField
+                    select
+                    label="Enrollment Month"
+                    size="small"
+                    fullWidth
+                    value={form.enrollmentMonth || ''}
+                    onChange={e => setForm({ ...form, enrollmentMonth: e.target.value })}
+                  >
+                    {MONTH_OPTIONS.map(m => (
+                      <MenuItem key={m.value} value={m.value}>{m.label}</MenuItem>
+                    ))}
+                  </TextField>
+
+                  <TextField
+                    select
+                    label="Course Start Month"
+                    size="small"
+                    fullWidth
+                    value={form.startMonth || ''}
+                    onChange={e => setForm({ ...form, startMonth: e.target.value })}
+                  >
+                    {MONTH_OPTIONS.map(m => (
+                      <MenuItem key={m.value} value={m.value}>{m.label}</MenuItem>
+                    ))}
+                  </TextField>
+
+                  <TextField
+                    label="Application Deadline Date"
+                    type="date"
+                    size="small"
+                    fullWidth
+                    slotProps={{ inputLabel: { shrink: true } }}
+                    value={form.deadlineDate}
+                    onChange={e => setForm({ ...form, deadlineDate: e.target.value })}
+                  />
+                </Box>
+
+                {/* Venue Locations */}
+                <Paper elevation={0} sx={{ p: 2.5, bgcolor: 'grey.50', border: '1px solid', borderColor: 'grey.200', borderRadius: 2.5 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                    <Box>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Venue Locations</Typography>
+                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>Add practical / lecture venues for this course</Typography>
+                    </Box>
+                    <Button size="small" onClick={() => setForm(prev => ({ ...prev, venueLocations: [...prev.venueLocations, ''] }))}
+                      startIcon={<AddIcon />} sx={{ textTransform: 'none', color: '#16a34a', fontWeight: 600 }}>
+                      Add Location
+                    </Button>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                    {form.venueLocations.map((loc, idx) => (
+                      <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <TextField
+                          size="small"
+                          fullWidth
+                          placeholder={`Venue location ${idx + 1}`}
+                          value={loc}
+                          onChange={e => {
+                            const newLocs = [...form.venueLocations];
+                            newLocs[idx] = e.target.value;
+                            setForm(prev => ({ ...prev, venueLocations: newLocs, venueLocation: newLocs[0] || '' }));
+                          }}
+                          slotProps={{ input: { startAdornment: <InputAdornment position="start"><LocationOnIcon sx={{ color: '#16a34a', fontSize: 20 }} /></InputAdornment> } }}
+                        />
+                        {form.venueLocations.length > 1 && (
+                          <IconButton size="small" onClick={() => {
+                            const newLocs = form.venueLocations.filter((_, i) => i !== idx);
+                            setForm(prev => ({ ...prev, venueLocations: newLocs.length > 0 ? newLocs : [''], venueLocation: newLocs[0] || '' }));
+                          }} sx={{ color: 'error.main' }}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </Box>
+                    ))}
+                  </Box>
+                </Paper>
+              </Box>
+            )}
+
+            {/* ── TAB 4: FEES & REQUIREMENTS ── */}
+            {activeTab === 'requirements' && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                  <TextField
+                    label="Course Fee (LKR) * (0 for Free)"
+                    type="number"
+                    size="small"
+                    required
+                    fullWidth
+                    value={form.courseFee}
+                    onChange={e => setForm({ ...form, courseFee: parseFloat(e.target.value) || 0 })}
+                  />
+
+                  <TextField
+                    label="Certificate Type"
+                    size="small"
+                    fullWidth
+                    placeholder="e.g. NVQ National Vocational Certificate"
+                    value={form.certificateType || ''}
+                    onChange={e => setForm({ ...form, certificateType: e.target.value })}
+                  />
+
+                  <TextField
+                    label="Accredited Body"
+                    size="small"
+                    fullWidth
+                    placeholder="e.g. TVEC / Department of Agriculture"
+                    value={form.accreditedBy || ''}
+                    onChange={e => setForm({ ...form, accreditedBy: e.target.value })}
+                  />
+
+                  <TextField
+                    label="Application Form URL (Google Form Link)"
+                    type="url"
+                    size="small"
+                    fullWidth
+                    placeholder="https://forms.gle/..."
+                    value={form.applyUrl || ''}
+                    onChange={e => setForm({ ...form, applyUrl: e.target.value })}
+                  />
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+                  <Button component="label" variant="outlined" startIcon={<UploadIcon />} size="small"
+                    sx={{ textTransform: 'none', borderColor: 'grey.300', color: 'text.secondary', height: 40 }}>
+                    {applicationFile ? applicationFile.name : (form.applicationFileUrl ? 'Replace Application PDF / Doc...' : 'Upload Application PDF / Doc...')}
+                    <input type="file" hidden accept=".pdf,.doc,.docx" onChange={e => { const f = e.target.files?.[0]; if (f) setApplicationFile(f); }} />
+                  </Button>
+                  {form.applicationFileUrl && (
+                    <Button size="small" href={form.applicationFileUrl} target="_blank" startIcon={<DescriptionIcon />} sx={{ textTransform: 'none', color: '#16a34a' }}>
+                      View Current Document
+                    </Button>
+                  )}
+                </Box>
+
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, color: "text.secondary" }}>
+                    Entry Requirements
+                  </Typography>
+                  <RichTextEditor
+                    value={form.entryRequirements || ''}
+                    onChange={value => setForm({ ...form, entryRequirements: value })}
+                    placeholder="Minimum educational qualifications, prior experience or general interest..."
+                  />
+                </Box>
+              </Box>
+            )}
+
+            {/* ── TAB 5: SYLLABUS MODULES ── */}
+            {activeTab === 'modules' && (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>Syllabus Modules</Typography>
+                  <Button size="small" onClick={addModule} startIcon={<AddIcon />} variant="contained"
+                    sx={{ bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' }, textTransform: 'none', borderRadius: 2 }}>
+                    Add Module
+                  </Button>
+                </Box>
+
+                {modules.map((mod, idx) => (
+                  <Paper key={idx} elevation={0} sx={{ p: 2, bgcolor: 'grey.50', border: '1px solid', borderColor: 'grey.200', borderRadius: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
+                        Module #{idx + 1}
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        <IconButton size="small" disabled={idx === 0} onClick={() => moveModule(idx, 'up')}><ArrowUpwardIcon fontSize="small" /></IconButton>
+                        <IconButton size="small" disabled={idx === modules.length - 1} onClick={() => moveModule(idx, 'down')}><ArrowDownwardIcon fontSize="small" /></IconButton>
+                        <IconButton size="small" onClick={() => removeModule(idx)} sx={{ color: 'error.main' }}><DeleteIcon fontSize="small" /></IconButton>
+                      </Box>
+                    </Box>
+                    <TextField
+                      label="Module Title *"
+                      size="small"
+                      fullWidth
+                      value={mod.moduleTitle}
+                      onChange={e => updateModule(idx, 'moduleTitle', e.target.value)}
+                    />
+                    <TextField
+                      label="Module Description"
+                      multiline
+                      rows={2}
+                      size="small"
+                      fullWidth
+                      value={mod.moduleDescription || ''}
+                      onChange={e => updateModule(idx, 'moduleDescription', e.target.value)}
+                    />
+                  </Paper>
+                ))}
+              </Box>
+            )}
+          </DialogContent>
+
+          <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid', borderColor: 'divider', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {activeTab !== 'basic' && (
+                <Button variant="outlined" size="small" startIcon={<ArrowBackIcon />} onClick={() => {
+                  if (activeTab === 'classification') setActiveTab('basic');
+                  else if (activeTab === 'schedule') setActiveTab('classification');
+                  else if (activeTab === 'requirements') setActiveTab('schedule');
+                  else if (activeTab === 'modules') setActiveTab('requirements');
+                }} sx={{ textTransform: 'none', borderRadius: 2, color: 'text.secondary', borderColor: 'grey.300' }}>
+                  Previous
+                </Button>
               )}
+              {activeTab !== 'modules' && (
+                <Button variant="outlined" size="small" endIcon={<ArrowForwardIcon />} onClick={() => {
+                  if (activeTab === 'basic') setActiveTab('classification');
+                  else if (activeTab === 'classification') setActiveTab('schedule');
+                  else if (activeTab === 'schedule') setActiveTab('requirements');
+                  else if (activeTab === 'requirements') setActiveTab('modules');
+                }} sx={{ textTransform: 'none', borderRadius: 2, color: 'text.secondary', borderColor: 'grey.300' }}>
+                  Next
+                </Button>
+              )}
+            </Box>
 
-              {/* Modal Footer Controls */}
-              <div className="flex items-center justify-between pt-5 border-t border-gray-200 shrink-0">
-                <div className="flex items-center gap-3">
-                  {activeTab !== 'basic' && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (activeTab === 'classification') setActiveTab('basic');
-                        else if (activeTab === 'schedule') setActiveTab('classification');
-                        else if (activeTab === 'requirements') setActiveTab('schedule');
-                        else if (activeTab === 'modules') setActiveTab('requirements');
-                      }}
-                      className="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-xl text-xs font-semibold hover:bg-gray-50 transition-colors"
-                    >
-                      ← Previous Step
-                    </button>
-                  )}
-                  {activeTab !== 'modules' && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (activeTab === 'basic') setActiveTab('classification');
-                        else if (activeTab === 'classification') setActiveTab('schedule');
-                        else if (activeTab === 'schedule') setActiveTab('requirements');
-                        else if (activeTab === 'requirements') setActiveTab('modules');
-                      }}
-                      className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl text-xs font-semibold transition-colors"
-                    >
-                      Next Step →
-                    </button>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    disabled={isSubmitting}
-                    onClick={() => setIsModalOpen(false)}
-                    className="px-5 py-2.5 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="px-7 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm disabled:opacity-50 transition-all flex items-center gap-2"
-                  >
-                    {isSubmitting && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                    {editingId ? 'Update Course' : 'Create Course'}
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button onClick={() => setIsModalOpen(false)} disabled={isSubmitting} variant="outlined"
+                sx={{ textTransform: 'none', borderRadius: 2, borderColor: 'grey.300', color: 'text.secondary' }}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting} variant="contained"
+                sx={{ textTransform: 'none', borderRadius: 2, bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' }, minWidth: 120 }}>
+                {isSubmitting ? <CircularProgress size={20} color="inherit" /> : (editingId ? 'Update Course' : 'Create Course')}
+              </Button>
+            </Box>
+          </DialogActions>
+        </form>
+      </Dialog>
 
       {/* ==================================================================== */}
       {/* ── COURSE PREVIEW MODAL ── */}

@@ -19,8 +19,16 @@ export default function Header() {
   const { user, logout, openLoginModal, isAuthenticated } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null);
+  const [openMobileCategories, setOpenMobileCategories] = useState<Record<string, boolean>>({});
   const [isScrolled, setIsScrolled] = useState(false);
   const [dbCategories, setDbCategories] = useState<Category[]>([]);
+
+  const toggleMobileCategory = (catId: string) => {
+    setOpenMobileCategories(prev => ({
+      ...prev,
+      [catId]: !prev[catId]
+    }));
+  };
 
   const isSinhala = i18n.language === 'si';
 
@@ -65,147 +73,147 @@ export default function Header() {
   return (
     <>
       <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled
-          ? 'bg-black/40 backdrop-blur-md shadow-xl py-2'
-          : 'bg-transparent py-4'
+        ? 'bg-black/40 backdrop-blur-md shadow-xl py-2'
+        : 'bg-transparent py-4'
         }`}>
-      <div className="container mx-auto px-4 lg:px-8 flex items-center justify-between">
+        <div className="container mx-auto px-4 lg:px-8 flex items-center justify-between">
 
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <img src="/images/aswanna_logo.png" alt="Aswanna Logo" className="h-16 xl:h-24 w-auto object-contain" />
-        </Link>
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2">
+            <img src="/images/aswanna_logo.png" alt="Aswanna Logo" className="h-16 xl:h-24 w-auto object-contain" />
+          </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden xl:flex items-center gap-5 2xl:gap-8">
-          <Link to="/" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.home')}</Link>
-          <Link to="/about" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.about')}</Link>
+          {/* Desktop Navigation */}
+          <nav className="hidden xl:flex items-center gap-5 2xl:gap-8">
+            <Link to="/" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.home')}</Link>
+            <Link to="/about" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.about')}</Link>
 
-          {/* Agro Technology Dropdown */}
-          <div className="relative group">
-            <Link to="/agro" className="flex items-center gap-1 text-white text-[15px] font-medium hover:text-white/80 transition-colors py-2">
-              {t('header.agroTechnology', 'Agro Technology')} <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180 duration-200" />
-            </Link>
-            <div className="absolute top-full left-0 hidden group-hover:flex pt-2 w-64">
-              <div className="bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-gray-100 overflow-visible w-full">
-                <div className="flex flex-col p-2 gap-0.5">
-                  {mainCategories.map((cat) => {
-                    const subCats = getSubCategories(cat.id);
-                    return (
-                      <div key={cat.id} className="relative group/sub">
-                        <Link
-                          to={`/agro/${cat.slug}`}
-                          className="flex items-center justify-between px-3 py-2.5 rounded-full hover:bg-green-50 text-sm font-medium text-gray-700 hover:text-green-700 transition-colors w-full text-left"
-                        >
-                          {isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
-                          {subCats.length > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
-                        </Link>
-                        
-                        {/* Nested Flyout Menu */}
-                        {subCats.length > 0 && (
-                          <div className="absolute -top-2 left-full pl-1 hidden group-hover/sub:flex w-56 z-50">
-                            <div className="bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-gray-100 overflow-hidden w-full">
-                              <div className="flex flex-col p-2 gap-0.5">
-                                {subCats.map((subCat) => {
-                                  return (
-                                    <Link
-                                      key={subCat.id}
-                                      to={`/agro/${cat.slug}/${subCat.slug}`}
-                                      className="px-3 py-2.5 rounded-full hover:bg-green-50 text-sm font-medium text-gray-700 hover:text-green-700 transition-colors"
-                                    >
-                                      {isSinhala ? (subCat.sinhalaName || subCat.name) : subCat.name}
-                                    </Link>
-                                  );
-                                })}
+            {/* Agro Technology Dropdown */}
+            <div className="relative group">
+              <Link to="/agro" className="flex items-center gap-1 text-white text-[15px] font-medium hover:text-white/80 transition-colors py-2">
+                {t('header.agroTechnology', 'Agro Technology')} <ChevronDown className="w-4 h-4 transition-transform group-hover:rotate-180 duration-200" />
+              </Link>
+              <div className="absolute top-full left-0 hidden group-hover:flex pt-2 w-64">
+                <div className="bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-gray-100 overflow-visible w-full">
+                  <div className="flex flex-col p-2 gap-0.5">
+                    {mainCategories.map((cat) => {
+                      const subCats = getSubCategories(cat.id);
+                      return (
+                        <div key={cat.id} className="relative group/sub">
+                          <Link
+                            to={`/agro/${cat.slug}`}
+                            className="flex items-center justify-between px-3 py-2.5 rounded-full hover:bg-green-50 text-sm font-medium text-gray-700 hover:text-green-700 transition-colors w-full text-left"
+                          >
+                            {isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
+                            {subCats.length > 0 && <ChevronRight className="w-4 h-4 text-gray-400" />}
+                          </Link>
+
+                          {/* Nested Flyout Menu */}
+                          {subCats.length > 0 && (
+                            <div className="absolute -top-2 left-full pl-1 hidden group-hover/sub:flex w-56 z-50">
+                              <div className="bg-white/95 backdrop-blur-md rounded-xl shadow-xl border border-gray-100 overflow-hidden w-full">
+                                <div className="flex flex-col p-2 gap-0.5">
+                                  {subCats.map((subCat) => {
+                                    return (
+                                      <Link
+                                        key={subCat.id}
+                                        to={`/agro/${cat.slug}/${subCat.slug}`}
+                                        className="px-3 py-2.5 rounded-full hover:bg-green-50 text-sm font-medium text-gray-700 hover:text-green-700 transition-colors"
+                                      >
+                                        {isSinhala ? (subCat.sinhalaName || subCat.name) : subCat.name}
+                                      </Link>
+                                    );
+                                  })}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
+
+
+            <Link to="/news" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.news', 'News')}</Link>
+            <Link to="/blog" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.blog', 'Blog')}</Link>
+            <Link to="/careers" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.careers', 'Careers')}</Link>
+            <Link to="/education" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.education', 'Education')}</Link>
+            <Link to="/gallery" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.gallery', 'Gallery')}</Link>
+          </nav>
+
+          {/* Desktop Actions */}
+          <div className="hidden xl:flex items-center gap-3">
+            {/* Language Switcher Pill */}
+            <LanguageSwitcher />
+
+            {/* Contact Us Glass Pill */}
+            <Link
+              to="/pages/contact"
+              className="glass-btn h-[38px] px-5 text-xs sm:text-sm tracking-wide font-bold"
+            >
+              {t('header.contact', 'Contact Us')}
+            </Link>
+
+            {/* Login / User Profile / Admin Pill */}
+            {isAuthenticated ? (
+              user?.role === 'ADMIN' ? (
+                <div className="flex items-center gap-2">
+                  <Link
+                    to="/admin"
+                    className="glass-btn h-[38px] px-5 text-xs sm:text-sm font-bold"
+                  >
+                    Admin Panel
+                  </Link>
+                  <button
+                    onClick={logout}
+                    title="Log out"
+                    className="glass-btn h-[38px] w-[38px] !p-0 flex items-center justify-center text-white/90 hover:text-white"
+                  >
+                    <LogOut size={16} />
+                  </button>
+                </div>
+              ) : (
+                <div className="glass-btn h-[38px] px-3.5 flex items-center gap-2.5 text-xs font-bold">
+                  <div className="flex items-center gap-1.5">
+                    <UserIcon size={14} className="text-emerald-300" />
+                    <span className="max-w-[120px] truncate text-white">{user?.name || user?.email}</span>
+                  </div>
+                  <button
+                    onClick={logout}
+                    className="text-white/80 hover:text-white transition-colors cursor-pointer text-xs font-bold ml-1 pl-2 border-l border-white/25 flex items-center gap-1"
+                  >
+                    <LogOut size={12} />
+                    <span>Logout</span>
+                  </button>
+                </div>
+              )
+            ) : (
+              <button
+                onClick={openLoginModal}
+                className="glass-btn h-[38px] px-6 text-xs sm:text-sm tracking-wide font-bold"
+              >
+                Login
+              </button>
+            )}
           </div>
 
-
-          <Link to="/news" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.news', 'News')}</Link>
-          <Link to="/blog" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.blog', 'Blog')}</Link>
-          <Link to="/careers" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.careers', 'Careers')}</Link>
-          <Link to="/education" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.education', 'Education')}</Link>
-          <Link to="/gallery" className="text-white text-[15px] font-medium hover:text-white/80 transition-colors">{t('header.gallery', 'Gallery')}</Link>
-        </nav>
-
-        {/* Desktop Actions */}
-        <div className="hidden xl:flex items-center gap-3">
-          {/* Language Switcher Pill */}
-          <LanguageSwitcher />
-
-          {/* Contact Us Glass Pill */}
-          <Link 
-            to="/pages/contact" 
-            className="glass-btn h-[38px] px-5 text-xs sm:text-sm tracking-wide font-bold"
-          >
-            {t('header.contact', 'Contact Us')}
-          </Link>
-
-          {/* Login / User Profile / Admin Pill */}
-          {isAuthenticated ? (
-            user?.role === 'ADMIN' ? (
-              <div className="flex items-center gap-2">
-                <Link 
-                  to="/admin" 
-                  className="glass-btn h-[38px] px-5 text-xs sm:text-sm font-bold"
-                >
-                  Admin Panel
-                </Link>
-                <button
-                  onClick={logout}
-                  title="Log out"
-                  className="glass-btn h-[38px] w-[38px] !p-0 flex items-center justify-center text-white/90 hover:text-white"
-                >
-                  <LogOut size={16} />
-                </button>
-              </div>
-            ) : (
-              <div className="glass-btn h-[38px] px-3.5 flex items-center gap-2.5 text-xs font-bold">
-                <div className="flex items-center gap-1.5">
-                  <UserIcon size={14} className="text-emerald-300" />
-                  <span className="max-w-[120px] truncate text-white">{user?.name || user?.email}</span>
-                </div>
-                <button
-                  onClick={logout}
-                  className="text-white/80 hover:text-white transition-colors cursor-pointer text-xs font-bold ml-1 pl-2 border-l border-white/25 flex items-center gap-1"
-                >
-                  <LogOut size={12} />
-                  <span>Logout</span>
-                </button>
-              </div>
-            )
-          ) : (
-            <button 
-              onClick={openLoginModal}
-              className="glass-btn h-[38px] px-6 text-xs sm:text-sm tracking-wide font-bold"
-            >
-              Login
+          {/* Mobile Menu Toggle & Mini Actions */}
+          <div className="flex xl:hidden items-center gap-3 sm:gap-4">
+            <LanguageSwitcher variant="transparent" />
+            <button className="text-white hover:text-[var(--color-primary)]">
+              <ShoppingCart className="w-5 h-5" />
             </button>
-          )}
+            <button
+              className="text-white hover:text-[var(--color-primary)] ml-1"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            >
+              {isMobileMenuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
+            </button>
+          </div>
         </div>
-
-        {/* Mobile Menu Toggle & Mini Actions */}
-        <div className="flex xl:hidden items-center gap-3 sm:gap-4">
-          <LanguageSwitcher variant="transparent" />
-          <button className="text-white hover:text-[var(--color-primary)]">
-            <ShoppingCart className="w-5 h-5" />
-          </button>
-          <button
-            className="text-white hover:text-[var(--color-primary)] ml-1"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          >
-            {isMobileMenuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
-          </button>
-        </div>
-      </div>
 
       </header>
 
@@ -232,23 +240,42 @@ export default function Header() {
                   </Link>
                   {mainCategories.map((cat) => {
                     const subCats = getSubCategories(cat.id);
+                    const isCatOpen = !!openMobileCategories[cat.id];
                     return (
-                      <div key={cat.id} className="flex flex-col">
-                        <Link
-                          to={`/agro/${cat.slug}`}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          className="flex items-center gap-2 text-gray-200 text-sm font-bold hover:text-white transition-colors mb-2"
-                        >
-                          <Sprout className="w-4 h-4" /> {isSinhala ? (cat.sinhalaName || cat.name) : cat.name}
-                        </Link>
-                        {subCats.length > 0 && (
-                          <div className="flex flex-col pl-6 space-y-3 border-l border-white/10 ml-2">
+                      <div key={cat.id} className="flex flex-col border-b border-white/5 pb-2">
+                        <div className="flex items-center justify-between py-1">
+                          <Link
+                            to={`/agro/${cat.slug}`}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className="flex items-center gap-2 text-gray-200 text-sm font-bold hover:text-emerald-400 transition-colors flex-1"
+                          >
+                            {/* <Sprout className="w-4 h-4 text-emerald-400 shrink-0" /> */}
+                            <span>{isSinhala ? (cat.sinhalaName || cat.name) : cat.name}</span>
+                          </Link>
+                          {subCats.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                toggleMobileCategory(cat.id);
+                              }}
+                              className="p-1.5 text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                              aria-label="Toggle subcategories"
+                            >
+                              <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isCatOpen ? 'rotate-180 text-emerald-400' : ''}`} />
+                            </button>
+                          )}
+                        </div>
+
+                        {subCats.length > 0 && isCatOpen && (
+                          <div className="flex flex-col pl-6 space-y-2.5 pt-2 pb-1 border-l border-white/10 ml-3">
                             {subCats.map((subCat) => (
                               <Link
                                 key={subCat.id}
                                 to={`/agro/${cat.slug}/${subCat.slug}`}
                                 onClick={() => setIsMobileMenuOpen(false)}
-                                className="text-gray-400 text-xs hover:text-white transition-colors"
+                                className="text-gray-300 text-xs hover:text-emerald-300 transition-colors"
                               >
                                 {isSinhala ? (subCat.sinhalaName || subCat.name) : subCat.name}
                               </Link>
@@ -256,7 +283,7 @@ export default function Header() {
                           </div>
                         )}
                       </div>
-                    )
+                    );
                   })}
                 </div>
               )}
@@ -268,7 +295,7 @@ export default function Header() {
             <Link to="/careers" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.careers', 'Careers')}</Link>
             <Link to="/education" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.education', 'Education')}</Link>
             <Link to="/gallery" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.gallery', 'Gallery')}</Link>
-            
+
             {/* Mobile Quick Links */}
             <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-white/10">
               <span className="text-xs font-bold text-gray-500 tracking-widest uppercase mb-2">Quick Access</span>
@@ -304,8 +331,8 @@ export default function Header() {
 
             {/* Contact & Login for mobile */}
             <div className="flex flex-col gap-4 mt-2 pt-6 border-t border-white/10">
-              <Link 
-                to="/pages/contact" 
+              <Link
+                to="/pages/contact"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="glass-btn w-full py-3.5 text-base"
               >
@@ -314,14 +341,14 @@ export default function Header() {
               {isAuthenticated ? (
                 user?.role === 'ADMIN' ? (
                   <div className="flex flex-col gap-2">
-                    <Link 
-                      to="/admin" 
+                    <Link
+                      to="/admin"
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="glass-btn-green w-full py-3.5 text-base font-bold"
                     >
                       Admin Panel
                     </Link>
-                    <button 
+                    <button
                       onClick={() => {
                         setIsMobileMenuOpen(false);
                         logout();
@@ -337,7 +364,7 @@ export default function Header() {
                       <UserIcon size={16} />
                       <span>{user?.name || user?.email}</span>
                     </div>
-                    <button 
+                    <button
                       onClick={() => {
                         setIsMobileMenuOpen(false);
                         logout();
@@ -349,7 +376,7 @@ export default function Header() {
                   </div>
                 )
               ) : (
-                <button 
+                <button
                   onClick={() => {
                     setIsMobileMenuOpen(false);
                     openLoginModal();

@@ -1,5 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, X, Search, Package, Upload, Sparkles, Clock, RotateCcw } from 'lucide-react';
+import {
+  Box, Button, Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField, InputAdornment, Table, TableHead, TableBody, TableRow,
+  TableCell, TableContainer, Paper, IconButton, Typography, CircularProgress,
+  Tabs, Tab, Select, MenuItem, FormControl, InputLabel, Avatar, Alert
+} from '@mui/material';
+import {
+  Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
+  Search as SearchIcon, Close as CloseIcon, CloudUpload as UploadIcon,
+  AutoAwesome as SparklesIcon, Schedule as ClockIcon,
+  Restore as RestoreIcon, Inventory as PackageIcon, Language as GlobeIcon
+} from '@mui/icons-material';
 import Pagination from '../../components/admin/Pagination';
 import RichTextEditor from '../components/RichTextEditor';
 
@@ -90,7 +101,7 @@ export default function ItemManagement() {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const token = localStorage.getItem('admin_token');
+  const token = localStorage.getItem('admin_token') || localStorage.getItem('token');
   const authHeaders = { Authorization: `Bearer ${token}` };
 
   // Auto-save form draft for 7 days when creating a new item
@@ -224,85 +235,190 @@ export default function ItemManagement() {
   };
 
   const filteredItems = items.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
-  const editorHeight = 'calc(95vh - 200px)';
+  const editorHeight = 'calc(95vh - 220px)';
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div><h1 className="text-2xl font-bold text-gray-800">Item Management</h1><p className="text-sm text-gray-500 mt-1">Manage agro information items</p></div>
-        <button onClick={openCreate} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"><Plus size={18} /> Add Item</button>
-      </div>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        <div className="relative max-w-md">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input type="text" placeholder="Search items..." value={search} onChange={e => setSearch(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" />
-        </div>
-      </div>
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        {isLoading ? (<div className="flex justify-center items-center py-20"><div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" /></div>) : (
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100"><tr><th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Item</th><th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th><th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Slug</th><th className="px-6 py-3" /></tr></thead>
-            <tbody className="divide-y divide-gray-50">
-              {filteredItems.length === 0 ? (<tr><td colSpan={4} className="text-center py-12 text-gray-400"><Package className="mx-auto mb-2" size={32} /><p>No items found</p></td></tr>) : filteredItems.map(item => (
-                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4"><div className="flex items-center gap-3">{item.images && (Array.isArray(item.images) ? item.images[0] : item.images) && <img src={Array.isArray(item.images) ? item.images[0] : (item.images as string)} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />}<div><p className="font-medium text-gray-800">{item.name}</p>{item.sinhalaName && <p className="text-xs text-gray-500">{item.sinhalaName}</p>}</div></div></td>
-                  <td className="px-6 py-4 text-gray-600">{item.category?.name || '-'}</td>
-                  <td className="px-6 py-4 text-gray-500 font-mono text-xs">{item.slug}</td>
-                  <td className="px-6 py-4"><div className="flex items-center gap-2 justify-end"><button onClick={() => openEdit(item)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit size={16} /></button><button onClick={() => handleDelete(item.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button></div></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {/* ── Top Page Bar ── */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary' }}>
+            Item Management
+          </Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            Manage agro information items
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={openCreate}
+          sx={{
+            bgcolor: '#16a34a',
+            '&:hover': { bgcolor: '#15803d' },
+            textTransform: 'none',
+            borderRadius: 2,
+            px: 2.5,
+            py: 1,
+            fontWeight: 700
+          }}
+        >
+          Add Item
+        </Button>
+      </Box>
+
+      {/* ── Search Bar ── */}
+      <Paper elevation={0} sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+        <TextField
+          size="small"
+          placeholder="Search items..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          sx={{ maxWidth: 400, width: '100%' }}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                </InputAdornment>
+              )
+            }
+          }}
+        />
+      </Paper>
+
+      {/* ── Table Container ── */}
+      <Paper elevation={0} sx={{ borderRadius: 3, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
+        {isLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+            <CircularProgress size={32} sx={{ color: '#16a34a' }} />
+          </Box>
+        ) : (
+          <TableContainer>
+            <Table>
+              <TableHead sx={{ bgcolor: 'grey.50' }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase' }}>Item</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase' }}>Category</TableCell>
+                  <TableCell sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase' }}>Slug</TableCell>
+                  <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase' }}>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredItems.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center" sx={{ py: 6, color: 'text.secondary' }}>
+                      <PackageIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1, display: 'block', mx: 'auto' }} />
+                      <Typography variant="body2">No items found</Typography>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredItems.map((item) => {
+                    const imgUrl = item.images && (Array.isArray(item.images) ? item.images[0] : item.images);
+                    return (
+                      <TableRow key={item.id} hover>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                            {imgUrl && (
+                              <Avatar
+                                src={typeof imgUrl === 'string' ? imgUrl : undefined}
+                                variant="rounded"
+                                sx={{ width: 40, height: 40, bgcolor: 'grey.100' }}
+                              />
+                            )}
+                            <Box>
+                              <Typography variant="body2" sx={{ fontWeight: 600 }}>{item.name}</Typography>
+                              {item.sinhalaName && <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>{item.sinhalaName}</Typography>}
+                            </Box>
+                          </Box>
+                        </TableCell>
+                        <TableCell sx={{ color: 'text.secondary' }}>{item.category?.name || '-'}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'text.secondary' }}>{item.slug}</TableCell>
+                        <TableCell align="right">
+                          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                            <IconButton size="small" onClick={() => openEdit(item)} sx={{ color: 'primary.main' }}>
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton size="small" onClick={() => handleDelete(item.id)} sx={{ color: 'error.main' }}>
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
-        {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
-      </div>
+        {totalPages > 1 && (
+          <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+          </Box>
+        )}
+      </Paper>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-          <div className="bg-white rounded-2xl w-[95vw] max-w-[1500px] relative z-10 shadow-2xl flex flex-col" style={{ height: '95vh' }}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 shrink-0">
-              <div><h2 className="text-xl font-bold text-gray-800">{editingId ? 'Edit Item' : 'Add Item'}</h2><p className="text-xs text-gray-400 mt-0.5">Fill in all details below. Required fields are marked with *</p></div>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-500"><X size={20} /></button>
-            </div>
-            <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
-              <div className="flex flex-1 min-h-0">
-                {/* Left Sidebar */}
-                <div className="w-[420px] shrink-0 border-r border-gray-100 overflow-y-auto p-5 space-y-4 bg-gray-50/50">
-                  {/* ── 7-Day Auto-Save Draft Notification ── */}
-                  {!editingId && (
-                    <div
-                      className={`rounded-xl p-3.5 flex flex-col gap-2 transition-all border ${
-                        restoredDraftTime
-                          ? 'bg-amber-50 border-amber-300 text-amber-950 shadow-xs'
-                          : 'bg-green-50/70 border-green-200 text-green-900'
-                      }`}
-                    >
-                      <div className="flex items-start gap-2.5">
-                        <div
-                          className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                            restoredDraftTime ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'
-                          }`}
-                        >
-                          {restoredDraftTime ? <Sparkles className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-xs font-bold leading-tight">
-                            {restoredDraftTime
-                              ? 'Draft Restored (Auto-Saved)'
-                              : '7-Day Auto-Save Active'}
-                          </p>
-                          <p className="text-[11px] opacity-80 mt-0.5">
-                            {restoredDraftTime
-                              ? `Saved: ${new Date(restoredDraftTime).toLocaleString()} (Retained for 7 days or until submitted)`
-                              : 'Your entered form data will be saved locally for up to 7 days.'}
-                          </p>
-                        </div>
-                      </div>
+      {/* ── Dialog / Form Modal ── */}
+      <Dialog
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        maxWidth="xl"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              height: '95vh',
+              borderRadius: 3,
+              display: 'flex',
+              flexDirection: 'column'
+            }
+          }
+        }}
+      >
+        <DialogTitle sx={{ px: 3, py: 2, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              {editingId ? 'Edit Item' : 'Add Item'}
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              Fill in all details below. Required fields are marked with *
+            </Typography>
+          </Box>
+          <IconButton onClick={() => setIsModalOpen(false)} size="small">
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
 
-                      {restoredDraftTime && (
-                        <button
-                          type="button"
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+          <DialogContent sx={{ p: 0, display: 'flex', flex: 1, minHeight: 0 }}>
+            <Box sx={{ display: 'flex', width: '100%', height: '100%' }}>
+              {/* Left Sidebar Form Inputs */}
+              <Box
+                sx={{
+                  width: 420,
+                  minWidth: 420,
+                  borderRight: '1px solid',
+                  borderColor: 'divider',
+                  overflowY: 'auto',
+                  p: 3,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2.5,
+                  bgcolor: 'grey.50'
+                }}
+              >
+                {/* 7-Day Auto-Save Draft Notification */}
+                {!editingId && (
+                  <Alert
+                    severity={restoredDraftTime ? 'warning' : 'info'}
+                    icon={restoredDraftTime ? <SparklesIcon fontSize="small" /> : <ClockIcon fontSize="small" />}
+                    action={
+                      restoredDraftTime ? (
+                        <Button
+                          size="small"
+                          color="inherit"
+                          startIcon={<RestoreIcon fontSize="small" />}
                           onClick={() => {
                             if (window.confirm('Clear saved draft and start with an empty form?')) {
                               clearItemDraft();
@@ -310,171 +426,330 @@ export default function ItemManagement() {
                               setRestoredDraftTime(null);
                             }
                           }}
-                          className="px-2.5 py-1 bg-white hover:bg-amber-100 text-amber-900 border border-amber-300 rounded-lg text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs self-start"
+                          sx={{ textTransform: 'none', fontWeight: 700 }}
                         >
-                          <RotateCcw className="w-3 h-3" />
-                          <span>Clear Draft</span>
-                        </button>
-                      )}
-                    </div>
-                  )}
+                          Clear Draft
+                        </Button>
+                      ) : undefined
+                    }
+                    sx={{ borderRadius: 2 }}
+                  >
+                    <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>
+                      {restoredDraftTime ? 'Draft Restored (Auto-Saved)' : '7-Day Auto-Save Active'}
+                    </Typography>
+                    <Typography variant="caption" sx={{ display: 'block', fontSize: '0.7rem' }}>
+                      {restoredDraftTime
+                        ? `Saved: ${new Date(restoredDraftTime).toLocaleString()}`
+                        : 'Your entered form data will be saved locally for up to 7 days.'}
+                    </Typography>
+                  </Alert>
+                )}
 
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Basic Info</label>
-                  <div><label className="block text-sm font-medium text-gray-700 mb-1">Name (EN) *</label><input required value={form.name} onChange={e => {
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Basic Info
+                </Typography>
+
+                <TextField
+                  label="Name (EN) *"
+                  required
+                  size="small"
+                  value={form.name}
+                  onChange={(e) => {
                     const val = e.target.value;
                     if (!editingId) {
                       setForm({ ...form, name: val, slug: val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') });
                     } else {
                       setForm({ ...form, name: val });
                     }
-                  }} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white" /></div>
-                  <div><label className="block text-sm font-medium text-gray-700 mb-1">Name (SI)</label><input value={form.sinhalaName} onChange={e => setForm({ ...form, sinhalaName: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white" /></div>
-                  <div><label className="block text-sm font-medium text-gray-700 mb-1">Scientific Name</label><input value={form.scientificName} onChange={e => setForm({ ...form, scientificName: e.target.value })} placeholder="e.g. Oryza sativa" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white italic placeholder:not-italic placeholder:text-gray-400" /></div>
-                  <div><label className="block text-sm font-medium text-gray-700 mb-1">Slug *</label><input required value={form.slug} onChange={e => setForm({ ...form, slug: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white font-mono" /></div>
-                  <div><label className="block text-sm font-medium text-gray-700 mb-1">Category</label><select value={form.categoryId} onChange={e => setForm({ ...form, categoryId: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white"><option value="">Select Category</option>{categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div><label className="block text-sm font-medium text-gray-700 mb-1">Location (EN)</label><input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white" /></div>
-                    <div><label className="block text-sm font-medium text-gray-700 mb-1">Location (SI)</label><input value={form.sinhalaLocation} onChange={e => setForm({ ...form, sinhalaLocation: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white" /></div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div><label className="block text-sm font-medium text-gray-700 mb-1">Order</label><input type="number" value={form.order} onChange={e => setForm({ ...form, order: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white" /></div>
-                    <div><label className="block text-sm font-medium text-gray-700 mb-1">Status</label><select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white"><option value="AVAILABLE">Available</option><option value="UNAVAILABLE">Unavailable</option></select></div>
-                  </div>
-                  <div className="space-y-3">
-                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider">Images</label>
+                  }}
+                  fullWidth
+                />
 
-                    {/* Card Image */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Card Image</label>
-                      {(imageFile1 || existingImages[0]) ? (
-                        <div className="relative group rounded-xl overflow-hidden border border-gray-200 bg-gray-100" style={{aspectRatio:'16/7'}}>
-                          <img
-                            src={imageFile1 ? URL.createObjectURL(imageFile1) : existingImages[0]}
-                            alt="Card preview"
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                            <label className="flex items-center gap-1.5 bg-white text-gray-800 text-xs font-medium px-3 py-1.5 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
-                              <Upload size={13} /> Change
-                              <input type="file" accept="image/*" className="hidden" onChange={e => setImageFile1(e.target.files?.[0] || null)} />
-                            </label>
-                            <button type="button" onClick={() => { setImageFile1(null); setExistingImages(prev => { const n = [...prev]; n[0] = ''; return n; }); }} className="flex items-center gap-1.5 bg-red-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-red-600 transition-colors">
-                              <X size={13} /> Remove
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-green-400 hover:bg-green-50/30 transition-colors bg-white" style={{aspectRatio:'16/7'}}>
-                          <Upload size={20} className="text-gray-300" />
-                          <span className="text-xs text-gray-400">Click to upload card image</span>
-                          <input type="file" accept="image/*" className="hidden" onChange={e => setImageFile1(e.target.files?.[0] || null)} />
-                        </label>
-                      )}
-                    </div>
+                <TextField
+                  label="Name (SI)"
+                  size="small"
+                  value={form.sinhalaName}
+                  onChange={(e) => setForm({ ...form, sinhalaName: e.target.value })}
+                  fullWidth
+                />
 
-                    {/* Header Image */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">Header Image</label>
-                      {(imageFile2 || existingImages[1]) ? (
-                        <div className="relative group rounded-xl overflow-hidden border border-gray-200 bg-gray-100" style={{aspectRatio:'16/7'}}>
-                          <img
-                            src={imageFile2 ? URL.createObjectURL(imageFile2) : existingImages[1]}
-                            alt="Header preview"
-                            className="w-full h-full object-cover"
-                          />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                            <label className="flex items-center gap-1.5 bg-white text-gray-800 text-xs font-medium px-3 py-1.5 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors">
-                              <Upload size={13} /> Change
-                              <input type="file" accept="image/*" className="hidden" onChange={e => setImageFile2(e.target.files?.[0] || null)} />
-                            </label>
-                            <button type="button" onClick={() => { setImageFile2(null); setExistingImages(prev => { const n = [...prev]; n[1] = ''; return n; }); }} className="flex items-center gap-1.5 bg-red-500 text-white text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-red-600 transition-colors">
-                              <X size={13} /> Remove
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <label className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-green-400 hover:bg-green-50/30 transition-colors bg-white" style={{aspectRatio:'16/7'}}>
-                          <Upload size={20} className="text-gray-300" />
-                          <span className="text-xs text-gray-400">Click to upload header image</span>
-                          <input type="file" accept="image/*" className="hidden" onChange={e => setImageFile2(e.target.files?.[0] || null)} />
-                        </label>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <TextField
+                  label="Scientific Name"
+                  size="small"
+                  value={form.scientificName}
+                  onChange={(e) => setForm({ ...form, scientificName: e.target.value })}
+                  placeholder="e.g. Oryza sativa"
+                  fullWidth
+                  slotProps={{ htmlInput: { style: { fontStyle: 'italic' } } }}
+                />
 
-                {/* Right Panel */}
-                <div className="flex-1 flex flex-col min-w-0 min-h-0">
-                  <div className="flex border-b border-gray-200 px-6 shrink-0 bg-white">
-                    {(['EN', 'SI', 'SL_DATA', 'GLOBAL_DATA'] as const).map(tab => (
-                      <button key={tab} type="button" onClick={() => setActiveTab(tab)} className={`py-3 px-5 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${activeTab === tab ? 'border-green-500 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'}`}>
-                        {tab === 'EN' ? 'English Details' : tab === 'SI' ? 'Sinhala Details' : tab === 'SL_DATA' ? 'SL Data' : 'Global Data'}
-                      </button>
+                <TextField
+                  label="Slug *"
+                  required
+                  size="small"
+                  value={form.slug}
+                  onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                  fullWidth
+                  slotProps={{ htmlInput: { style: { fontFamily: 'monospace' } } }}
+                />
+
+                <FormControl fullWidth size="small">
+                  <InputLabel>Category</InputLabel>
+                  <Select
+                    value={form.categoryId}
+                    label="Category"
+                    onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
+                  >
+                    <MenuItem value="">Select Category</MenuItem>
+                    {categories.map((c) => (
+                      <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
                     ))}
-                  </div>
-                  <div className="flex-1 min-h-0 overflow-hidden">
-                    {/* EN Tab */}
-                    <div className={`h-full flex flex-col p-6 ${activeTab === 'EN' ? 'flex' : 'hidden'}`}>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Description (EN)</label>
-                      <div className="flex-1 min-h-0">
-                        <RichTextEditor value={form.description} onChange={value => setForm({ ...form, description: value })} placeholder="Enter item description in English..." height={editorHeight} />
-                      </div>
-                    </div>
-                    {/* SI Tab */}
-                    <div className={`h-full flex flex-col p-6 ${activeTab === 'SI' ? 'flex' : 'hidden'}`}>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Description (SI)</label>
-                      <div className="flex-1 min-h-0">
-                        <RichTextEditor value={form.sinhalaDescription} onChange={value => setForm({ ...form, sinhalaDescription: value })} placeholder="Enter item description in Sinhala..." height={editorHeight} />
-                      </div>
-                    </div>
-                    {/* SL Data Tab */}
-                    <div className={`h-full overflow-y-auto p-6 space-y-5 ${activeTab === 'SL_DATA' ? 'block' : 'hidden'}`}>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div><label className="block text-sm font-medium text-gray-700 mb-1">Cultivation Area</label><input value={form.slAgriData.cultivationArea} onChange={e => setForm({ ...form, slAgriData: { ...form.slAgriData, cultivationArea: e.target.value } })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500/50" /></div>
-                        <div><label className="block text-sm font-medium text-gray-700 mb-1">Cultivation Area (SI)</label><input value={form.slAgriData.sinhalaCultivationArea} onChange={e => setForm({ ...form, slAgriData: { ...form.slAgriData, sinhalaCultivationArea: e.target.value } })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500/50" /></div>
-                        <div><label className="block text-sm font-medium text-gray-700 mb-1">Annual Production</label><input value={form.slAgriData.annualProduction} onChange={e => setForm({ ...form, slAgriData: { ...form.slAgriData, annualProduction: e.target.value } })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500/50" /></div>
-                        <div><label className="block text-sm font-medium text-gray-700 mb-1">Annual Production (SI)</label><input value={form.slAgriData.sinhalaAnnualProduction} onChange={e => setForm({ ...form, slAgriData: { ...form.slAgriData, sinhalaAnnualProduction: e.target.value } })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500/50" /></div>
-                        <div><label className="block text-sm font-medium text-gray-700 mb-1">Average Yield</label><input value={form.slAgriData.averageYield} onChange={e => setForm({ ...form, slAgriData: { ...form.slAgriData, averageYield: e.target.value } })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500/50" /></div>
-                        <div><label className="block text-sm font-medium text-gray-700 mb-1">Average Yield (SI)</label><input value={form.slAgriData.sinhalaAverageYield} onChange={e => setForm({ ...form, slAgriData: { ...form.slAgriData, sinhalaAverageYield: e.target.value } })} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-green-500/50" /></div>
-                      </div>
-                      <div>
-                        <div className="flex justify-between items-center mb-3"><h4 className="font-semibold text-sm text-gray-700">District Shares</h4><button type="button" onClick={() => setForm({ ...form, slAgriData: { ...form.slAgriData, districts: [...form.slAgriData.districts, { districtName: '', sinhalaDistrictName: '', percentage: 0 }] } })} className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded-lg hover:bg-green-200 font-medium">+ Add District</button></div>
-                        <div className="space-y-2">
+                  </Select>
+                </FormControl>
+
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                  <TextField
+                    label="Location (EN)"
+                    size="small"
+                    value={form.location}
+                    onChange={(e) => setForm({ ...form, location: e.target.value })}
+                    fullWidth
+                  />
+                  <TextField
+                    label="Location (SI)"
+                    size="small"
+                    value={form.sinhalaLocation}
+                    onChange={(e) => setForm({ ...form, sinhalaLocation: e.target.value })}
+                    fullWidth
+                  />
+                </Box>
+
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                  <TextField
+                    label="Order"
+                    type="number"
+                    size="small"
+                    value={form.order}
+                    onChange={(e) => setForm({ ...form, order: e.target.value })}
+                    fullWidth
+                  />
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Status</InputLabel>
+                    <Select
+                      value={form.status}
+                      label="Status"
+                      onChange={(e) => setForm({ ...form, status: e.target.value })}
+                    >
+                      <MenuItem value="AVAILABLE">Available</MenuItem>
+                      <MenuItem value="UNAVAILABLE">Unavailable</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
+
+                {/* Images */}
+                <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 0.5, mt: 1 }}>
+                  Images
+                </Typography>
+
+                {/* Card Image */}
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>Card Image</Typography>
+                  {(imageFile1 || existingImages[0]) ? (
+                    <Paper elevation={0} sx={{ position: 'relative', borderRadius: 2, overflow: 'hidden', border: '1px solid', borderColor: 'divider', aspectRatio: '16/7', bgcolor: 'grey.100' }}>
+                      <img
+                        src={imageFile1 ? URL.createObjectURL(imageFile1) : existingImages[0]}
+                        alt="Card Preview"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                      <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(0,0,0,0.4)', opacity: 0, '&:hover': { opacity: 1 }, transition: '0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                        <Button component="label" size="small" variant="contained" startIcon={<UploadIcon />} sx={{ bgcolor: 'white', color: 'text.primary', '&:hover': { bgcolor: 'grey.100' }, textTransform: 'none' }}>
+                          Change
+                          <input type="file" accept="image/*" hidden onChange={e => setImageFile1(e.target.files?.[0] || null)} />
+                        </Button>
+                        <Button size="small" variant="contained" color="error" startIcon={<CloseIcon />} onClick={() => { setImageFile1(null); setExistingImages(prev => { const n = [...prev]; n[0] = ''; return n; }); }} sx={{ textTransform: 'none' }}>
+                          Remove
+                        </Button>
+                      </Box>
+                    </Paper>
+                  ) : (
+                    <Button
+                      component="label"
+                      variant="outlined"
+                      sx={{
+                        width: '100%',
+                        aspectRatio: '16/7',
+                        borderRadius: 2,
+                        borderStyle: 'dashed',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1,
+                        textTransform: 'none',
+                        color: 'text.secondary'
+                      }}
+                    >
+                      <UploadIcon sx={{ fontSize: 24, color: 'text.disabled' }} />
+                      <Typography variant="caption">Click to upload card image</Typography>
+                      <input type="file" accept="image/*" hidden onChange={e => setImageFile1(e.target.files?.[0] || null)} />
+                    </Button>
+                  )}
+                </Box>
+
+                {/* Header Image */}
+                <Box>
+                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>Header Image</Typography>
+                  {(imageFile2 || existingImages[1]) ? (
+                    <Paper elevation={0} sx={{ position: 'relative', borderRadius: 2, overflow: 'hidden', border: '1px solid', borderColor: 'divider', aspectRatio: '16/7', bgcolor: 'grey.100' }}>
+                      <img
+                        src={imageFile2 ? URL.createObjectURL(imageFile2) : existingImages[1]}
+                        alt="Header Preview"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                      <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(0,0,0,0.4)', opacity: 0, '&:hover': { opacity: 1 }, transition: '0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                        <Button component="label" size="small" variant="contained" startIcon={<UploadIcon />} sx={{ bgcolor: 'white', color: 'text.primary', '&:hover': { bgcolor: 'grey.100' }, textTransform: 'none' }}>
+                          Change
+                          <input type="file" accept="image/*" hidden onChange={e => setImageFile2(e.target.files?.[0] || null)} />
+                        </Button>
+                        <Button size="small" variant="contained" color="error" startIcon={<CloseIcon />} onClick={() => { setImageFile2(null); setExistingImages(prev => { const n = [...prev]; n[1] = ''; return n; }); }} sx={{ textTransform: 'none' }}>
+                          Remove
+                        </Button>
+                      </Box>
+                    </Paper>
+                  ) : (
+                    <Button
+                      component="label"
+                      variant="outlined"
+                      sx={{
+                        width: '100%',
+                        aspectRatio: '16/7',
+                        borderRadius: 2,
+                        borderStyle: 'dashed',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1,
+                        textTransform: 'none',
+                        color: 'text.secondary'
+                      }}
+                    >
+                      <UploadIcon sx={{ fontSize: 24, color: 'text.disabled' }} />
+                      <Typography variant="caption">Click to upload header image</Typography>
+                      <input type="file" accept="image/*" hidden onChange={e => setImageFile2(e.target.files?.[0] || null)} />
+                    </Button>
+                  )}
+                </Box>
+              </Box>
+
+              {/* Right Tab Panel */}
+              <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0 }}>
+                <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', px: 3, bgcolor: 'background.paper' }}>
+                  <Tabs
+                    value={activeTab}
+                    onChange={(_, val) => setActiveTab(val)}
+                    sx={{
+                      '& .MuiTab-root': { textTransform: 'none', fontWeight: 600 },
+                      '& .Mui-selected': { color: '#16a34a' },
+                      '& .MuiTabs-indicator': { bgcolor: '#16a34a' }
+                    }}
+                  >
+                    <Tab label="English Details" value="EN" />
+                    <Tab label="Sinhala Details" value="SI" />
+                    <Tab label="SL Data" value="SL_DATA" />
+                    <Tab label="Global Data" value="GLOBAL_DATA" />
+                  </Tabs>
+                </Box>
+
+                <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+                  {/* EN Tab */}
+                  {activeTab === 'EN' && (
+                    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 3 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>Description (EN)</Typography>
+                      <Box sx={{ flex: 1, minHeight: 0 }}>
+                        <RichTextEditor
+                          value={form.description}
+                          onChange={value => setForm({ ...form, description: value })}
+                          placeholder="Enter item description in English..."
+                          height={editorHeight}
+                        />
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* SI Tab */}
+                  {activeTab === 'SI' && (
+                    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', p: 3 }}>
+                      <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>Description (SI)</Typography>
+                      <Box sx={{ flex: 1, minHeight: 0 }}>
+                        <RichTextEditor
+                          value={form.sinhalaDescription}
+                          onChange={value => setForm({ ...form, sinhalaDescription: value })}
+                          placeholder="Enter item description in Sinhala..."
+                          height={editorHeight}
+                        />
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* SL Data Tab */}
+                  {activeTab === 'SL_DATA' && (
+                    <Box sx={{ height: '100%', overflowY: 'auto', p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+                        <TextField label="Cultivation Area" size="small" value={form.slAgriData.cultivationArea} onChange={e => setForm({ ...form, slAgriData: { ...form.slAgriData, cultivationArea: e.target.value } })} fullWidth />
+                        <TextField label="Cultivation Area (SI)" size="small" value={form.slAgriData.sinhalaCultivationArea} onChange={e => setForm({ ...form, slAgriData: { ...form.slAgriData, sinhalaCultivationArea: e.target.value } })} fullWidth />
+                        <TextField label="Annual Production" size="small" value={form.slAgriData.annualProduction} onChange={e => setForm({ ...form, slAgriData: { ...form.slAgriData, annualProduction: e.target.value } })} fullWidth />
+                        <TextField label="Annual Production (SI)" size="small" value={form.slAgriData.sinhalaAnnualProduction} onChange={e => setForm({ ...form, slAgriData: { ...form.slAgriData, sinhalaAnnualProduction: e.target.value } })} fullWidth />
+                        <TextField label="Average Yield" size="small" value={form.slAgriData.averageYield} onChange={e => setForm({ ...form, slAgriData: { ...form.slAgriData, averageYield: e.target.value } })} fullWidth />
+                        <TextField label="Average Yield (SI)" size="small" value={form.slAgriData.sinhalaAverageYield} onChange={e => setForm({ ...form, slAgriData: { ...form.slAgriData, sinhalaAverageYield: e.target.value } })} fullWidth />
+                      </Box>
+
+                      <Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>District Shares</Typography>
+                          <Button
+                            size="small"
+                            onClick={() => setForm({ ...form, slAgriData: { ...form.slAgriData, districts: [...form.slAgriData.districts, { districtName: '', sinhalaDistrictName: '', percentage: 0 }] } })}
+                            sx={{ textTransform: 'none', color: '#16a34a', bgcolor: 'rgba(22, 163, 74, 0.1)', '&:hover': { bgcolor: 'rgba(22, 163, 74, 0.2)' } }}
+                          >
+                            + Add District
+                          </Button>
+                        </Box>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                           {form.slAgriData.districts.map((d, idx) => (
-                            <div key={idx} className="flex gap-2 items-center bg-gray-50 p-2.5 rounded-lg border border-gray-200">
-                              <input placeholder="District (EN)" value={d.districtName} onChange={e => { const newD = [...form.slAgriData.districts]; newD[idx].districtName = e.target.value; setForm({ ...form, slAgriData: { ...form.slAgriData, districts: newD } }); }} className="flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-green-500/50" />
-                              <input placeholder="District (SI)" value={d.sinhalaDistrictName} onChange={e => { const newD = [...form.slAgriData.districts]; newD[idx].sinhalaDistrictName = e.target.value; setForm({ ...form, slAgriData: { ...form.slAgriData, districts: newD } }); }} className="flex-1 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-green-500/50" />
-                              <input type="number" placeholder="%" value={d.percentage} onChange={e => { const newD = [...form.slAgriData.districts]; newD[idx].percentage = parseFloat(e.target.value) || 0; setForm({ ...form, slAgriData: { ...form.slAgriData, districts: newD } }); }} className="w-20 rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-green-500/50" />
-                              <button type="button" onClick={() => { const newD = form.slAgriData.districts.filter((_, i) => i !== idx); setForm({ ...form, slAgriData: { ...form.slAgriData, districts: newD } }); }} className="text-red-400 hover:text-red-600 p-1 hover:bg-red-50 rounded"><X size={15} /></button>
-                            </div>
+                            <Paper key={idx} elevation={0} sx={{ p: 1.5, border: '1px solid', borderColor: 'divider', borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                              <TextField placeholder="District (EN)" size="small" value={d.districtName} onChange={e => { const newD = [...form.slAgriData.districts]; newD[idx].districtName = e.target.value; setForm({ ...form, slAgriData: { ...form.slAgriData, districts: newD } }); }} sx={{ flex: 1 }} />
+                              <TextField placeholder="District (SI)" size="small" value={d.sinhalaDistrictName} onChange={e => { const newD = [...form.slAgriData.districts]; newD[idx].sinhalaDistrictName = e.target.value; setForm({ ...form, slAgriData: { ...form.slAgriData, districts: newD } }); }} sx={{ flex: 1 }} />
+                              <TextField type="number" placeholder="%" size="small" value={d.percentage} onChange={e => { const newD = [...form.slAgriData.districts]; newD[idx].percentage = parseFloat(e.target.value) || 0; setForm({ ...form, slAgriData: { ...form.slAgriData, districts: newD } }); }} sx={{ width: 100 }} />
+                              <IconButton size="small" onClick={() => { const newD = form.slAgriData.districts.filter((_, i) => i !== idx); setForm({ ...form, slAgriData: { ...form.slAgriData, districts: newD } }); }} sx={{ color: 'error.main' }}>
+                                <CloseIcon fontSize="small" />
+                              </IconButton>
+                            </Paper>
                           ))}
-                        </div>
-                      </div>
-                    </div>
-                    {/* Global Data Tab */}
-                    <div className={`h-full overflow-y-auto p-6 space-y-6 ${activeTab === 'GLOBAL_DATA' ? 'block' : 'hidden'}`}>
-                      {/* Highest In The World Field */}
-                      <div className="bg-emerald-50/70 p-5 rounded-2xl border border-emerald-100/90 space-y-4 shadow-sm">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                          <div>
-                            <h4 className="font-bold text-sm text-emerald-950 flex items-center gap-2">
-                              <span>🌍</span> Highest In The World (ලෝකයේ වැඩිම අගය)
-                            </h4>
-                            <p className="text-xs text-emerald-800/80 mt-0.5">
+                        </Box>
+                      </Box>
+                    </Box>
+                  )}
+
+                  {/* Global Data Tab */}
+                  {activeTab === 'GLOBAL_DATA' && (
+                    <Box sx={{ height: '100%', overflowY: 'auto', p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
+                      {/* Highest In The World Card */}
+                      <Paper elevation={0} sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'emerald.200', bgcolor: 'rgba(16, 185, 129, 0.05)', display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
+                          <Box>
+                            <Typography variant="subtitle2" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1, color: 'emerald.950' }}>
+                              <GlobeIcon fontSize="small" sx={{ color: '#16a34a' }} /> Highest In The World (ලෝකයේ වැඩිම අගය)
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                               Specify the highest global production or cultivation area in Hectares or Acres (අක්කර).
-                            </p>
-                          </div>
-                          
-                          {/* Unit Toggle: Hectares vs Acres */}
-                          <div className="flex bg-white rounded-xl p-1 border border-emerald-200 shadow-sm shrink-0 self-start sm:self-auto">
-                            <button
-                              type="button"
+                            </Typography>
+                          </Box>
+
+                          <Box sx={{ display: 'flex', bgcolor: 'background.paper', p: 0.5, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                            <Button
+                              size="small"
                               onClick={() => {
                                 const prevUnit = form.highestInTheWorldUnit;
                                 const num = parseFloat(form.highestInTheWorld.replace(/,/g, ''));
                                 let newSi = form.sinhalaHighestInTheWorld;
                                 if (!isNaN(num) && prevUnit === 'ACRES') {
-                                  // converting from ACRES to HECTARES
                                   const ha = (num / 2.47105).toFixed(2);
                                   newSi = `හෙක්ටයාර ${ha}`;
                                 } else if (form.highestInTheWorld) {
@@ -482,22 +757,27 @@ export default function ItemManagement() {
                                 }
                                 setForm({ ...form, highestInTheWorldUnit: 'HECTARES', sinhalaHighestInTheWorld: newSi });
                               }}
-                              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                                form.highestInTheWorldUnit === 'HECTARES'
-                                  ? 'bg-emerald-600 text-white shadow'
-                                  : 'text-gray-600 hover:text-emerald-700'
-                              }`}
+                              variant={form.highestInTheWorldUnit === 'HECTARES' ? 'contained' : 'text'}
+                              sx={{
+                                textTransform: 'none',
+                                size: 'small',
+                                py: 0.5,
+                                px: 1.5,
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                bgcolor: form.highestInTheWorldUnit === 'HECTARES' ? '#16a34a' : 'transparent',
+                                '&:hover': { bgcolor: form.highestInTheWorldUnit === 'HECTARES' ? '#15803d' : 'action.hover' }
+                              }}
                             >
                               Hectares (හෙක්ටයාර)
-                            </button>
-                            <button
-                              type="button"
+                            </Button>
+                            <Button
+                              size="small"
                               onClick={() => {
                                 const prevUnit = form.highestInTheWorldUnit;
                                 const num = parseFloat(form.highestInTheWorld.replace(/,/g, ''));
                                 let newSi = form.sinhalaHighestInTheWorld;
                                 if (!isNaN(num) && prevUnit === 'HECTARES') {
-                                  // converting from HECTARES to ACRES
                                   const acres = (num * 2.47105).toFixed(2);
                                   newSi = `අක්කර ${acres}`;
                                 } else if (form.highestInTheWorld) {
@@ -505,24 +785,28 @@ export default function ItemManagement() {
                                 }
                                 setForm({ ...form, highestInTheWorldUnit: 'ACRES', sinhalaHighestInTheWorld: newSi });
                               }}
-                              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                                form.highestInTheWorldUnit === 'ACRES'
-                                  ? 'bg-emerald-600 text-white shadow'
-                                  : 'text-gray-600 hover:text-emerald-700'
-                              }`}
+                              variant={form.highestInTheWorldUnit === 'ACRES' ? 'contained' : 'text'}
+                              sx={{
+                                textTransform: 'none',
+                                size: 'small',
+                                py: 0.5,
+                                px: 1.5,
+                                fontSize: '0.75rem',
+                                fontWeight: 700,
+                                bgcolor: form.highestInTheWorldUnit === 'ACRES' ? '#16a34a' : 'transparent',
+                                '&:hover': { bgcolor: form.highestInTheWorldUnit === 'ACRES' ? '#15803d' : 'action.hover' }
+                              }}
                             >
                               Acres / Akkara (අක්කර)
-                            </button>
-                          </div>
-                        </div>
+                            </Button>
+                          </Box>
+                        </Box>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                              Highest In The World (EN) <span className="text-emerald-700 font-bold">[{form.highestInTheWorldUnit === 'HECTARES' ? 'Hectares (ha)' : 'Acres (ac)'}]</span>
-                            </label>
-                            <input
-                              type="text"
+                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+                          <Box>
+                            <TextField
+                              label={`Highest In The World (EN) [${form.highestInTheWorldUnit === 'HECTARES' ? 'Hectares (ha)' : 'Acres (ac)'}]`}
+                              size="small"
                               placeholder={form.highestInTheWorldUnit === 'HECTARES' ? 'e.g. 1,500,000 ha' : 'e.g. 3,700,000 acres'}
                               value={form.highestInTheWorld}
                               onChange={(e) => {
@@ -534,85 +818,106 @@ export default function ItemManagement() {
                                 }
                                 setForm({ ...form, highestInTheWorld: val, sinhalaHighestInTheWorld: autoSi });
                               }}
-                              className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 bg-white text-gray-800 shadow-sm"
+                              fullWidth
                             />
-                            {/* Real-time conversion helper display */}
                             {(() => {
                               const num = parseFloat(form.highestInTheWorld.replace(/,/g, ''));
                               if (!isNaN(num) && num > 0) {
                                 if (form.highestInTheWorldUnit === 'HECTARES') {
                                   const acres = (num * 2.47105).toLocaleString(undefined, { maximumFractionDigits: 2 });
                                   return (
-                                    <div className="flex items-center gap-1 text-[11px] text-emerald-800 mt-1.5 font-medium bg-emerald-100/60 px-2.5 py-1 rounded-md w-fit">
-                                      <span>Equivalent:</span> <strong className="font-bold">≈ {acres} Acres (අක්කර)</strong>
-                                    </div>
+                                    <Typography variant="caption" sx={{ color: 'emerald.800', mt: 0.5, display: 'block', fontWeight: 600 }}>
+                                      Equivalent: ≈ {acres} Acres (අක්කර)
+                                    </Typography>
                                   );
                                 } else {
                                   const ha = (num / 2.47105).toLocaleString(undefined, { maximumFractionDigits: 2 });
                                   return (
-                                    <div className="flex items-center gap-1 text-[11px] text-emerald-800 mt-1.5 font-medium bg-emerald-100/60 px-2.5 py-1 rounded-md w-fit">
-                                      <span>Equivalent:</span> <strong className="font-bold">≈ {ha} Hectares (හෙක්ටයාර)</strong>
-                                    </div>
+                                    <Typography variant="caption" sx={{ color: 'emerald.800', mt: 0.5, display: 'block', fontWeight: 600 }}>
+                                      Equivalent: ≈ {ha} Hectares (හෙක්ටයාර)
+                                    </Typography>
                                   );
                                 }
                               }
                               return null;
                             })()}
-                          </div>
+                          </Box>
 
-                          <div>
-                            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                              Highest In The World (SI) <span className="text-emerald-700 font-bold">[{form.highestInTheWorldUnit === 'HECTARES' ? 'හෙක්ටයාර' : 'අක්කර'}]</span>
-                            </label>
-                            <input
-                              type="text"
+                          <Box>
+                            <TextField
+                              label={`Highest In The World (SI) [${form.highestInTheWorldUnit === 'HECTARES' ? 'හෙක්ටයාර' : 'අක්කර'}]`}
+                              size="small"
                               placeholder={form.highestInTheWorldUnit === 'HECTARES' ? 'උදා: හෙක්ටයාර 1,500,000' : 'උදා: අක්කර 3,700,000'}
                               value={form.sinhalaHighestInTheWorld}
                               onChange={(e) => setForm({ ...form, sinhalaHighestInTheWorld: e.target.value })}
-                              className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 bg-white text-gray-800 shadow-sm"
+                              fullWidth
                             />
-                            <p className="text-[11px] text-gray-400 mt-1.5">සිංහල මාධ්‍යයෙන් පෙන්විය යුතු ආකාරය.</p>
-                          </div>
-                        </div>
-                      </div>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
+                              සිංහල මාධ්‍යයෙන් පෙන්විය යුතු ආකාරය.
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Paper>
 
-                      <div className="flex justify-between items-center pt-2">
-                        <h4 className="font-semibold text-sm text-gray-700">Global Production Data</h4>
-                        <button type="button" onClick={() => setForm({ ...form, globalAgriData: [...form.globalAgriData, { rank: form.globalAgriData.length + 1, countryName: '', sinhalaCountryName: '', production: '', cultivationArea: '' }] })} className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded-lg hover:bg-green-200 font-medium">+ Add Country</button>
-                      </div>
-                      <div className="space-y-3">
-                        {form.globalAgriData.map((g, idx) => (
-                          <div key={idx} className="bg-gray-50 p-4 rounded-xl border border-gray-200 relative">
-                            <button type="button" onClick={() => { const newG = form.globalAgriData.filter((_, i) => i !== idx); setForm({ ...form, globalAgriData: newG }); }} className="absolute top-3 right-3 text-red-400 hover:text-red-600 p-1 hover:bg-red-50 rounded"><X size={15} /></button>
-                            <div className="grid grid-cols-2 gap-3 pr-8">
-                              <div><label className="block text-xs font-medium text-gray-500 mb-1">Rank</label><input type="number" value={g.rank} onChange={e => { const newG = [...form.globalAgriData]; newG[idx].rank = parseInt(e.target.value) || 0; setForm({ ...form, globalAgriData: newG }); }} className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-green-500/50" /></div>
-                              <div><label className="block text-xs font-medium text-gray-500 mb-1">Production</label><input value={g.production} onChange={e => { const newG = [...form.globalAgriData]; newG[idx].production = e.target.value; setForm({ ...form, globalAgriData: newG }); }} className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-green-500/50" /></div>
-                              <div><label className="block text-xs font-medium text-gray-500 mb-1">Country Name (EN)</label><input value={g.countryName} onChange={e => { const newG = [...form.globalAgriData]; newG[idx].countryName = e.target.value; setForm({ ...form, globalAgriData: newG }); }} className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-green-500/50" /></div>
-                              <div><label className="block text-xs font-medium text-gray-500 mb-1">Country Name (SI)</label><input value={g.sinhalaCountryName} onChange={e => { const newG = [...form.globalAgriData]; newG[idx].sinhalaCountryName = e.target.value; setForm({ ...form, globalAgriData: newG }); }} className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-green-500/50" /></div>
-                              <div className="col-span-2"><label className="block text-xs font-medium text-gray-500 mb-1">Cultivation Area</label><input value={g.cultivationArea} onChange={e => { const newG = [...form.globalAgriData]; newG[idx].cultivationArea = e.target.value; setForm({ ...form, globalAgriData: newG }); }} className="w-full rounded-lg border border-gray-300 px-2.5 py-1.5 text-sm focus:ring-2 focus:ring-green-500/50" /></div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                      <Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>Global Production Data</Typography>
+                          <Button
+                            size="small"
+                            onClick={() => setForm({ ...form, globalAgriData: [...form.globalAgriData, { rank: form.globalAgriData.length + 1, countryName: '', sinhalaCountryName: '', production: '', cultivationArea: '' }] })}
+                            sx={{ textTransform: 'none', color: '#16a34a', bgcolor: 'rgba(22, 163, 74, 0.1)', '&:hover': { bgcolor: 'rgba(22, 163, 74, 0.2)' } }}
+                          >
+                            + Add Country
+                          </Button>
+                        </Box>
 
-              {/* Footer */}
-              <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 shrink-0 space-y-3">
-                {saveError && (<div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-lg"><span className="mt-0.5">⚠️</span><span>{saveError}</span></div>)}
-                <div className="flex gap-3">
-                  <button type="button" onClick={() => setIsModalOpen(false)} disabled={isSaving} className="px-6 py-2.5 border border-gray-200 rounded-xl text-gray-600 hover:bg-gray-100 bg-white font-medium transition-colors disabled:opacity-50 text-sm">Cancel</button>
-                  <button type="submit" disabled={isSaving} className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-xl font-semibold transition-colors flex items-center justify-center gap-2 text-sm">
-                    {isSaving ? (<><div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />{editingId ? 'Updating...' : 'Saving...'}</>) : (editingId ? 'Update Item' : 'Add Item')}
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          {form.globalAgriData.map((g, idx) => (
+                            <Paper key={idx} elevation={0} sx={{ p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2, position: 'relative' }}>
+                              <IconButton
+                                size="small"
+                                onClick={() => { const newG = form.globalAgriData.filter((_, i) => i !== idx); setForm({ ...form, globalAgriData: newG }); }}
+                                sx={{ position: 'absolute', top: 8, right: 8, color: 'error.main' }}
+                              >
+                                <CloseIcon fontSize="small" />
+                              </IconButton>
+                              <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, pr: 4 }}>
+                                <TextField label="Rank" type="number" size="small" value={g.rank} onChange={e => { const newG = [...form.globalAgriData]; newG[idx].rank = parseInt(e.target.value) || 0; setForm({ ...form, globalAgriData: newG }); }} />
+                                <TextField label="Production" size="small" value={g.production} onChange={e => { const newG = [...form.globalAgriData]; newG[idx].production = e.target.value; setForm({ ...form, globalAgriData: newG }); }} />
+                                <TextField label="Country Name (EN)" size="small" value={g.countryName} onChange={e => { const newG = [...form.globalAgriData]; newG[idx].countryName = e.target.value; setForm({ ...form, globalAgriData: newG }); }} />
+                                <TextField label="Country Name (SI)" size="small" value={g.sinhalaCountryName} onChange={e => { const newG = [...form.globalAgriData]; newG[idx].sinhalaCountryName = e.target.value; setForm({ ...form, globalAgriData: newG }); }} />
+                                <Box sx={{ gridColumn: 'span 2' }}>
+                                  <TextField label="Cultivation Area" size="small" value={g.cultivationArea} onChange={e => { const newG = [...form.globalAgriData]; newG[idx].cultivationArea = e.target.value; setForm({ ...form, globalAgriData: newG }); }} fullWidth />
+                                </Box>
+                              </Box>
+                            </Paper>
+                          ))}
+                        </Box>
+                      </Box>
+                    </Box>
+                  )}
+                </Box>
+              </Box>
+            </Box>
+          </DialogContent>
+
+          <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid', borderColor: 'divider', display: 'flex', flexDirection: 'column', gap: 1 }}>
+            {saveError && (
+              <Alert severity="error" sx={{ width: '100%', py: 0.5 }}>
+                {saveError}
+              </Alert>
+            )}
+            <Box sx={{ display: 'flex', gap: 2, width: '100%' }}>
+              <Button onClick={() => setIsModalOpen(false)} disabled={isSaving} variant="outlined" sx={{ textTransform: 'none', borderRadius: 2, px: 3, borderColor: 'grey.300', color: 'text.secondary' }}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSaving} variant="contained" sx={{ textTransform: 'none', borderRadius: 2, flex: 1, bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' }, fontWeight: 700 }}>
+                {isSaving ? <CircularProgress size={20} color="inherit" /> : (editingId ? 'Update Item' : 'Add Item')}
+              </Button>
+            </Box>
+          </DialogActions>
+        </form>
+      </Dialog>
+    </Box>
   );
 }
