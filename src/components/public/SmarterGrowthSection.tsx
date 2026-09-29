@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowUpRight, ChevronLeft, ChevronRight, ShieldCheck, Activity, Sprout } from 'lucide-react';
+import { ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function SmarterGrowthSection() {
@@ -14,35 +14,26 @@ export default function SmarterGrowthSection() {
     {
       id: 1,
       image: 'https://images.unsplash.com/photo-1592841200221-a6898f307baa?w=1000&auto=format&fit=crop&q=80',
-      tag: 'Crop Protection',
-      tagSi: 'බෝග ආරක්ෂණය',
       stat: 'Up to 45%',
       statSi: '45% දක්වා',
       label: 'Reduction in Crop Loss',
       labelSi: 'අස්වනු හානිය අවම කර ගැනීම',
-      icon: ShieldCheck,
     },
     {
       id: 2,
       image: 'https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=1000&auto=format&fit=crop&q=80',
-      tag: 'Field Monitoring',
-      tagSi: 'ක්ෂේත්‍ර නිරීක්ෂණය',
       stat: 'Up to 2x',
       statSi: '2 ගුණයක',
       label: 'Faster Crop Monitoring',
       labelSi: 'වේගවත් බෝග නිරීක්ෂණය',
-      icon: Activity,
     },
     {
       id: 3,
       image: 'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=1000&auto=format&fit=crop&q=80',
-      tag: 'Resource Efficiency',
-      tagSi: 'සම්පත් කාර්යක්ෂමතාව',
       stat: 'Up to 50%',
       statSi: '50% දක්වා',
       label: 'Improvement in Resource Efficiency',
       labelSi: 'සම්පත් භාවිතයේ ඉහළ කාර්යක්ෂමතාව',
-      icon: Sprout,
     },
   ];
 
@@ -70,14 +61,8 @@ export default function SmarterGrowthSection() {
         {/* ── Top Header Row ── */}
         <div className="reveal-fade-up flex flex-col lg:flex-row lg:items-end justify-between gap-6 sm:gap-8">
           
-          {/* Left Column: Pill Badge & Main Title */}
+          {/* Left Column: Main Title */}
           <div className="max-w-2xl">
-            {/* Pill Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#0b381e] text-[#4ade80] text-xs font-semibold mb-3 sm:mb-4 border border-[#166534]/50 shadow-xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#4ade80] animate-pulse"></span>
-              <span>{isSinhala ? 'අපගේ මූලික විශේෂාංග' : 'Our Core Features'}</span>
-            </div>
-
             {/* Main Heading */}
             <h2 className="text-2xl sm:text-4xl lg:text-[44px] xl:text-5xl font-black text-gray-900 tracking-tight leading-[1.18] sm:leading-[1.14]">
               {isSinhala
@@ -116,8 +101,6 @@ export default function SmarterGrowthSection() {
             const delayClass = idx === 0 ? 'delay-100' : idx === 1 ? 'delay-200' : 'delay-300';
             const statText = isSinhala ? card.statSi : card.stat;
             const labelText = isSinhala ? card.labelSi : card.label;
-            const tagText = isSinhala ? card.tagSi : card.tag;
-            const IconComp = card.icon;
 
             return (
               <div
@@ -137,12 +120,6 @@ export default function SmarterGrowthSection() {
 
                 {/* Glass Rim Border */}
                 <div className="absolute inset-0 rounded-[24px] sm:rounded-[32px] border border-white/15 group-hover:border-white/30 transition-colors pointer-events-none" />
-
-                {/* Top Badge: Category Tag */}
-                <div className="absolute top-4 left-4 sm:top-5 sm:left-5 inline-flex items-center gap-1.5 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white text-[11px] sm:text-xs font-semibold shadow-xs">
-                  <IconComp className="w-3.5 h-3.5 text-[#4ade80]" />
-                  <span>{tagText}</span>
-                </div>
 
                 {/* Bottom Content Area (With Frosted Glass Backdrop on Mobile) */}
                 <div className="absolute bottom-0 inset-x-0 p-4 sm:p-6 lg:p-8 flex flex-col justify-end text-white">
