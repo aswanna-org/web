@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 export default function HeroCarousel() {
@@ -86,8 +86,14 @@ export default function HeroCarousel() {
             {t(slides[currentSlide].descKey)}
           </p>
 
-          <button className="glass-btn px-6 py-2.5 sm:px-9 sm:py-4 uppercase tracking-wider text-xs sm:text-base">
-            {t('hero.discoverMore')}
+          <button 
+            onClick={() => window.location.href = '/agri-info-hub'}
+            className="inline-flex items-center gap-3.5 pl-6 sm:pl-8 pr-2.5 sm:pr-3 py-2 sm:py-2.5 rounded-full bg-[#c6f24d] hover:bg-[#b7eb3b] text-gray-950 font-bold text-xs sm:text-base shadow-[0_10px_25px_rgba(198,242,77,0.35)] hover:shadow-[0_14px_35px_rgba(198,242,77,0.5)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
+          >
+            <span>{t('hero.discoverMore')}</span>
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white flex items-center justify-center text-gray-900 group-hover:rotate-45 transition-transform duration-300 shadow-2xs shrink-0">
+              <ArrowUpRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
+            </div>
           </button>
         </div>
       </div>

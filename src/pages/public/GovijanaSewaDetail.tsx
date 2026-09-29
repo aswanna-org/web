@@ -13,7 +13,9 @@ import {
   X,
   PhoneCall,
   ChevronRight,
-  Home
+  Home,
+  ArrowUpRight,
+  ArrowLeft
 } from 'lucide-react';
 import ManIcon from '@mui/icons-material/Man';
 import WomanIcon from '@mui/icons-material/Woman';
@@ -264,9 +266,12 @@ export default function GovijanaSewaDetail() {
 
             <Link
               to="/govijana-sewa"
-              className="glass-btn-green px-4 py-1.5 text-xs font-bold"
+              className="inline-flex items-center gap-2 pl-3.5 pr-1.5 py-1 rounded-full bg-[#c6f24d] hover:bg-[#b7eb3b] text-gray-950 font-bold text-xs shadow-xs hover:shadow-md transition-all duration-300 group"
             >
               <span>{isSinhala ? 'නැවත නාමාවලියට' : 'Back to Directory'}</span>
+              <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-gray-900 shadow-2xs shrink-0 group-hover:-translate-x-0.5 transition-transform">
+                <ArrowLeft className="w-3 h-3 stroke-[2.5]" />
+              </div>
             </Link>
           </div>
         </div>

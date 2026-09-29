@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Users, Leaf } from 'lucide-react';
+import { Users, Leaf, ArrowUpRight } from 'lucide-react';
 
 export default function AboutSection() {
   const { t } = useTranslation();
@@ -83,12 +83,15 @@ export default function AboutSection() {
               </div>
             </div>
 
-            <div>
+            <div className="mt-4 sm:mt-8">
               <Link 
-                to="/about"
-                className="glass-btn-light mt-2 sm:mt-8 px-6 py-2.5 sm:px-9 sm:py-4 uppercase tracking-wider text-xs sm:text-base inline-flex"
+                to="/agri-info-hub"
+                className="inline-flex items-center gap-3.5 pl-6 sm:pl-7 pr-2.5 sm:pr-3 py-2 sm:py-2.5 rounded-full bg-[#c6f24d] hover:bg-[#b7eb3b] text-gray-950 font-bold text-xs sm:text-base shadow-[0_8px_25px_rgba(198,242,77,0.35)] hover:shadow-[0_12px_32px_rgba(198,242,77,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
               >
-                {t('about.button', 'Discover More')}
+                <span>{t('about.button', 'Discover More')}</span>
+                <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white flex items-center justify-center text-gray-900 group-hover:rotate-45 transition-transform duration-300 shadow-2xs shrink-0">
+                  <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
+                </div>
               </Link>
             </div>
             

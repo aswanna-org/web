@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { ArrowUpRight } from 'lucide-react';
 
 export interface CardMetaItem {
   icon?: React.ElementType;
@@ -126,9 +127,16 @@ export default function Card({
                     primaryAction.onClick(e);
                   }
                 }}
-                className="glass-btn-green flex-1 py-3 px-6 text-sm font-bold tracking-wide"
+                className="inline-flex items-center justify-between gap-2.5 pl-4 sm:pl-5 pr-1.5 sm:pr-2 py-1.5 sm:py-2 rounded-full bg-[#c6f24d] hover:bg-[#b7eb3b] text-gray-950 font-bold text-xs sm:text-sm shadow-[0_6px_20px_rgba(198,242,77,0.35)] hover:shadow-[0_10px_28px_rgba(198,242,77,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer flex-1 min-w-0"
               >
-                {primaryAction.text}
+                <span className="truncate">{primaryAction.text}</span>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center text-gray-900 group-hover:rotate-45 transition-transform duration-300 shadow-2xs shrink-0">
+                  {primaryAction.icon ? (
+                    <primaryAction.icon className="w-3.5 h-3.5" />
+                  ) : (
+                    <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                  )}
+                </div>
               </button>
             )}
             

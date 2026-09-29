@@ -363,54 +363,68 @@ body {
     inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.5);
 }
 
-/* Green Liquid Glass Button (Vibrant & High Contrast) */
-.glass-btn-green {
+/* ── Signature Lime Pill Button System (Matching User Brand Design) ── */
+.glass-btn-green,
+.lime-btn {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.75rem;
   border-radius: 9999px;
-  background: linear-gradient(180deg, #15803d 0%, #0f5132 100%);
-  border: 1.2px solid rgba(255, 255, 255, 0.35);
+  background-color: #c6f24d;
+  background: linear-gradient(180deg, #d2f65a 0%, #c2f146 100%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
   box-shadow: 
-    0 6px 18px -2px rgba(15, 81, 50, 0.38),
-    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.45),
-    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.2);
-  color: #ffffff !important;
+    0 8px 24px -2px rgba(198, 242, 77, 0.45),
+    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.75);
+  color: #030712 !important;
   font-weight: 700;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  text-shadow: none;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   user-select: none;
-  overflow: hidden;
 }
 
-.glass-btn-green::before {
-  content: '';
-  position: absolute;
-  top: 1px;
-  left: 3px;
-  right: 3px;
-  height: 44%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.0) 100%);
-  border-radius: 9999px 9999px 12px 12px;
-  pointer-events: none;
-}
-
-.glass-btn-green:hover {
-  background: linear-gradient(180deg, #16a34a 0%, #116840 100%);
-  border-color: rgba(255, 255, 255, 0.7);
+.glass-btn-green:hover,
+.lime-btn:hover {
+  background-color: #b7eb3b;
+  background: linear-gradient(180deg, #c4f346 0%, #b3ea35 100%);
+  border-color: rgba(255, 255, 255, 0.9);
   box-shadow: 
-    0 10px 25px -2px rgba(15, 81, 50, 0.5),
-    inset 0 2px 2.5px 0 rgba(255, 255, 255, 0.7),
-    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.2);
+    0 12px 30px -2px rgba(198, 242, 77, 0.6),
+    inset 0 2px 2.5px 0 rgba(255, 255, 255, 0.9);
   transform: translateY(-2px);
-  color: #ffffff !important;
+  color: #030712 !important;
 }
 
-.glass-btn-green:active {
+.glass-btn-green:active,
+.lime-btn:active {
   transform: translateY(0);
-  box-shadow: 0 3px 10px 0 rgba(15, 81, 50, 0.35);
+  box-shadow: 0 4px 14px 0 rgba(198, 242, 77, 0.35);
+}
+
+/* White Circle Icon Wrapper inside Lime Button */
+.glass-btn-green .btn-circle-icon,
+.lime-btn .btn-circle-icon,
+.btn-circle-icon {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9999px;
+  background-color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #030712;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.12);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+
+.glass-btn-green:hover .btn-circle-icon,
+.lime-btn:hover .btn-circle-icon,
+.group:hover .btn-circle-icon {
+  transform: rotate(45deg);
 }
 
 /* Light Background Liquid Glass Button (for white backgrounds like About & Products) */

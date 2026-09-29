@@ -393,10 +393,12 @@ export default function InstitutionDetail() {
               <div className="flex items-center lg:self-center shrink-0">
                 <a
                   href={`tel:${(hotline || phone).split('/')[0].trim()}`}
-                  className="glass-btn-green px-7 py-3.5 text-sm sm:text-base gap-2.5 shadow-[0_10px_30px_-4px_rgba(22,101,52,0.45)] hover:scale-[1.02] active:scale-[0.98]"
+                  className="inline-flex items-center gap-3.5 pl-6 sm:pl-7 pr-2.5 sm:pr-3 py-2 sm:py-2.5 rounded-full bg-[#c6f24d] hover:bg-[#b7eb3b] text-gray-950 font-bold text-sm sm:text-base shadow-[0_10px_25px_rgba(198,242,77,0.35)] hover:shadow-[0_14px_35px_rgba(198,242,77,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
                 >
-                  <PhoneCall className="w-5 h-5 animate-pulse" />
                   <span>{isSinhala ? 'දැන්ම අමතන්න' : 'Call Now'}</span>
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white flex items-center justify-center text-gray-950 group-hover:rotate-12 transition-transform duration-300 shadow-2xs shrink-0">
+                    <PhoneCall className="w-4 h-4 stroke-[2.5]" />
+                  </div>
                 </a>
               </div>
             )}

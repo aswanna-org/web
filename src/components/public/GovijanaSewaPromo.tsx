@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { ArrowUpRight } from 'lucide-react';
 
 export default function GovijanaSewaPromo() {
   const { t } = useTranslation();
@@ -37,12 +38,15 @@ export default function GovijanaSewaPromo() {
                   {t('agriHubPromo.desc', 'කෘෂිකර්මාන්තය සම්බන්ධ සියලු තොරතුරු ඔබට එක්තැනින් පහසුවෙන් ලබා ගැනීම.')}
                 </p>
 
-                <div>
+                <div className="pt-2">
                   <Link
                     to="/agri-info-hub"
-                    className="glass-btn-green px-5 py-2 sm:px-10 sm:py-4 text-xs sm:text-base inline-flex tracking-wide"
+                    className="inline-flex items-center gap-3.5 pl-6 sm:pl-8 pr-2.5 sm:pr-3 py-2 sm:py-2.5 rounded-full bg-[#c6f24d] hover:bg-[#b7eb3b] text-gray-950 font-bold text-xs sm:text-base shadow-[0_8px_25px_rgba(198,242,77,0.35)] hover:shadow-[0_12px_32px_rgba(198,242,77,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
                   >
-                    {t('agriHubPromo.button', 'පිවිසෙන්න')}
+                    <span>{t('agriHubPromo.button', 'පිවිසෙන්න')}</span>
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white flex items-center justify-center text-gray-900 group-hover:rotate-45 transition-transform duration-300 shadow-2xs shrink-0">
+                      <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
+                    </div>
                   </Link>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { ArrowUpRight } from 'lucide-react';
 
 export default function PromoBanner() {
   const { t } = useTranslation();
@@ -46,10 +47,13 @@ export default function PromoBanner() {
                 {t('promo.title')}
               </h2>
               <button 
-                onClick={() => navigate('/about')}
-                className="glass-btn px-6 py-2.5 sm:px-8 sm:py-3 tracking-wider text-xs sm:text-sm font-semibold cursor-pointer"
+                onClick={() => navigate('/agri-info-hub')}
+                className="inline-flex items-center gap-3.5 pl-5 sm:pl-7 pr-2 sm:pr-2.5 py-1.5 sm:py-2 rounded-full bg-[#c6f24d] hover:bg-[#b7eb3b] text-gray-950 font-bold text-xs sm:text-sm shadow-[0_8px_25px_rgba(198,242,77,0.35)] hover:shadow-[0_12px_32px_rgba(198,242,77,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
               >
-                {t('promo.button')}
+                <span>{t('promo.button')}</span>
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center text-gray-900 group-hover:rotate-45 transition-transform duration-300 shadow-2xs shrink-0">
+                  <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                </div>
               </button>
             </div>
             
