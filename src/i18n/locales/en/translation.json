@@ -82,6 +82,14 @@
     "blog3": "Understanding the Benefits of Greenhouse Agriculture",
     "blog4": "Top 5 Technologies Changing the Agricultural Landscape"
   },
+  "courses": {
+    "subtitle": "Agricultural Education & Training",
+    "title": "Latest Courses",
+    "viewAll": "View All Courses",
+    "viewDetails": "View Details",
+    "free": "Free",
+    "course": "Course"
+  },
   "contact": {
     "title": "Contact Us",
     "desc": "The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English.",
