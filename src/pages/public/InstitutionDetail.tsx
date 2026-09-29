@@ -23,7 +23,9 @@ import {
   Download,
   Landmark,
   Building2,
-  Globe2
+  Globe2,
+  ChevronRight,
+  Home
 } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import {
@@ -235,30 +237,53 @@ export default function InstitutionDetail() {
         waveColor="text-white"
       />
 
-      {/* ── Breadcrumb Bar ── */}
-      <div className="bg-white border-b border-gray-100 shadow-xs">
-        <div className="container mx-auto px-4 lg:px-12 py-3 flex items-center justify-between text-xs sm:text-sm text-gray-500 font-medium">
-          <div className="flex items-center gap-2">
-            <Link to="/" className="hover:text-[#006837] transition-colors">
-              {isSinhala ? 'මුල් පිටුව' : 'Home'}
+      {/* ── Breadcrumb Bar (Fully Mobile Responsive) ── */}
+      <div className="bg-white border-b border-gray-100 shadow-xs relative z-10">
+        <div className="container mx-auto px-4 lg:px-12 py-2.5 sm:py-3 flex items-center justify-between gap-3 text-xs sm:text-sm text-gray-500 font-medium">
+          <nav
+            aria-label="Breadcrumb"
+            className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto hide-scrollbar whitespace-nowrap py-0.5 pr-14 sm:pr-0 min-w-0"
+          >
+            <Link
+              to="/"
+              className="inline-flex items-center gap-1 text-gray-500 hover:text-[#006837] transition-colors shrink-0 group"
+              title={isSinhala ? 'මුල් පිටුව' : 'Home'}
+            >
+              <Home className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#006837] transition-colors shrink-0" />
+              <span>{isSinhala ? 'මුල් පිටුව' : 'Home'}</span>
             </Link>
-            <span>/</span>
-            <Link to="/agri-info-hub" className="hover:text-[#006837] transition-colors">
+
+            <ChevronRight className="w-3 h-3 text-gray-300 shrink-0" />
+
+            <Link
+              to="/agri-info-hub"
+              className="hover:text-[#006837] transition-colors shrink-0"
+            >
               {isSinhala ? 'කෘෂි තොරතුරු කේන්ද්‍රය' : 'Agri Info Hub'}
             </Link>
-            <span>/</span>
-            <Link to={directoryUrl} className="hover:text-[#006837] transition-colors">
+
+            <ChevronRight className="w-3 h-3 text-gray-300 shrink-0" />
+
+            <Link
+              to={directoryUrl}
+              className="hover:text-[#006837] transition-colors shrink-0"
+            >
               {directoryLabel}
             </Link>
-            <span>/</span>
-            <span className="text-[#0f4d30] font-bold truncate max-w-[200px] sm:max-w-none">
+
+            <ChevronRight className="w-3 h-3 text-gray-300 shrink-0" />
+
+            <span
+              className="text-[#0f4d30] font-bold truncate max-w-[150px] sm:max-w-[280px] md:max-w-[380px] lg:max-w-none shrink-0"
+              title={institution.shortName || title}
+            >
               {institution.shortName || title}
             </span>
-          </div>
+          </nav>
 
           <Link
             to={directoryUrl}
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold px-4 py-1.5 glass-btn-light shadow-2xs hover:shadow-xs transition-all"
+            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold px-4 py-1.5 glass-btn-light shadow-2xs hover:shadow-xs transition-all shrink-0"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>{isSinhala ? 'ආයතන නාමාවලියට' : 'Back to Directory'}</span>

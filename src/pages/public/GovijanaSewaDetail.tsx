@@ -12,7 +12,8 @@ import {
   Search,
   X,
   PhoneCall,
-  ChevronRight
+  ChevronRight,
+  Home
 } from 'lucide-react';
 import ManIcon from '@mui/icons-material/Man';
 import WomanIcon from '@mui/icons-material/Woman';
@@ -229,21 +230,22 @@ export default function GovijanaSewaDetail() {
 
       {/* ── Breadcrumb & Quick Actions Bar ── */}
       <div className="bg-white border-b border-gray-200/80 sticky top-0 z-20 shadow-2xs">
-        <div className="container mx-auto px-4 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-3">
+        <div className="container mx-auto px-4 lg:px-8 py-2.5 sm:py-3.5 flex items-center justify-between gap-3">
           {/* Breadcrumb Links */}
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 font-medium truncate">
-            <Link to="/" className="hover:text-emerald-800 transition-colors">
-              {isSinhala ? 'මුල් පිටුව' : 'Home'}
+          <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-500 font-medium overflow-x-auto hide-scrollbar whitespace-nowrap py-0.5 min-w-0">
+            <Link to="/" className="inline-flex items-center gap-1 hover:text-emerald-800 transition-colors shrink-0 group">
+              <Home className="w-3.5 h-3.5 text-gray-400 group-hover:text-emerald-800 transition-colors shrink-0" />
+              <span>{isSinhala ? 'මුල් පිටුව' : 'Home'}</span>
             </Link>
-            <span>/</span>
-            <Link to="/govijana-sewa" className="hover:text-emerald-800 transition-colors">
+            <ChevronRight className="w-3 h-3 text-gray-300 shrink-0" />
+            <Link to="/govijana-sewa" className="hover:text-emerald-800 transition-colors shrink-0">
               {isSinhala ? 'ගොවිජන සේවා' : 'Agrarian Services'}
             </Link>
-            <span>/</span>
-            <span className="text-emerald-900 font-bold truncate max-w-[200px] sm:max-w-none">
+            <ChevronRight className="w-3 h-3 text-gray-300 shrink-0" />
+            <span className="text-emerald-900 font-bold truncate max-w-[160px] sm:max-w-[280px] lg:max-w-none shrink-0">
               {centerName}
             </span>
-          </div>
+          </nav>
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2">
