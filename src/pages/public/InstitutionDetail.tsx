@@ -205,10 +205,10 @@ export default function InstitutionDetail() {
 
   const sectorBadgeText =
     institution.type === 'pvt'
-      ? isSinhala ? 'පුද්ගලික අංශය (PRIVATE)' : 'PRIVATE SECTOR'
+      ? isSinhala ? 'පුද්ගලික අංශය' : 'Private Sector'
       : institution.type === 'intl'
-      ? isSinhala ? 'ජාත්‍යන්තර අංශය (INTERNATIONAL)' : 'INTERNATIONAL BODY'
-      : isSinhala ? 'රාජ්‍ය අංශය (GOVERNMENT)' : 'GOVERNMENT SECTOR';
+      ? isSinhala ? 'ජාත්‍යන්තර අංශය' : 'International Body'
+      : isSinhala ? 'රාජ්‍ය අංශය' : 'Government Sector';
 
   const directoryUrl = institution?.type === 'pvt'
     ? '/agri-info-hub/private-institutions'
@@ -313,15 +313,10 @@ export default function InstitutionDetail() {
                   )}
                 </div>
 
-                {/* Main Titles */}
+                {/* Main Title (Displays only active language) */}
                 <h1 className="text-xl sm:text-3xl lg:text-4xl font-black text-gray-900 tracking-tight leading-tight">
                   {title}
                 </h1>
-                {subtitle && (
-                  <p className="text-sm sm:text-base font-semibold text-gray-500">
-                    {subtitle}
-                  </p>
-                )}
 
                 {/* Sector Specific Metadata Row */}
                 <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-gray-600">
@@ -355,7 +350,7 @@ export default function InstitutionDetail() {
                   )}
                   {(institution.globalHQ || institution.globalHQSi || institution.globalHQEn) && (
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-100 rounded-lg font-medium text-gray-700">
-                      <span>HQ: {isSinhala ? (institution.globalHQSi || institution.globalHQ || institution.globalHQEn) : (institution.globalHQEn || institution.globalHQ || institution.globalHQSi)}</span>
+                      <span>{isSinhala ? `ප්‍රධාන කාර්යාලය: ${institution.globalHQSi || institution.globalHQ || institution.globalHQEn}` : `HQ: ${institution.globalHQEn || institution.globalHQ || institution.globalHQSi}`}</span>
                     </span>
                   )}
                   {(institution.operatingCountries || institution.operatingCountriesSi || institution.operatingCountriesEn) && (
@@ -387,7 +382,7 @@ export default function InstitutionDetail() {
             <div className="mt-8 pt-6 border-t border-gray-100">
               <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
                 <Share2 className="w-3.5 h-3.5 text-[#006837]" />
-                <span>{isSinhala ? 'ඩිජිටල් හා සමාජ මාධ්‍ය පිටු (SOCIAL MEDIA & WEB LINKS)' : 'DIGITAL & SOCIAL MEDIA LINKS'}</span>
+                <span>{isSinhala ? 'ඩිජිටල් හා සමාජ මාධ්‍ය පිටු' : 'Digital & Social Media Links'}</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
@@ -760,7 +755,7 @@ export default function InstitutionDetail() {
                     </div>
                     <div>
                       <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                        {isSinhala ? 'කෙටි අංකය (HOTLINE)' : 'Hotline Number'}
+                        {isSinhala ? 'කෙටි අංකය' : 'Hotline Number'}
                       </p>
                       <p className="text-base font-black text-gray-900">
                         {hotline}
@@ -783,7 +778,7 @@ export default function InstitutionDetail() {
                     </div>
                     <div className="min-w-0">
                       <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                        {isSinhala ? 'විද්‍යුත් ලිපිනය (EMAIL)' : 'Official Email'}
+                        {isSinhala ? 'විද්‍යුත් ලිපිනය' : 'Official Email'}
                       </p>
                       <a href={`mailto:${email}`} className="text-xs sm:text-sm font-bold text-gray-900 hover:text-blue-600 truncate block">
                         {email}
