@@ -176,6 +176,9 @@ export interface AgriInstitution {
   slMissionAddress?: string | null;
   workingHoursSi?: string | null;
   workingHoursEn?: string | null;
+  officeTime?: string | null;
+  officeTimeStart?: string | null;
+  officeTimeEnd?: string | null;
   descriptionSi?: string | null;
   descriptionEn?: string | null;
   fullDescriptionSi?: string | null;

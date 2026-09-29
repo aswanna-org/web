@@ -204,6 +204,7 @@ export default function InstitutionDetail() {
   const workingHours = isSinhala
     ? (institution.workingHoursSi || institution.workingHoursEn || '')
     : (institution.workingHoursEn || institution.workingHoursSi || '');
+  const officeTime = institution.officeTime || workingHours || '';
 
   const sectorBadgeText =
     institution.type === 'pvt'
@@ -334,6 +335,13 @@ export default function InstitutionDetail() {
                     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold bg-[#e0f2fe] text-[#0369a1]">
                       <Building className="w-3 h-3" />
                       <span>{isSinhala ? `${regionalCentersList.length} ප්‍රාදේශීය මධ්‍යස්ථාන` : `${regionalCentersList.length} Regional Centers`}</span>
+                    </span>
+                  )}
+
+                  {officeTime && (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200/60 shadow-2xs">
+                      <Clock className="w-3 h-3 text-emerald-600" />
+                      <span>{isSinhala ? `රාජකාරි වේලාවන්: ${officeTime}` : `Office Hours: ${officeTime}`}</span>
                     </span>
                   )}
                 </div>
@@ -840,15 +848,24 @@ export default function InstitutionDetail() {
                 </div>
               )}
 
-              {/* Working Hours */}
-              {workingHours && (
-                <div className="flex items-center gap-2 text-xs text-gray-500 pt-2 border-t border-gray-100">
-                  <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                  <span>{isSinhala ? `රාජකාරි වේලාවන්: ${workingHours}` : `Working Hours: ${workingHours}`}</span>
+              {/* Working / Office Hours */}
+              {officeTime && (
+                <div className="flex items-start gap-2.5 text-xs text-gray-600 pt-3 border-t border-gray-100">
+                  <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-100/80 shadow-2xs">
+                    <Clock className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <span className="text-[10.5px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">
+                      {isSinhala ? 'රාජකාරි වේලාවන්' : 'Office Working Hours'}
+                    </span>
+                    <span className="font-semibold text-gray-800 text-xs sm:text-sm">
+                      {officeTime}
+                    </span>
+                  </div>
                 </div>
               )}
 
-              {!phone && !hotline && !email && !address && !workingHours && (
+              {!phone && !hotline && !email && !address && !officeTime && (
                 <p className="text-xs text-gray-400 italic">
                   {isSinhala ? 'සම්බන්ධ කරගැනීමේ තොරතුරු ඇතුළත් කර නොමැත.' : 'No contact information available.'}
                 </p>

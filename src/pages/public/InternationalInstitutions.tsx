@@ -10,7 +10,8 @@ import {
   Globe2,
   X,
   Info,
-  Globe
+  Globe,
+  Clock
 } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import Pagination from '../../components/admin/Pagination';
@@ -434,6 +435,16 @@ export default function InternationalInstitutions() {
                     <a href={`mailto:${selectedDetail.email}`} className="text-gray-700 hover:text-[#006837] hover:underline">
                       {selectedDetail.email}
                     </a>
+                  </div>
+                )}
+
+                {(selectedDetail.officeTime || selectedDetail.workingHoursSi || selectedDetail.workingHoursEn) && (
+                  <div className="flex items-center gap-2.5">
+                    <Clock className="w-4 h-4 text-[#006837] shrink-0" />
+                    <span className="font-semibold text-gray-800">
+                      {isSinhala ? 'රාජකාරි වේලාවන්: ' : 'Office Hours: '}
+                      {selectedDetail.officeTime || (isSinhala ? selectedDetail.workingHoursSi || selectedDetail.workingHoursEn : selectedDetail.workingHoursEn || selectedDetail.workingHoursSi)}
+                    </span>
                   </div>
                 )}
               </div>

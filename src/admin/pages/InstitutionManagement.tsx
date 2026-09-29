@@ -70,6 +70,9 @@ interface BaseInstitution {
   phone?: string | null;
   shortCode?: string | null;
   email?: string | null;
+  officeTime?: string | null;
+  officeTimeStart?: string | null;
+  officeTimeEnd?: string | null;
   descriptionSi?: string | null;
   descriptionEn?: string | null;
   fullDescriptionSi?: string | null;
@@ -179,6 +182,9 @@ const defaultFormData = {
   phone: '',
   shortCode: '',
   email: '',
+  officeTime: '',
+  officeTimeStart: '',
+  officeTimeEnd: '',
   descriptionSi: '',
   descriptionEn: '',
   fullDescriptionSi: '',
@@ -251,6 +257,29 @@ export const generateSlug = (text: string): string => {
     .replace(/[^\w\s-]/g, '')
     .replace(/[\s_-]+/g, '-')
     .replace(/^-+|-+$/g, '');
+};
+
+export const formatTimeTo12Hour = (timeStr?: string | null): string => {
+  if (!timeStr) return '';
+  const parts = timeStr.trim().split(':');
+  if (parts.length < 2) return timeStr;
+  let hours = parseInt(parts[0], 10);
+  const minutes = parts[1].slice(0, 2);
+  if (isNaN(hours)) return timeStr;
+  const period = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  const formattedHours = hours < 10 ? `0${hours}` : `${hours}`;
+  return `${formattedHours}:${minutes} ${period}`;
+};
+
+export const formatTimeRange = (start?: string | null, end?: string | null): string => {
+  if (!start && !end) return '';
+  if (start && end) {
+    return `${formatTimeTo12Hour(start)} - ${formatTimeTo12Hour(end)}`;
+  }
+  if (start) return `${formatTimeTo12Hour(start)}`;
+  return `${formatTimeTo12Hour(end)}`;
 };
 
 const DRAFT_STORAGE_PREFIX = 'aswanna_inst_draft_';
@@ -368,6 +397,7 @@ export default function InstitutionManagement() {
         form.nameEn.trim() ||
         form.phone.trim() ||
         form.email.trim() ||
+        form.officeTime.trim() ||
         form.descriptionSi.trim() ||
         form.descriptionEn.trim() ||
         form.addressSi.trim() ||
@@ -526,6 +556,9 @@ export default function InstitutionManagement() {
       phone: inst.phone || '',
       shortCode: inst.shortCode || '',
       email: inst.email || '',
+      officeTime: inst.officeTime || '',
+      officeTimeStart: inst.officeTimeStart || '',
+      officeTimeEnd: inst.officeTimeEnd || '',
       descriptionSi: inst.descriptionSi || '',
       descriptionEn: inst.descriptionEn || '',
       fullDescriptionSi: inst.fullDescriptionSi || inst.descriptionSi || '',
@@ -624,6 +657,9 @@ export default function InstitutionManagement() {
       formData.append('phone', form.phone || '');
       formData.append('shortCode', form.shortCode || '');
       formData.append('email', form.email || '');
+      formData.append('officeTime', form.officeTime || '');
+      formData.append('officeTimeStart', form.officeTimeStart || '');
+      formData.append('officeTimeEnd', form.officeTimeEnd || '');
       formData.append('descriptionSi', form.descriptionSi || '');
       formData.append('descriptionEn', form.descriptionEn || '');
       formData.append('fullDescriptionSi', form.fullDescriptionSi || form.descriptionSi || '');
@@ -1021,6 +1057,12 @@ export default function InstitutionManagement() {
                       <td className="py-3.5 px-5 text-gray-600">
                         <p className="font-medium text-gray-900">{inst.phone || '-'}</p>
                         <p className="text-[11px] text-gray-400 truncate max-w-[180px]">{inst.email || '-'}</p>
+                        {inst.officeTime && (
+                          <div className="flex items-center gap-1 text-[10.5px] text-emerald-700 font-medium mt-0.5" title={inst.officeTime}>
+                            <Clock className="w-3 h-3 text-emerald-600 shrink-0" />
+                            <span className="truncate max-w-[170px]">{inst.officeTime}</span>
+                          </div>
+                        )}
                       </td>
 
                       <td className="py-3.5 px-5">
@@ -1760,6 +1802,119 @@ export default function InstitutionManagement() {
                               placeholder="info@institution.gov.lk"
                               className="w-full pl-8 pr-3 p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
                             />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Office Time / Working Hours */}
+                      <div className="p-4 bg-zinc-50/70 rounded-xl border border-zinc-200/80 space-y-3">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <label className="flex items-center gap-1.5 text-xs font-semibold text-zinc-800">
+                            <Clock className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>රාජකාරි වේලාවන් / Office Time (Working Hours)</span>
+                          </label>
+                          <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-500">
+                            <span className="text-[10px] text-zinc-400">පෙරනිමි:</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setForm({
+                                  ...form,
+                                  officeTimeStart: '08:30',
+                                  officeTimeEnd: '16:15',
+                                  officeTime: '08:30 AM - 04:15 PM'
+                                });
+                              }}
+                              className="px-2 py-0.5 bg-white border border-zinc-200 rounded text-[10px] hover:border-emerald-500 hover:text-emerald-700 transition-colors cursor-pointer"
+                            >
+                              08:30 AM - 04:15 PM
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setForm({
+                                  ...form,
+                                  officeTimeStart: '08:30',
+                                  officeTimeEnd: '16:30',
+                                  officeTime: '08:30 AM - 04:30 PM'
+                                });
+                              }}
+                              className="px-2 py-0.5 bg-white border border-zinc-200 rounded text-[10px] hover:border-emerald-500 hover:text-emerald-700 transition-colors cursor-pointer"
+                            >
+                              08:30 AM - 04:30 PM
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setForm({
+                                  ...form,
+                                  officeTimeStart: '09:00',
+                                  officeTimeEnd: '17:00',
+                                  officeTime: '09:00 AM - 05:00 PM'
+                                });
+                              }}
+                              className="px-2 py-0.5 bg-white border border-zinc-200 rounded text-[10px] hover:border-emerald-500 hover:text-emerald-700 transition-colors cursor-pointer"
+                            >
+                              09:00 AM - 05:00 PM
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <div>
+                            <label className="block text-[11px] font-medium text-zinc-600 mb-1">
+                              ආරම්භක වේලාව (Start Time)
+                            </label>
+                            <input
+                              type="time"
+                              value={form.officeTimeStart || ''}
+                              onChange={(e) => {
+                                const start = e.target.value;
+                                const combined = formatTimeRange(start, form.officeTimeEnd);
+                                setForm({
+                                  ...form,
+                                  officeTimeStart: start,
+                                  officeTime: combined || form.officeTime
+                                });
+                              }}
+                              className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 cursor-pointer"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-medium text-zinc-600 mb-1">
+                              අවසාන වේලාව (End Time)
+                            </label>
+                            <input
+                              type="time"
+                              value={form.officeTimeEnd || ''}
+                              onChange={(e) => {
+                                const end = e.target.value;
+                                const combined = formatTimeRange(form.officeTimeStart, end);
+                                setForm({
+                                  ...form,
+                                  officeTimeEnd: end,
+                                  officeTime: combined || form.officeTime
+                                });
+                              }}
+                              className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 cursor-pointer"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[11px] font-medium text-zinc-600 mb-1">
+                              පෙන්වන ආකෘතිය (Display Office Time)
+                            </label>
+                            <div className="relative">
+                              <Clock className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                              <input
+                                type="text"
+                                value={form.officeTime || ''}
+                                onChange={(e) => setForm({ ...form, officeTime: e.target.value })}
+                                placeholder="08:30 AM - 04:30 PM"
+                                className="w-full pl-8 pr-3 p-2 bg-white border border-zinc-200 rounded-lg text-xs font-medium focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
