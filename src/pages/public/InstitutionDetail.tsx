@@ -258,7 +258,7 @@ export default function InstitutionDetail() {
 
           <Link
             to={directoryUrl}
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-[#006837] px-3.5 py-1.5 rounded-full bg-emerald-50/60 hover:bg-emerald-100/70 border border-emerald-600/20 hover:border-emerald-600/40 backdrop-blur-md shadow-2xs hover:shadow-xs transition-all duration-200"
+            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold px-4 py-1.5 glass-btn-light shadow-2xs hover:shadow-xs transition-all"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>{isSinhala ? 'ආයතන නාමාවලියට' : 'Back to Directory'}</span>
@@ -363,12 +363,12 @@ export default function InstitutionDetail() {
               </div>
             </div>
 
-            {/* Right: Call Now Action Button (Glassy styling) */}
+            {/* Right: Call Now Action Button (Liquid Glassmorphism styling) */}
             {(hotline || phone) && (
               <div className="flex items-center lg:self-center shrink-0">
                 <a
                   href={`tel:${(hotline || phone).split('/')[0].trim()}`}
-                  className="inline-flex items-center gap-2.5 bg-[#006837]/90 hover:bg-[#006837] text-white px-7 py-3.5 rounded-full font-bold text-sm sm:text-base border border-white/30 backdrop-blur-md shadow-[0_8px_25px_rgba(0,104,55,0.25)] hover:shadow-[0_12px_32px_rgba(0,104,55,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+                  className="glass-btn-green px-7 py-3.5 text-sm sm:text-base gap-2.5 shadow-[0_10px_30px_-4px_rgba(22,101,52,0.45)] hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <PhoneCall className="w-5 h-5 animate-pulse" />
                   <span>{isSinhala ? 'දැන්ම අමතන්න' : 'Call Now'}</span>
@@ -392,7 +392,7 @@ export default function InstitutionDetail() {
                     href={institution.website}
                     target="_blank"
                     rel="noreferrer"
-                    className="group flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl border border-white/80 hover:border-blue-300 bg-white/70 hover:bg-white/95 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                    className="glass-btn-light !justify-start !rounded-2xl p-3 sm:p-3.5 border-white/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(22,101,52,0.15)] hover:-translate-y-0.5"
                   >
                     <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 border border-blue-500/20 backdrop-blur-xs flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                       <Globe className="w-5 h-5" />
@@ -410,7 +410,7 @@ export default function InstitutionDetail() {
                     href={institution.facebookUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="group flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl border border-white/80 hover:border-blue-400 bg-white/70 hover:bg-white/95 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                    className="glass-btn-light !justify-start !rounded-2xl p-3 sm:p-3.5 border-white/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(24,119,242,0.15)] hover:-translate-y-0.5"
                   >
                     <div className="w-10 h-10 rounded-xl bg-[#1877F2]/10 text-[#1877F2] border border-[#1877F2]/20 backdrop-blur-xs flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -430,7 +430,7 @@ export default function InstitutionDetail() {
                     href={institution.youtubeUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="group flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl border border-white/80 hover:border-red-300 bg-white/70 hover:bg-white/95 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                    className="glass-btn-light !justify-start !rounded-2xl p-3 sm:p-3.5 border-white/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(239,68,68,0.15)] hover:-translate-y-0.5"
                   >
                     <div className="w-10 h-10 rounded-xl bg-red-500/10 text-red-600 border border-red-500/20 backdrop-blur-xs flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                       <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
@@ -450,7 +450,7 @@ export default function InstitutionDetail() {
                     href={institution.tiktokUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="group flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl border border-white/80 hover:border-gray-300 bg-white/70 hover:bg-white/95 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                    className="glass-btn-light !justify-start !rounded-2xl p-3 sm:p-3.5 border-white/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.12)] hover:-translate-y-0.5"
                   >
                     <div className="w-10 h-10 rounded-xl bg-black/10 text-gray-900 border border-black/10 backdrop-blur-xs flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -470,7 +470,7 @@ export default function InstitutionDetail() {
                     href={institution.linkedinUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="group flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl border border-white/80 hover:border-[#0A66C2]/40 bg-white/70 hover:bg-white/95 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                    className="glass-btn-light !justify-start !rounded-2xl p-3 sm:p-3.5 border-white/90 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(10,102,194,0.15)] hover:-translate-y-0.5"
                   >
                     <div className="w-10 h-10 rounded-xl bg-[#0A66C2]/10 text-[#0A66C2] border border-[#0A66C2]/20 backdrop-blur-xs flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
@@ -611,7 +611,7 @@ export default function InstitutionDetail() {
                           {centerPhone && (
                             <a
                               href={`tel:${centerPhone}`}
-                              className="w-8 h-8 rounded-full bg-emerald-500/15 hover:bg-[#006837] text-[#006837] hover:text-white border border-emerald-600/25 backdrop-blur-xs flex items-center justify-center shrink-0 transition-all shadow-2xs hover:shadow-md hover:scale-110"
+                              className="w-8 h-8 rounded-full glass-btn-green flex items-center justify-center shrink-0 shadow-2xs hover:scale-110"
                               title={`Call ${centerPhone}`}
                             >
                               <Phone className="w-3.5 h-3.5" />
@@ -691,7 +691,7 @@ export default function InstitutionDetail() {
                             target="_blank"
                             rel="noopener noreferrer"
                             download
-                            className="inline-flex items-center gap-2 bg-[#006837]/15 hover:bg-[#006837]/25 text-[#006837] border border-[#006837]/30 backdrop-blur-md text-xs font-bold px-4 py-2.5 rounded-xl shadow-2xs hover:shadow-xs transition-all active:scale-95 cursor-pointer"
+                            className="glass-btn-green px-4 py-2 text-xs font-bold gap-2 shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer"
                           >
                             <Download className="w-4 h-4" />
                             <span>{isSinhala ? 'බාගත කරන්න' : 'Download'}</span>
@@ -738,7 +738,7 @@ export default function InstitutionDetail() {
 
                   <button
                     onClick={() => copyToClipboard(phone, 'phone')}
-                    className="p-2 rounded-xl bg-white/60 hover:bg-white/95 border border-emerald-600/15 hover:border-emerald-600/35 text-gray-500 hover:text-[#006837] backdrop-blur-xs shadow-2xs transition-all shrink-0 cursor-pointer"
+                    className="p-2.5 rounded-xl glass-btn-light !text-gray-600 hover:!text-[#006837] shadow-2xs hover:shadow-xs transition-all shrink-0 cursor-pointer"
                     title="Copy phone"
                   >
                     {copiedField === 'phone' ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
@@ -788,7 +788,7 @@ export default function InstitutionDetail() {
 
                   <button
                     onClick={() => copyToClipboard(email, 'email')}
-                    className="p-2 rounded-xl bg-white/60 hover:bg-white/95 border border-blue-600/15 hover:border-blue-600/35 text-gray-500 hover:text-blue-600 backdrop-blur-xs shadow-2xs transition-all shrink-0 cursor-pointer"
+                    className="p-2.5 rounded-xl glass-btn-light !text-gray-600 hover:!text-blue-600 shadow-2xs hover:shadow-xs transition-all shrink-0 cursor-pointer"
                     title="Copy email"
                   >
                     {copiedField === 'email' ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
@@ -857,7 +857,7 @@ export default function InstitutionDetail() {
                   <div className="pt-2">
                     <a
                       href={`tel:${hotline}`}
-                      className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/35 text-white border border-white/40 hover:border-white/60 backdrop-blur-md px-6 py-2.5 rounded-full font-bold text-xs sm:text-sm transition-all shadow-[0_4px_16px_rgba(0,0,0,0.15)] hover:shadow-[0_6px_24px_rgba(255,255,255,0.25)] hover:scale-[1.03]"
+                      className="glass-btn-light !bg-white/20 hover:!bg-white/35 !text-white !border-white/50 px-6 py-2.5 rounded-full font-bold text-xs sm:text-sm gap-2 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.15)] hover:shadow-[0_8px_30px_rgba(255,255,255,0.3)] hover:scale-[1.03]"
                     >
                       <Phone className="w-4 h-4 fill-current" />
                       <span>{isSinhala ? `${hotline} අමතන්න` : `Call ${hotline}`}</span>
