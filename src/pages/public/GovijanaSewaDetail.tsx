@@ -266,10 +266,10 @@ export default function GovijanaSewaDetail() {
 
             <Link
               to="/govijana-sewa"
-              className="inline-flex items-center gap-2 pl-3.5 pr-1.5 py-1 rounded-full bg-[#c6f24d] hover:bg-[#b7eb3b] text-gray-950 font-bold text-xs shadow-xs hover:shadow-md transition-all duration-300 group"
+              className="inline-flex items-center gap-2 pl-3.5 pr-1.5 py-1 rounded-full bg-white/70 hover:bg-white/95 backdrop-blur-xl border border-gray-200/80 hover:border-emerald-300 text-gray-800 font-bold text-xs shadow-2xs hover:shadow-xs transition-all duration-300 group"
             >
               <span>{isSinhala ? 'නැවත නාමාවලියට' : 'Back to Directory'}</span>
-              <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-gray-900 shadow-2xs shrink-0 group-hover:-translate-x-0.5 transition-transform">
+              <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-100 flex items-center justify-center shadow-2xs shrink-0 group-hover:-translate-x-0.5 transition-transform">
                 <ArrowLeft className="w-3 h-3 stroke-[2.5]" />
               </div>
             </Link>

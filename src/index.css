@@ -363,66 +363,62 @@ body {
     inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.5);
 }
 
-/* ── Signature Lime Pill Button System (Matching User Brand Design) ── */
-.glass-btn-green,
-.lime-btn {
+/* Green Liquid Glass Button (Vibrant & High Contrast Glassmorphism) */
+.glass-btn-green {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75rem;
   border-radius: 9999px;
-  background-color: #c6f24d;
-  background: linear-gradient(180deg, #d2f65a 0%, #c2f146 100%);
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: linear-gradient(180deg, rgba(21, 128, 61, 0.85) 0%, rgba(15, 81, 50, 0.92) 100%);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1.2px solid rgba(255, 255, 255, 0.45);
   box-shadow: 
-    0 8px 24px -2px rgba(198, 242, 77, 0.45),
-    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.75);
-  color: #030712 !important;
+    0 10px 30px -4px rgba(15, 81, 50, 0.35),
+    inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1.5px 2px 0 rgba(0, 0, 0, 0.2);
+  color: #ffffff !important;
   font-weight: 700;
-  text-shadow: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
   user-select: none;
 }
 
-.glass-btn-green:hover,
-.lime-btn:hover {
-  background-color: #b7eb3b;
-  background: linear-gradient(180deg, #c4f346 0%, #b3ea35 100%);
-  border-color: rgba(255, 255, 255, 0.9);
+.glass-btn-green:hover {
+  background: linear-gradient(180deg, rgba(22, 163, 74, 0.95) 0%, rgba(17, 104, 64, 0.98) 100%);
+  border-color: rgba(255, 255, 255, 0.8);
   box-shadow: 
-    0 12px 30px -2px rgba(198, 242, 77, 0.6),
-    inset 0 2px 2.5px 0 rgba(255, 255, 255, 0.9);
+    0 14px 40px -4px rgba(15, 81, 50, 0.5),
+    inset 0 2px 2.5px 0 rgba(255, 255, 255, 0.8);
   transform: translateY(-2px);
-  color: #030712 !important;
+  color: #ffffff !important;
 }
 
-.glass-btn-green:active,
-.lime-btn:active {
+.glass-btn-green:active {
   transform: translateY(0);
-  box-shadow: 0 4px 14px 0 rgba(198, 242, 77, 0.35);
+  box-shadow: 0 4px 14px 0 rgba(15, 81, 50, 0.3);
 }
 
-/* White Circle Icon Wrapper inside Lime Button */
-.glass-btn-green .btn-circle-icon,
-.lime-btn .btn-circle-icon,
+/* Glass Circle Icon Wrapper */
 .btn-circle-icon {
   width: 2rem;
   height: 2rem;
   border-radius: 9999px;
-  background-color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.95);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #030712;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.12);
+  color: #0f172a;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   flex-shrink: 0;
 }
 
-.glass-btn-green:hover .btn-circle-icon,
-.lime-btn:hover .btn-circle-icon,
 .group:hover .btn-circle-icon {
   transform: rotate(45deg);
 }

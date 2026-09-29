@@ -66,10 +66,10 @@ export default function SmarterGrowthSection() {
 
             <Link
               to="/agri-info-hub"
-              className="inline-flex items-center gap-3.5 pl-5 pr-2 py-2 rounded-full bg-[#c6f24d] hover:bg-[#b7eb3b] text-gray-950 font-bold text-sm sm:text-base shadow-sm hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group"
+              className="inline-flex items-center gap-3.5 pl-6 sm:pl-7 pr-2.5 sm:pr-3 py-2 sm:py-2.5 rounded-full bg-white/70 hover:bg-white/95 backdrop-blur-xl border border-white/80 hover:border-emerald-300 text-gray-900 font-bold text-sm sm:text-base shadow-[0_8px_30px_rgba(0,0,0,0.06),inset_0_1.5px_2px_rgba(255,255,255,0.95)] hover:shadow-[0_12px_36px_rgba(0,0,0,0.12),inset_0_2px_2.5px_rgba(255,255,255,1)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
             >
               <span>{isSinhala ? 'දැන්ම අරඹන්න' : 'Get started'}</span>
-              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white flex items-center justify-center text-gray-900 group-hover:rotate-45 transition-transform duration-300 shadow-2xs">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 border border-white/90 shadow-xs flex items-center justify-center text-gray-900 group-hover:rotate-45 transition-transform duration-300 shrink-0">
                 <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
               </div>
             </Link>

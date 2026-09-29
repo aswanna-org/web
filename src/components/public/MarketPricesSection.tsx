@@ -147,9 +147,9 @@ export default function MarketPricesSection() {
                       placeholder={t('market.emailPlaceholder')} 
                       className="w-full px-5 py-4 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white placeholder-white/70 outline-none focus:border-white transition-colors text-center"
                     />
-                    <button className="inline-flex items-center justify-center gap-3.5 pl-6 pr-2.5 py-3 rounded-full bg-[#c6f24d] hover:bg-[#b7eb3b] text-gray-950 font-bold text-sm sm:text-base shadow-[0_8px_25px_rgba(198,242,77,0.35)] hover:shadow-[0_12px_32px_rgba(198,242,77,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer w-full">
+                    <button className="inline-flex items-center justify-center gap-3.5 pl-6 pr-2.5 py-3 rounded-full bg-white/20 hover:bg-white/35 backdrop-blur-xl border border-white/50 text-white font-bold text-sm sm:text-base shadow-[0_8px_30px_rgba(0,0,0,0.2),inset_0_1.5px_2px_rgba(255,255,255,0.7)] hover:shadow-[0_12px_36px_rgba(0,0,0,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer w-full">
                       <span>{t('market.subscribe')}</span>
-                      <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-gray-900 group-hover:rotate-45 transition-transform duration-300 shadow-2xs shrink-0">
+                      <div className="w-8 h-8 rounded-full bg-white/30 backdrop-blur-md border border-white/60 flex items-center justify-center text-white group-hover:rotate-45 transition-transform duration-300 shadow-2xs shrink-0">
                         <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
                       </div>
                     </button>

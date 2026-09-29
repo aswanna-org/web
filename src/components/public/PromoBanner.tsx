@@ -48,10 +48,10 @@ export default function PromoBanner() {
               </h2>
               <button 
                 onClick={() => navigate('/agri-info-hub')}
-                className="inline-flex items-center gap-3.5 pl-5 sm:pl-7 pr-2 sm:pr-2.5 py-1.5 sm:py-2 rounded-full bg-[#c6f24d] hover:bg-[#b7eb3b] text-gray-950 font-bold text-xs sm:text-sm shadow-[0_8px_25px_rgba(198,242,77,0.35)] hover:shadow-[0_12px_32px_rgba(198,242,77,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
+                className="inline-flex items-center gap-3.5 pl-5 sm:pl-7 pr-2 sm:pr-2.5 py-1.5 sm:py-2 rounded-full bg-white/20 hover:bg-white/35 backdrop-blur-xl border border-white/50 text-white font-bold text-xs sm:text-sm shadow-[0_8px_30px_rgba(0,0,0,0.2),inset_0_1.5px_2px_rgba(255,255,255,0.7)] hover:shadow-[0_12px_36px_rgba(0,0,0,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
               >
                 <span>{t('promo.button')}</span>
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center text-gray-900 group-hover:rotate-45 transition-transform duration-300 shadow-2xs shrink-0">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white/30 backdrop-blur-md border border-white/60 flex items-center justify-center text-white group-hover:rotate-45 transition-transform duration-300 shadow-2xs shrink-0">
                   <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
                 </div>
               </button>

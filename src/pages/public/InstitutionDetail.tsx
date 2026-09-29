@@ -393,10 +393,10 @@ export default function InstitutionDetail() {
               <div className="flex items-center lg:self-center shrink-0">
                 <a
                   href={`tel:${(hotline || phone).split('/')[0].trim()}`}
-                  className="inline-flex items-center gap-3.5 pl-6 sm:pl-7 pr-2.5 sm:pr-3 py-2 sm:py-2.5 rounded-full bg-[#c6f24d] hover:bg-[#b7eb3b] text-gray-950 font-bold text-sm sm:text-base shadow-[0_10px_25px_rgba(198,242,77,0.35)] hover:shadow-[0_14px_35px_rgba(198,242,77,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
+                  className="inline-flex items-center gap-3.5 pl-6 sm:pl-7 pr-2.5 sm:pr-3 py-2 sm:py-2.5 rounded-full bg-emerald-950/10 hover:bg-emerald-950/20 backdrop-blur-xl border border-emerald-600/30 hover:border-emerald-600/60 text-emerald-950 font-bold text-sm sm:text-base shadow-[0_8px_30px_rgba(5,150,105,0.15),inset_0_1.5px_2px_rgba(255,255,255,0.85)] hover:shadow-[0_12px_36px_rgba(5,150,105,0.25)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
                 >
                   <span>{isSinhala ? 'දැන්ම අමතන්න' : 'Call Now'}</span>
-                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white flex items-center justify-center text-gray-950 group-hover:rotate-12 transition-transform duration-300 shadow-2xs shrink-0">
+                  <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 border border-white/90 shadow-xs flex items-center justify-center text-emerald-800 group-hover:rotate-12 transition-transform duration-300 shrink-0">
                     <PhoneCall className="w-4 h-4 stroke-[2.5]" />
                   </div>
                 </a>

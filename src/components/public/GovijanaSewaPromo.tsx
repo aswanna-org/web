@@ -41,10 +41,10 @@ export default function GovijanaSewaPromo() {
                 <div className="pt-2">
                   <Link
                     to="/agri-info-hub"
-                    className="inline-flex items-center gap-3.5 pl-6 sm:pl-8 pr-2.5 sm:pr-3 py-2 sm:py-2.5 rounded-full bg-[#c6f24d] hover:bg-[#b7eb3b] text-gray-950 font-bold text-xs sm:text-base shadow-[0_8px_25px_rgba(198,242,77,0.35)] hover:shadow-[0_12px_32px_rgba(198,242,77,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
+                    className="inline-flex items-center gap-3.5 pl-6 sm:pl-8 pr-2.5 sm:pr-3 py-2 sm:py-2.5 rounded-full bg-white/70 hover:bg-white/95 backdrop-blur-xl border border-white/90 hover:border-emerald-300 text-emerald-950 font-bold text-xs sm:text-base shadow-[0_8px_30px_rgba(0,0,0,0.08),inset_0_1.5px_2px_rgba(255,255,255,1)] hover:shadow-[0_12px_36px_rgba(0,0,0,0.15)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
                   >
                     <span>{t('agriHubPromo.button', 'පිවිසෙන්න')}</span>
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white flex items-center justify-center text-gray-900 group-hover:rotate-45 transition-transform duration-300 shadow-2xs shrink-0">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 border border-white shadow-xs flex items-center justify-center text-emerald-900 group-hover:rotate-45 transition-transform duration-300 shrink-0">
                       <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
                     </div>
                   </Link>

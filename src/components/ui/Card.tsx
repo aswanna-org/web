@@ -127,10 +127,10 @@ export default function Card({
                     primaryAction.onClick(e);
                   }
                 }}
-                className="inline-flex items-center justify-between gap-2.5 pl-4 sm:pl-5 pr-1.5 sm:pr-2 py-1.5 sm:py-2 rounded-full bg-[#c6f24d] hover:bg-[#b7eb3b] text-gray-950 font-bold text-xs sm:text-sm shadow-[0_6px_20px_rgba(198,242,77,0.35)] hover:shadow-[0_10px_28px_rgba(198,242,77,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer flex-1 min-w-0"
+                className="inline-flex items-center justify-between gap-2.5 pl-4 sm:pl-5 pr-1.5 sm:pr-2 py-1.5 sm:py-2 rounded-full bg-white/70 hover:bg-white/95 backdrop-blur-xl border border-gray-200/80 hover:border-emerald-300 text-gray-900 font-bold text-xs sm:text-sm shadow-[0_4px_16px_rgba(0,0,0,0.05),inset_0_1px_1.5px_rgba(255,255,255,1)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer flex-1 min-w-0"
               >
                 <span className="truncate">{primaryAction.text}</span>
-                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white flex items-center justify-center text-gray-900 group-hover:rotate-45 transition-transform duration-300 shadow-2xs shrink-0">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-100/80 flex items-center justify-center group-hover:rotate-45 transition-transform duration-300 shadow-2xs shrink-0">
                   {primaryAction.icon ? (
                     <primaryAction.icon className="w-3.5 h-3.5" />
                   ) : (
