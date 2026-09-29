@@ -193,15 +193,15 @@ export default function InstitutionDetail() {
   const description = isSinhala
     ? institution.descriptionSi || institution.descriptionEn
     : institution.descriptionEn || institution.descriptionSi;
-  const hotline = institution.hotline || '1920';
-  const phone = institution.phone || '+94 81 238 8331 / +94 81 238 8011';
-  const email = institution.email || 'info@doa.gov.lk';
+  const hotline = institution.hotline || institution.shortCode || '';
+  const phone = institution.phone || '';
+  const email = institution.email || '';
   const address = isSinhala
-    ? institution.addressSi || institution.addressEn || 'පේරාදෙණිය, ශ්‍රී ලංකාව'
-    : institution.addressEn || institution.addressSi || 'Peradeniya, Sri Lanka';
+    ? (institution.addressSi || institution.addressEn || institution.address || '')
+    : (institution.addressEn || institution.addressSi || institution.address || '');
   const workingHours = isSinhala
-    ? institution.workingHoursSi || 'සතියේ දිනවල පෙ.ව. 8.30 සිට ප.ව. 4.15 දක්වා'
-    : institution.workingHoursEn || 'Weekdays 8:30 AM to 4:15 PM';
+    ? (institution.workingHoursSi || institution.workingHoursEn || '')
+    : (institution.workingHoursEn || institution.workingHoursSi || '');
 
   const sectorBadgeText =
     institution.type === 'pvt'
@@ -369,114 +369,128 @@ export default function InstitutionDetail() {
             </div>
 
             {/* Right: Call Now Action Button (Glassy styling) */}
-            <div className="flex items-center lg:self-center shrink-0">
-              <a
-                href={`tel:${hotline || phone.split('/')[0].trim()}`}
-                className="inline-flex items-center gap-2.5 bg-[#006837]/90 hover:bg-[#006837] text-white px-7 py-3.5 rounded-full font-bold text-sm sm:text-base border border-white/30 backdrop-blur-md shadow-[0_8px_25px_rgba(0,104,55,0.25)] hover:shadow-[0_12px_32px_rgba(0,104,55,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
-              >
-                <PhoneCall className="w-5 h-5 animate-pulse" />
-                <span>{isSinhala ? 'දැන්ම අමතන්න' : 'Call Now'}</span>
-              </a>
-            </div>
+            {(hotline || phone) && (
+              <div className="flex items-center lg:self-center shrink-0">
+                <a
+                  href={`tel:${(hotline || phone).split('/')[0].trim()}`}
+                  className="inline-flex items-center gap-2.5 bg-[#006837]/90 hover:bg-[#006837] text-white px-7 py-3.5 rounded-full font-bold text-sm sm:text-base border border-white/30 backdrop-blur-md shadow-[0_8px_25px_rgba(0,104,55,0.25)] hover:shadow-[0_12px_32px_rgba(0,104,55,0.35)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+                >
+                  <PhoneCall className="w-5 h-5 animate-pulse" />
+                  <span>{isSinhala ? 'දැන්ම අමතන්න' : 'Call Now'}</span>
+                </a>
+              </div>
+            )}
           </div>
 
-          {/* ── Social Media & Web Links Row (Matching Screenshot 1 Bottom) ── */}
-          <div className="mt-8 pt-6 border-t border-gray-100">
-            <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
-              <Share2 className="w-3.5 h-3.5 text-[#006837]" />
-              <span>{isSinhala ? 'ඩිජිටල් හා සමාජ මාධ්‍ය පිටු (SOCIAL MEDIA & WEB LINKS)' : 'DIGITAL & SOCIAL MEDIA LINKS'}</span>
+          {/* ── Social Media & Web Links Row ── */}
+          {(institution.website || institution.facebookUrl || institution.youtubeUrl || institution.tiktokUrl || institution.linkedinUrl) && (
+            <div className="mt-8 pt-6 border-t border-gray-100">
+              <div className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+                <Share2 className="w-3.5 h-3.5 text-[#006837]" />
+                <span>{isSinhala ? 'ඩිජිටල් හා සමාජ මාධ්‍ය පිටු (SOCIAL MEDIA & WEB LINKS)' : 'DIGITAL & SOCIAL MEDIA LINKS'}</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+                {/* Official Website */}
+                {institution.website && (
+                  <a
+                    href={institution.website}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl border border-white/80 hover:border-blue-300 bg-white/70 hover:bg-white/95 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 border border-blue-500/20 backdrop-blur-xs flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <Globe className="w-5 h-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-gray-500">{isSinhala ? 'නිල වෙබ් අඩවිය' : 'Official Website'}</p>
+                      <p className="text-xs sm:text-sm font-bold text-gray-800 group-hover:text-blue-600 truncate">{isSinhala ? 'පිවිසෙන්න' : 'Visit Site'}</p>
+                    </div>
+                  </a>
+                )}
+
+                {/* Facebook */}
+                {institution.facebookUrl && (
+                  <a
+                    href={institution.facebookUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl border border-white/80 hover:border-blue-400 bg-white/70 hover:bg-white/95 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-[#1877F2]/10 text-[#1877F2] border border-[#1877F2]/20 backdrop-blur-xs flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                      </svg>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-gray-500">Facebook</p>
+                      <p className="text-xs sm:text-sm font-bold text-gray-800 group-hover:text-[#1877F2] truncate">{isSinhala ? 'පිටුවට යන්න' : 'Go to Page'}</p>
+                    </div>
+                  </a>
+                )}
+
+                {/* YouTube */}
+                {institution.youtubeUrl && (
+                  <a
+                    href={institution.youtubeUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl border border-white/80 hover:border-red-300 bg-white/70 hover:bg-white/95 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-red-500/10 text-red-600 border border-red-500/20 backdrop-blur-xs flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+                      </svg>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-gray-500">YouTube</p>
+                      <p className="text-xs sm:text-sm font-bold text-gray-800 group-hover:text-red-600 truncate">{isSinhala ? 'චැනලය නරඹන්න' : 'Watch Channel'}</p>
+                    </div>
+                  </a>
+                )}
+
+                {/* TikTok */}
+                {institution.tiktokUrl && (
+                  <a
+                    href={institution.tiktokUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl border border-white/80 hover:border-gray-300 bg-white/70 hover:bg-white/95 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-black/10 text-gray-900 border border-black/10 backdrop-blur-xs flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.45V11.8a8.28 8.28 0 0 0 5.77 2.27V10.6a4.84 4.84 0 0 1-3.77-3.91z" />
+                      </svg>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-gray-500">TikTok</p>
+                      <p className="text-xs sm:text-sm font-bold text-gray-800 group-hover:text-black truncate">{isSinhala ? 'වීඩියෝ බලන්න' : 'Watch Videos'}</p>
+                    </div>
+                  </a>
+                )}
+
+                {/* LinkedIn */}
+                {institution.linkedinUrl && (
+                  <a
+                    href={institution.linkedinUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl border border-white/80 hover:border-[#0A66C2]/40 bg-white/70 hover:bg-white/95 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-[#0A66C2]/10 text-[#0A66C2] border border-[#0A66C2]/20 backdrop-blur-xs flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.45c-.9 0-1.63.73-1.63 1.63s.73 1.63 1.63 1.63 1.63-.73 1.63-1.63c0-.9-.73-1.63-1.63-1.63z" />
+                      </svg>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-gray-500">LinkedIn</p>
+                      <p className="text-xs sm:text-sm font-bold text-gray-800 group-hover:text-[#0A66C2] truncate">{isSinhala ? 'පිටුවට යන්න' : 'Go to Page'}</p>
+                    </div>
+                  </a>
+                )}
+              </div>
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-              {/* Official Website */}
-              <a
-                href={institution.website}
-                target="_blank"
-                rel="noreferrer"
-                className="group flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl border border-white/80 hover:border-blue-300 bg-white/70 hover:bg-white/95 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
-              >
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 border border-blue-500/20 backdrop-blur-xs flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                  <Globe className="w-5 h-5" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-medium text-gray-500">{isSinhala ? 'නිල වෙබ් අඩවිය' : 'Official Website'}</p>
-                  <p className="text-xs sm:text-sm font-bold text-gray-800 group-hover:text-blue-600 truncate">{isSinhala ? 'පිවිසෙන්න' : 'Visit Site'}</p>
-                </div>
-              </a>
-
-              {/* Facebook */}
-              <a
-                href={institution.facebookUrl || `https://www.facebook.com/search/top?q=${encodeURIComponent(title)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="group flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl border border-white/80 hover:border-blue-400 bg-white/70 hover:bg-white/95 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
-              >
-                <div className="w-10 h-10 rounded-xl bg-[#1877F2]/10 text-[#1877F2] border border-[#1877F2]/20 backdrop-blur-xs flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                  </svg>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-medium text-gray-500">Facebook</p>
-                  <p className="text-xs sm:text-sm font-bold text-gray-800 group-hover:text-[#1877F2] truncate">{isSinhala ? 'පිටුවට යන්න' : 'Go to Page'}</p>
-                </div>
-              </a>
-
-              {/* YouTube */}
-              <a
-                href={institution.youtubeUrl || `https://www.youtube.com/results?search_query=${encodeURIComponent(title)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="group flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl border border-white/80 hover:border-red-300 bg-white/70 hover:bg-white/95 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
-              >
-                <div className="w-10 h-10 rounded-xl bg-red-500/10 text-red-600 border border-red-500/20 backdrop-blur-xs flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
-                  </svg>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-medium text-gray-500">YouTube</p>
-                  <p className="text-xs sm:text-sm font-bold text-gray-800 group-hover:text-red-600 truncate">{isSinhala ? 'චැනලය නරඹන්න' : 'Watch Channel'}</p>
-                </div>
-              </a>
-
-              {/* TikTok */}
-              <a
-                href={institution.tiktokUrl || `https://www.tiktok.com`}
-                target="_blank"
-                rel="noreferrer"
-                className="group flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl border border-white/80 hover:border-gray-300 bg-white/70 hover:bg-white/95 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
-              >
-                <div className="w-10 h-10 rounded-xl bg-black/10 text-gray-900 border border-black/10 backdrop-blur-xs flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64c.298-.002.595.042.88.13V9.4a6.33 6.33 0 0 0-1-.08A6.34 6.34 0 0 0 3 15.66a6.34 6.34 0 0 0 10.82 4.45V11.8a8.28 8.28 0 0 0 5.77 2.27V10.6a4.84 4.84 0 0 1-3.77-3.91z" />
-                  </svg>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-medium text-gray-500">TikTok</p>
-                  <p className="text-xs sm:text-sm font-bold text-gray-800 group-hover:text-black truncate">{isSinhala ? 'වීඩියෝ බලන්න' : 'Watch Videos'}</p>
-                </div>
-              </a>
-
-              {/* LinkedIn */}
-              <a
-                href={institution.linkedinUrl || `https://www.linkedin.com/search/results/all/?keywords=${encodeURIComponent(title)}`}
-                target="_blank"
-                rel="noreferrer"
-                className="group flex items-center gap-3.5 p-3 sm:p-3.5 rounded-2xl border border-white/80 hover:border-[#0A66C2]/40 bg-white/70 hover:bg-white/95 backdrop-blur-md shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
-              >
-                <div className="w-10 h-10 rounded-xl bg-[#0A66C2]/10 text-[#0A66C2] border border-[#0A66C2]/20 backdrop-blur-xs flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9v8.37H9.2V10.9H6.46M7.83 6.45c-.9 0-1.63.73-1.63 1.63s.73 1.63 1.63 1.63 1.63-.73 1.63-1.63c0-.9-.73-1.63-1.63-1.63z" />
-                  </svg>
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-medium text-gray-500">LinkedIn</p>
-                  <p className="text-xs sm:text-sm font-bold text-gray-800 group-hover:text-[#0A66C2] truncate">{isSinhala ? 'පිටුවට යන්න' : 'Go to Page'}</p>
-                </div>
-              </a>
-            </div>
-          </div>
+          )}
         </div>
 
         {/* ── MAIN 2-COLUMN BODY SECTION ── */}
@@ -582,7 +596,7 @@ export default function InstitutionDetail() {
                     {filteredCenters.map((center, idx) => {
                       const centerName = isSinhala ? center.nameSi || center.nameEn : center.nameEn || center.nameSi;
                       const centerLoc = isSinhala ? center.locationSi || center.locationEn : center.locationEn || center.locationSi;
-                      const centerPhone = center.phone || phone.split('/')[0].trim();
+                      const centerPhone = center.phone || (phone ? phone.split('/')[0].trim() : '');
 
                       return (
                         <div
@@ -599,13 +613,15 @@ export default function InstitutionDetail() {
                             </p>
                           </div>
 
-                          <a
-                            href={`tel:${centerPhone}`}
-                            className="w-8 h-8 rounded-full bg-emerald-500/15 hover:bg-[#006837] text-[#006837] hover:text-white border border-emerald-600/25 backdrop-blur-xs flex items-center justify-center shrink-0 transition-all shadow-2xs hover:shadow-md hover:scale-110"
-                            title={`Call ${centerPhone}`}
-                          >
-                            <Phone className="w-3.5 h-3.5" />
-                          </a>
+                          {centerPhone && (
+                            <a
+                              href={`tel:${centerPhone}`}
+                              className="w-8 h-8 rounded-full bg-emerald-500/15 hover:bg-[#006837] text-[#006837] hover:text-white border border-emerald-600/25 backdrop-blur-xs flex items-center justify-center shrink-0 transition-all shadow-2xs hover:shadow-md hover:scale-110"
+                              title={`Call ${centerPhone}`}
+                            >
+                              <Phone className="w-3.5 h-3.5" />
+                            </a>
+                          )}
                         </div>
                       );
                     })}
@@ -803,48 +819,58 @@ export default function InstitutionDetail() {
               )}
 
               {/* Working Hours */}
-              <div className="flex items-center gap-2 text-xs text-gray-500 pt-2 border-t border-gray-100">
-                <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
-                <span>{isSinhala ? `රාජකාරි වේලාවන්: ${workingHours}` : `Working Hours: ${workingHours}`}</span>
-              </div>
-            </div>
-
-            {/* CARD 2: Farmer Guidance Promo Callout (Matching Screenshot 2 Right-Bottom) */}
-            <div className="bg-gradient-to-br from-[#0c4a2a] via-[#093c22] to-[#042817] text-white rounded-[26px] p-6 sm:p-7 shadow-lg relative overflow-hidden">
-              {/* Background leaf watermark */}
-              <div className="absolute -right-6 -bottom-6 opacity-10 pointer-events-none">
-                <svg width="180" height="180" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 22c0-4-3-8-3-11 0-3 3-5 3-5s3 2 3 5c0 3-3 7-3 11z" />
-                </svg>
-              </div>
-
-              <div className="relative z-10 space-y-3">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-white text-xs font-bold tracking-wider uppercase backdrop-blur-xs">
-                  <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
-                  <span>{isSinhala ? 'නොමිලේ උපදෙස්' : 'Free Assistance'}</span>
+              {workingHours && (
+                <div className="flex items-center gap-2 text-xs text-gray-500 pt-2 border-t border-gray-100">
+                  <Clock className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                  <span>{isSinhala ? `රාජකාරි වේලාවන්: ${workingHours}` : `Working Hours: ${workingHours}`}</span>
                 </div>
+              )}
 
-                <h3 className="text-lg sm:text-xl font-black leading-snug text-white">
-                  {isSinhala ? 'ගොවි සහන සහ තාක්ෂණික මඟපෙන්වීම්' : 'Farmer Advisory & Technical Guidance'}
-                </h3>
-
-                <p className="text-xs sm:text-sm text-white/80 leading-relaxed font-normal">
-                  {isSinhala
-                    ? `ඔබට ගැටලුවක් ඇත්නම් සෘජුවම කෘෂි ව්‍යාප්ති නිලධාරීන් සම්බන්ධ කරගැනීමට ${hotline} අමතන්න.`
-                    : `For immediate technical farming guidance, call the toll-free hotline ${hotline}.`}
+              {!phone && !hotline && !email && !address && !workingHours && (
+                <p className="text-xs text-gray-400 italic">
+                  {isSinhala ? 'සම්බන්ධ කරගැනීමේ තොරතුරු ඇතුළත් කර නොමැත.' : 'No contact information available.'}
                 </p>
+              )}
+            </div>
 
-                <div className="pt-2">
-                  <a
-                    href={`tel:${hotline}`}
-                    className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/35 text-white border border-white/40 hover:border-white/60 backdrop-blur-md px-6 py-2.5 rounded-full font-bold text-xs sm:text-sm transition-all shadow-[0_4px_16px_rgba(0,0,0,0.15)] hover:shadow-[0_6px_24px_rgba(255,255,255,0.25)] hover:scale-[1.03]"
-                  >
-                    <Phone className="w-4 h-4 fill-current" />
-                    <span>{isSinhala ? `${hotline} අමතන්න` : `Call ${hotline}`}</span>
-                  </a>
+            {/* CARD 2: Farmer Guidance Promo Callout */}
+            {hotline && (
+              <div className="bg-gradient-to-br from-[#0c4a2a] via-[#093c22] to-[#042817] text-white rounded-[26px] p-6 sm:p-7 shadow-lg relative overflow-hidden">
+                {/* Background leaf watermark */}
+                <div className="absolute -right-6 -bottom-6 opacity-10 pointer-events-none">
+                  <svg width="180" height="180" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 22c0-4-3-8-3-11 0-3 3-5 3-5s3 2 3 5c0 3-3 7-3 11z" />
+                  </svg>
+                </div>
+
+                <div className="relative z-10 space-y-3">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 text-white text-xs font-bold tracking-wider uppercase backdrop-blur-xs">
+                    <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
+                    <span>{isSinhala ? 'නොමිලේ උපදෙස්' : 'Free Assistance'}</span>
+                  </div>
+
+                  <h3 className="text-lg sm:text-xl font-black leading-snug text-white">
+                    {isSinhala ? 'ගොවි සහන සහ තාක්ෂණික මඟපෙන්වීම්' : 'Farmer Advisory & Technical Guidance'}
+                  </h3>
+
+                  <p className="text-xs sm:text-sm text-white/80 leading-relaxed font-normal">
+                    {isSinhala
+                      ? `ඔබට ගැටලුවක් ඇත්නම් සෘජුවම කෘෂි ව්‍යාප්ති නිලධාරීන් සම්බන්ධ කරගැනීමට ${hotline} අමතන්න.`
+                      : `For immediate technical farming guidance, call the toll-free hotline ${hotline}.`}
+                  </p>
+
+                  <div className="pt-2">
+                    <a
+                      href={`tel:${hotline}`}
+                      className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/35 text-white border border-white/40 hover:border-white/60 backdrop-blur-md px-6 py-2.5 rounded-full font-bold text-xs sm:text-sm transition-all shadow-[0_4px_16px_rgba(0,0,0,0.15)] hover:shadow-[0_6px_24px_rgba(255,255,255,0.25)] hover:scale-[1.03]"
+                    >
+                      <Phone className="w-4 h-4 fill-current" />
+                      <span>{isSinhala ? `${hotline} අමතන්න` : `Call ${hotline}`}</span>
+                    </a>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
           </div>
 
