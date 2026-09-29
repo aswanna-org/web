@@ -206,9 +206,19 @@ body {
 }
 
 .rich-content img {
-  max-width: 100%;
+  max-width: 100% !important;
   height: auto;
   border-radius: 0.5rem;
+  display: block;
+}
+
+/* Alignment wrapper divs output by ResizableImage renderHTML */
+.rich-content > div[style*="justify-content"],
+.rich-content > div[style*="overflow:hidden"],
+.rich-content > div[style*="overflow: hidden"] {
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .rich-content table {

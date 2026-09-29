@@ -191,10 +191,12 @@ export default function InstitutionDetail() {
   }
 
   const title = isSinhala ? institution.nameSi || institution.nameEn : institution.nameEn || institution.nameSi;
-  const subtitle = isSinhala ? institution.nameEn : institution.nameSi;
   const description = isSinhala
     ? institution.descriptionSi || institution.descriptionEn
     : institution.descriptionEn || institution.descriptionSi;
+  const fullDescription = isSinhala
+    ? institution.fullDescriptionSi || institution.fullDescriptionEn
+    : institution.fullDescriptionEn || institution.fullDescriptionSi;
   const hotline = institution.hotline || institution.shortCode || '';
   const phone = institution.phone || '';
   const email = institution.email || '';
@@ -529,7 +531,7 @@ export default function InstitutionDetail() {
           {/* ════ LEFT COLUMN (7 Cols / 60-65% width) ════ */}
           <div className="lg:col-span-7 space-y-8">
             
-            {/* CARD 1: Short Introduction (Matching Screenshot 2 Top-Left) */}
+            {/* CARD 1: Short Introduction */}
             <div className="bg-white rounded-[26px] border border-gray-100 shadow-[0_4px_25px_rgba(0,0,0,0.03)] p-6 sm:p-7">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#006837] flex items-center justify-center shrink-0">
@@ -539,10 +541,31 @@ export default function InstitutionDetail() {
                   {isSinhala ? 'ආයතනය පිළිබඳ කෙටි හැඳින්වීම' : 'About the Institution'}
                 </h2>
               </div>
-              <p className="text-gray-700 leading-relaxed text-sm sm:text-base font-normal">
-                {description}
-              </p>
+              {description ? (
+                <div
+                  className="rich-content prose max-w-none text-gray-700 leading-relaxed text-sm sm:text-base"
+                  dangerouslySetInnerHTML={{ __html: description }}
+                />
+              ) : null}
             </div>
+
+            {/* CARD 1b: Full Description (shown only if available) */}
+            {fullDescription && (
+              <div className="bg-white rounded-[26px] border border-gray-100 shadow-[0_4px_25px_rgba(0,0,0,0.03)] p-6 sm:p-7">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#006837] flex items-center justify-center shrink-0">
+                    <BookOpen className="w-5 h-5" />
+                  </div>
+                  <h2 className="text-lg sm:text-xl font-black text-gray-900">
+                    {isSinhala ? 'ආයතනය පිළිබඳ සම්පූර්ණ විස්තරය' : 'Full Description'}
+                  </h2>
+                </div>
+                <div
+                  className="rich-content prose max-w-none text-gray-700 leading-relaxed text-sm sm:text-base"
+                  dangerouslySetInnerHTML={{ __html: fullDescription }}
+                />
+              </div>
+            )}
 
             {/* CARD 2: Main Roles and Services (Matching Screenshot 2 Bottom-Left) */}
             <div className="bg-white rounded-[26px] border border-gray-100 shadow-[0_4px_25px_rgba(0,0,0,0.03)] p-6 sm:p-7">

@@ -24,11 +24,11 @@ import {
   Layers,
   FileUp,
   AlertCircle,
-  Eye,
-  Languages
+  Eye
 } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import CountryMultiSelect from '../components/CountryMultiSelect';
+import RichTextEditor from '../components/RichTextEditor';
 import type { InstitutionDocument, RegionalCenter } from '../../data/agriInstitutionsData';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -1998,60 +1998,52 @@ export default function InstitutionManagement() {
                         </p>
                       </div>
 
-                      {/* Bilingual Short Descriptions */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Short Descriptions — Rich Text */}
+                      <div className="space-y-5">
                         <div>
-                          <label className="block text-xs font-medium text-zinc-700 mb-1">
+                          <label className="block text-xs font-medium text-zinc-700 mb-1.5">
                             Short Summary (Sinhala - Card Preview)
                           </label>
-                          <textarea
-                            rows={3}
+                          <RichTextEditor
                             value={form.descriptionSi}
-                            onChange={(e) => setForm({ ...form, descriptionSi: e.target.value })}
+                            onChange={(val) => setForm({ ...form, descriptionSi: val })}
                             placeholder="ආයතනය හෝ සංවිධානය පිළිබඳ ප්‍රධාන කාර්යය වචන 20-30කින් කෙටියෙන්..."
-                            className="w-full p-2.5 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-medium text-zinc-700 mb-1">
+                          <label className="block text-xs font-medium text-zinc-700 mb-1.5">
                             Short Summary (English - Card Preview)
                           </label>
-                          <textarea
-                            rows={3}
+                          <RichTextEditor
                             value={form.descriptionEn}
-                            onChange={(e) => setForm({ ...form, descriptionEn: e.target.value })}
+                            onChange={(val) => setForm({ ...form, descriptionEn: val })}
                             placeholder="Brief 20-30 words summary describing the key mandate of the organization..."
-                            className="w-full p-2.5 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
                           />
                         </div>
                       </div>
 
-                      {/* Bilingual Full Descriptions */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Full Descriptions — Rich Text */}
+                      <div className="space-y-5">
                         <div>
-                          <label className="block text-xs font-medium text-zinc-700 mb-1">
+                          <label className="block text-xs font-medium text-zinc-700 mb-1.5">
                             Full Description (Sinhala Profile)
                           </label>
-                          <textarea
-                            rows={7}
+                          <RichTextEditor
                             value={form.fullDescriptionSi}
-                            onChange={(e) => setForm({ ...form, fullDescriptionSi: e.target.value })}
+                            onChange={(val) => setForm({ ...form, fullDescriptionSi: val })}
                             placeholder="ආයතනයේ මෙහෙවර, කාර්යභාරය, සහ ශ්‍රී ලංකාවේ ක්‍රියාත්මක වන ප්‍රධාන වැඩසටහන් පිළිබඳ සම්පූර්ණ විස්තරය..."
-                            className="w-full p-2.5 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-xs font-medium text-zinc-700 mb-1">
+                          <label className="block text-xs font-medium text-zinc-700 mb-1.5">
                             Full Detailed Description (English Profile)
                           </label>
-                          <textarea
-                            rows={7}
+                          <RichTextEditor
                             value={form.fullDescriptionEn}
-                            onChange={(e) => setForm({ ...form, fullDescriptionEn: e.target.value })}
+                            onChange={(val) => setForm({ ...form, fullDescriptionEn: val })}
                             placeholder="Full detailed profile of the organization, core agricultural programs, initiatives, and mandate in Sri Lanka..."
-                            className="w-full p-2.5 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
                           />
                         </div>
                       </div>

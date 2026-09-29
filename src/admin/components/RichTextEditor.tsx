@@ -1,12 +1,12 @@
-import React, { useEffect, useCallback, useRef } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
-import { Extension, textInputRule } from '@tiptap/core';
+import React, { useEffect, useCallback, useRef, useState } from 'react';
+import { useEditor, EditorContent, NodeViewWrapper, ReactNodeViewRenderer } from '@tiptap/react';
+import type { NodeViewProps } from '@tiptap/react';
+import { Extension, textInputRule, Node, mergeAttributes } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { Color } from '@tiptap/extension-color';
 import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
-import Image from '@tiptap/extension-image';
 import TextAlign from '@tiptap/extension-text-align';
 import Placeholder from '@tiptap/extension-placeholder';
 import { Table } from '@tiptap/extension-table';
@@ -43,7 +43,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-// Smart rule to keep number ranges like 45-55 from splitting across lines by using non-breaking hyphen (U+2011)
 const NonBreakingHyphen = Extension.create({
   name: 'nonBreakingHyphen',
   addInputRules() {
@@ -114,10 +113,203 @@ const FontSize = Extension.create({
   },
 });
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Resizable Image — NodeView Component
+// ─────────────────────────────────────────────────────────────────────────────
+function ResizableImageComponent({ node, updateAttributes, selected }: NodeViewProps) {
+  const imageRef = useRef<HTMLImageElement>(null);
+  const [isResizing, setIsResizing] = useState(false);
+
+  const { src, alt, width, align } = node.attrs as {
+    src: string; alt: string; width: string; align: string;
+  };
+
+  const startResize = (e: React.MouseEvent, corner: 'nw' | 'ne' | 'sw' | 'se') => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startX = e.clientX;
+    const startW = imageRef.current?.offsetWidth || parseFloat(width) || 300;
+    setIsResizing(true);
+    const onMove = (ev: MouseEvent) => {
+      const isLeft = corner === 'nw' || corner === 'sw';
+      const delta = isLeft ? startX - ev.clientX : ev.clientX - startX;
+      updateAttributes({ width: `${Math.round(Math.max(60, Math.min(startW + delta, 1600)))}px` });
+    };
+    const onUp = () => {
+      setIsResizing(false);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
+  const handle = (corner: 'nw' | 'ne' | 'sw' | 'se', pos: React.CSSProperties) => (
+    <div
+      key={corner}
+      onMouseDown={(e) => startResize(e, corner)}
+      style={{
+        position: 'absolute', width: 13, height: 13, borderRadius: '50%',
+        background: '#4a7454', border: '2.5px solid #fff',
+        boxShadow: '0 1px 5px rgba(0,0,0,0.35)', zIndex: 20,
+        cursor: corner === 'nw' || corner === 'se' ? 'nwse-resize' : 'nesw-resize',
+        ...pos,
+      }}
+    />
+  );
+
+  const alignOpts: { key: 'left'|'center'|'right'; icon: string }[] = [
+    { key: 'left',   icon: '⬤ Left'   },
+    { key: 'center', icon: '⬤ Center' },
+    { key: 'right',  icon: '⬤ Right'  },
+  ];
+  const sizePresets: [string, string][] = [['25%','XS'],['50%','S'],['75%','M'],['100%','Full']];
+
+  const justify =
+    align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center';
+
+  return (
+    <NodeViewWrapper style={{ display: 'block', margin: '8px 0', userSelect: 'none' }}>
+      {/* Toolbar */}
+      {selected && (
+        <div
+          contentEditable={false}
+          onMouseDown={(e) => e.preventDefault()}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 3,
+            marginBottom: 6, background: '#1e293b', borderRadius: 8,
+            padding: '5px 8px', boxShadow: '0 2px 10px rgba(0,0,0,0.25)',
+          }}
+        >
+          {/* Alignment */}
+          {alignOpts.map(({ key, icon }) => (
+            <button
+              key={key} type="button"
+              onMouseDown={(e) => { e.preventDefault(); updateAttributes({ align: key }); }}
+              style={{
+                padding: '3px 8px', borderRadius: 5, fontSize: 11, fontWeight: 600,
+                color: align === key ? '#fff' : '#94a3b8',
+                background: align === key ? '#4a7454' : 'transparent',
+                border: 'none', cursor: 'pointer',
+              }}
+            >{icon}</button>
+          ))}
+
+          <div style={{ width: 1, height: 14, background: '#334155', margin: '0 3px' }} />
+
+          {/* Size presets */}
+          {sizePresets.map(([val, label]) => (
+            <button
+              key={val} type="button"
+              onMouseDown={(e) => { e.preventDefault(); updateAttributes({ width: val }); }}
+              style={{
+                padding: '3px 7px', borderRadius: 5, fontSize: 11, fontWeight: 700,
+                color: width === val ? '#fff' : '#94a3b8',
+                background: width === val ? '#2563eb' : 'transparent',
+                border: 'none', cursor: 'pointer',
+              }}
+            >{label}</button>
+          ))}
+        </div>
+      )}
+
+      {/* Image */}
+      <div style={{ display: 'flex', justifyContent: justify, lineHeight: 0, width: '100%' }}>
+        <div
+          style={{
+            position: 'relative', display: 'inline-block', maxWidth: '100%', lineHeight: 0,
+            borderRadius: 8,
+            cursor: isResizing ? 'ew-resize' : 'default',
+            boxShadow: selected
+              ? '0 0 0 2.5px #4a7454, 0 4px 16px rgba(74,116,84,0.18)'
+              : '0 2px 8px rgba(0,0,0,0.08)',
+            transition: 'box-shadow 0.15s',
+          }}
+        >
+          <img
+            ref={imageRef} src={src} alt={alt || ''} draggable={false}
+            style={{ width: width || '100%', maxWidth: '100%', display: 'block', borderRadius: 8, pointerEvents: 'none' }}
+          />
+          {selected && (
+            <>
+              {handle('nw', { top: -6, left: -6 })}
+              {handle('ne', { top: -6, right: -6 })}
+              {handle('sw', { bottom: -6, left: -6 })}
+              {handle('se', { bottom: -6, right: -6 })}
+            </>
+          )}
+        </div>
+      </div>
+    </NodeViewWrapper>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ResizableImage TipTap Node Extension
+// ─────────────────────────────────────────────────────────────────────────────
+declare module '@tiptap/core' {
+  interface Commands<ReturnType> {
+    resizableImage: {
+      setImage: (options: { src: string; alt?: string; title?: string; width?: string; align?: string }) => ReturnType;
+    };
+  }
+}
+
+const ResizableImage = Node.create({
+  name: 'resizableImage',
+  group: 'block',
+  atom: true,
+  selectable: true,
+
+  addAttributes() {
+    return {
+      src:   { default: null },
+      alt:   { default: null },
+      title: { default: null },
+      width: { default: '100%' },
+      align: { default: 'center' },
+    };
+  },
+
+  parseHTML() {
+    return [{ tag: 'img[src]' }];
+  },
+
+  renderHTML({ node, HTMLAttributes }) {
+    const w = (node.attrs.width as string) || '100%';
+    const a = (node.attrs.align as string) || 'center';
+    const justify =
+      a === 'left' ? 'flex-start' : a === 'right' ? 'flex-end' : 'center';
+    return [
+      'div',
+      { style: `display:flex;justify-content:${justify};width:100%;box-sizing:border-box;margin:10px 0;` },
+      ['img', mergeAttributes(HTMLAttributes, {
+        style: `width:${w};max-width:100%;height:auto;border-radius:8px;display:block;`,
+      })],
+    ];
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(ResizableImageComponent);
+  },
+
+  addCommands() {
+    return {
+      setImage: (options) => ({ commands }) =>
+        commands.insertContent({
+          type: this.name,
+          attrs: { width: '100%', align: 'center', ...options },
+        }),
+    };
+  },
+});
+
 interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  minHeight?: string;
+  /** @deprecated use minHeight instead */
   height?: string;
 }
 
@@ -125,8 +317,10 @@ export default function RichTextEditor({
   value,
   onChange,
   placeholder = 'Write content here...',
-  height = '500px',
+  minHeight,
+  height,
 }: RichTextEditorProps) {
+  const resolvedMinHeight = minHeight || height || '260px';
   const { token } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const colorInputRef = useRef<HTMLInputElement>(null);
@@ -151,13 +345,7 @@ export default function RichTextEditor({
           class: 'text-[#4a7454] underline',
         },
       }),
-      Image.configure({
-        inline: false,
-        allowBase64: true,
-        HTMLAttributes: {
-          class: 'rounded-lg max-w-full my-3',
-        },
-      }),
+      ResizableImage,
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
@@ -290,8 +478,8 @@ export default function RichTextEditor({
 
   return (
     <div
-      className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col focus-within:border-green-600 focus-within:ring-2 focus-within:ring-green-500/10 transition"
-      style={{ height }}
+      className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col focus-within:border-green-600 focus-within:ring-2 focus-within:ring-green-500/10 transition"
+      style={{ minHeight: resolvedMinHeight, resize: 'vertical', overflow: 'auto' }}
     >
       {/* Hidden File Inputs */}
       <input

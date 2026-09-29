@@ -14,7 +14,6 @@ import {
   PhoneCall,
   ChevronRight,
   Home,
-  ArrowUpRight,
   ArrowLeft
 } from 'lucide-react';
 import ManIcon from '@mui/icons-material/Man';
