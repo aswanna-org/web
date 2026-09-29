@@ -1,15 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  Box, Button, Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, InputAdornment, Table, TableHead, TableBody, TableRow,
-  TableCell, TableContainer, Paper, IconButton, Typography, CircularProgress,
-  Avatar, Tooltip, Autocomplete
-} from '@mui/material';
-import {
-  Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
-  Search as SearchIcon, ShoppingBag as ShoppingBagIcon, CloudUpload as UploadIcon,
-  Close as CloseIcon
-} from '@mui/icons-material';
+import { Plus, Edit, Trash2, X, Search, ShoppingBag, Upload } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import RichTextEditor from '../components/RichTextEditor';
 
@@ -53,14 +43,34 @@ export default function ProductManagement() {
 
   const openCreate = () => { setForm({ ...defaultForm }); setImageFile(null); setEditingId(null); setIsModalOpen(true); };
   const openEdit = (prod: Product) => {
-    setForm({ name: prod.name, sinhalaName: prod.sinhalaName || '', slug: prod.slug, description: prod.description || '', sinhalaDescription: prod.sinhalaDescription || '', price: String(prod.price ?? ''), quantity: String(prod.quantity ?? ''), category: prod.category || '', categorySinhala: prod.categorySinhala || '', image: '' });
+    setForm({
+      name: prod.name,
+      sinhalaName: prod.sinhalaName || '',
+      slug: prod.slug,
+      description: prod.description || '',
+      sinhalaDescription: prod.sinhalaDescription || '',
+      price: String(prod.price ?? ''),
+      quantity: String(prod.quantity ?? ''),
+      category: prod.category || '',
+      categorySinhala: prod.categorySinhala || '',
+      image: ''
+    });
     setImageFile(null); setEditingId(prod.id); setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const fd = new FormData();
-    Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+    fd.append('name', form.name);
+    fd.append('sinhalaName', form.sinhalaName);
+    fd.append('slug', form.slug);
+    fd.append('description', form.description);
+    fd.append('sinhalaDescription', form.sinhalaDescription);
+    Object.entries(form).forEach(([k, v]) => {
+      if (k !== 'name' && k !== 'sinhalaName' && k !== 'slug' && k !== 'description' && k !== 'sinhalaDescription') {
+        fd.append(k, v);
+      }
+    });
     if (imageFile) fd.append('image', imageFile);
     const method = editingId ? 'PUT' : 'POST';
     const url = editingId ? `${API_BASE_URL}/products/${editingId}` : `${API_BASE_URL}/products`;
@@ -75,134 +85,132 @@ export default function ProductManagement() {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: "text.primary" }}>Product Management</Typography>
-          <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>Manage marketplace products</Typography>
-        </Box>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}
-          sx={{ bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' }, borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>
-          Add Product
-        </Button>
-      </Box>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Product Management</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage marketplace products</p>
+        </div>
+        <button onClick={openCreate} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+          <Plus size={18} /> Add Product
+        </button>
+      </div>
 
-      {/* Search */}
-      <Paper elevation={0} sx={{ p: 2, border: '1px solid', borderColor: 'grey.100', borderRadius: 3 }}>
-        <TextField size="small" placeholder="Search products..." value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
-          slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: 'text.disabled', fontSize: 20 }} /></InputAdornment> } }}
-          sx={{ maxWidth: 400, '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
-      </Paper>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="relative max-w-md">
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input type="text" placeholder="Search products..." value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" />
+        </div>
+      </div>
 
-      {/* Table */}
-      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'grey.100', borderRadius: 3, overflow: 'hidden' }}>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 10 }}>
-            <CircularProgress sx={{ color: '#16a34a' }} />
-          </Box>
+          <div className="flex justify-center items-center py-20"><div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" /></div>
         ) : (
-          <TableContainer>
-            <Table size="small">
-              <TableHead sx={{ bgcolor: 'grey.50' }}>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', color: 'text.secondary', letterSpacing: 1 }}>Product</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', color: 'text.secondary', letterSpacing: 1 }}>Category</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', color: 'text.secondary', letterSpacing: 1 }}>Price</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', color: 'text.secondary', letterSpacing: 1 }}>Qty</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', color: 'text.secondary', letterSpacing: 1 }}>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {products.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
-                      <ShoppingBagIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1, display: 'block', mx: 'auto' }} />
-                      <Typography variant="body2" sx={{ color: "text.secondary" }}>No products found</Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : products.map(p => (
-                  <TableRow key={p.id} hover sx={{ '&:last-child td': { border: 0 } }}>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        {p.image && <Avatar src={p.image} variant="rounded" sx={{ width: 36, height: 36 }} />}
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>{p.name}</Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell><Typography variant="body2" sx={{ color: "text.secondary" }}>{p.category || '-'}</Typography></TableCell>
-                    <TableCell><Typography variant="body2" sx={{ color: "text.secondary" }}>Rs. {p.price?.toLocaleString() || '-'}</Typography></TableCell>
-                    <TableCell><Typography variant="body2" sx={{ color: "text.secondary" }}>{p.quantity ?? '-'}</Typography></TableCell>
-                    <TableCell align="right">
-                      <Tooltip title="Edit"><IconButton size="small" onClick={() => openEdit(p)} sx={{ color: 'text.disabled', '&:hover': { color: 'primary.main', bgcolor: 'primary.50' } }}><EditIcon fontSize="small" /></IconButton></Tooltip>
-                      <Tooltip title="Delete"><IconButton size="small" onClick={() => handleDelete(p.id)} sx={{ color: 'text.disabled', '&:hover': { color: 'error.main', bgcolor: 'error.50' } }}><DeleteIcon fontSize="small" /></IconButton></Tooltip>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Product</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Price</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Qty</th>
+                <th className="px-6 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {products.length === 0 ? (
+                <tr><td colSpan={5} className="text-center py-12 text-gray-400"><ShoppingBag className="mx-auto mb-2" size={32} /><p>No products found</p></td></tr>
+              ) : products.map(p => (
+                <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      {p.image && <img src={p.image} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />}
+                      <span className="font-medium text-gray-800">{p.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 text-gray-600">{p.category || '-'}</td>
+                  <td className="px-6 py-4 text-gray-600">Rs. {p.price?.toLocaleString() || '-'}</td>
+                  <td className="px-6 py-4 text-gray-600">{p.quantity ?? '-'}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2 justify-end">
+                      <button onClick={() => openEdit(p)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit size={16} /></button>
+                      <button onClick={() => handleDelete(p.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
         {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
-      </Paper>
+      </div>
 
-      {/* Modal */}
-      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)} maxWidth="xl" fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3, maxHeight: '92vh' } } }}>
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>{editingId ? 'Edit Product' : 'Add Product'}</Typography>
-          <IconButton onClick={() => setIsModalOpen(false)} size="small"><CloseIcon /></IconButton>
-        </DialogTitle>
-        <form onSubmit={handleSubmit}>
-          <DialogContent sx={{ pt: 3 }}>
-            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 4 }}>
-              {/* Left: Basic Fields */}
-              <Box sx={{ width: { lg: '33%' }, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <TextField label="Name (EN) *" size="small" required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} fullWidth />
-                <TextField label="Name (SI)" size="small" value={form.sinhalaName} onChange={e => setForm({ ...form, sinhalaName: e.target.value })} fullWidth />
-                <TextField label="Slug *" size="small" required value={form.slug} onChange={e => setForm({ ...form, slug: e.target.value })} fullWidth />
-                <Autocomplete
-                  options={PREDEFINED_CATEGORIES} value={form.category || null} size="small"
-                  onChange={(_, v) => setForm({ ...form, category: v || '' })}
-                  renderInput={(params) => <TextField {...params} label="Category" />}
-                />
-                <TextField label="Category (SI)" size="small" value={form.categorySinhala} onChange={e => setForm({ ...form, categorySinhala: e.target.value })} fullWidth />
-                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-                  <TextField label="Price (Rs.)" type="number" size="small" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} />
-                  <TextField label="Quantity" type="number" size="small" value={form.quantity} onChange={e => setForm({ ...form, quantity: e.target.value })} />
-                </Box>
-                <Button component="label" variant="outlined" startIcon={<UploadIcon />} size="small" fullWidth
-                  sx={{ textTransform: 'none', borderColor: 'grey.300', color: 'text.secondary', height: 40, justifyContent: 'flex-start', px: 2 }}>
-                  {imageFile ? imageFile.name : 'Product Image...'}
-                  <input type="file" hidden accept="image/*" onChange={e => setImageFile(e.target.files?.[0] || null)} />
-                </Button>
-              </Box>
-              {/* Right: Rich Text Editors side by side */}
-              <Box sx={{ flex: 1, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-                <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, color: "text.secondary" }}>Description (EN)</Typography>
-                  <Box sx={{ minHeight: 350 }}>
-                    <RichTextEditor value={form.description} onChange={v => setForm({ ...form, description: v })} placeholder="Enter product description in English..." />
-                  </Box>
-                </Box>
-                <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, color: "text.secondary" }}>Description (SI)</Typography>
-                  <Box sx={{ minHeight: 350 }}>
-                    <RichTextEditor value={form.sinhalaDescription} onChange={v => setForm({ ...form, sinhalaDescription: v })} placeholder="Enter product description in Sinhala..." />
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
-          </DialogContent>
-          <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid', borderColor: 'divider', gap: 1 }}>
-            <Button onClick={() => setIsModalOpen(false)} variant="outlined"
-              sx={{ textTransform: 'none', borderRadius: 2, flex: 1, borderColor: 'grey.300', color: 'text.secondary' }}>Cancel</Button>
-            <Button type="submit" variant="contained"
-              sx={{ textTransform: 'none', borderRadius: 2, flex: 1, bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' } }}>
-              {editingId ? 'Update' : 'Add Product'}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
-    </Box>
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="bg-white rounded-2xl w-[90vw] max-w-[1400px] relative z-10 shadow-2xl max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-800">{editingId ? 'Edit Product' : 'Add Product'}</h2>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+              <div className="p-6 flex-1 overflow-y-auto">
+                <div className="flex flex-col lg:flex-row gap-8">
+                  
+                  {/* Left Column - Basic Fields */}
+                  <div className="lg:w-1/3 space-y-4">
+                    <div><label className="block text-sm font-medium text-gray-700 mb-1">Name (EN) *</label><input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                    <div><label className="block text-sm font-medium text-gray-700 mb-1">Name (SI)</label><input value={form.sinhalaName} onChange={e => setForm({...form, sinhalaName: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                    <div><label className="block text-sm font-medium text-gray-700 mb-1">Slug *</label><input required value={form.slug} onChange={e => setForm({...form, slug: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                    <div><label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                      <select value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 bg-white">
+                        <option value="">Select Category</option>
+                        {PREDEFINED_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                      </select>
+                    </div>
+                    <div><label className="block text-sm font-medium text-gray-700 mb-1">Category (SI)</label><input value={form.categorySinhala} onChange={e => setForm({...form, categorySinhala: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div><label className="block text-sm font-medium text-gray-700 mb-1">Price (Rs.)</label><input type="number" value={form.price} onChange={e => setForm({...form, price: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                      <div><label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label><input type="number" value={form.quantity} onChange={e => setForm({...form, quantity: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                    </div>
+                    <div><label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                      <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50">
+                        <Upload size={16} className="text-gray-400" />
+                        <span className="text-sm text-gray-500 truncate">{imageFile ? imageFile.name : 'Choose image...'}</span>
+                        <input type="file" accept="image/*" className="hidden" onChange={e => setImageFile(e.target.files?.[0] || null)} />
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Right Column - Rich Text */}
+                  <div className="lg:w-2/3 space-y-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Description (EN)</label>
+                      <div className="h-[250px] mb-12">
+                        <RichTextEditor value={form.description} onChange={value => setForm({...form, description: value})} placeholder="Enter product description in English..." />
+                      </div>
+                    </div>
+                    <div className="pt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Description (SI)</label>
+                      <div className="h-[250px] mb-12">
+                        <RichTextEditor value={form.sinhalaDescription} onChange={value => setForm({...form, sinhalaDescription: value})} placeholder="Enter product description in Sinhala..." />
+                      </div>
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+              
+              {/* Footer Actions */}
+              <div className="p-6 border-t border-gray-100 bg-gray-50 flex gap-3">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-100 bg-white font-medium transition-colors">Cancel</button>
+                <button type="submit" className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">{editingId ? 'Update' : 'Add'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

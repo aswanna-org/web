@@ -1,16 +1,6 @@
 import { useState, useEffect } from 'react';
-import {
-  Box, Button, Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, InputAdornment, Table, TableHead, TableBody, TableRow,
-  TableCell, TableContainer, Paper, IconButton, Typography, CircularProgress,
-  Tooltip, Chip, Switch, FormControlLabel
-} from '@mui/material';
-import {
-  Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
-  Search as SearchIcon, Work as WorkIcon, Close as CloseIcon
-} from '@mui/icons-material';
+import { Plus, Edit, Trash2, X, Search, Briefcase, ToggleLeft, ToggleRight } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
-import RichTextEditor from '../components/RichTextEditor';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -72,123 +62,95 @@ export default function CareerManagement() {
   const filteredJobs = jobs.filter(j => j.title.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Box>
-          <Typography variant="h5" sx={{ fontWeight: 700, color: "text.primary" }}>Career Management</Typography>
-          <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>Manage job openings and applications</Typography>
-        </Box>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={openCreate}
-          sx={{ bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' }, borderRadius: 2, textTransform: 'none', fontWeight: 600 }}>
-          Add Job
-        </Button>
-      </Box>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Career Management</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage job openings and applications</p>
+        </div>
+        <button onClick={openCreate} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+          <Plus size={18} /> Add Job
+        </button>
+      </div>
 
-      {/* Search */}
-      <Paper elevation={0} sx={{ p: 2, border: '1px solid', borderColor: 'grey.100', borderRadius: 3 }}>
-        <TextField size="small" placeholder="Search jobs..." value={search} onChange={e => setSearch(e.target.value)}
-          slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: 'text.disabled', fontSize: 20 }} /></InputAdornment> } }}
-          sx={{ maxWidth: 400, '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
-      </Paper>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="relative max-w-md">
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input type="text" placeholder="Search jobs..." value={search} onChange={e => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" />
+        </div>
+      </div>
 
-      {/* Table */}
-      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'grey.100', borderRadius: 3, overflow: 'hidden' }}>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 10 }}>
-            <CircularProgress sx={{ color: '#16a34a' }} />
-          </Box>
+          <div className="flex justify-center items-center py-20"><div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" /></div>
         ) : (
-          <TableContainer>
-            <Table size="small">
-              <TableHead sx={{ bgcolor: 'grey.50' }}>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', color: 'text.secondary', letterSpacing: 1 }}>Title</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', color: 'text.secondary', letterSpacing: 1 }}>Location</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', color: 'text.secondary', letterSpacing: 1 }}>Status</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', color: 'text.secondary', letterSpacing: 1 }}>Date</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 700, fontSize: '0.7rem', textTransform: 'uppercase', color: 'text.secondary', letterSpacing: 1 }}>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredJobs.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} align="center" sx={{ py: 8 }}>
-                      <WorkIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1, display: 'block', mx: 'auto' }} />
-                      <Typography variant="body2" sx={{ color: "text.secondary" }}>No job openings found</Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : filteredJobs.map(job => (
-                  <TableRow key={job.id} hover sx={{ '&:last-child td': { border: 0 } }}>
-                    <TableCell><Typography variant="body2" sx={{ fontWeight: 500 }}>{job.title}</Typography></TableCell>
-                    <TableCell><Typography variant="body2" sx={{ color: "text.secondary" }}>{job.location}</Typography></TableCell>
-                    <TableCell>
-                      <Chip label={job.isActive ? 'Active' : 'Inactive'} size="small"
-                        sx={{ fontSize: '0.65rem', height: 22, bgcolor: job.isActive ? '#dcfce7' : '#f3f4f6', color: job.isActive ? '#15803d' : '#6b7280', fontWeight: 600 }} />
-                    </TableCell>
-                    <TableCell><Typography variant="body2" sx={{ color: "text.secondary" }}>{new Date(job.createdAt).toLocaleDateString()}</Typography></TableCell>
-                    <TableCell align="right">
-                      <Tooltip title="Edit"><IconButton size="small" onClick={() => openEdit(job)} sx={{ color: 'text.disabled', '&:hover': { color: 'primary.main', bgcolor: 'primary.50' } }}><EditIcon fontSize="small" /></IconButton></Tooltip>
-                      <Tooltip title="Delete"><IconButton size="small" onClick={() => handleDelete(job.id)} sx={{ color: 'text.disabled', '&:hover': { color: 'error.main', bgcolor: 'error.50' } }}><DeleteIcon fontSize="small" /></IconButton></Tooltip>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Title</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="px-6 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filteredJobs.length === 0 ? (
+                <tr><td colSpan={5} className="text-center py-12 text-gray-400"><Briefcase className="mx-auto mb-2" size={32} /><p>No job openings found</p></td></tr>
+              ) : filteredJobs.map(job => (
+                <tr key={job.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 font-medium text-gray-800">{job.title}</td>
+                  <td className="px-6 py-4 text-gray-600">{job.location}</td>
+                  <td className="px-6 py-4">
+                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${job.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{job.isActive ? 'Active' : 'Inactive'}</span>
+                  </td>
+                  <td className="px-6 py-4 text-gray-500">{new Date(job.createdAt).toLocaleDateString()}</td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2 justify-end">
+                      <button onClick={() => openEdit(job)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit size={16} /></button>
+                      <button onClick={() => handleDelete(job.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
         {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
-      </Paper>
+      </div>
 
-      {/* Modal */}
-      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)} maxWidth="xl" fullWidth
-        slotProps={{ paper: { sx: { borderRadius: 3, maxHeight: '92vh', width: '95vw' } } }}>
-        <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1, borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>{editingId ? 'Edit Job' : 'Add New Job'}</Typography>
-          <IconButton onClick={() => setIsModalOpen(false)} size="small"><CloseIcon /></IconButton>
-        </DialogTitle>
-        <form onSubmit={handleSubmit}>
-          <DialogContent sx={{ pt: 3 }}>
-            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', lg: 'row' }, gap: 4 }}>
-              {/* Left: Metadata Fields */}
-              <Box sx={{ width: { lg: '280px' }, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <TextField label="Title (EN) *" size="small" required value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} fullWidth />
-                <TextField label="Title (SI)" size="small" value={form.sinhalaTitle} onChange={e => setForm({ ...form, sinhalaTitle: e.target.value })} fullWidth />
-                <TextField label="Location" size="small" value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} fullWidth />
-                <TextField label="Location (SI)" size="small" value={form.sinhalaLocation} onChange={e => setForm({ ...form, sinhalaLocation: e.target.value })} fullWidth />
-                <FormControlLabel
-                  control={<Switch checked={form.isActive} onChange={e => setForm({ ...form, isActive: e.target.checked })} sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: '#16a34a' }, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#16a34a' } }} />}
-                  label={<Typography variant="body2" sx={{ fontWeight: 500 }}>Active (visible to public)</Typography>}
-                />
-              </Box>
-
-              {/* Right: EN + SI Rich Text Editors side by side */}
-              <Box sx={{ flex: 1, display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-                <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, color: "text.secondary" }}>Description (EN) *</Typography>
-                  <Box sx={{ minHeight: 350 }}>
-                    <RichTextEditor value={form.description} onChange={v => setForm({ ...form, description: v })} placeholder="Write job description in English..." />
-                  </Box>
-                </Box>
-                <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 1, color: "text.secondary" }}>Description (SI)</Typography>
-                  <Box sx={{ minHeight: 350 }}>
-                    <RichTextEditor value={form.sinhalaDescription} onChange={v => setForm({ ...form, sinhalaDescription: v })} placeholder="Write job description in Sinhala..." />
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
-          </DialogContent>
-          <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid', borderColor: 'divider', gap: 1 }}>
-            <Button onClick={() => setIsModalOpen(false)} variant="outlined"
-              sx={{ textTransform: 'none', borderRadius: 2, flex: 1, borderColor: 'grey.300', color: 'text.secondary' }}>Cancel</Button>
-            <Button type="submit" variant="contained"
-              sx={{ textTransform: 'none', borderRadius: 2, flex: 1, bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' } }}>
-              {editingId ? 'Update' : 'Post Job'}
-            </Button>
-          </DialogActions>
-        </form>
-      </Dialog>
-    </Box>
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+          <div className="bg-white rounded-2xl w-full max-w-2xl relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-800">{editingId ? 'Edit Job' : 'Add New Job'}</h2>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X size={20} /></button>
+            </div>
+            <form onSubmit={handleSubmit} className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Title (EN) *</label><input required value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Title (SI)</label><input value={form.sinhalaTitle} onChange={e => setForm({...form, sinhalaTitle: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Location</label><input value={form.location} onChange={e => setForm({...form, location: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+                <div><label className="block text-sm font-medium text-gray-700 mb-1">Location (SI)</label><input value={form.sinhalaLocation} onChange={e => setForm({...form, sinhalaLocation: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+              </div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Description (EN) *</label><textarea required value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={4} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+              <div><label className="block text-sm font-medium text-gray-700 mb-1">Description (SI)</label><textarea value={form.sinhalaDescription} onChange={e => setForm({...form, sinhalaDescription: e.target.value})} rows={4} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+              <div className="flex items-center gap-3">
+                <button type="button" onClick={() => setForm({...form, isActive: !form.isActive})}>
+                  {form.isActive ? <ToggleRight size={28} className="text-green-600" /> : <ToggleLeft size={28} className="text-gray-400" />}
+                </button>
+                <span className="text-sm font-medium text-gray-700">Active (visible to public)</span>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 font-medium transition-colors">Cancel</button>
+                <button type="submit" className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">{editingId ? 'Update' : 'Post Job'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

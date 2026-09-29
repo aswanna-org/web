@@ -1,14 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  Box, Paper, Typography, TextField, InputAdornment, CircularProgress,
-  IconButton, Tooltip, Select, MenuItem, Collapse, Table,
-  TableHead, TableBody, TableRow, TableCell, TableContainer
-} from '@mui/material';
-import {
-  Search as SearchIcon, Delete as DeleteIcon,
-  ShoppingCart as ShoppingCartIcon, ExpandMore as ExpandMoreIcon,
-  ChevronRight as ChevronRightIcon
-} from '@mui/icons-material';
+import { Search, Trash2, ShoppingCart, ChevronDown, ChevronRight } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -20,14 +11,6 @@ interface Order {
 }
 
 const STATUSES = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
-
-const statusColors: Record<string, { bg: string; color: string }> = {
-  PENDING: { bg: '#fef9c3', color: '#a16207' },
-  PROCESSING: { bg: '#dbeafe', color: '#1d4ed8' },
-  SHIPPED: { bg: '#ede9fe', color: '#6d28d9' },
-  DELIVERED: { bg: '#dcfce7', color: '#15803d' },
-  CANCELLED: { bg: '#fee2e2', color: '#b91c1c' },
-};
 
 export default function OrderManagement() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -65,111 +48,88 @@ export default function OrderManagement() {
     fetchOrders(currentPage);
   };
 
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = { PENDING: 'bg-yellow-100 text-yellow-700', PROCESSING: 'bg-blue-100 text-blue-700', SHIPPED: 'bg-purple-100 text-purple-700', DELIVERED: 'bg-green-100 text-green-700', CANCELLED: 'bg-red-100 text-red-700' };
+    return colors[status] || 'bg-gray-100 text-gray-600';
+  };
+
   const filteredOrders = orders.filter(o => o.name.toLowerCase().includes(search.toLowerCase()) || o.mobile.includes(search));
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-      {/* Header */}
-      <Box>
-        <Typography variant="h5" sx={{ fontWeight: 700, color: "text.primary" }}>Order Management</Typography>
-        <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>Manage customer orders</Typography>
-      </Box>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Order Management</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage customer orders</p>
+        </div>
+      </div>
 
-      {/* Search */}
-      <Paper elevation={0} sx={{ p: 2, border: '1px solid', borderColor: 'grey.100', borderRadius: 3 }}>
-        <TextField size="small" placeholder="Search by name or mobile..." value={search} onChange={e => setSearch(e.target.value)}
-          slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon sx={{ color: 'text.disabled', fontSize: 20 }} /></InputAdornment> } }}
-          sx={{ maxWidth: 400, '& .MuiOutlinedInput-root': { borderRadius: 2 } }} />
-      </Paper>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="relative max-w-md">
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input type="text" placeholder="Search by name or mobile..." value={search} onChange={e => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" />
+        </div>
+      </div>
 
-      {/* Orders */}
-      <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'grey.100', borderRadius: 3, overflow: 'hidden' }}>
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', py: 10 }}>
-            <CircularProgress sx={{ color: '#16a34a' }} />
-          </Box>
-        ) : filteredOrders.length === 0 ? (
-          <Box sx={{ textAlign: 'center', py: 8 }}>
-            <ShoppingCartIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1 }} />
-            <Typography variant="body2" sx={{ color: "text.secondary" }}>No orders found</Typography>
-          </Box>
+          <div className="flex justify-center items-center py-20"><div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" /></div>
         ) : (
-          <Box sx={{ divide: 'grey.50' }}>
-            {filteredOrders.map((order, idx) => (
-              <Box key={order.id} sx={{ borderBottom: idx < filteredOrders.length - 1 ? '1px solid' : 'none', borderColor: 'grey.50' }}>
-                {/* Order Row */}
-                <Box sx={{ px: 3, py: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', '&:hover': { bgcolor: 'grey.50' }, transition: 'background 0.15s' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <IconButton size="small" onClick={() => setExpandedId(expandedId === order.id ? null : order.id)} sx={{ color: 'text.disabled' }}>
-                      {expandedId === order.id ? <ExpandMoreIcon fontSize="small" /> : <ChevronRightIcon fontSize="small" />}
-                    </IconButton>
-                    <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{order.name}</Typography>
-                      <Typography variant="caption" sx={{ color: "text.secondary" }}>{order.mobile}{order.email && ` • ${order.email}`}</Typography>
-                      <Typography variant="caption" sx={{ color: "text.disabled", display: "block" }}>{new Date(order.createdAt).toLocaleString()}</Typography>
-                    </Box>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Box sx={{ textAlign: 'right' }}>
-                      <Typography variant="body2" sx={{ fontWeight: 700 }}>Rs. {order.totalAmount?.toLocaleString()}</Typography>
-                      <Typography variant="caption" sx={{ color: "text.secondary" }}>{order.items?.length} item(s)</Typography>
-                    </Box>
-                    <Select
-                      value={order.status} size="small"
-                      onChange={e => handleStatusChange(order.id, e.target.value)}
-                      sx={{
-                        fontSize: '0.7rem', fontWeight: 700, borderRadius: 5, height: 28,
-                        bgcolor: statusColors[order.status]?.bg || '#f3f4f6',
-                        color: statusColors[order.status]?.color || '#6b7280',
-                        '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                        '& .MuiSelect-icon': { color: statusColors[order.status]?.color || '#6b7280', fontSize: 16 },
-                      }}
-                    >
-                      {STATUSES.map(s => <MenuItem key={s} value={s} sx={{ fontSize: '0.7rem', fontWeight: 600 }}>{s}</MenuItem>)}
-                    </Select>
-                    <Tooltip title="Delete">
-                      <IconButton size="small" onClick={() => handleDelete(order.id)} sx={{ color: 'text.disabled', '&:hover': { color: 'error.main', bgcolor: 'error.50' } }}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </Box>
-                </Box>
-
-                {/* Expanded Items */}
-                <Collapse in={expandedId === order.id}>
-                  <Box sx={{ px: 8, pb: 2, bgcolor: 'grey.50' }}>
-                    <Typography variant="caption" sx={{ color: "text.secondary", mb: 1, display: "block" }}>
-                      <strong>Address:</strong> {order.address}
-                    </Typography>
-                    <TableContainer>
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow>
-                            {['Product', 'Price', 'Qty', 'Total'].map(h => (
-                              <TableCell key={h} sx={{ fontWeight: 700, fontSize: '0.65rem', textTransform: 'uppercase', color: 'text.secondary', pb: 0.5 }}>{h}</TableCell>
-                            ))}
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {order.items?.map(item => (
-                            <TableRow key={item.id} sx={{ '&:last-child td': { border: 0 } }}>
-                              <TableCell><Typography variant="body2">{item.productName}</Typography></TableCell>
-                              <TableCell><Typography variant="body2" sx={{ color: "text.secondary" }}>Rs. {item.price?.toLocaleString()}</Typography></TableCell>
-                              <TableCell><Typography variant="body2" sx={{ color: "text.secondary" }}>{item.quantity}</Typography></TableCell>
-                              <TableCell><Typography variant="body2" sx={{ fontWeight: 600 }}>Rs. {(item.price * item.quantity)?.toLocaleString()}</Typography></TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </Box>
-                </Collapse>
-              </Box>
+          <div className="divide-y divide-gray-50">
+            {filteredOrders.length === 0 ? (
+              <div className="text-center py-12 text-gray-400"><ShoppingCart className="mx-auto mb-2" size={32} /><p>No orders found</p></div>
+            ) : filteredOrders.map(order => (
+              <div key={order.id}>
+                <div className="px-6 py-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <button onClick={() => setExpandedId(expandedId === order.id ? null : order.id)} className="p-1 hover:bg-gray-200 rounded transition-colors">
+                        {expandedId === order.id ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                      </button>
+                      <div>
+                        <p className="font-semibold text-gray-800">{order.name}</p>
+                        <p className="text-sm text-gray-500">{order.mobile} {order.email && `• ${order.email}`}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{new Date(order.createdAt).toLocaleString()}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className="font-bold text-gray-800">Rs. {order.totalAmount?.toLocaleString()}</p>
+                        <p className="text-xs text-gray-500">{order.items?.length} item(s)</p>
+                      </div>
+                      <select value={order.status} onChange={e => handleStatusChange(order.id, e.target.value)}
+                        className={`text-xs font-semibold px-3 py-1.5 rounded-full border-0 focus:ring-2 focus:ring-green-500/50 cursor-pointer ${getStatusColor(order.status)}`}>
+                        {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                      <button onClick={() => handleDelete(order.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                    </div>
+                  </div>
+                </div>
+                {expandedId === order.id && (
+                  <div className="px-16 pb-4 bg-gray-50">
+                    <p className="text-sm text-gray-500 mb-2"><strong>Address:</strong> {order.address}</p>
+                    <table className="w-full text-sm">
+                      <thead><tr className="text-xs text-gray-500 border-b border-gray-200"><th className="text-left pb-2">Product</th><th className="text-left pb-2">Price</th><th className="text-left pb-2">Qty</th><th className="text-left pb-2">Total</th></tr></thead>
+                      <tbody>
+                        {order.items?.map(item => (
+                          <tr key={item.id} className="border-b border-gray-100 last:border-0">
+                            <td className="py-2 text-gray-800">{item.productName}</td>
+                            <td className="py-2 text-gray-600">Rs. {item.price?.toLocaleString()}</td>
+                            <td className="py-2 text-gray-600">{item.quantity}</td>
+                            <td className="py-2 font-medium text-gray-800">Rs. {(item.price * item.quantity)?.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
             ))}
-          </Box>
+          </div>
         )}
         {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
-      </Paper>
-    </Box>
+      </div>
+    </div>
   );
 }
