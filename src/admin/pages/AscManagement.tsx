@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import {
   Plus, Edit, Trash2, X, Search, Building2, Phone, Mail,
   MapPin, StickyNote, Users, ExternalLink, CheckCircle2, ChevronRight,
-  Star, Briefcase, AlertCircle, Loader2
+  Star, Briefcase, AlertCircle, Loader2, Upload, User
 } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
+import { compressImageFile } from '../../utils/imageCompressor';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -21,14 +22,32 @@ export interface AscPositionItem {
   };
 }
 
+export interface AscDepartmentItem {
+  id: string;
+  name: string;
+  nameSi?: string | null;
+  code?: string | null;
+  order?: number;
+  createdAt?: string;
+  _count?: {
+    officers?: number;
+    ascOfficers?: number;
+  };
+}
+
 export interface AscOfficerItem {
   id?: string;
   name: string;
   nameSi?: string;
   position: string;
   positionSi?: string;
+  departmentId?: string;
+  departmentName?: string;
+  departmentNameSi?: string;
   phone?: string;
   email?: string;
+  avatar?: string;
+  gender?: 'MALE' | 'FEMALE' | string;
   isPrimary?: boolean;
   order?: number;
   positionId?: string;
@@ -118,6 +137,22 @@ export default function AscManagement() {
   const [isSavingPosition, setIsSavingPosition] = useState(false);
   const [positionError, setPositionError] = useState<string | null>(null);
 
+  // Departments state
+  const [departments, setDepartments] = useState<AscDepartmentItem[]>([]);
+  const [isDepartmentModalOpen, setIsDepartmentModalOpen] = useState(false);
+  const [departmentForm, setDepartmentForm] = useState({
+    name: '',
+    nameSi: '',
+    code: '',
+    order: 0
+  });
+  const [editingDepartmentId, setEditingDepartmentId] = useState<string | null>(null);
+  const [isSavingDepartment, setIsSavingDepartment] = useState(false);
+  const [departmentError, setDepartmentError] = useState<string | null>(null);
+
+  // Avatar upload loading state
+  const [uploadingAvatarIndex, setUploadingAvatarIndex] = useState<number | null>(null);
+
   const token = localStorage.getItem('admin_token');
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
@@ -130,6 +165,18 @@ export default function AscManagement() {
       }
     } catch (err) {
       console.error('Failed to fetch ASC positions:', err);
+    }
+  };
+
+  const fetchDepartments = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/asc-departments`);
+      if (res.ok) {
+        const data = await res.json();
+        setDepartments(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch ASC departments:', err);
     }
   };
 
@@ -162,6 +209,7 @@ export default function AscManagement() {
 
   useEffect(() => {
     fetchPositions();
+    fetchDepartments();
   }, []);
 
   const handleSavePosition = async (e: React.FormEvent) => {
@@ -243,16 +291,136 @@ export default function AscManagement() {
     setPositionError(null);
   };
 
+  // Departments Handlers
+  const handleSaveDepartment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!departmentForm.name.trim()) {
+      setDepartmentError('Department name (English) is required.');
+      return;
+    }
+    setIsSavingDepartment(true);
+    setDepartmentError(null);
+    try {
+      const method = editingDepartmentId ? 'PUT' : 'POST';
+      const url = editingDepartmentId
+        ? `${API_BASE_URL}/asc-departments/${editingDepartmentId}`
+        : `${API_BASE_URL}/asc-departments`;
+
+      const res = await fetch(url, {
+        method,
+        headers,
+        body: JSON.stringify({
+          name: departmentForm.name.trim(),
+          nameSi: departmentForm.nameSi.trim() || null,
+          code: departmentForm.code.trim() || null,
+          order: Number(departmentForm.order) || 0
+        })
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to save department.');
+      }
+
+      await fetchDepartments();
+      setDepartmentForm({ name: '', nameSi: '', code: '', order: departments.length + 1 });
+      setEditingDepartmentId(null);
+    } catch (err: any) {
+      setDepartmentError(err.message || 'Error occurred while saving department.');
+    } finally {
+      setIsSavingDepartment(false);
+    }
+  };
+
+  const handleDeleteDepartment = async (id: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to delete department "${name}"?`)) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/asc-departments/${id}`, {
+        method: 'DELETE',
+        headers
+      });
+      if (res.ok) {
+        await fetchDepartments();
+        if (editingDepartmentId === id) {
+          setEditingDepartmentId(null);
+          setDepartmentForm({ name: '', nameSi: '', code: '', order: 0 });
+        }
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        alert(errData.error || 'Failed to delete department.');
+      }
+    } catch (err) {
+      console.error('Error deleting department:', err);
+    }
+  };
+
+  const handleStartEditDepartment = (dept: AscDepartmentItem) => {
+    setEditingDepartmentId(dept.id);
+    setDepartmentForm({
+      name: dept.name,
+      nameSi: dept.nameSi || '',
+      code: dept.code || '',
+      order: dept.order ?? 0
+    });
+    setDepartmentError(null);
+  };
+
+  const handleCancelEditDepartment = () => {
+    setEditingDepartmentId(null);
+    setDepartmentForm({ name: '', nameSi: '', code: '', order: departments.length + 1 });
+    setDepartmentError(null);
+  };
+
+  // Upload avatar file for officer
+  const handleUploadOfficerAvatar = async (index: number, file: File) => {
+    if (!file) return;
+    setUploadingAvatarIndex(index);
+    try {
+      const optimized = await compressImageFile(file, { maxWidth: 600, maxHeight: 600, quality: 0.85 });
+      const fd = new FormData();
+      fd.append('image', optimized);
+
+      const targetOfficer = form.officers[index];
+      if (targetOfficer?.id) fd.append('officerId', targetOfficer.id);
+
+      const res = await fetch(`${API_BASE_URL}/upload/officer-avatar`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        handleUpdateOfficer(index, 'avatar', data.url);
+      } else {
+        alert('Failed to upload officer avatar.');
+      }
+    } catch (err) {
+      console.error('Error uploading avatar:', err);
+      alert('An error occurred during image upload.');
+    } finally {
+      setUploadingAvatarIndex(null);
+    }
+  };
+
   const extractOfficersList = (asc: ASC): AscOfficerItem[] => {
     if (asc.officers && Array.isArray(asc.officers) && asc.officers.length > 0) {
       return asc.officers.map(o => {
-        const matched = positions.find(
+        const matchedPos = positions.find(
           p => p.id === o.positionId || p.title.toLowerCase() === o.position?.toLowerCase()
+        );
+        const matchedDept = departments.find(
+          d => d.id === o.departmentId || d.name.toLowerCase() === (o.departmentName || '').toLowerCase()
         );
         return {
           ...o,
-          positionId: matched?.id || o.positionId,
-          positionSi: o.positionSi || matched?.titleSi || ''
+          positionId: matchedPos?.id || o.positionId,
+          positionSi: o.positionSi || matchedPos?.titleSi || '',
+          departmentId: matchedDept?.id || o.departmentId,
+          departmentName: o.departmentName || matchedDept?.name || '',
+          departmentNameSi: o.departmentNameSi || matchedDept?.nameSi || '',
+          gender: o.gender || 'MALE',
+          avatar: o.avatar || ''
         };
       });
     }
@@ -272,17 +440,22 @@ export default function AscManagement() {
     // Fallback from main center record if no officers table entries exist yet
     const fallbackList: AscOfficerItem[] = [];
     if (asc.officerInCharge) {
-      const matched = positions.find(
+      const matchedPos = positions.find(
         p => p.title.toLowerCase() === (asc.officerDesignation || '').toLowerCase()
       );
       fallbackList.push({
         name: asc.officerInCharge,
         nameSi: asc.officerInChargeSi || '',
         position: asc.officerDesignation || 'Agrarian Development Officer (ADO)',
-        positionSi: asc.officerDesignationSi || matched?.titleSi || 'ගොවිජන සංවර්ධන නිලධාරී',
-        positionId: matched?.id,
+        positionSi: asc.officerDesignationSi || matchedPos?.titleSi || 'ගොවිජන සංවර්ධන නිලධාරී',
+        positionId: matchedPos?.id,
+        departmentName: departments[0]?.name || 'Department of Agrarian Development (DAD)',
+        departmentNameSi: departments[0]?.nameSi || 'ගොවිජන සංවර්ධන දෙපාර්තමේන්තුව',
+        departmentId: departments[0]?.id,
         phone: asc.mobilePhone || asc.officePhone || '',
         email: asc.email || '',
+        avatar: '',
+        gender: 'MALE',
         isPrimary: true,
         order: 0
       });
@@ -293,16 +466,23 @@ export default function AscManagement() {
 
   const openCreate = () => {
     const primaryPos = positions.find(p => p.code === 'ADO' || p.title.toLowerCase().includes('development officer')) || positions[0];
+    const defaultDept = departments[0];
     setForm({
       ...defaultForm,
       officers: [
         {
           name: '',
+          nameSi: '',
           position: primaryPos?.title || 'Agrarian Development Officer (ADO)',
           positionSi: primaryPos?.titleSi || 'ගොවිජන සංවර්ධන නිලධාරී',
           positionId: primaryPos?.id,
+          departmentId: defaultDept?.id,
+          departmentName: defaultDept?.name || '',
+          departmentNameSi: defaultDept?.nameSi || '',
           phone: '',
           email: '',
+          avatar: '',
+          gender: 'MALE',
           isPrimary: true,
           order: 0
         }
@@ -346,6 +526,7 @@ export default function AscManagement() {
     const primaryPos = positions.find(p => p.code === 'ADO' || p.title.toLowerCase().includes('development officer')) || positions[0];
     const secondaryPos = positions.find(p => p.code === 'AI' || p.title.toLowerCase().includes('instructor')) || positions[1] || positions[0];
     const defaultPos = isPrimary ? primaryPos : secondaryPos;
+    const defaultDept = departments[0];
 
     setForm(prev => ({
       ...prev,
@@ -353,11 +534,17 @@ export default function AscManagement() {
         ...prev.officers,
         {
           name: '',
+          nameSi: '',
           position: defaultPos?.title || (isPrimary ? 'Agrarian Development Officer (ADO)' : 'Agricultural Instructor (AI)'),
           positionSi: defaultPos?.titleSi || (isPrimary ? 'ගොවිජන සංවර්ධන නිලධාරී' : 'කෘෂිකර්ම උපදේශක'),
           positionId: defaultPos?.id,
+          departmentId: defaultDept?.id,
+          departmentName: defaultDept?.name || '',
+          departmentNameSi: defaultDept?.nameSi || '',
           phone: '',
           email: '',
+          avatar: '',
+          gender: 'MALE',
           isPrimary,
           order: prev.officers.length
         }
@@ -476,13 +663,21 @@ export default function AscManagement() {
             className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-3.5 py-2.5 rounded-lg font-medium text-sm shadow-2xs transition-colors cursor-pointer"
           >
             <Briefcase size={17} className="text-emerald-700" />
-            <span>Manage Positions</span>
-            {positions.length > 0 && (
-              <span className="ml-0.5 px-2 py-0.5 text-[11px] font-bold bg-emerald-100 text-emerald-800 rounded-full">
-                {positions.length}
-              </span>
-            )}
+            <span>Positions ({positions.length})</span>
           </button>
+
+          <button
+            onClick={() => {
+              setEditingDepartmentId(null);
+              setDepartmentForm({ name: '', nameSi: '', code: '', order: departments.length + 1 });
+              setIsDepartmentModalOpen(true);
+            }}
+            className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-3.5 py-2.5 rounded-lg font-medium text-sm shadow-2xs transition-colors cursor-pointer"
+          >
+            <Building2 size={17} className="text-emerald-700" />
+            <span>Departments ({departments.length})</span>
+          </button>
+
           <button
             onClick={openCreate}
             className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg font-medium text-sm shadow-sm transition-colors cursor-pointer"
@@ -929,166 +1124,357 @@ export default function AscManagement() {
                     </div>
                   ) : (
                     <div className="space-y-3.5">
-                      {form.officers.map((officer, index) => (
-                        <div
-                          key={index}
-                          className={`p-4 rounded-xl border transition-all ${
-                            officer.isPrimary
-                              ? 'bg-emerald-50/40 border-emerald-200 shadow-2xs'
-                              : 'bg-gray-50/80 border-gray-200 hover:border-gray-300'
-                          }`}
-                        >
-                          {/* Officer Card Header */}
-                          <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-200/60">
-                            <div className="flex items-center gap-2">
-                              <span className={`w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-mono font-bold ${
-                                officer.isPrimary ? 'bg-emerald-700 text-white' : 'bg-gray-200 text-gray-700'
-                              }`}>
-                                {index + 1}
-                              </span>
+                      {form.officers.map((officer, index) => {
+                        const isFemale = officer.gender === 'FEMALE';
+                        const isUploadingThis = uploadingAvatarIndex === index;
 
-                              <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-800 cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={Boolean(officer.isPrimary)}
-                                  onChange={e => handleUpdateOfficer(index, 'isPrimary', e.target.checked)}
-                                  className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 border-gray-300"
-                                />
-                                <span className={officer.isPrimary ? 'text-emerald-800 font-bold flex items-center gap-1' : 'text-gray-600'}>
-                                  {officer.isPrimary ? (
-                                    <>
-                                      <Star size={13} className="text-amber-500 fill-amber-500" />
-                                      Primary Officer In-Charge (ප්‍රධාන නිලධාරී)
-                                    </>
-                                  ) : (
-                                    'Set as Primary / Head Officer'
-                                  )}
+                        return (
+                          <div
+                            key={index}
+                            className={`p-4 sm:p-5 rounded-2xl border transition-all ${
+                              officer.isPrimary
+                                ? 'bg-emerald-50/40 border-emerald-200 shadow-2xs'
+                                : 'bg-gray-50/80 border-gray-200 hover:border-gray-300'
+                            }`}
+                          >
+                            {/* Officer Card Header */}
+                            <div className="flex items-center justify-between mb-4 pb-2.5 border-b border-gray-200/70">
+                              <div className="flex items-center gap-2">
+                                <span className={`w-5 h-5 rounded-full text-[10px] flex items-center justify-center font-mono font-bold ${
+                                  officer.isPrimary ? 'bg-emerald-700 text-white' : 'bg-gray-200 text-gray-700'
+                                }`}>
+                                  {index + 1}
                                 </span>
-                              </label>
-                            </div>
 
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveOfficer(index)}
-                              className="text-gray-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-colors cursor-pointer"
-                              title="Remove Officer"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-
-                          {/* Officer Input Fields */}
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                            <div>
-                              <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                                Officer Name (EN) *
-                              </label>
-                              <input
-                                required
-                                placeholder="e.g. M.S. Perera"
-                                value={officer.name}
-                                onChange={e => handleUpdateOfficer(index, 'name', e.target.value)}
-                                className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                              />
-                            </div>
-
-                            <div>
-                              <div className="flex items-center justify-between mb-1">
-                                <label className="block text-[11px] font-semibold text-gray-700">
-                                  Position / Designation *
+                                <label className="flex items-center gap-1.5 text-xs font-semibold text-gray-800 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={Boolean(officer.isPrimary)}
+                                    onChange={e => handleUpdateOfficer(index, 'isPrimary', e.target.checked)}
+                                    className="w-4 h-4 text-emerald-600 rounded focus:ring-emerald-500 border-gray-300 cursor-pointer"
+                                  />
+                                  <span className={officer.isPrimary ? 'text-emerald-800 font-bold flex items-center gap-1' : 'text-gray-600'}>
+                                    {officer.isPrimary ? (
+                                      <>
+                                        <Star size={13} className="text-amber-500 fill-amber-500" />
+                                        Primary Officer In-Charge (ප්‍රධාන නිලධාරී)
+                                      </>
+                                    ) : (
+                                      'Set as Primary / Head Officer'
+                                    )}
+                                  </span>
                                 </label>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setEditingPositionId(null);
-                                    setPositionForm({ title: '', titleSi: '', code: '', order: positions.length + 1 });
-                                    setIsPositionModalOpen(true);
-                                  }}
-                                  className="text-[10px] text-emerald-700 hover:text-emerald-800 hover:underline font-semibold flex items-center gap-0.5 cursor-pointer"
-                                  title="Add or manage designations"
-                                >
-                                  <Plus size={11} /> New
-                                </button>
                               </div>
-                              <select
-                                required
-                                value={
-                                  officer.positionId ||
-                                  positions.find(p => p.title.toLowerCase() === officer.position?.toLowerCase())?.id ||
-                                  officer.position ||
-                                  ''
-                                }
-                                onChange={e => {
-                                  const val = e.target.value;
-                                  if (val === '__manage__') {
-                                    setEditingPositionId(null);
-                                    setPositionForm({ title: '', titleSi: '', code: '', order: positions.length + 1 });
-                                    setIsPositionModalOpen(true);
-                                    return;
-                                  }
-                                  const selected = positions.find(p => p.id === val);
-                                  if (selected) {
-                                    handleUpdateOfficerMultiple(index, {
-                                      positionId: selected.id,
-                                      position: selected.title,
-                                      positionSi: selected.titleSi || ''
-                                    });
-                                  } else {
-                                    handleUpdateOfficerMultiple(index, {
-                                      position: val,
-                                      positionId: undefined
-                                    });
-                                  }
-                                }}
-                                className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/50 cursor-pointer"
+
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveOfficer(index)}
+                                className="text-gray-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-colors cursor-pointer"
+                                title="Remove Officer"
                               >
-                                <option value="">-- Select Designation --</option>
-                                {positions.map(p => (
-                                  <option key={p.id} value={p.id}>
-                                    {p.title} {p.titleSi ? `(${p.titleSi})` : ''} {p.code ? `[${p.code}]` : ''}
-                                  </option>
-                                ))}
-                                {officer.position &&
-                                  !positions.some(
-                                    p => p.id === officer.positionId || p.title.toLowerCase() === officer.position?.toLowerCase()
-                                  ) && (
-                                    <option value={officer.position}>
-                                      {officer.position} (Custom)
-                                    </option>
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+
+                            {/* Officer Card Content: Left Profile/Avatar & Gender + Right Input Fields */}
+                            <div className="flex flex-col sm:flex-row items-start gap-4">
+                              {/* Avatar & Gender Widget */}
+                              <div className="flex sm:flex-col items-center gap-2.5 shrink-0 self-center sm:self-start bg-white p-2.5 rounded-xl border border-gray-200/80 shadow-2xs">
+                                {/* Avatar / Gender Icon Preview */}
+                                <div className="relative group">
+                                  {officer.avatar ? (
+                                    <img
+                                      src={officer.avatar}
+                                      alt={officer.name || 'Officer'}
+                                      className="w-14 h-14 rounded-full object-cover shadow-2xs border-2 border-emerald-500/50 bg-gray-100"
+                                    />
+                                  ) : (
+                                    <div
+                                      className={`w-14 h-14 rounded-full flex flex-col items-center justify-center text-white shrink-0 shadow-2xs border-2 border-white ring-2 ${
+                                        isFemale
+                                          ? 'ring-pink-300 bg-gradient-to-tr from-pink-500 via-rose-500 to-amber-300'
+                                          : 'ring-emerald-300 bg-gradient-to-tr from-emerald-600 via-teal-600 to-sky-400'
+                                      }`}
+                                      title={isFemale ? 'Female Officer (කාන්තා නිලධාරී)' : 'Male Officer (පුරුෂ නිලධාරී)'}
+                                    >
+                                      <User size={24} />
+                                      <span className="text-[10px] font-black leading-none mt-0.5">
+                                        {isFemale ? '♀' : '♂'}
+                                      </span>
+                                    </div>
                                   )}
-                                <option value="__manage__" className="text-emerald-700 font-bold bg-emerald-50">
-                                  ➕ Manage / Add New Position...
-                                </option>
-                              </select>
-                            </div>
 
-                            <div>
-                              <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                                Phone Number
-                              </label>
-                              <input
-                                placeholder="e.g. 0712345678"
-                                value={officer.phone || ''}
-                                onChange={e => handleUpdateOfficer(index, 'phone', e.target.value)}
-                                className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                              />
-                            </div>
+                                  {isUploadingThis && (
+                                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                                      <Loader2 size={18} className="text-white animate-spin" />
+                                    </div>
+                                  )}
+                                </div>
 
-                            <div>
-                              <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                                Email Address
-                              </label>
-                              <input
-                                type="email"
-                                placeholder="e.g. perera.agri@gmail.com"
-                                value={officer.email || ''}
-                                onChange={e => handleUpdateOfficer(index, 'email', e.target.value)}
-                                className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                              />
+                                {/* Avatar Upload / Remove Buttons */}
+                                <div className="flex flex-col items-center gap-1.5">
+                                  <div className="flex items-center gap-1">
+                                    <label
+                                      className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2 py-1 rounded-md border border-emerald-200 cursor-pointer flex items-center gap-1 transition-colors"
+                                      title="Upload photo"
+                                    >
+                                      <Upload size={10} />
+                                      <span>{officer.avatar ? 'Change' : 'Upload'}</span>
+                                      <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={e => {
+                                          const file = e.target.files?.[0];
+                                          if (file) handleUploadOfficerAvatar(index, file);
+                                          e.target.value = '';
+                                        }}
+                                      />
+                                    </label>
+
+                                    {officer.avatar && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleUpdateOfficer(index, 'avatar', '')}
+                                        className="text-[10px] font-semibold text-red-600 bg-red-50 hover:bg-red-100 px-1.5 py-1 rounded-md border border-red-200 cursor-pointer transition-colors"
+                                        title="Remove photo"
+                                      >
+                                        <X size={10} />
+                                      </button>
+                                    )}
+                                  </div>
+
+                                  {/* Gender Toggle */}
+                                  <div className="flex items-center bg-gray-100 p-0.5 rounded-lg border border-gray-200">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleUpdateOfficer(index, 'gender', 'MALE')}
+                                      className={`px-1.5 py-0.5 text-[10px] font-bold rounded-md transition-all cursor-pointer flex items-center gap-0.5 ${
+                                        !isFemale
+                                          ? 'bg-emerald-600 text-white shadow-2xs'
+                                          : 'text-gray-500 hover:text-gray-800'
+                                      }`}
+                                      title="Male (පුරුෂ)"
+                                    >
+                                      <span>♂</span> Male
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleUpdateOfficer(index, 'gender', 'FEMALE')}
+                                      className={`px-1.5 py-0.5 text-[10px] font-bold rounded-md transition-all cursor-pointer flex items-center gap-0.5 ${
+                                        isFemale
+                                          ? 'bg-pink-600 text-white shadow-2xs'
+                                          : 'text-gray-500 hover:text-gray-800'
+                                      }`}
+                                      title="Female (කාන්තා)"
+                                    >
+                                      <span>♀</span> Female
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Input Fields Grid */}
+                              <div className="flex-1 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                {/* Officer Name EN */}
+                                <div>
+                                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                                    Officer Name (EN) *
+                                  </label>
+                                  <input
+                                    required
+                                    placeholder="e.g. M.S. Perera"
+                                    value={officer.name}
+                                    onChange={e => handleUpdateOfficer(index, 'name', e.target.value)}
+                                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                                  />
+                                </div>
+
+                                {/* Officer Name SI */}
+                                <div>
+                                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                                    Officer Name (Sinhala)
+                                  </label>
+                                  <input
+                                    placeholder="උදා: එම්.එස්. පෙරේරා"
+                                    value={officer.nameSi || ''}
+                                    onChange={e => handleUpdateOfficer(index, 'nameSi', e.target.value)}
+                                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                                  />
+                                </div>
+
+                                {/* Position / Designation Dropdown */}
+                                <div>
+                                  <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-[11px] font-semibold text-gray-700">
+                                      Position / Designation *
+                                    </label>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setEditingPositionId(null);
+                                        setPositionForm({ title: '', titleSi: '', code: '', order: positions.length + 1 });
+                                        setIsPositionModalOpen(true);
+                                      }}
+                                      className="text-[10px] text-emerald-700 hover:text-emerald-800 hover:underline font-semibold flex items-center gap-0.5 cursor-pointer"
+                                      title="Add or manage designations"
+                                    >
+                                      <Plus size={11} /> New
+                                    </button>
+                                  </div>
+                                  <select
+                                    required
+                                    value={
+                                      officer.positionId ||
+                                      positions.find(p => p.title.toLowerCase() === officer.position?.toLowerCase())?.id ||
+                                      officer.position ||
+                                      ''
+                                    }
+                                    onChange={e => {
+                                      const val = e.target.value;
+                                      if (val === '__manage__') {
+                                        setEditingPositionId(null);
+                                        setPositionForm({ title: '', titleSi: '', code: '', order: positions.length + 1 });
+                                        setIsPositionModalOpen(true);
+                                        return;
+                                      }
+                                      const selected = positions.find(p => p.id === val);
+                                      if (selected) {
+                                        handleUpdateOfficerMultiple(index, {
+                                          positionId: selected.id,
+                                          position: selected.title,
+                                          positionSi: selected.titleSi || ''
+                                        });
+                                      } else {
+                                        handleUpdateOfficerMultiple(index, {
+                                          position: val,
+                                          positionId: undefined
+                                        });
+                                      }
+                                    }}
+                                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/50 cursor-pointer"
+                                  >
+                                    <option value="">-- Select Designation --</option>
+                                    {positions.map(p => (
+                                      <option key={p.id} value={p.id}>
+                                        {p.title} {p.titleSi ? `(${p.titleSi})` : ''} {p.code ? `[${p.code}]` : ''}
+                                      </option>
+                                    ))}
+                                    {officer.position &&
+                                      !positions.some(
+                                        p => p.id === officer.positionId || p.title.toLowerCase() === officer.position?.toLowerCase()
+                                      ) && (
+                                        <option value={officer.position}>
+                                          {officer.position} (Custom)
+                                        </option>
+                                      )}
+                                    <option value="__manage__" className="text-emerald-700 font-bold bg-emerald-50">
+                                      ➕ Manage / Add New Position...
+                                    </option>
+                                  </select>
+                                </div>
+
+                                {/* Department / Division Dropdown */}
+                                <div>
+                                  <div className="flex items-center justify-between mb-1">
+                                    <label className="block text-[11px] font-semibold text-gray-700">
+                                      Department / Division
+                                    </label>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setEditingDepartmentId(null);
+                                        setDepartmentForm({ name: '', nameSi: '', code: '', order: departments.length + 1 });
+                                        setIsDepartmentModalOpen(true);
+                                      }}
+                                      className="text-[10px] text-emerald-700 hover:text-emerald-800 hover:underline font-semibold flex items-center gap-0.5 cursor-pointer"
+                                      title="Add or manage departments"
+                                    >
+                                      <Plus size={11} /> New
+                                    </button>
+                                  </div>
+                                  <select
+                                    value={
+                                      officer.departmentId ||
+                                      departments.find(d => d.name.toLowerCase() === (officer.departmentName || '').toLowerCase())?.id ||
+                                      officer.departmentName ||
+                                      ''
+                                    }
+                                    onChange={e => {
+                                      const val = e.target.value;
+                                      if (val === '__manage__') {
+                                        setEditingDepartmentId(null);
+                                        setDepartmentForm({ name: '', nameSi: '', code: '', order: departments.length + 1 });
+                                        setIsDepartmentModalOpen(true);
+                                        return;
+                                      }
+                                      const selected = departments.find(d => d.id === val);
+                                      if (selected) {
+                                        handleUpdateOfficerMultiple(index, {
+                                          departmentId: selected.id,
+                                          departmentName: selected.name,
+                                          departmentNameSi: selected.nameSi || ''
+                                        });
+                                      } else {
+                                        handleUpdateOfficerMultiple(index, {
+                                          departmentName: val,
+                                          departmentId: undefined
+                                        });
+                                      }
+                                    }}
+                                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/50 cursor-pointer"
+                                  >
+                                    <option value="">-- Select Department --</option>
+                                    {departments.map(d => (
+                                      <option key={d.id} value={d.id}>
+                                        {d.name} {d.nameSi ? `(${d.nameSi})` : ''} {d.code ? `[${d.code}]` : ''}
+                                      </option>
+                                    ))}
+                                    {officer.departmentName &&
+                                      !departments.some(
+                                        d => d.id === officer.departmentId || d.name.toLowerCase() === (officer.departmentName || '').toLowerCase()
+                                      ) && (
+                                        <option value={officer.departmentName}>
+                                          {officer.departmentName} (Custom)
+                                        </option>
+                                      )}
+                                    <option value="__manage__" className="text-emerald-700 font-bold bg-emerald-50">
+                                      ➕ Manage / Add New Department...
+                                    </option>
+                                  </select>
+                                </div>
+
+                                {/* Phone Number */}
+                                <div>
+                                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                                    Phone Number
+                                  </label>
+                                  <input
+                                    placeholder="e.g. 0712345678"
+                                    value={officer.phone || ''}
+                                    onChange={e => handleUpdateOfficer(index, 'phone', e.target.value)}
+                                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                                  />
+                                </div>
+
+                                {/* Email Address */}
+                                <div>
+                                  <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                                    Email Address
+                                  </label>
+                                  <input
+                                    type="email"
+                                    placeholder="e.g. perera.agri@gmail.com"
+                                    value={officer.email || ''}
+                                    onChange={e => handleUpdateOfficer(index, 'email', e.target.value)}
+                                    className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                                  />
+                                </div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
 
                       <button
                         type="button"
@@ -1441,6 +1827,231 @@ export default function AscManagement() {
                   setIsPositionModalOpen(false);
                   setEditingPositionId(null);
                   setPositionError(null);
+                }}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ── MANAGE ASC DEPARTMENTS MODAL ── */}
+      {isDepartmentModalOpen && (
+        <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-2xs">
+                  <Building2 size={20} />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-gray-900">Manage ASC Departments</h2>
+                  <p className="text-xs text-gray-500">
+                    Add, edit, and organize officer departments (දෙපාර්තමේන්තු කළමනාකරණය)
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDepartmentModalOpen(false);
+                  setEditingDepartmentId(null);
+                  setDepartmentError(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 p-2 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 overflow-y-auto space-y-6 flex-1">
+              {/* Add / Edit Form Card */}
+              <form onSubmit={handleSaveDepartment} className="p-4 bg-emerald-50/30 rounded-xl border border-emerald-100 space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b border-emerald-100/60">
+                  <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+                    <Plus size={14} className="text-emerald-600" />
+                    {editingDepartmentId ? 'Edit Department' : 'Add New Department'}
+                  </span>
+                  {editingDepartmentId && (
+                    <button
+                      type="button"
+                      onClick={handleCancelEditDepartment}
+                      className="text-[11px] text-gray-500 hover:text-gray-700 underline font-medium cursor-pointer"
+                    >
+                      Cancel Edit
+                    </button>
+                  )}
+                </div>
+
+                {departmentError && (
+                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg flex items-center gap-2">
+                    <AlertCircle size={15} className="shrink-0" />
+                    <span>{departmentError}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Department Name (English) *
+                    </label>
+                    <input
+                      required
+                      placeholder="e.g. Department of Agrarian Development (DAD)"
+                      value={departmentForm.name}
+                      onChange={e => setDepartmentForm({ ...departmentForm, name: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Department Name (Sinhala)
+                    </label>
+                    <input
+                      placeholder="උදා: ගොවිජන සංවර්ධන දෙපාර්තමේන්තුව"
+                      value={departmentForm.nameSi}
+                      onChange={e => setDepartmentForm({ ...departmentForm, nameSi: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Short Code / Acronym
+                    </label>
+                    <input
+                      placeholder="e.g. DAD, DOA, DEA"
+                      value={departmentForm.code}
+                      onChange={e => setDepartmentForm({ ...departmentForm, code: e.target.value.toUpperCase() })}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm uppercase font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Display Order
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={departmentForm.order}
+                      onChange={e => setDepartmentForm({ ...departmentForm, order: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-1">
+                  {editingDepartmentId && (
+                    <button
+                      type="button"
+                      onClick={handleCancelEditDepartment}
+                      className="px-3 py-1.5 text-xs text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={isSavingDepartment}
+                    className="px-4 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    {isSavingDepartment ? (
+                      <>
+                        <Loader2 size={13} className="animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus size={14} />
+                        <span>{editingDepartmentId ? 'Update Department' : 'Save Department'}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              {/* Departments List */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between pb-1">
+                  <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Existing Departments ({departments.length})
+                  </h3>
+                </div>
+
+                {departments.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    No departments added yet. Use the form above to create departments.
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-100 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs max-h-64 overflow-y-auto">
+                    {departments.map(dept => (
+                      <div
+                        key={dept.id}
+                        className={`p-3.5 flex items-center justify-between gap-3 hover:bg-gray-50/70 transition-colors ${
+                          editingDepartmentId === dept.id ? 'bg-emerald-50/60 ring-1 ring-emerald-300' : ''
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="w-6 h-6 rounded-md bg-gray-100 text-gray-600 text-[11px] font-bold font-mono flex items-center justify-center shrink-0">
+                            {dept.order ?? 0}
+                          </span>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs font-bold text-gray-900 truncate">
+                                {dept.name}
+                              </span>
+                              {dept.code && (
+                                <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 rounded">
+                                  {dept.code}
+                                </span>
+                              )}
+                            </div>
+                            {dept.nameSi && (
+                              <p className="text-[11px] text-gray-500 mt-0.5 truncate">
+                                {dept.nameSi}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleStartEditDepartment(dept)}
+                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                            title="Edit"
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteDepartment(dept.id, dept.name)}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                            title="Delete"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDepartmentModalOpen(false);
+                  setEditingDepartmentId(null);
+                  setDepartmentError(null);
                 }}
                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
               >

@@ -26,6 +26,8 @@ interface AscOfficer {
   nameSi?: string | null;
   position: string;
   positionSi?: string | null;
+  departmentName?: string | null;
+  departmentNameSi?: string | null;
   phone?: string | null;
   email?: string | null;
   avatar?: string | null;
@@ -533,9 +535,16 @@ export default function GovijanaSewaDetail() {
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-gray-600 font-normal mt-0.5 truncate">
-                              {offPosition}
-                            </p>
+                            <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                              <p className="text-xs text-gray-600 font-normal truncate">
+                                {offPosition}
+                              </p>
+                              {(officer.departmentNameSi || officer.departmentName) && (
+                                <span className="text-[10px] font-medium px-1.5 py-0.5 bg-emerald-50 text-emerald-800 rounded border border-emerald-200">
+                                  {isSinhala ? (officer.departmentNameSi || officer.departmentName) : (officer.departmentName || officer.departmentNameSi)}
+                                </span>
+                              )}
+                            </div>
                             {officer.email && (
                               <a
                                 href={`mailto:${officer.email}`}
