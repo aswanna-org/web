@@ -7,6 +7,7 @@ import PromoBanner from '../../components/public/PromoBanner';
 import GovijanaSewaPromo from '../../components/public/GovijanaSewaPromo';
 import NewsSection from '../../components/public/NewsSection';
 import BlogsSection from '../../components/public/BlogsSection';
+import SmarterGrowthSection from '../../components/public/SmarterGrowthSection';
 import Footer from '../../components/public/Footer';
 import useScrollReveal from '../../utils/useScrollReveal';
 
@@ -25,6 +26,7 @@ export default function Home() {
         <NewsSection />
         <PromoBanner />
         <BlogsSection />
+        <SmarterGrowthSection />
         <Footer />
       </main>
     </div>
