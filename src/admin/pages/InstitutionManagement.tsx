@@ -782,15 +782,15 @@ export default function InstitutionManagement() {
       fetchInstitutions();
     } catch (err: any) {
       console.error('Save error:', err);
-      setValidationError(err.message || 'දත්ත සුරැකීමේදී දෝෂයක් සිදුවිය.');
+      setValidationError(err.message || 'An error occurred while saving institution data.');
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDelete = async (id: string, name?: string | null) => {
-    const displayName = name || 'මෙම ආයතනය';
-    if (!window.confirm(`ඔබට "${displayName}" ආයතනය මකා දැමීමට අවශ්‍ය බව සහතිකද?`)) return;
+    const displayName = name || 'this institution';
+    if (!window.confirm(`Are you sure you want to delete "${displayName}"?`)) return;
 
     try {
       const res = await fetch(`${API_BASE_URL}/institutions/${activeTab}/${id}`, {
@@ -800,7 +800,7 @@ export default function InstitutionManagement() {
       fetchInstitutions();
     } catch (err) {
       console.error('Delete error:', err);
-      alert('ආයතනය මකා දැමීම අසාර්ථක විය.');
+      alert('Failed to delete institution.');
     }
   };
 
@@ -854,10 +854,10 @@ export default function InstitutionManagement() {
     const docItem: FormDocument = {
       id: tempId,
       tempId,
-      name: docNameSi || docNameEn || 'නිල ලේඛනය',
+      name: docNameEn || docNameSi || 'Official Document',
       nameSi: docNameSi || docNameEn,
       nameEn: docNameEn || docNameSi,
-      category: newDoc.categorySi || newDoc.categoryEn || 'අයදුම්පත්',
+      category: newDoc.categoryEn || newDoc.categorySi || 'Applications',
       categorySi: newDoc.categorySi || 'අයදුම්පත්',
       categoryEn: newDoc.categoryEn || 'Applications',
       year: newDoc.year || '2026',
@@ -880,31 +880,31 @@ export default function InstitutionManagement() {
 
   // Clean Navigation Structure
   const SECTIONS = [
-    { id: 1, title: 'මූලික විස්තර', subtitle: 'General & Classification', icon: Landmark, count: null },
-    { id: 2, title: 'සම්බන්ධතා & ලිපිනය', subtitle: 'Contact & Addresses', icon: Phone, count: null },
-    { id: 3, title: 'හැඳින්වීම', subtitle: 'Descriptions', icon: FileText, count: null },
+    { id: 1, title: 'Basic Info', subtitle: 'General & Classification', icon: Landmark, count: null },
+    { id: 2, title: 'Contact & Address', subtitle: 'Phone, Email & Hours', icon: Phone, count: null },
+    { id: 3, title: 'Overview & Details', subtitle: 'Short & Full Descriptions', icon: FileText, count: null },
     {
       id: 4,
-      title: form.sector === 'gov' ? 'සේවාවන්' : form.sector === 'pvt' ? 'නිෂ්පාදන & සේවා' : 'මැදිහත්වීම්',
+      title: form.sector === 'gov' ? 'Services' : form.sector === 'pvt' ? 'Products & Services' : 'Interventions',
       subtitle: 'Mandates & Services',
       icon: Layers,
       count: form.services.length
     },
     {
       id: 5,
-      title: form.sector === 'gov' ? 'ප්‍රාදේශීය මධ්‍යස්ථාන' : form.sector === 'pvt' ? 'නියෝජිත ශාඛා' : 'ව්‍යාපෘති කලාප',
+      title: form.sector === 'gov' ? 'Regional Centers' : form.sector === 'pvt' ? 'Dealer Outlets' : 'Project Stations',
       subtitle: 'Regional Centers',
       icon: MapPin,
       count: form.regionalCenters.length
     },
     {
       id: 6,
-      title: form.sector === 'gov' ? 'PDF ලේඛන' : form.sector === 'pvt' ? 'නාමාවලි' : 'වාර්තා & Briefs',
+      title: form.sector === 'gov' ? 'PDF Documents' : form.sector === 'pvt' ? 'Catalogues' : 'Reports & Publications',
       subtitle: 'Documents & Files',
       icon: FileUp,
       count: form.documents.length
     },
-    { id: 7, title: 'ලාංඡනය & Media', subtitle: 'Logo & Social Links', icon: Globe, count: null }
+    { id: 7, title: 'Logo & Media', subtitle: 'Logo & Social Links', icon: Globe, count: null }
   ];
 
   return (
@@ -1138,17 +1138,17 @@ export default function InstitutionManagement() {
             <div className="px-6 py-4 border-b border-zinc-200 flex items-center justify-between shrink-0 bg-white">
               <div>
                 <div className="flex items-center gap-2 text-xs text-zinc-400 mb-0.5">
-                  <span>ආයතන කළමනාකරණය</span>
+                  <span>Institution Management</span>
                   <span>/</span>
                   <span className="text-emerald-700 font-medium">
-                    {editingId ? 'සංස්කරණය (Edit)' : 'නව ලියාපදිංචිය (New Entry)'}
+                    {editingId ? 'Edit Institution' : 'New Registration'}
                   </span>
                 </div>
                 <h2 className="text-base font-semibold text-zinc-900 tracking-tight flex items-center gap-2">
-                  <span>{editingId ? (form.nameSi || form.nameEn || 'ආයතන තොරතුරු සංස්කරණය') : 'නව ආයතනයක් එක් කිරීම'}</span>
-                  <span className="text-xs px-2 py-0.5 bg-emerald-50 text-emerald-700 font-normal rounded-full border border-emerald-200 flex items-center gap-1">
-                    <Languages className="w-3 h-3" />
-                    <span>සිංහල / English</span>
+                  <span>{editingId ? (form.nameEn || form.nameSi || 'Edit Institution Details') : 'Add New Institution'}</span>
+                  <span className="text-xs px-2.5 py-0.5 bg-emerald-50 text-emerald-700 font-medium rounded-full border border-emerald-200 flex items-center gap-1">
+                    <Building2 className="w-3 h-3" />
+                    <span>{form.sector === 'gov' ? 'Government' : form.sector === 'pvt' ? 'Private Sector' : 'International'}</span>
                   </span>
                 </h2>
               </div>
@@ -1158,14 +1158,14 @@ export default function InstitutionManagement() {
                 {!editingId && restoredDraftTime && (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
                     <Clock className="w-3 h-3 text-emerald-600" />
-                    <span>කෙටුම්පත ප්‍රතිසාධනය විය</span>
+                    <span>Draft Restored</span>
                   </span>
                 )}
 
                 <button
                   onClick={() => setIsModalOpen(false)}
                   className="p-1.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg transition-colors cursor-pointer"
-                  title="වසන්න (Esc)"
+                  title="Close (Esc)"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -1179,7 +1179,7 @@ export default function InstitutionManagement() {
               <div className="w-72 border-r border-zinc-200 bg-zinc-50/60 p-3.5 flex flex-col justify-between shrink-0 overflow-y-auto hidden sm:flex">
                 <div className="space-y-1">
                   <div className="px-3 py-2 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
-                    පෝරමයේ අංශ (Sections)
+                    Form Sections
                   </div>
                   {SECTIONS.map((sec) => {
                     const Icon = sec.icon;
@@ -1215,12 +1215,12 @@ export default function InstitutionManagement() {
                 {!editingId && restoredDraftTime && (
                   <div className="p-3 bg-zinc-100/80 rounded-xl border border-zinc-200 text-[11px] text-zinc-600 space-y-2">
                     <p className="leading-tight text-zinc-500">
-                      ඔබේ පෙර දත්ත ස්වයංක්‍රීයව සුරැකී ඇත.
+                      Your draft data has been automatically saved.
                     </p>
                     <button
                       type="button"
                       onClick={() => {
-                        if (window.confirm('සුරකින ලද කෙටුම්පත ඉවත් කිරීමට අවශ්‍යද?')) {
+                        if (window.confirm('Are you sure you want to discard the saved draft?')) {
                           clearDraft(form.sector);
                           setForm({ ...defaultFormData, sector: activeTab });
                           setRestoredDraftTime(null);
@@ -1229,7 +1229,7 @@ export default function InstitutionManagement() {
                       className="text-zinc-800 hover:text-red-600 font-medium flex items-center gap-1 hover:underline cursor-pointer"
                     >
                       <RotateCcw className="w-3 h-3" />
-                      <span>කෙටුම්පත ඉවත් කරන්න</span>
+                      <span>Discard Draft</span>
                     </button>
                   </div>
                 )}
@@ -1254,7 +1254,7 @@ export default function InstitutionManagement() {
                 {/* Mobile Section Dropdown */}
                 <div className="sm:hidden mb-6">
                   <label className="block text-xs font-semibold text-zinc-700 mb-1">
-                    අංශය තෝරන්න (Select Section)
+                    Select Section
                   </label>
                   <select
                     value={activeSection}
@@ -1278,17 +1278,17 @@ export default function InstitutionManagement() {
                     <div className="space-y-6 animate-in fade-in duration-100">
                       <div>
                         <h3 className="text-sm font-semibold text-zinc-900">
-                          මූලික ආයතනික වර්ගීකරණය සහ නම් (General & Classification)
+                          General Information & Classification
                         </h3>
                         <p className="text-xs text-zinc-500 mt-0.5">
-                          සිංහල හෝ ඉංග්‍රීසි භාෂාවලින් තොරතුරු ඇතුළත් කළ හැක. කිසිඳු ක්ෂේත්‍රයක් අනිවාර්ය නොවේ.
+                          Select the institution sector and specify bilingual naming and classification.
                         </p>
                       </div>
 
                       {/* Sector Switcher */}
                       <div>
                         <label className="block text-xs font-medium text-zinc-700 mb-1.5">
-                          ආයතන අංශය (Sector)
+                          Institution Sector
                         </label>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                           <button
@@ -1302,8 +1302,8 @@ export default function InstitutionManagement() {
                           >
                             <Landmark className="w-4 h-4 shrink-0" />
                             <div>
-                              <p className="text-xs font-medium">රාජ්‍ය අංශය</p>
-                              <p className={`text-[10px] ${form.sector === 'gov' ? 'text-emerald-100' : 'text-zinc-400'}`}>Government</p>
+                              <p className="text-xs font-medium">Government Sector</p>
+                              <p className={`text-[10px] ${form.sector === 'gov' ? 'text-emerald-100' : 'text-zinc-400'}`}>Ministries & Depts</p>
                             </div>
                           </button>
 
@@ -1318,8 +1318,8 @@ export default function InstitutionManagement() {
                           >
                             <Building2 className="w-4 h-4 shrink-0" />
                             <div>
-                              <p className="text-xs font-medium">පුද්ගලික අංශය</p>
-                              <p className={`text-[10px] ${form.sector === 'pvt' ? 'text-emerald-100' : 'text-zinc-400'}`}>Private Company</p>
+                              <p className="text-xs font-medium">Private Sector</p>
+                              <p className={`text-[10px] ${form.sector === 'pvt' ? 'text-emerald-100' : 'text-zinc-400'}`}>Agri Companies & Suppliers</p>
                             </div>
                           </button>
 
@@ -1334,8 +1334,8 @@ export default function InstitutionManagement() {
                           >
                             <Globe2 className="w-4 h-4 shrink-0" />
                             <div>
-                              <p className="text-xs font-medium">ජාත්‍යන්තර සංවිධාන</p>
-                              <p className={`text-[10px] ${form.sector === 'intl' ? 'text-emerald-100' : 'text-zinc-400'}`}>International Bodies</p>
+                              <p className="text-xs font-medium">International Bodies</p>
+                              <p className={`text-[10px] ${form.sector === 'intl' ? 'text-emerald-100' : 'text-zinc-400'}`}>UN & Global Agencies</p>
                             </div>
                           </button>
                         </div>
@@ -1348,7 +1348,7 @@ export default function InstitutionManagement() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div>
                                 <label className="block text-xs font-medium text-zinc-700 mb-1">
-                                  ආයතන වර්ගය (සිංහලෙන්)
+                                  Institution Type (Sinhala)
                                 </label>
                                 <select
                                   value={form.institutionTypeSi}
@@ -1364,7 +1364,7 @@ export default function InstitutionManagement() {
                                   }}
                                   className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 cursor-pointer"
                                 >
-                                  <option value="">-- වර්ගය තෝරන්න (Select Type) --</option>
+                                  <option value="">-- Select Type --</option>
                                   {form.institutionTypeSi && !GOV_INSTITUTION_TYPES.some((t) => t.si === form.institutionTypeSi) && (
                                     <option value={form.institutionTypeSi}>{form.institutionTypeSi}</option>
                                   )}
@@ -1399,7 +1399,7 @@ export default function InstitutionManagement() {
                                   )}
                                   {GOV_INSTITUTION_TYPES.map((t) => (
                                     <option key={t.en} value={t.en}>
-                                      {t.en} ({t.si})
+                                      {t.en}
                                     </option>
                                   ))}
                                 </select>
@@ -1409,13 +1409,13 @@ export default function InstitutionManagement() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div>
                                 <label className="block text-xs font-medium text-zinc-700 mb-1">
-                                  අයත් අමාත්‍යාංශය (සිංහලෙන්)
+                                  Ministry (Sinhala)
                                 </label>
                                 <input
                                   type="text"
                                   value={form.ministrySi}
                                   onChange={(e) => setForm({ ...form, ministrySi: e.target.value, ministry: e.target.value })}
-                                  placeholder="උදා: කෘෂිකර්ම, පශු සම්පත්, ඉඩම් සහ වාරිමාර්ග අමාත්‍යාංශය"
+                                  placeholder="e.g. කෘෂිකර්ම, පශු සම්පත්, ඉඩම් සහ වාරිමාර්ග අමාත්‍යාංශය"
                                   className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
                                 />
                               </div>
@@ -1440,13 +1440,13 @@ export default function InstitutionManagement() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div>
                                 <label className="block text-xs font-medium text-zinc-700 mb-1">
-                                  සමාගම් වර්ගය (සිංහලෙන්)
+                                  Entity Type (Sinhala)
                                 </label>
                                 <input
                                   type="text"
                                   value={form.legalEntityTypeSi}
                                   onChange={(e) => setForm({ ...form, legalEntityTypeSi: e.target.value, legalEntityType: e.target.value })}
-                                  placeholder="උදා: සීමාසහිත පුද්ගලික සමාගම (Pvt Ltd)"
+                                  placeholder="e.g. සීමාසහිත පුද්ගලික සමාගම (Pvt Ltd)"
                                   className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
                                 />
                               </div>
@@ -1467,13 +1467,13 @@ export default function InstitutionManagement() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div>
                                 <label className="block text-xs font-medium text-zinc-700 mb-1">
-                                  මව් සමාගම / සමූහය (සිංහලෙන්)
+                                  Parent Conglomerate (Sinhala)
                                 </label>
                                 <input
                                   type="text"
                                   value={form.parentConglomerateSi}
                                   onChange={(e) => setForm({ ...form, parentConglomerateSi: e.target.value, parentConglomerate: e.target.value })}
-                                  placeholder="උදා: හේලීස් සමූහය / CIC Holdings"
+                                  placeholder="e.g. හේලීස් සමූහය / CIC Holdings"
                                   className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
                                 />
                               </div>
@@ -1498,7 +1498,7 @@ export default function InstitutionManagement() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div>
                                 <label className="block text-xs font-medium text-zinc-700 mb-1">
-                                  නියෝජිතායතන වර්ගය (සිංහලෙන්)
+                                  Agency Category (Sinhala)
                                 </label>
                                 <select
                                   value={form.agencyCategorySi}
@@ -1514,7 +1514,7 @@ export default function InstitutionManagement() {
                                   }}
                                   className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900 cursor-pointer"
                                 >
-                                  <option value="">-- වර්ගය තෝරන්න (Select Category) --</option>
+                                  <option value="">-- Select Category --</option>
                                   {form.agencyCategorySi && !INTL_AGENCY_CATEGORIES.some((t) => t.si === form.agencyCategorySi) && (
                                     <option value={form.agencyCategorySi}>{form.agencyCategorySi}</option>
                                   )}
@@ -1549,7 +1549,7 @@ export default function InstitutionManagement() {
                                   )}
                                   {INTL_AGENCY_CATEGORIES.map((t) => (
                                     <option key={t.en} value={t.en}>
-                                      {t.en} ({t.si})
+                                      {t.en}
                                     </option>
                                   ))}
                                 </select>
@@ -1559,13 +1559,13 @@ export default function InstitutionManagement() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div>
                                 <label className="block text-xs font-medium text-zinc-700 mb-1">
-                                  ගෝලීය මූලස්ථානය (සිංහලෙන්)
+                                  Global Headquarters (Sinhala)
                                 </label>
                                 <input
                                   type="text"
                                   value={form.globalHQSi}
                                   onChange={(e) => setForm({ ...form, globalHQSi: e.target.value, globalHQ: e.target.value })}
-                                  placeholder="උදා: රෝමය, ඉතාලිය"
+                                  placeholder="e.g. රෝමය, ඉතාලිය"
                                   className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
                                 />
                               </div>
@@ -1602,13 +1602,13 @@ export default function InstitutionManagement() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                               <div>
                                 <label className="block text-xs font-medium text-zinc-700 mb-1">
-                                  විෂය පථය (සිංහලෙන්)
+                                  Thematic Scope (Sinhala)
                                 </label>
                                 <input
                                   type="text"
                                   value={form.thematicScopeSi}
                                   onChange={(e) => setForm({ ...form, thematicScopeSi: e.target.value, thematicScope: e.target.value })}
-                                  placeholder="උදා: ආහාර සුරක්ෂිතතාව සහ පෝෂණය"
+                                  placeholder="e.g. ආහාර සුරක්ෂිතතාව සහ පෝෂණය"
                                   className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
                                 />
                               </div>
@@ -1633,7 +1633,7 @@ export default function InstitutionManagement() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-medium text-zinc-700 mb-1">
-                            ආයතනයේ නම (සිංහලෙන්)
+                            Institution Name (Sinhala)
                           </label>
                           <input
                             type="text"
@@ -1646,14 +1646,14 @@ export default function InstitutionManagement() {
                                 setForm({ ...form, nameSi: newName });
                               }
                             }}
-                            placeholder="උදා: ගොවිජන සංවර්ධන දෙපාර්තමේන්තුව"
+                            placeholder="e.g. ගොවිජන සංවර්ධන දෙපාර්තමේන්තුව"
                             className="w-full p-2.5 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
                           />
                         </div>
 
                         <div>
                           <label className="block text-xs font-medium text-zinc-700 mb-1">
-                            Institution Name (in English)
+                            Institution Name (English)
                           </label>
                           <input
                             type="text"
@@ -1676,20 +1676,20 @@ export default function InstitutionManagement() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-medium text-zinc-700 mb-1">
-                            ලාංඡන කෙටි පාඨය (සිංහලෙන්)
+                            Badge / Acronym (Sinhala)
                           </label>
                           <input
                             type="text"
                             value={form.badgeTextSi}
                             onChange={(e) => setForm({ ...form, badgeTextSi: e.target.value, badgeText: e.target.value })}
-                            placeholder="උදා: ජාතික කෘෂිකාර්මික අධිකාරිය"
+                            placeholder="e.g. ජාතික කෘෂිකාර්මික අධිකාරිය"
                             className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
                           />
                         </div>
 
                         <div>
                           <label className="block text-xs font-medium text-zinc-700 mb-1">
-                            Badge Text (English)
+                            Badge / Acronym (English)
                           </label>
                           <input
                             type="text"
@@ -1706,7 +1706,7 @@ export default function InstitutionManagement() {
                         <div className="sm:col-span-2">
                           <div className="flex items-center justify-between mb-1">
                             <label className="block text-xs font-medium text-zinc-700">
-                              URL හැඳුනුම්කාරකය (Slug)
+                              URL Slug
                             </label>
                             {(form.nameEn || form.nameSi) && (
                               <button
@@ -1732,7 +1732,7 @@ export default function InstitutionManagement() {
 
                         <div>
                           <label className="block text-xs font-medium text-zinc-700 mb-1">
-                            පිළිවෙල (Display Order)
+                            Display Order
                           </label>
                           <input
                             type="number"
@@ -1752,17 +1752,17 @@ export default function InstitutionManagement() {
                     <div className="space-y-6 animate-in fade-in duration-100">
                       <div>
                         <h3 className="text-sm font-semibold text-zinc-900">
-                          සම්බන්ධතා සහ ලිපින තොරතුරු (Contact & Addresses)
+                          Contact Information & Addresses
                         </h3>
                         <p className="text-xs text-zinc-500 mt-0.5">
-                          දුරකථන, විද්‍යුත් ලිපින සහ සිංහල/ඉංග්‍රීසි ලිපින ඇතුළත් කරන්න.
+                          Configure telephone, hotline, email, office working hours, and addresses.
                         </p>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div>
                           <label className="block text-xs font-medium text-zinc-700 mb-1">
-                            ප්‍රධාන දුරකථන අංකය (Phone)
+                            Primary Phone Number
                           </label>
                           <div className="relative">
                             <Phone className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -1778,20 +1778,20 @@ export default function InstitutionManagement() {
 
                         <div>
                           <label className="block text-xs font-medium text-zinc-700 mb-1">
-                            ක්ෂණික ඇමතුම් / Hotline
+                            Hotline / Short Code
                           </label>
                           <input
                             type="text"
                             value={form.shortCode || ''}
                             onChange={(e) => setForm({ ...form, shortCode: e.target.value })}
-                            placeholder="උදා: 1920"
+                            placeholder="e.g. 1920"
                             className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
                           />
                         </div>
 
                         <div>
                           <label className="block text-xs font-medium text-zinc-700 mb-1">
-                            විද්‍යුත් ලිපිනය (Email)
+                            Official Email
                           </label>
                           <div className="relative">
                             <Mail className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -1811,10 +1811,10 @@ export default function InstitutionManagement() {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <label className="flex items-center gap-1.5 text-xs font-semibold text-zinc-800">
                             <Clock className="w-3.5 h-3.5 text-emerald-600" />
-                            <span>රාජකාරි වේලාවන් / Office Time (Working Hours)</span>
+                            <span>Office Working Hours</span>
                           </label>
                           <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-500">
-                            <span className="text-[10px] text-zinc-400">පෙරනිමි:</span>
+                            <span className="text-[10px] text-zinc-400">Presets:</span>
                             <button
                               type="button"
                               onClick={() => {
@@ -1863,7 +1863,7 @@ export default function InstitutionManagement() {
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <div>
                             <label className="block text-[11px] font-medium text-zinc-600 mb-1">
-                              ආරම්භක වේලාව (Start Time)
+                              Start Time
                             </label>
                             <input
                               type="time"
@@ -1883,7 +1883,7 @@ export default function InstitutionManagement() {
 
                           <div>
                             <label className="block text-[11px] font-medium text-zinc-600 mb-1">
-                              අවසාන වේලාව (End Time)
+                              End Time
                             </label>
                             <input
                               type="time"
@@ -1903,7 +1903,7 @@ export default function InstitutionManagement() {
 
                           <div>
                             <label className="block text-[11px] font-medium text-zinc-600 mb-1">
-                              පෙන්වන ආකෘතිය (Display Office Time)
+                              Display Office Time
                             </label>
                             <div className="relative">
                               <Clock className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -1924,10 +1924,10 @@ export default function InstitutionManagement() {
                         <div>
                           <label className="block text-xs font-medium text-zinc-700 mb-1">
                             {form.sector === 'gov'
-                              ? 'කාර්යාල ලිපිනය (සිංහලෙන්)'
+                              ? 'Office Address (Sinhala)'
                               : form.sector === 'pvt'
-                                ? 'මූලස්ථාන ලිපිනය (සිංහලෙන්)'
-                                : 'ශ්‍රී ලංකා මෙහෙයුම් ලිපිනය (සිංහලෙන්)'}
+                                ? 'Headquarters Address (Sinhala)'
+                                : 'Sri Lanka Mission Address (Sinhala)'}
                           </label>
                           <div className="relative">
                             <MapPin className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-3" />
@@ -1945,7 +1945,7 @@ export default function InstitutionManagement() {
                                 else if (form.sector === 'pvt') setForm({ ...form, headquartersAddressSi: e.target.value, headquartersAddress: e.target.value });
                                 else setForm({ ...form, slMissionAddressSi: e.target.value, slMissionAddress: e.target.value });
                               }}
-                              placeholder="අංක 42, ශ්‍රීමත් මාකස් ප්‍රනාන්දු මාවත, කොළඹ 07"
+                              placeholder="e.g. අංක 42, ශ්‍රීමත් මාකස් ප්‍රනාන්දු මාවත, කොළඹ 07"
                               className="w-full pl-8 pr-3 p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
                             />
                           </div>
@@ -1975,7 +1975,7 @@ export default function InstitutionManagement() {
                                 else if (form.sector === 'pvt') setForm({ ...form, headquartersAddressEn: e.target.value });
                                 else setForm({ ...form, slMissionAddressEn: e.target.value });
                               }}
-                              placeholder="No. 42, Sir Marcus Fernando Mawatha, Colombo 07"
+                              placeholder="e.g. No. 42, Sir Marcus Fernando Mawatha, Colombo 07"
                               className="w-full pl-8 pr-3 p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
                             />
                           </div>
@@ -1991,10 +1991,10 @@ export default function InstitutionManagement() {
                     <div className="space-y-6 animate-in fade-in duration-100">
                       <div>
                         <h3 className="text-sm font-semibold text-zinc-900">
-                          හැඳින්වීම සහ සවිස්තර තොරතුරු (Descriptions)
+                          Overview & Descriptions
                         </h3>
                         <p className="text-xs text-zinc-500 mt-0.5">
-                          සිංහල හෝ ඉංග්‍රීසි භාෂාවලින් ආයතන සාරාංශය සහ සම්පූර්ණ විස්තරය ඇතුළත් කරන්න.
+                          Enter short summaries for directory cards and comprehensive profile descriptions.
                         </p>
                       </div>
 
@@ -2002,7 +2002,7 @@ export default function InstitutionManagement() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-medium text-zinc-700 mb-1">
-                            කෙටි හැඳින්වීම (සිංහලෙන් - Card Summary)
+                            Short Summary (Sinhala - Card Preview)
                           </label>
                           <textarea
                             rows={3}
@@ -2015,7 +2015,7 @@ export default function InstitutionManagement() {
 
                         <div>
                           <label className="block text-xs font-medium text-zinc-700 mb-1">
-                            Short Summary (in English - Card Summary)
+                            Short Summary (English - Card Preview)
                           </label>
                           <textarea
                             rows={3}
@@ -2031,7 +2031,7 @@ export default function InstitutionManagement() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-medium text-zinc-700 mb-1">
-                            සවිස්තර හැඳින්වීම (සිංහලෙන් - Full Profile)
+                            Full Description (Sinhala Profile)
                           </label>
                           <textarea
                             rows={7}
@@ -2066,13 +2066,13 @@ export default function InstitutionManagement() {
                       <div>
                         <h3 className="text-sm font-semibold text-zinc-900">
                           {form.sector === 'gov'
-                            ? 'ප්‍රධාන කාර්යභාරය සහ සේවාවන් (Mandates & Services)'
+                            ? 'Mandates & Services'
                             : form.sector === 'pvt'
-                              ? 'නිෂ්පාදන විසඳුම් සහ සේවාවන් (Products & Services)'
-                              : 'ප්‍රධාන ව්‍යාපෘති හා මැදිහත්වීම් (Interventions & Projects)'}
+                              ? 'Products & Services'
+                              : 'Interventions & Projects'}
                         </h3>
                         <p className="text-xs text-zinc-500 mt-0.5">
-                          ආයතනය විසින් සපයනු ලබන ප්‍රධාන සේවාවන් සිංහල සහ ඉංග්‍රීසි භාෂාවලින් එක් කරන්න.
+                          Add key services, products, or development interventions offered by this institution.
                         </p>
                       </div>
 
@@ -2088,7 +2088,7 @@ export default function InstitutionManagement() {
                                 addService();
                               }
                             }}
-                            placeholder="සේවාව (සිංහලෙන්)..."
+                            placeholder="Service Title (Sinhala)..."
                             className="p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900"
                           />
                           <input
@@ -2112,14 +2112,14 @@ export default function InstitutionManagement() {
                             onClick={addService}
                             className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-medium shrink-0 cursor-pointer transition-colors shadow-xs"
                           >
-                            සේවාව එක් කරන්න (Add Service)
+                            Add Service
                           </button>
                         </div>
                       </div>
 
                       {form.services.length === 0 ? (
                         <div className="py-8 text-center border border-dashed border-zinc-200 rounded-lg text-zinc-400">
-                          <p className="text-xs">තවමත් සේවාවන් කිසිවක් ඇතුළත් කර නොමැත.</p>
+                          <p className="text-xs">No services added yet.</p>
                         </div>
                       ) : (
                         <div className="divide-y divide-zinc-100 border border-zinc-200 rounded-lg overflow-hidden bg-white">
@@ -2128,9 +2128,9 @@ export default function InstitutionManagement() {
                               <div className="flex items-center gap-3">
                                 <span className="font-mono text-zinc-400 text-[11px] w-4">{idx + 1}.</span>
                                 <div>
-                                  <p className="font-medium text-zinc-900">{item.serviceSi || item.serviceEn}</p>
-                                  {item.serviceEn && item.serviceSi && (
-                                    <p className="text-[11px] text-zinc-400">{item.serviceEn}</p>
+                                  <p className="font-medium text-zinc-900">{item.serviceEn || item.serviceSi}</p>
+                                  {item.serviceSi && item.serviceEn && (
+                                    <p className="text-[11px] text-zinc-400">{item.serviceSi}</p>
                                   )}
                                 </div>
                               </div>
@@ -2138,7 +2138,7 @@ export default function InstitutionManagement() {
                                 type="button"
                                 onClick={() => removeService(idx)}
                                 className="p-1 text-zinc-400 hover:text-red-600 transition-colors cursor-pointer"
-                                title="ඉවත් කරන්න"
+                                title="Remove"
                               >
                                 <Trash className="w-3.5 h-3.5" />
                               </button>
@@ -2157,13 +2157,13 @@ export default function InstitutionManagement() {
                       <div>
                         <h3 className="text-sm font-semibold text-zinc-900">
                           {form.sector === 'gov'
-                            ? 'ප්‍රාදේශීය කාර්යාල හා සේවා මධ්‍යස්ථාන'
+                            ? 'Regional Offices & Service Centers'
                             : form.sector === 'pvt'
-                              ? 'නියෝජිත හා අලෙවි ශාඛා ජාලය'
-                              : 'ව්‍යාපෘති කලාපීය මධ්‍යස්ථාන'}
+                              ? 'Dealer Outlets & Showrooms'
+                              : 'Project Stations & Centers'}
                         </h3>
                         <p className="text-xs text-zinc-500 mt-0.5">
-                          දිස්ත්‍රික් කාර්යාල හෝ නියෝජිත මධ්‍යස්ථාන තොරතුරු ඇතුළත් කරන්න.
+                          Add district offices, regional service stations, or distribution outlets.
                         </p>
                       </div>
 
@@ -2173,7 +2173,7 @@ export default function InstitutionManagement() {
                             type="text"
                             value={newCenter.nameSi}
                             onChange={(e) => setNewCenter({ ...newCenter, nameSi: e.target.value })}
-                            placeholder="මධ්‍යස්ථානයේ නම (සිංහලෙන්)"
+                            placeholder="Center Name (Sinhala)"
                             className="p-2 bg-white border border-zinc-200 rounded-lg text-xs"
                           />
                           <input
@@ -2190,21 +2190,21 @@ export default function InstitutionManagement() {
                             type="text"
                             value={newCenter.locationSi}
                             onChange={(e) => setNewCenter({ ...newCenter, locationSi: e.target.value })}
-                            placeholder="ස්ථානය (උදා: මහනුවර)"
+                            placeholder="Location (Sinhala - e.g. මහනුවර)"
                             className="p-2 bg-white border border-zinc-200 rounded-lg text-xs"
                           />
                           <input
                             type="text"
                             value={newCenter.locationEn}
                             onChange={(e) => setNewCenter({ ...newCenter, locationEn: e.target.value })}
-                            placeholder="Location (e.g. Kandy)"
+                            placeholder="Location (English - e.g. Kandy)"
                             className="p-2 bg-white border border-zinc-200 rounded-lg text-xs"
                           />
                           <input
                             type="text"
                             value={newCenter.phone}
                             onChange={(e) => setNewCenter({ ...newCenter, phone: e.target.value })}
-                            placeholder="දුරකථන අංකය (Phone)"
+                            placeholder="Phone Number"
                             className="p-2 bg-white border border-zinc-200 rounded-lg text-xs"
                           />
                         </div>
@@ -2215,14 +2215,14 @@ export default function InstitutionManagement() {
                             onClick={addRegionalCenter}
                             className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-medium cursor-pointer transition-colors shadow-xs"
                           >
-                            මධ්‍යස්ථානය එක් කරන්න
+                            Add Center
                           </button>
                         </div>
                       </div>
 
                       {form.regionalCenters.length === 0 ? (
                         <div className="py-8 text-center border border-dashed border-zinc-200 rounded-lg text-zinc-400">
-                          <p className="text-xs">ප්‍රාදේශීය මධ්‍යස්ථාන කිසිවක් ඇතුළත් කර නොමැත.</p>
+                          <p className="text-xs">No regional centers added yet.</p>
                         </div>
                       ) : (
                         <div className="divide-y divide-zinc-100 border border-zinc-200 rounded-lg overflow-hidden bg-white">
@@ -2230,14 +2230,14 @@ export default function InstitutionManagement() {
                             <div key={idx} className="p-2.5 px-3.5 flex items-center justify-between text-xs hover:bg-zinc-50 transition-colors">
                               <div className="grid grid-cols-3 gap-4 flex-1 text-zinc-800">
                                 <div>
-                                  <p className="font-medium text-zinc-900">{center.nameSi || center.nameEn || '-'}</p>
-                                  {center.nameEn && center.nameSi && (
-                                    <p className="text-[10px] text-zinc-400">{center.nameEn}</p>
+                                  <p className="font-medium text-zinc-900">{center.nameEn || center.nameSi || '-'}</p>
+                                  {center.nameSi && center.nameEn && (
+                                    <p className="text-[10px] text-zinc-400">{center.nameSi}</p>
                                   )}
                                 </div>
                                 <span className="text-zinc-500 flex items-center gap-1">
                                   <MapPin className="w-3 h-3 text-zinc-400" />
-                                  {center.locationSi || center.locationEn || '-'}
+                                  {center.locationEn || center.locationSi || '-'}
                                 </span>
                                 <span className="text-zinc-500 font-mono text-[11px]">{center.phone || '-'}</span>
                               </div>
@@ -2245,7 +2245,7 @@ export default function InstitutionManagement() {
                                 type="button"
                                 onClick={() => removeRegionalCenter(idx)}
                                 className="p-1 text-zinc-400 hover:text-red-600 transition-colors cursor-pointer"
-                                title="ඉවත් කරන්න"
+                                title="Remove"
                               >
                                 <Trash className="w-3.5 h-3.5" />
                               </button>
@@ -2264,13 +2264,13 @@ export default function InstitutionManagement() {
                       <div>
                         <h3 className="text-sm font-semibold text-zinc-900">
                           {form.sector === 'gov'
-                            ? 'නිල PDF චක්‍රලේඛ, අයදුම්පත් හා මාර්ගෝපදේශ'
+                            ? 'Official PDF Circulars, Applications & Guidelines'
                             : form.sector === 'pvt'
-                              ? 'නිෂ්පාදන නාමාවලි සහ තාක්ෂණික පත්‍රිකා'
-                              : 'ජාත්‍යන්තර වාර්තා සහ ප්‍රතිපත්ති ලේඛන'}
+                              ? 'Product Catalogues & Technical Datasheets'
+                              : 'Reports, Policy Briefs & Publications'}
                         </h3>
                         <p className="text-xs text-zinc-500 mt-0.5">
-                          ගොවි ජනතාවට බාගත කරගත හැකි PDF ලේඛන මෙහි එක් කරන්න.
+                          Upload official downloadable PDF documents for farmers, stakeholders, and the public.
                         </p>
                       </div>
 
@@ -2278,13 +2278,13 @@ export default function InstitutionManagement() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-xs font-medium text-zinc-700 mb-1">
-                              ලේඛනයේ නම (සිංහලෙන්)
+                              Document Title (Sinhala)
                             </label>
                             <input
                               type="text"
                               value={newDoc.nameSi}
                               onChange={(e) => setNewDoc({ ...newDoc, nameSi: e.target.value })}
-                              placeholder="ලේඛනයේ නම (සිංහලෙන්)"
+                              placeholder="Document Title (Sinhala)"
                               className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs"
                             />
                           </div>
@@ -2305,24 +2305,34 @@ export default function InstitutionManagement() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div>
                             <label className="block text-xs font-medium text-zinc-700 mb-1">
-                              වර්ගීකරණය (Category)
+                              Category
                             </label>
                             <select
                               value={newDoc.categorySi}
-                              onChange={(e) => setNewDoc({ ...newDoc, categorySi: e.target.value })}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                const enMap: Record<string, string> = {
+                                  'අයදුම්පත්': 'Applications',
+                                  'චක්‍රලේඛ': 'Circulars',
+                                  'මාර්ගෝපදේශ': 'Guidelines',
+                                  'නාමාවලි': 'Catalogues',
+                                  'වාර්තා': 'Reports'
+                                };
+                                setNewDoc({ ...newDoc, categorySi: val, categoryEn: enMap[val] || val });
+                              }}
                               className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs"
                             >
-                              <option value="අයදුම්පත්">අයදුම්පත් (Applications)</option>
-                              <option value="චක්‍රලේඛ">චක්‍රලේඛ (Circulars)</option>
-                              <option value="මාර්ගෝපදේශ">මාර්ගෝපදේශ (Guidelines)</option>
-                              <option value="නාමාවලි">නාමාවලි (Catalogues)</option>
-                              <option value="වාර්තා">වාර්තා (Reports)</option>
+                              <option value="අයදුම්පත්">Applications & Forms</option>
+                              <option value="චක්‍රලේඛ">Circulars & Directives</option>
+                              <option value="මාර්ගෝපදේශ">Guidelines & Manuals</option>
+                              <option value="නාමාවලි">Catalogues & Brochures</option>
+                              <option value="වාර්තා">Reports & Publications</option>
                             </select>
                           </div>
 
                           <div>
                             <label className="block text-xs font-medium text-zinc-700 mb-1">
-                              වර්ෂය (Year)
+                              Year
                             </label>
                             <input
                               type="text"
@@ -2359,14 +2369,14 @@ export default function InstitutionManagement() {
                             onClick={addDocument}
                             className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-medium shrink-0 cursor-pointer transition-colors shadow-xs"
                           >
-                            ලේඛනය එක් කරන්න
+                            Add Document
                           </button>
                         </div>
                       </div>
 
                       {form.documents.length === 0 ? (
                         <div className="py-8 text-center border border-dashed border-zinc-200 rounded-lg text-zinc-400">
-                          <p className="text-xs">තවමත් PDF ලේඛන කිසිවක් ඇතුළත් කර නොමැත.</p>
+                          <p className="text-xs">No PDF documents uploaded yet.</p>
                         </div>
                       ) : (
                         <div className="divide-y divide-zinc-100 border border-zinc-200 rounded-lg overflow-hidden bg-white">
@@ -2375,9 +2385,9 @@ export default function InstitutionManagement() {
                               <div className="flex items-center gap-3 min-w-0">
                                 <FileText className="w-4 h-4 text-zinc-400 shrink-0" />
                                 <div className="truncate">
-                                  <p className="font-medium text-zinc-900 truncate">{doc.nameSi || doc.nameEn || doc.name}</p>
+                                  <p className="font-medium text-zinc-900 truncate">{doc.nameEn || doc.nameSi || doc.name}</p>
                                   <p className="text-[11px] text-zinc-400">
-                                    {doc.categorySi || doc.category || 'ලේඛනය'} • {doc.fileSize || 'PDF'}
+                                    {doc.categoryEn || doc.categorySi || doc.category || 'Document'} • {doc.fileSize || 'PDF'}
                                     {doc.file && <span className="ml-2 text-emerald-700 font-medium">(Ready to upload)</span>}
                                   </p>
                                 </div>
@@ -2417,17 +2427,17 @@ export default function InstitutionManagement() {
                     <div className="space-y-6 animate-in fade-in duration-100">
                       <div>
                         <h3 className="text-sm font-semibold text-zinc-900">
-                          ආයතනික ලාංඡනය සහ ඩිජිටල් සබැඳි (Logo & Media)
+                          Institution Logo & Digital Presence
                         </h3>
                         <p className="text-xs text-zinc-500 mt-0.5">
-                          නිල ලාංඡනය (Logo) සහ සමාජ මාධ්‍ය සබැඳි ඇතුළත් කරන්න.
+                          Upload official institution emblem/logo and configure social media links.
                         </p>
                       </div>
 
                       {/* Logo Box */}
                       <div className="p-4 bg-zinc-50/80 rounded-xl border border-zinc-200">
                         <label className="block text-xs font-medium text-zinc-700 mb-2">
-                          ආයතනික ලාංඡනය (Logo)
+                          Institution Logo / Emblem
                         </label>
                         <div className="flex items-center gap-4">
                           {logoPreview ? (
@@ -2473,7 +2483,7 @@ export default function InstitutionManagement() {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-xs font-medium text-zinc-700 mb-1">
-                            නිල වෙබ් අඩවිය (Website URL)
+                            Official Website URL
                           </label>
                           <input
                             type="url"
@@ -2486,7 +2496,7 @@ export default function InstitutionManagement() {
 
                         <div>
                           <label className="block text-xs font-medium text-zinc-700 mb-1">
-                            Facebook පිටුව
+                            Facebook Page URL
                           </label>
                           <input
                             type="url"
@@ -2499,7 +2509,7 @@ export default function InstitutionManagement() {
 
                         <div>
                           <label className="block text-xs font-medium text-zinc-700 mb-1">
-                            YouTube චැනලය
+                            YouTube Channel URL
                           </label>
                           <input
                             type="url"
@@ -2512,7 +2522,7 @@ export default function InstitutionManagement() {
 
                         <div>
                           <label className="block text-xs font-medium text-zinc-700 mb-1">
-                            TikTok ගිණුම
+                            TikTok Account URL
                           </label>
                           <input
                             type="url"
@@ -2525,7 +2535,7 @@ export default function InstitutionManagement() {
 
                         <div>
                           <label className="block text-xs font-medium text-zinc-700 mb-1">
-                            LinkedIn පිටුව / ගිණුම
+                            LinkedIn Profile URL
                           </label>
                           <input
                             type="url"
@@ -2552,7 +2562,7 @@ export default function InstitutionManagement() {
                     className="inline-flex items-center gap-1 text-zinc-600 hover:text-zinc-900 font-medium cursor-pointer"
                   >
                     <ChevronLeft className="w-4 h-4" />
-                    <span>පෙර පියවර</span>
+                    <span>Previous</span>
                   </button>
                 )}
               </div>
@@ -2564,7 +2574,7 @@ export default function InstitutionManagement() {
                     onClick={() => setActiveSection((prev) => Math.min(7, prev + 1))}
                     className="px-4 py-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 font-medium transition-colors text-xs inline-flex items-center gap-1 cursor-pointer"
                   >
-                    <span>ඊළඟ පියවර</span>
+                    <span>Next</span>
                     <ChevronRight className="w-4 h-4" />
                   </button>
                 )}
@@ -2574,7 +2584,7 @@ export default function InstitutionManagement() {
                   onClick={() => setIsModalOpen(false)}
                   className="px-4 py-2 rounded-lg border border-zinc-300 text-zinc-700 font-medium hover:bg-zinc-100 transition-colors text-xs cursor-pointer"
                 >
-                  අවලංගු කරන්න
+                  Cancel
                 </button>
 
                 <button
@@ -2586,12 +2596,12 @@ export default function InstitutionManagement() {
                   {isSaving ? (
                     <>
                       <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>සුරැකෙමින් පවතී...</span>
+                      <span>Saving...</span>
                     </>
                   ) : (
                     <>
                       <Check className="w-3.5 h-3.5" />
-                      <span>{editingId ? 'වෙනස්කම් සුරකින්න' : 'ආයතනය සුරකින්න'}</span>
+                      <span>{editingId ? 'Save Changes' : 'Save Institution'}</span>
                     </>
                   )}
                 </button>

@@ -108,7 +108,7 @@ export default function CountryMultiSelect({
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-100 pb-2.5">
         <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-800">
           <Globe className="w-4 h-4 text-emerald-600" />
-          <span>ක්‍රියාත්මක වන රටවල් තේරීම (Operating Countries)</span>
+          <span>Operating Countries</span>
         </div>
 
         <div className="flex items-center gap-1 bg-zinc-100 p-0.5 rounded-lg text-[11px]">
@@ -119,7 +119,7 @@ export default function CountryMultiSelect({
               mode === 'picker' ? 'bg-white text-zinc-900 shadow-2xs' : 'text-zinc-500 hover:text-zinc-800'
             }`}
           >
-            🌍 රටවල් ලැයිස්තුව (Multi-Select)
+            🌍 Country List (Multi-Select)
           </button>
           <button
             type="button"
@@ -128,7 +128,7 @@ export default function CountryMultiSelect({
               mode === 'custom' ? 'bg-white text-zinc-900 shadow-2xs' : 'text-zinc-500 hover:text-zinc-800'
             }`}
           >
-            ✏️ නිදහස් විස්තරය (Custom Text)
+            ✏️ Custom Text
           </button>
         </div>
       </div>
@@ -137,7 +137,7 @@ export default function CountryMultiSelect({
       <div className="flex flex-wrap items-center gap-1.5">
         <span className="text-[10.5px] text-zinc-400 font-medium flex items-center gap-1 mr-1">
           <Sparkles className="w-3 h-3 text-amber-500" />
-          පෙරනිමි කාණ්ඩ (Presets):
+          Presets:
         </span>
         {REGIONAL_PRESETS.map((preset) => (
           <button
@@ -146,7 +146,7 @@ export default function CountryMultiSelect({
             onClick={() => handleApplyPreset(preset)}
             className="text-[10.5px] px-2.5 py-1 rounded-lg bg-zinc-100/90 hover:bg-emerald-50 hover:text-emerald-800 hover:border-emerald-200 border border-zinc-200 text-zinc-700 transition-all cursor-pointer flex items-center gap-1 font-medium"
           >
-            <span>{preset.nameSi}</span>
+            <span>{preset.nameEn || preset.nameSi}</span>
           </button>
         ))}
       </div>
@@ -157,7 +157,7 @@ export default function CountryMultiSelect({
           <div className="min-h-[42px] p-2 bg-zinc-50/70 border border-zinc-200 rounded-lg flex flex-wrap items-center gap-1.5">
             {selectedCountryObjects.length === 0 ? (
               <p className="text-xs text-zinc-400 italic px-1">
-                රටවල් කිසිවක් තෝරා නැත. පහතින් රටවල් තෝරන්න (No countries selected).
+                No countries selected yet. Search and choose from below.
               </p>
             ) : (
               <>
@@ -167,13 +167,13 @@ export default function CountryMultiSelect({
                     className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-white border border-emerald-200 text-emerald-900 text-xs font-medium shadow-2xs group hover:border-emerald-400 transition-colors"
                   >
                     <span className="text-sm leading-none">{c.flag}</span>
-                    <span>{c.nameSi}</span>
-                    <span className="text-[10px] text-zinc-400 font-normal">({c.nameEn})</span>
+                    <span>{c.nameEn}</span>
+                    <span className="text-[10px] text-zinc-400 font-normal">({c.nameSi})</span>
                     <button
                       type="button"
                       onClick={() => handleRemoveCountry(c.code)}
                       className="text-zinc-400 hover:text-red-500 hover:bg-red-50 p-0.5 rounded transition-colors ml-0.5 cursor-pointer"
-                      title={`${c.nameSi} ඉවත් කරන්න`}
+                      title={`Remove ${c.nameEn}`}
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -185,7 +185,7 @@ export default function CountryMultiSelect({
                   onClick={handleClearAll}
                   className="text-[10.5px] text-red-500 hover:text-red-700 hover:underline px-2 py-0.5 ml-auto font-medium cursor-pointer"
                 >
-                  සියල්ල ඉවත් කරන්න (Clear)
+                  Clear All
                 </button>
               </>
             )}
@@ -200,7 +200,7 @@ export default function CountryMultiSelect({
               <Search className="w-4 h-4 text-zinc-400 absolute left-3 pointer-events-none" />
               <input
                 type="text"
-                placeholder="රටක නම සිංහලෙන් හෝ English වලින් සොයන්න (Search country e.g. Sri Lanka, India, USA)..."
+                placeholder="Search country by name or code (e.g. Sri Lanka, India, USA)..."
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
@@ -220,13 +220,13 @@ export default function CountryMultiSelect({
             {isOpen && (
               <div className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-zinc-200 rounded-xl shadow-lg divide-y divide-zinc-50">
                 <div className="p-2 bg-zinc-50 text-[10.5px] font-semibold text-zinc-500 flex justify-between">
-                  <span>ලෝකයේ රටවල් ({filteredCountries.length})</span>
-                  <span>ක්ලික් කර එක් කරන්න</span>
+                  <span>Countries ({filteredCountries.length})</span>
+                  <span>Click to add</span>
                 </div>
 
                 {filteredCountries.length === 0 ? (
                   <div className="p-4 text-center text-xs text-zinc-400">
-                    ගැලපෙන රටක් හමු නොවීය (No matching country).
+                    No matching country found.
                   </div>
                 ) : (
                   filteredCountries.map((country) => (
@@ -240,10 +240,10 @@ export default function CountryMultiSelect({
                         <span className="text-base leading-none">{country.flag}</span>
                         <div>
                           <p className="font-medium text-zinc-900 group-hover:text-emerald-950">
-                            {country.nameSi}
+                            {country.nameEn}
                           </p>
                           <p className="text-[10px] text-zinc-400 group-hover:text-emerald-700">
-                            {country.nameEn} • {country.code}
+                            {country.nameSi} • {country.code}
                           </p>
                         </div>
                       </div>
@@ -267,13 +267,13 @@ export default function CountryMultiSelect({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 text-xs">
             <div>
               <label className="block text-[11px] font-medium text-zinc-600 mb-1">
-                ක්‍රියාත්මක වන රටවල් (සිංහල පෙළ)
+                Operating Countries (Sinhala Text)
               </label>
               <input
                 type="text"
                 value={valueSi}
                 onChange={(e) => onChange(e.target.value, valueEn)}
-                placeholder="උදා: ශ්‍රී ලංකාව, ඉන්දියාව, එක්සත් ජනපදය"
+                placeholder="e.g. ශ්‍රී ලංකාව, ඉන්දියාව, එක්සත් ජනපදය"
                 className="w-full p-2 bg-zinc-50/50 border border-zinc-200 rounded-lg text-xs font-mono text-zinc-800"
               />
             </div>
@@ -296,13 +296,13 @@ export default function CountryMultiSelect({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
           <div>
             <label className="block text-xs font-medium text-zinc-700 mb-1">
-              ක්‍රියාත්මක වන රටවල් (සිංහලෙන්)
+              Operating Countries (Sinhala)
             </label>
             <input
               type="text"
               value={valueSi}
               onChange={(e) => onChange(e.target.value, valueEn)}
-              placeholder="උදා: ලොව පුරා රටවල් 195 කට අධික සංඛ්‍යාවක"
+              placeholder="e.g. ලොව පුරා රටවල් 195 කට අධික සංඛ්‍යාවක"
               className="w-full p-2 bg-white border border-zinc-200 rounded-lg text-xs focus:ring-1 focus:ring-zinc-900 focus:border-zinc-900"
             />
           </div>
