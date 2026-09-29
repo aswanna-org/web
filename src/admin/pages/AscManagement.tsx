@@ -2,11 +2,24 @@ import { useState, useEffect } from 'react';
 import {
   Plus, Edit, Trash2, X, Search, Building2, Phone, Mail,
   MapPin, StickyNote, Users, ExternalLink, CheckCircle2, ChevronRight,
-  Star
+  Star, Briefcase, AlertCircle, Loader2
 } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+export interface AscPositionItem {
+  id: string;
+  title: string;
+  titleSi?: string | null;
+  code?: string | null;
+  order?: number;
+  createdAt?: string;
+  _count?: {
+    officers?: number;
+    ascOfficers?: number;
+  };
+}
 
 export interface AscOfficerItem {
   id?: string;
@@ -18,6 +31,7 @@ export interface AscOfficerItem {
   email?: string;
   isPrimary?: boolean;
   order?: number;
+  positionId?: string;
 }
 
 export interface ASC {
@@ -91,8 +105,33 @@ export default function AscManagement() {
   const [isSaving, setIsSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'basic' | 'officers' | 'notes'>('basic');
 
+  // Positions state
+  const [positions, setPositions] = useState<AscPositionItem[]>([]);
+  const [isPositionModalOpen, setIsPositionModalOpen] = useState(false);
+  const [positionForm, setPositionForm] = useState({
+    title: '',
+    titleSi: '',
+    code: '',
+    order: 0
+  });
+  const [editingPositionId, setEditingPositionId] = useState<string | null>(null);
+  const [isSavingPosition, setIsSavingPosition] = useState(false);
+  const [positionError, setPositionError] = useState<string | null>(null);
+
   const token = localStorage.getItem('admin_token');
   const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+
+  const fetchPositions = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/asc-positions`);
+      if (res.ok) {
+        const data = await res.json();
+        setPositions(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch ASC positions:', err);
+    }
+  };
 
   const fetchAscs = async (page = 1) => {
     setIsLoading(true);
@@ -121,9 +160,101 @@ export default function AscManagement() {
     fetchAscs(currentPage);
   }, [currentPage, search, filterProvince, filterDistrict]);
 
+  useEffect(() => {
+    fetchPositions();
+  }, []);
+
+  const handleSavePosition = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!positionForm.title.trim()) {
+      setPositionError('Position title (English) is required.');
+      return;
+    }
+    setIsSavingPosition(true);
+    setPositionError(null);
+    try {
+      const method = editingPositionId ? 'PUT' : 'POST';
+      const url = editingPositionId
+        ? `${API_BASE_URL}/asc-positions/${editingPositionId}`
+        : `${API_BASE_URL}/asc-positions`;
+
+      const res = await fetch(url, {
+        method,
+        headers,
+        body: JSON.stringify({
+          title: positionForm.title.trim(),
+          titleSi: positionForm.titleSi.trim() || null,
+          code: positionForm.code.trim() || null,
+          order: Number(positionForm.order) || 0
+        })
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Failed to save position.');
+      }
+
+      await fetchPositions();
+      setPositionForm({ title: '', titleSi: '', code: '', order: positions.length + 1 });
+      setEditingPositionId(null);
+    } catch (err: any) {
+      setPositionError(err.message || 'Error occurred while saving position.');
+    } finally {
+      setIsSavingPosition(false);
+    }
+  };
+
+  const handleDeletePosition = async (id: string, title: string) => {
+    if (!window.confirm(`Are you sure you want to delete position "${title}"?`)) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/asc-positions/${id}`, {
+        method: 'DELETE',
+        headers
+      });
+      if (res.ok) {
+        await fetchPositions();
+        if (editingPositionId === id) {
+          setEditingPositionId(null);
+          setPositionForm({ title: '', titleSi: '', code: '', order: 0 });
+        }
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        alert(errData.error || 'Failed to delete position.');
+      }
+    } catch (err) {
+      console.error('Error deleting position:', err);
+    }
+  };
+
+  const handleStartEditPosition = (pos: AscPositionItem) => {
+    setEditingPositionId(pos.id);
+    setPositionForm({
+      title: pos.title,
+      titleSi: pos.titleSi || '',
+      code: pos.code || '',
+      order: pos.order ?? 0
+    });
+    setPositionError(null);
+  };
+
+  const handleCancelEditPosition = () => {
+    setEditingPositionId(null);
+    setPositionForm({ title: '', titleSi: '', code: '', order: positions.length + 1 });
+    setPositionError(null);
+  };
+
   const extractOfficersList = (asc: ASC): AscOfficerItem[] => {
     if (asc.officers && Array.isArray(asc.officers) && asc.officers.length > 0) {
-      return asc.officers;
+      return asc.officers.map(o => {
+        const matched = positions.find(
+          p => p.id === o.positionId || p.title.toLowerCase() === o.position?.toLowerCase()
+        );
+        return {
+          ...o,
+          positionId: matched?.id || o.positionId,
+          positionSi: o.positionSi || matched?.titleSi || ''
+        };
+      });
     }
 
     if (asc.additionalOfficers) {
@@ -141,11 +272,15 @@ export default function AscManagement() {
     // Fallback from main center record if no officers table entries exist yet
     const fallbackList: AscOfficerItem[] = [];
     if (asc.officerInCharge) {
+      const matched = positions.find(
+        p => p.title.toLowerCase() === (asc.officerDesignation || '').toLowerCase()
+      );
       fallbackList.push({
         name: asc.officerInCharge,
         nameSi: asc.officerInChargeSi || '',
         position: asc.officerDesignation || 'Agrarian Development Officer (ADO)',
-        positionSi: asc.officerDesignationSi || 'ගොවිජන සංවර්ධන නිලධාරී',
+        positionSi: asc.officerDesignationSi || matched?.titleSi || 'ගොවිජන සංවර්ධන නිලධාරී',
+        positionId: matched?.id,
         phone: asc.mobilePhone || asc.officePhone || '',
         email: asc.email || '',
         isPrimary: true,
@@ -157,12 +292,15 @@ export default function AscManagement() {
   };
 
   const openCreate = () => {
+    const primaryPos = positions.find(p => p.code === 'ADO' || p.title.toLowerCase().includes('development officer')) || positions[0];
     setForm({
       ...defaultForm,
       officers: [
         {
           name: '',
-          position: 'Agrarian Development Officer (ADO)',
+          position: primaryPos?.title || 'Agrarian Development Officer (ADO)',
+          positionSi: primaryPos?.titleSi || 'ගොවිජන සංවර්ධන නිලධාරී',
+          positionId: primaryPos?.id,
           phone: '',
           email: '',
           isPrimary: true,
@@ -205,13 +343,19 @@ export default function AscManagement() {
 
   // Dynamic Officers handlers
   const handleAddOfficer = (isPrimary = false) => {
+    const primaryPos = positions.find(p => p.code === 'ADO' || p.title.toLowerCase().includes('development officer')) || positions[0];
+    const secondaryPos = positions.find(p => p.code === 'AI' || p.title.toLowerCase().includes('instructor')) || positions[1] || positions[0];
+    const defaultPos = isPrimary ? primaryPos : secondaryPos;
+
     setForm(prev => ({
       ...prev,
       officers: [
         ...prev.officers,
         {
           name: '',
-          position: isPrimary ? 'Agrarian Development Officer (ADO)' : 'Agricultural Instructor (AI)',
+          position: defaultPos?.title || (isPrimary ? 'Agrarian Development Officer (ADO)' : 'Agricultural Instructor (AI)'),
+          positionSi: defaultPos?.titleSi || (isPrimary ? 'ගොවිජන සංවර්ධන නිලධාරී' : 'කෘෂිකර්ම උපදේශක'),
+          positionId: defaultPos?.id,
           phone: '',
           email: '',
           isPrimary,
@@ -233,6 +377,14 @@ export default function AscManagement() {
       }
 
       updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, officers: updated };
+    });
+  };
+
+  const handleUpdateOfficerMultiple = (index: number, updates: Partial<AscOfficerItem>) => {
+    setForm(prev => {
+      const updated = [...prev.officers];
+      updated[index] = { ...updated[index], ...updates };
       return { ...prev, officers: updated };
     });
   };
@@ -314,13 +466,31 @@ export default function AscManagement() {
             Manage Agrarian Services Centers, appointed officers table, contacts, and special announcements
           </p>
         </div>
-        <button
-          onClick={openCreate}
-          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg font-medium text-sm shadow-sm transition-colors cursor-pointer"
-        >
-          <Plus size={18} />
-          <span>Add Govijana Center</span>
-        </button>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <button
+            onClick={() => {
+              setEditingPositionId(null);
+              setPositionForm({ title: '', titleSi: '', code: '', order: positions.length + 1 });
+              setIsPositionModalOpen(true);
+            }}
+            className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-3.5 py-2.5 rounded-lg font-medium text-sm shadow-2xs transition-colors cursor-pointer"
+          >
+            <Briefcase size={17} className="text-emerald-700" />
+            <span>Manage Positions</span>
+            {positions.length > 0 && (
+              <span className="ml-0.5 px-2 py-0.5 text-[11px] font-bold bg-emerald-100 text-emerald-800 rounded-full">
+                {positions.length}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={openCreate}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg font-medium text-sm shadow-sm transition-colors cursor-pointer"
+          >
+            <Plus size={18} />
+            <span>Add Govijana Center</span>
+          </button>
+        </div>
       </div>
 
       {/* ── Search and Filter Controls ── */}
@@ -823,16 +993,73 @@ export default function AscManagement() {
                             </div>
 
                             <div>
-                              <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                                Position / Designation *
-                              </label>
-                              <input
+                              <div className="flex items-center justify-between mb-1">
+                                <label className="block text-[11px] font-semibold text-gray-700">
+                                  Position / Designation *
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingPositionId(null);
+                                    setPositionForm({ title: '', titleSi: '', code: '', order: positions.length + 1 });
+                                    setIsPositionModalOpen(true);
+                                  }}
+                                  className="text-[10px] text-emerald-700 hover:text-emerald-800 hover:underline font-semibold flex items-center gap-0.5 cursor-pointer"
+                                  title="Add or manage designations"
+                                >
+                                  <Plus size={11} /> New
+                                </button>
+                              </div>
+                              <select
                                 required
-                                placeholder="e.g. Agricultural Instructor (AI)"
-                                value={officer.position}
-                                onChange={e => handleUpdateOfficer(index, 'position', e.target.value)}
-                                className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
-                              />
+                                value={
+                                  officer.positionId ||
+                                  positions.find(p => p.title.toLowerCase() === officer.position?.toLowerCase())?.id ||
+                                  officer.position ||
+                                  ''
+                                }
+                                onChange={e => {
+                                  const val = e.target.value;
+                                  if (val === '__manage__') {
+                                    setEditingPositionId(null);
+                                    setPositionForm({ title: '', titleSi: '', code: '', order: positions.length + 1 });
+                                    setIsPositionModalOpen(true);
+                                    return;
+                                  }
+                                  const selected = positions.find(p => p.id === val);
+                                  if (selected) {
+                                    handleUpdateOfficerMultiple(index, {
+                                      positionId: selected.id,
+                                      position: selected.title,
+                                      positionSi: selected.titleSi || ''
+                                    });
+                                  } else {
+                                    handleUpdateOfficerMultiple(index, {
+                                      position: val,
+                                      positionId: undefined
+                                    });
+                                  }
+                                }}
+                                className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/50 cursor-pointer"
+                              >
+                                <option value="">-- Select Designation --</option>
+                                {positions.map(p => (
+                                  <option key={p.id} value={p.id}>
+                                    {p.title} {p.titleSi ? `(${p.titleSi})` : ''} {p.code ? `[${p.code}]` : ''}
+                                  </option>
+                                ))}
+                                {officer.position &&
+                                  !positions.some(
+                                    p => p.id === officer.positionId || p.title.toLowerCase() === officer.position?.toLowerCase()
+                                  ) && (
+                                    <option value={officer.position}>
+                                      {officer.position} (Custom)
+                                    </option>
+                                  )}
+                                <option value="__manage__" className="text-emerald-700 font-bold bg-emerald-50">
+                                  ➕ Manage / Add New Position...
+                                </option>
+                              </select>
                             </div>
 
                             <div>
@@ -995,6 +1222,231 @@ export default function AscManagement() {
                 </div>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* ── MANAGE ASC POSITIONS MODAL ── */}
+      {isPositionModalOpen && (
+        <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-2xs">
+                  <Briefcase size={20} />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-gray-900">Manage ASC Positions</h2>
+                  <p className="text-xs text-gray-500">
+                    Add, edit, and organize officer designations (තනතුරු කළමනාකරණය)
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsPositionModalOpen(false);
+                  setEditingPositionId(null);
+                  setPositionError(null);
+                }}
+                className="text-gray-400 hover:text-gray-600 p-2 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 overflow-y-auto space-y-6 flex-1">
+              {/* Add / Edit Form Card */}
+              <form onSubmit={handleSavePosition} className="p-4 bg-emerald-50/30 rounded-xl border border-emerald-100 space-y-4">
+                <div className="flex items-center justify-between pb-2 border-b border-emerald-100/60">
+                  <span className="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+                    <Plus size={14} className="text-emerald-600" />
+                    {editingPositionId ? 'Edit Designation' : 'Add New Designation'}
+                  </span>
+                  {editingPositionId && (
+                    <button
+                      type="button"
+                      onClick={handleCancelEditPosition}
+                      className="text-[11px] text-gray-500 hover:text-gray-700 underline font-medium cursor-pointer"
+                    >
+                      Cancel Edit
+                    </button>
+                  )}
+                </div>
+
+                {positionError && (
+                  <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg flex items-center gap-2">
+                    <AlertCircle size={15} className="shrink-0" />
+                    <span>{positionError}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Position Title (English) *
+                    </label>
+                    <input
+                      required
+                      placeholder="e.g. Agricultural Instructor (AI)"
+                      value={positionForm.title}
+                      onChange={e => setPositionForm({ ...positionForm, title: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Position Title (Sinhala)
+                    </label>
+                    <input
+                      placeholder="උදා: කෘෂිකර්ම උපදේශක (AI)"
+                      value={positionForm.titleSi}
+                      onChange={e => setPositionForm({ ...positionForm, titleSi: e.target.value })}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Short Code / Acronym
+                    </label>
+                    <input
+                      placeholder="e.g. AI, ADO, ARPA"
+                      value={positionForm.code}
+                      onChange={e => setPositionForm({ ...positionForm, code: e.target.value.toUpperCase() })}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm uppercase font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-700 mb-1">
+                      Display Order
+                    </label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={positionForm.order}
+                      onChange={e => setPositionForm({ ...positionForm, order: parseInt(e.target.value) || 0 })}
+                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 pt-1">
+                  {editingPositionId && (
+                    <button
+                      type="button"
+                      onClick={handleCancelEditPosition}
+                      className="px-3 py-1.5 text-xs text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={isSavingPosition}
+                    className="px-4 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    {isSavingPosition ? (
+                      <>
+                        <Loader2 size={13} className="animate-spin" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus size={14} />
+                        <span>{editingPositionId ? 'Update Position' : 'Save Position'}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              {/* Positions List */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between pb-1">
+                  <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Existing Designations ({positions.length})
+                  </h3>
+                </div>
+
+                {positions.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                    No positions added yet. Use the form above to create positions.
+                  </div>
+                ) : (
+                  <div className="divide-y divide-gray-100 border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs max-h-64 overflow-y-auto">
+                    {positions.map(pos => (
+                      <div
+                        key={pos.id}
+                        className={`p-3.5 flex items-center justify-between gap-3 hover:bg-gray-50/70 transition-colors ${
+                          editingPositionId === pos.id ? 'bg-emerald-50/60 ring-1 ring-emerald-300' : ''
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="w-6 h-6 rounded-md bg-gray-100 text-gray-600 text-[11px] font-bold font-mono flex items-center justify-center shrink-0">
+                            {pos.order ?? 0}
+                          </span>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="text-xs font-bold text-gray-900 truncate">
+                                {pos.title}
+                              </span>
+                              {pos.code && (
+                                <span className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-emerald-100 text-emerald-800 rounded">
+                                  {pos.code}
+                                </span>
+                              )}
+                            </div>
+                            {pos.titleSi && (
+                              <p className="text-[11px] text-gray-500 mt-0.5 truncate">
+                                {pos.titleSi}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => handleStartEditPosition(pos)}
+                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                            title="Edit"
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeletePosition(pos.id, pos.title)}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                            title="Delete"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-gray-100 bg-gray-50/50 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsPositionModalOpen(false);
+                  setEditingPositionId(null);
+                  setPositionError(null);
+                }}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       )}
