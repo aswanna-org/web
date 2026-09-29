@@ -124,8 +124,15 @@ export default function GovijanaSewaDetail() {
 
     let list: AscOfficer[] = [];
     if (Array.isArray(center.officers) && center.officers.length > 0) {
-      list = [...center.officers];
+      list = center.officers.map(o => {
+        const isFemale = /මිය|මෙනවිය|Mrs\.?|Ms\.?|Miss/i.test(`${o.name || ''} ${o.nameSi || ''}`);
+        return {
+          ...o,
+          gender: o.gender || (isFemale ? 'FEMALE' : 'MALE')
+        };
+      });
     } else if (center.officerInCharge) {
+      const isFemale = /මිය|මෙනවිය|Mrs\.?|Ms\.?|Miss/i.test(`${center.officerInCharge || ''} ${center.officerInChargeSi || ''}`);
       list = [{
         name: center.officerInCharge,
         nameSi: center.officerInChargeSi || null,
@@ -133,6 +140,7 @@ export default function GovijanaSewaDetail() {
         positionSi: center.officerDesignationSi || 'ගොවිජන සංවර්ධන නිලධාරී',
         phone: center.mobilePhone || center.officePhone || null,
         email: center.email || null,
+        gender: isFemale ? 'FEMALE' : 'MALE',
         isPrimary: true
       }];
     }

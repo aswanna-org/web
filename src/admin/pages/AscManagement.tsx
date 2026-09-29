@@ -412,6 +412,7 @@ export default function AscManagement() {
         const matchedDept = departments.find(
           d => d.id === o.departmentId || d.name.toLowerCase() === (o.departmentName || '').toLowerCase()
         );
+        const isFemaleName = /මිය|මෙනවිය|Mrs\.?|Ms\.?|Miss/i.test(`${o.name || ''} ${o.nameSi || ''}`);
         return {
           ...o,
           positionId: matchedPos?.id || o.positionId,
@@ -419,21 +420,32 @@ export default function AscManagement() {
           departmentId: matchedDept?.id || o.departmentId,
           departmentName: o.departmentName || matchedDept?.name || '',
           departmentNameSi: o.departmentNameSi || matchedDept?.nameSi || '',
-          gender: o.gender || 'MALE',
+          gender: o.gender || (isFemaleName ? 'FEMALE' : 'MALE'),
           avatar: o.avatar || ''
         };
       });
     }
 
     if (asc.additionalOfficers) {
-      if (Array.isArray(asc.additionalOfficers)) return asc.additionalOfficers;
-      if (typeof asc.additionalOfficers === 'string') {
+      let parsedOfficers: any[] = [];
+      if (Array.isArray(asc.additionalOfficers)) parsedOfficers = asc.additionalOfficers;
+      else if (typeof asc.additionalOfficers === 'string') {
         try {
           const parsed = JSON.parse(asc.additionalOfficers);
-          if (Array.isArray(parsed)) return parsed;
+          if (Array.isArray(parsed)) parsedOfficers = parsed;
         } catch (e) {
           // ignore
         }
+      }
+      if (parsedOfficers.length > 0) {
+        return parsedOfficers.map(o => {
+          const isFemaleName = /මිය|මෙනවිය|Mrs\.?|Ms\.?|Miss/i.test(`${o.name || ''} ${o.nameSi || ''}`);
+          return {
+            ...o,
+            gender: o.gender || (isFemaleName ? 'FEMALE' : 'MALE'),
+            avatar: o.avatar || ''
+          };
+        });
       }
     }
 
@@ -443,6 +455,7 @@ export default function AscManagement() {
       const matchedPos = positions.find(
         p => p.title.toLowerCase() === (asc.officerDesignation || '').toLowerCase()
       );
+      const isFemaleName = /මිය|මෙනවිය|Mrs\.?|Ms\.?|Miss/i.test(`${asc.officerInCharge || ''} ${asc.officerInChargeSi || ''}`);
       fallbackList.push({
         name: asc.officerInCharge,
         nameSi: asc.officerInChargeSi || '',
@@ -455,7 +468,7 @@ export default function AscManagement() {
         phone: asc.mobilePhone || asc.officePhone || '',
         email: asc.email || '',
         avatar: '',
-        gender: 'MALE',
+        gender: isFemaleName ? 'FEMALE' : 'MALE',
         isPrimary: true,
         order: 0
       });
@@ -788,6 +801,11 @@ export default function AscManagement() {
                   const officersList = extractOfficersList(asc);
                   const primaryOfficer = officersList.find(o => o.isPrimary) || officersList[0];
                   const additionalCount = officersList.filter(o => !o.isPrimary).length;
+                  const isOfficerFemale =
+                    primaryOfficer?.gender === 'FEMALE' ||
+                    /මිය|මෙනවිය|Mrs\.?|Ms\.?|Miss/i.test(
+                      `${primaryOfficer?.name || ''} ${primaryOfficer?.nameSi || ''}`
+                    );
 
                   return (
                     <tr key={asc.id} className="hover:bg-gray-50/80 transition-colors">
@@ -816,19 +834,56 @@ export default function AscManagement() {
 
                       <td className="px-5 py-3.5 text-gray-700">
                         {primaryOfficer ? (
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-1.5">
-                              <Star size={12} className="text-amber-500 fill-amber-500 shrink-0" />
-                              <span className="font-medium text-gray-900">{primaryOfficer.name}</span>
-                            </div>
-                            <p className="text-[11px] text-emerald-700 font-medium pl-4">{primaryOfficer.position}</p>
-                            {additionalCount > 0 && (
-                              <div className="pl-4 pt-0.5">
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                  <Users size={10} /> +{additionalCount} more {additionalCount === 1 ? 'officer' : 'officers'}
+                          <div className="flex items-start gap-3">
+                            {/* Avatar or Gender Icon (replaces the star) */}
+                            {primaryOfficer.avatar ? (
+                              <img
+                                src={primaryOfficer.avatar}
+                                alt={primaryOfficer.name}
+                                className="w-10 h-10 rounded-full object-cover shrink-0 shadow-2xs border-2 border-emerald-500/40 bg-gray-100 mt-0.5"
+                              />
+                            ) : (
+                              <div
+                                className={`w-10 h-10 rounded-full flex flex-col items-center justify-center text-white shrink-0 shadow-2xs border-2 border-white ring-2 mt-0.5 ${
+                                  isOfficerFemale
+                                    ? 'ring-pink-300 bg-gradient-to-tr from-pink-500 via-rose-500 to-amber-300'
+                                    : 'ring-emerald-300 bg-gradient-to-tr from-emerald-600 via-teal-600 to-sky-400'
+                                }`}
+                                title={isOfficerFemale ? 'Female Officer (කාන්තා නිලධාරී)' : 'Male Officer (පුරුෂ නිලධාරී)'}
+                              >
+                                <User size={18} />
+                                <span className="text-[8px] font-black leading-none mt-0.5">
+                                  {isOfficerFemale ? '♀' : '♂'}
                                 </span>
                               </div>
                             )}
+
+                            {/* Officer Details */}
+                            <div className="min-w-0 flex-1">
+                              <p className="font-semibold text-gray-900 text-sm leading-snug">
+                                {primaryOfficer.name}
+                              </p>
+                              {primaryOfficer.nameSi && primaryOfficer.nameSi !== primaryOfficer.name && (
+                                <p className="text-xs text-gray-400 leading-none mt-0.5">
+                                  {primaryOfficer.nameSi}
+                                </p>
+                              )}
+                              <p className="text-[11px] text-emerald-700 font-medium leading-tight mt-1">
+                                {primaryOfficer.position}
+                              </p>
+                              {primaryOfficer.departmentName && (
+                                <p className="text-[10px] text-gray-400 truncate max-w-[200px] leading-tight mt-0.5">
+                                  {primaryOfficer.departmentName}
+                                </p>
+                              )}
+                              {additionalCount > 0 && (
+                                <div className="pt-1.5">
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                                    <Users size={10} /> +{additionalCount} more {additionalCount === 1 ? 'officer' : 'officers'}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         ) : (
                           <span className="text-xs text-gray-400 italic">No Officers Assigned</span>
