@@ -10,20 +10,26 @@ export default function HeroCarousel() {
     {
       id: 1,
       image: '/images/hero_farm_1.jpg',
+      tagKey: 'hero.slide1.tag',
       titleKey: 'hero.slide1.title',
       descKey: 'hero.slide1.desc',
+      buttonKey: 'hero.slide1.button',
     },
     {
       id: 2,
       image: '/images/hero_farm_2.jpg',
+      tagKey: 'hero.slide2.tag',
       titleKey: 'hero.slide2.title',
       descKey: 'hero.slide2.desc',
+      buttonKey: 'hero.slide2.button',
     },
     {
       id: 3,
       image: '/images/hero_farm_3.jpg',
+      tagKey: 'hero.slide3.tag',
       titleKey: 'hero.slide3.title',
       descKey: 'hero.slide3.desc',
+      buttonKey: 'hero.slide3.button',
     }
   ];
 
@@ -67,12 +73,12 @@ export default function HeroCarousel() {
 
       {/* Content */}
       <div className="relative z-20 container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
-        <div className="max-w-2xl mt-4 sm:mt-20 lg:mt-0">
-          <p className="uppercase tracking-widest text-[11px] sm:text-sm font-semibold mb-1.5 sm:mb-4 opacity-90">
-            {t('hero.welcome')}
+        <div className="max-w-3xl lg:max-w-4xl mt-4 sm:mt-20 lg:mt-0">
+          <p className="uppercase tracking-widest text-[11px] sm:text-sm font-semibold mb-1.5 sm:mb-4 opacity-90 text-[var(--color-primary)]">
+            {t(slides[currentSlide].tagKey)}
           </p>
 
-          <h1 className="text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-2 sm:mb-6 leading-tight relative">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-2 sm:mb-6 leading-tight relative">
             {t(slides[currentSlide].titleKey)}
             {/* Simple decoration */}
             <span className="absolute -top-4 -right-8 lg:-right-12 text-[var(--color-primary)] opacity-80 select-none hidden sm:block">
@@ -82,7 +88,7 @@ export default function HeroCarousel() {
             </span>
           </h1>
 
-          <p className="text-xs sm:text-base md:text-xl mb-4 sm:mb-10 opacity-90 max-w-lg leading-relaxed line-clamp-3 sm:line-clamp-none">
+          <p className="text-xs sm:text-base md:text-lg lg:text-xl mb-4 sm:mb-10 opacity-90 max-w-2xl leading-relaxed line-clamp-3 sm:line-clamp-none">
             {t(slides[currentSlide].descKey)}
           </p>
 
@@ -90,7 +96,7 @@ export default function HeroCarousel() {
             onClick={() => window.location.href = '/agri-info-hub'}
             className="inline-flex items-center gap-3.5 pl-6 sm:pl-8 pr-2.5 sm:pr-3 py-2 sm:py-2.5 rounded-full bg-white/20 hover:bg-white/35 backdrop-blur-xl border border-white/50 hover:border-white/80 text-white font-bold text-xs sm:text-base shadow-[0_10px_35px_rgba(0,0,0,0.25),inset_0_1.5px_2px_rgba(255,255,255,0.7)] hover:shadow-[0_14px_45px_rgba(0,0,0,0.35),inset_0_2px_2.5px_rgba(255,255,255,0.9)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
           >
-            <span>{t('hero.discoverMore')}</span>
+            <span>{t(slides[currentSlide].buttonKey)}</span>
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/30 backdrop-blur-md border border-white/60 flex items-center justify-center text-white group-hover:rotate-45 transition-transform duration-300 shadow-2xs shrink-0">
               <ArrowUpRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
             </div>

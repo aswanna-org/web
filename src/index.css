@@ -500,3 +500,59 @@ body {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
 }
+
+/* ── Aswanna Agro Magnifier Loader Animations ── */
+@keyframes agroConveyor {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes agroLensFloat {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(0.8deg);
+  }
+}
+
+@keyframes agroPulseRing {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.65;
+  }
+}
+
+@keyframes agroShimmerBar {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.animate-agro-conveyor {
+  animation: agroConveyor 24s linear infinite;
+  will-change: transform;
+}
+
+.animate-agro-lens {
+  animation: agroLensFloat 3.5s ease-in-out infinite;
+}
+
+.animate-agro-ring {
+  animation: agroPulseRing 2.8s ease-in-out infinite;
+}
+
+.animate-agro-shimmer {
+  animation: agroShimmerBar 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}

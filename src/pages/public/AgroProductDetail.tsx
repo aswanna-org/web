@@ -3,6 +3,7 @@ import { useParams, Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getAgroTheme } from '../../utils/agroTheme';
+import AgroLoader from '../../components/common/AgroLoader';
 
 export default function AgroProductDetail() {
   const { mainSlug, subSlug, productId } = useParams<{ mainSlug: string; subSlug: string; productId: string }>();
@@ -34,7 +35,7 @@ export default function AgroProductDetail() {
   if (loading) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+        <AgroLoader message={i18n.language === 'si' ? 'නිෂ්පාදන විස්තර පූරණය වෙමින් පවතී...' : 'Loading product details...'} />
       </div>
     );
   }

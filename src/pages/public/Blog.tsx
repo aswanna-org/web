@@ -3,6 +3,7 @@ import { Share2, Clock, User, Image as ImageIcon, Link as LinkIcon, MessageCircl
 import PageHero from '../../components/public/PageHero';
 import { useTranslation } from 'react-i18next';
 import Pagination from '../../components/admin/Pagination';
+import AgroLoader from '../../components/common/AgroLoader';
 
 interface BlogItem {
   id: string;
@@ -122,7 +123,9 @@ export default function Blog() {
 
             <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5 overflow-y-auto max-h-[500px] sm:max-h-[600px] lg:max-h-[800px] pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
               {isLoading ? (
-                <div className="p-8 sm:p-10 text-center text-sm text-gray-500">{t('blogPage.loading', 'Loading posts...')}</div>
+                <div className="py-16 flex justify-center">
+                  <AgroLoader message={t('blogPage.loading', 'ලිපි තොරතුරු පූරණය වෙමින් පවතී...')} />
+                </div>
               ) : blogList.length === 0 ? (
                 <div className="p-8 sm:p-10 text-center text-sm text-gray-500">{t('blogPage.noPosts', 'No blog posts found.')}</div>
               ) : (

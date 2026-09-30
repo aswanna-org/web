@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, ChevronDown, X, Briefcase } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import Pagination from '../../components/admin/Pagination';
+import AgroLoader from '../../components/common/AgroLoader';
 
 interface Job {
   id: string;
@@ -26,6 +27,7 @@ export default function Careers() {
   const [totalPages, setTotalPages] = useState(1);
 
   const [jobsData, setJobsData] = useState<Job[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newJob, setNewJob] = useState({ title: '', location: '', description: '' });
   const [expandedJob, setExpandedJob] = useState<string | null>(null);
@@ -38,6 +40,7 @@ export default function Careers() {
   }, [currentPage]);
 
   const fetchJobs = async (page = 1) => {
+    setIsLoading(true);
     try {
       const res = await fetch(`${API_BASE_URL}/careers/openings?page=${page}&limit=12`);
       if (res.ok) {
@@ -50,6 +53,8 @@ export default function Careers() {
       }
     } catch (err) {
       console.error("Failed to fetch jobs");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -169,7 +174,11 @@ export default function Careers() {
 
             {/* Right Job List */}
             <div className="w-full lg:w-2/3 flex flex-col">
-              {filteredJobs.length > 0 ? (
+              {isLoading ? (
+                <div className="py-20 flex justify-center">
+                  <AgroLoader message={t('careers.loading', 'රැකියා තොරතුරු පූරණය වෙමින් පවතී...')} />
+                </div>
+              ) : filteredJobs.length > 0 ? (
                 filteredJobs.map((job, index) => (
                   <div 
                     key={job.id} 

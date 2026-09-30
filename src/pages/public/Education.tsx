@@ -5,6 +5,7 @@ import PageHero from '../../components/public/PageHero';
 import Card from '../../components/ui/Card';
 import Pagination from '../../components/admin/Pagination';
 import CustomDropdown from '../../components/ui/CustomDropdown';
+import AgroLoader from '../../components/common/AgroLoader';
 import { QUALIFICATION_LEVELS } from '../../data/educationData';
 import { formatQualificationLevel, formatDurationUnit } from './EducationDetail';
 
@@ -185,8 +186,8 @@ export default function Education() {
 
             {/* Courses Grid */}
             {loading ? (
-              <div className="flex justify-center items-center py-20">
-                <div className="w-10 h-10 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+              <div className="py-12 flex justify-center">
+                <AgroLoader message={isSinhala ? 'පාඨමාලා තොරතුරු පූරණය වෙමින් පවතී...' : 'Loading courses...'} />
               </div>
             ) : courses.length === 0 ? (
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">

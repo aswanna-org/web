@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TrendingUp, TrendingDown, ArrowUpRight } from 'lucide-react';
+import AgroLoader from '../common/AgroLoader';
 
 interface MarketItem {
   id: string;
@@ -66,9 +67,8 @@ export default function MarketPricesSection() {
               {/* Scrolling Container */}
               <div className="h-[450px] lg:h-full min-h-[400px] overflow-hidden relative" style={{ WebkitMaskImage: 'linear-gradient(to bottom, transparent, black 10%, black 90%, transparent)' }}>
                 {loading ? (
-                  <div className="flex items-center justify-center h-full text-gray-500">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mr-2"></div>
-                    Loading prices...
+                  <div className="flex items-center justify-center h-full">
+                    <AgroLoader message={i18n.language === 'si' ? 'මිල ගණන් පූරණය වෙමින් පවතී...' : 'Loading market prices...'} />
                   </div>
                 ) : marketData.length === 0 ? (
                   <div className="flex items-center justify-center h-full text-gray-500">

@@ -28,6 +28,7 @@ import {
   Home
 } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
+import AgroLoader from '../../components/common/AgroLoader';
 import {
   type InstitutionDocument
 } from '../../data/agriInstitutionsData';
@@ -157,12 +158,7 @@ export default function InstitutionDetail() {
   if (isLoading) {
     return (
       <div className="w-full min-h-[70vh] flex items-center justify-center bg-[#f8faf8]">
-        <div className="text-center space-y-3">
-          <div className="w-12 h-12 border-4 border-green-200 border-t-green-600 rounded-full animate-spin mx-auto" />
-          <p className="text-xs font-semibold text-gray-500">
-            {isSinhala ? 'ආයතන විස්තර පූරණය වෙමින් පවතී...' : 'Loading institution details...'}
-          </p>
-        </div>
+        <AgroLoader message={isSinhala ? 'ආයතන විස්තර පූරණය වෙමින් පවතී...' : 'Loading institution details...'} />
       </div>
     );
   }

@@ -18,6 +18,7 @@ import Marketplace from './pages/public/Marketplace';
 import PlantFinder from './pages/public/PlantFinder';
 import AgroLands from './pages/public/AgroLands';
 import { CartProvider } from './context/CartContext';
+import { LoadingProvider } from './context/LoadingContext';
 import CartModal from './components/public/CartModal';
 import LoginModal from './components/public/LoginModal';
 import RegisterModal from './components/public/RegisterModal';
@@ -67,10 +68,11 @@ function PublicLayout() {
 
 function App() {
   return (
-    <CartProvider>
-      <AuthProvider>
-        <BrowserRouter>
-          <ScrollToTop />
+    <LoadingProvider>
+      <CartProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <ScrollToTop />
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<PublicLayout />}>
@@ -80,6 +82,7 @@ function App() {
               <Route path="careers" element={<Careers />} />
               <Route path="pages/faq" element={<div className="p-20 text-center font-roboto">FAQ Page Placeholder <br /><a href="/" className="text-blue-500 underline">Back</a></div>} />
               <Route path="pages/contact" element={<Contact />} />
+              <Route path="contact" element={<Contact />} />
               <Route path="projects" element={<div className="p-20 text-center font-roboto">Projects Placeholder <br /><a href="/" className="text-blue-500 underline">Back</a></div>} />
               <Route path="news" element={<News />} />
               <Route path="blog" element={<Blog />} />
@@ -105,6 +108,7 @@ function App() {
               <Route path="private-institutions" element={<PrivateInstitutions />} />
               <Route path="international-institutions" element={<InternationalInstitutions />} />
             </Route>
+
 
             {/* Admin Routes */}
             <Route path="/admin/login" element={<Login />} />
@@ -137,6 +141,7 @@ function App() {
         </BrowserRouter>
       </AuthProvider>
     </CartProvider>
+  </LoadingProvider>
   );
 }
 

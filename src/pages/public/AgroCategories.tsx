@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, ChevronRight, Layers, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PageHero from '../../components/public/PageHero';
+import AgroLoader from '../../components/common/AgroLoader';
 
 interface Category {
   id: string;
@@ -83,10 +84,12 @@ function CloudBackground({ index }: { index: number }) {
 export default function AgroCategories() {
   const [search, setSearch] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
+    setIsLoading(true);
     fetch(`${API_BASE_URL}/categories/tree`)
       .then(res => res.json())
       .then(data => {
@@ -94,6 +97,9 @@ export default function AgroCategories() {
       })
       .catch(error => {
         console.error('Error fetching categories:', error);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }, [API_BASE_URL]);
 
@@ -153,7 +159,11 @@ export default function AgroCategories() {
       {/* ── Category Grid ── */}
       <section className="w-full py-16 bg-[#fbfdfa]">
         <div className="container mx-auto px-2 sm:px-4 lg:px-12">
-          {filtered.length === 0 ? (
+          {isLoading ? (
+            <div className="py-20 flex justify-center">
+              <AgroLoader message={isSinhala ? 'කාණ්ඩ තොරතුරු පූරණය වෙමින් පවතී...' : 'Loading agro categories...'} />
+            </div>
+          ) : filtered.length === 0 ? (
             <div className="text-center py-20 text-gray-400">
               <p className="text-2xl font-bold mb-2">{t('agro.noCategories', 'No categories found')}</p>
               <p>{t('agro.tryDifferent', 'Try a different search term.')}</p>

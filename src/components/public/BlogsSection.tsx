@@ -46,14 +46,14 @@ export default function BlogsSection() {
 
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         {/* Section Header */}
-        <div className="reveal-fade-up flex flex-col items-center text-center mb-8 sm:mb-12">
-          <div className="flex items-center gap-2 mb-2">
-            <PenTool className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-primary)]" />
-            <span className="text-gray-500 font-bold text-xs sm:text-sm tracking-widest uppercase">
+        <div className="reveal-fade-up flex flex-col items-center text-center mb-6 sm:mb-10">
+          <div className="flex items-center gap-2 mb-1.5">
+            <PenTool className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--color-primary)]" />
+            <span className="text-gray-500 font-bold text-[11px] sm:text-xs tracking-widest uppercase">
               {t('blogs.subtitle')}
             </span>
           </div>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--color-secondary)]">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[var(--color-secondary)]">
             {t('blogs.title')}
           </h2>
         </div>
@@ -71,6 +71,7 @@ export default function BlogsSection() {
                     <Card
                       image={item.image || 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&q=80'}
                       badge="BLOG"
+                      titleClassName="text-sm sm:text-base font-bold text-gray-900 leading-snug mb-1 line-clamp-2"
                       title={isSinhala ? (item.sinhalaTitle || item.title || 'Untitled') : (item.title || item.sinhalaTitle || 'Untitled')}
                       meta={[
                         { icon: User, text: item.authorName || 'Admin' },

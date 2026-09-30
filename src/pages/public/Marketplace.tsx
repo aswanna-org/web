@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, ShoppingCart, Filter, ShoppingBag, X } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import Pagination from '../../components/admin/Pagination';
+import AgroLoader from '../../components/common/AgroLoader';
 
 interface Product {
   id: string;
@@ -156,8 +157,11 @@ export default function Marketplace() {
             
             {/* Product Grid */}
             {isLoading ? (
-              <div className="flex justify-center items-center py-20">
-                <div className="w-10 h-10 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
+              <div className="py-12">
+                <AgroLoader 
+                  message={t('marketplace.loading', 'වෙළඳපොළ නිෂ්පාදන පූරණය වෙමින් පවතී...')} 
+                  subMessage="Aswanna Agriculture Marketplace"
+                />
               </div>
             ) : products.length === 0 ? (
               <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">

@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import {
   Plus, Edit, Trash2, X, Search, Building2, Phone, Mail,
   MapPin, StickyNote, Users, ExternalLink, CheckCircle2, ChevronRight,
-  Star, Briefcase, AlertCircle, Loader2, Upload, User
+  Star, Briefcase, AlertCircle, Loader2, Upload, User, ChevronDown, ChevronUp, Hash
 } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import { compressImageFile } from '../../utils/imageCompressor';
+import AgroLoader from '../../components/common/AgroLoader';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -53,6 +54,15 @@ export interface AscOfficerItem {
   positionId?: string;
 }
 
+export interface GNDivision {
+  id?: string;
+  serialNo: string;       // අනු අංකය
+  divisionCode: string;   // වසම් අංකය
+  divisionName: string;   // ග්‍රාම නිලධාරී වසම
+  arpaOfficerName: string; // ARPA Officer Name
+  contactNumber: string;  // දුරකථන අංකය
+}
+
 export interface ASC {
   id: string;
   ascId: string;
@@ -74,6 +84,7 @@ export interface ASC {
   additionalOfficers?: AscOfficerItem[] | string;
   specialNote?: string;
   specialNoteSi?: string;
+  gnDivisions?: GNDivision[];
 }
 
 const SRI_LANKA_PROVINCES: Record<string, string[]> = {
@@ -86,6 +97,14 @@ const SRI_LANKA_PROVINCES: Record<string, string[]> = {
   'North Central': ['Anuradhapura', 'Polonnaruwa'],
   'Uva': ['Badulla', 'Monaragala'],
   'Sabaragamuwa': ['Ratnapura', 'Kegalle']
+};
+
+const defaultGNDivision: GNDivision = {
+  serialNo: '',
+  divisionCode: '',
+  divisionName: '',
+  arpaOfficerName: '',
+  contactNumber: ''
 };
 
 const defaultForm = {
@@ -106,7 +125,8 @@ const defaultForm = {
   officerDesignationSi: 'ගොවිජන සංවර්ධන නිලධාරී',
   officers: [] as AscOfficerItem[],
   specialNote: '',
-  specialNoteSi: ''
+  specialNoteSi: '',
+  gnDivisions: [] as GNDivision[]
 };
 
 export default function AscManagement() {
@@ -122,7 +142,12 @@ export default function AscManagement() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'basic' | 'officers' | 'notes'>('basic');
+  const [activeTab, setActiveTab] = useState<'basic' | 'officers' | 'notes' | 'gndivisions'>('basic');
+  const [expandedAscId, setExpandedAscId] = useState<string | null>(null);
+
+  // GN Division inline-form state
+  const [gnDivisionForm, setGNDivisionForm] = useState<GNDivision>({ ...defaultGNDivision });
+  const [editingGNIndex, setEditingGNIndex] = useState<number | null>(null);
 
   // Positions state
   const [positions, setPositions] = useState<AscPositionItem[]>([]);
@@ -499,15 +524,22 @@ export default function AscManagement() {
           isPrimary: true,
           order: 0
         }
-      ]
+      ],
+      gnDivisions: []
     });
     setEditingId(null);
     setActiveTab('basic');
+    setGNDivisionForm({ ...defaultGNDivision });
+    setEditingGNIndex(null);
     setIsModalOpen(true);
   };
 
   const openEdit = (asc: ASC) => {
     const officersList = extractOfficersList(asc);
+    let gnList: GNDivision[] = [];
+    if (asc.gnDivisions && Array.isArray(asc.gnDivisions)) {
+      gnList = asc.gnDivisions;
+    }
 
     setForm({
       ascId: asc.ascId || '',
@@ -527,10 +559,13 @@ export default function AscManagement() {
       officerDesignationSi: asc.officerDesignationSi || 'ගොවිජන සංවර්ධන නිලධාරී',
       officers: officersList,
       specialNote: asc.specialNote || '',
-      specialNoteSi: asc.specialNoteSi || ''
+      specialNoteSi: asc.specialNoteSi || '',
+      gnDivisions: gnList
     });
     setEditingId(asc.id);
     setActiveTab('basic');
+    setGNDivisionForm({ ...defaultGNDivision });
+    setEditingGNIndex(null);
     setIsModalOpen(true);
   };
 
@@ -596,6 +631,41 @@ export default function AscManagement() {
     }));
   };
 
+  // GN Division handlers
+  const handleAddOrUpdateGNDivision = () => {
+    if (!gnDivisionForm.divisionName.trim()) return;
+    setForm(prev => {
+      const updated = [...(prev.gnDivisions || [])];
+      if (editingGNIndex !== null) {
+        updated[editingGNIndex] = { ...gnDivisionForm };
+      } else {
+        // Auto-fill serialNo if empty
+        const nextSerial = String((updated.length + 1)).padStart(2, '0');
+        updated.push({ ...gnDivisionForm, serialNo: gnDivisionForm.serialNo || nextSerial });
+      }
+      return { ...prev, gnDivisions: updated };
+    });
+    setGNDivisionForm({ ...defaultGNDivision });
+    setEditingGNIndex(null);
+  };
+
+  const handleEditGNDivision = (index: number) => {
+    const divisions = form.gnDivisions || [];
+    setGNDivisionForm({ ...divisions[index] });
+    setEditingGNIndex(index);
+  };
+
+  const handleDeleteGNDivision = (index: number) => {
+    setForm(prev => ({
+      ...prev,
+      gnDivisions: (prev.gnDivisions || []).filter((_, i) => i !== index)
+    }));
+    if (editingGNIndex === index) {
+      setGNDivisionForm({ ...defaultGNDivision });
+      setEditingGNIndex(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
@@ -615,7 +685,8 @@ export default function AscManagement() {
           .map((o, idx) => ({
             ...o,
             order: idx
-          }))
+          })),
+        gnDivisions: (form.gnDivisions || []).filter(g => g.divisionName.trim() !== '')
       };
 
       const res = await fetch(url, {
@@ -765,9 +836,8 @@ export default function AscManagement() {
       {/* ── Table Card ── */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {isLoading ? (
-          <div className="flex flex-col justify-center items-center py-20 gap-3">
-            <div className="w-8 h-8 border-3 border-gray-200 border-t-emerald-600 rounded-full animate-spin" />
-            <p className="text-xs text-gray-500 font-medium">Loading Govijana Centers...</p>
+          <div className="flex justify-center items-center py-20">
+            <AgroLoader message="Loading Govijana Centers..." />
           </div>
         ) : ascs.length === 0 ? (
           <div className="text-center py-16 px-4">
@@ -806,8 +876,11 @@ export default function AscManagement() {
                     /මිය|මෙනවිය|Mrs\.?|Ms\.?|Miss/i.test(
                       `${primaryOfficer?.name || ''} ${primaryOfficer?.nameSi || ''}`
                     );
+                  const gnDivs = asc.gnDivisions || [];
+                  const isExpanded = expandedAscId === asc.id;
 
                   return (
+                    <>
                     <tr key={asc.id} className="hover:bg-gray-50/80 transition-colors">
                       <td className="px-5 py-3.5">
                         <div className="flex items-start gap-2.5">
@@ -910,13 +983,32 @@ export default function AscManagement() {
                       </td>
 
                       <td className="px-5 py-3.5">
-                        {asc.specialNote || asc.specialNoteSi ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200" title={asc.specialNote || asc.specialNoteSi}>
-                            <StickyNote size={11} /> Note Added
-                          </span>
-                        ) : (
-                          <span className="text-xs text-gray-400">-</span>
-                        )}
+                        <div className="space-y-1.5">
+                          {asc.specialNote || asc.specialNoteSi ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200" title={asc.specialNote || asc.specialNoteSi}>
+                              <StickyNote size={11} /> Note Added
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-400">-</span>
+                          )}
+                          {/* GN Divisions expand button */}
+                          <div>
+                            <button
+                              type="button"
+                              onClick={() => setExpandedAscId(isExpanded ? null : asc.id)}
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold transition-colors cursor-pointer ${
+                                gnDivs.length > 0
+                                  ? 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100'
+                                  : 'bg-gray-50 text-gray-400 border border-gray-200 hover:bg-gray-100'
+                              }`}
+                              title="GN Divisions"
+                            >
+                              <Hash size={10} />
+                              {gnDivs.length > 0 ? `${gnDivs.length} GN Div.` : 'No GN Div.'}
+                              {isExpanded ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                            </button>
+                          </div>
+                        </div>
                       </td>
 
                       <td className="px-5 py-3.5">
@@ -947,6 +1039,60 @@ export default function AscManagement() {
                         </div>
                       </td>
                     </tr>
+
+                    {/* GN Divisions expandable row */}
+                    {isExpanded && (
+                      <tr key={`${asc.id}-gn`} className="bg-blue-50/30">
+                        <td colSpan={6} className="px-5 pt-0 pb-4">
+                          <div className="mt-1 border border-blue-100 rounded-xl overflow-hidden bg-white shadow-2xs">
+                            <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+                              <Hash size={14} />
+                              <span className="text-xs font-bold uppercase tracking-wider">ග්‍රාම නිලධාරී වසම් (GN Divisions) — {asc.name}</span>
+                              <span className="ml-auto text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">{gnDivs.length} records</span>
+                            </div>
+                            {gnDivs.length === 0 ? (
+                              <div className="p-6 text-center text-xs text-gray-400">
+                                No GN Divisions added for this center. Click Edit to add them.
+                              </div>
+                            ) : (
+                              <div className="overflow-x-auto">
+                                <table className="w-full text-[11px]">
+                                  <thead className="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold text-[10px]">
+                                    <tr>
+                                      <th className="px-4 py-2.5 text-center w-10">අනු අංකය</th>
+                                      <th className="px-4 py-2.5">වසම් අංකය</th>
+                                      <th className="px-4 py-2.5">ග්‍රාම නිලධාරී වසම</th>
+                                      <th className="px-4 py-2.5">ARPA Officer Name</th>
+                                      <th className="px-4 py-2.5">දුරකථන අංකය</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-gray-100">
+                                    {gnDivs.map((gn, gi) => (
+                                      <tr key={gi} className="hover:bg-gray-50/60 transition-colors">
+                                        <td className="px-4 py-2 text-center">
+                                          <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center mx-auto">{gn.serialNo || gi + 1}</span>
+                                        </td>
+                                        <td className="px-4 py-2 font-mono font-bold text-blue-700">{gn.divisionCode || '-'}</td>
+                                        <td className="px-4 py-2 font-semibold text-gray-800">{gn.divisionName}</td>
+                                        <td className="px-4 py-2 text-gray-600">{gn.arpaOfficerName || '-'}</td>
+                                        <td className="px-4 py-2">
+                                          {gn.contactNumber ? (
+                                            <span className="flex items-center gap-1 text-gray-700">
+                                              <Phone size={10} className="text-gray-400" /> {gn.contactNumber}
+                                            </span>
+                                          ) : <span className="text-gray-400">-</span>}
+                                        </td>
+                                      </tr>
+                                    ))}
+                                  </tbody>
+                                </table>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                    </>
                   );
                 })}
               </tbody>
@@ -988,11 +1134,11 @@ export default function AscManagement() {
             </div>
 
             {/* Modal Tabs */}
-            <div className="flex border-b border-gray-200 px-6 gap-6 bg-white text-xs font-semibold">
+            <div className="flex border-b border-gray-200 px-6 gap-6 bg-white text-xs font-semibold overflow-x-auto">
               <button
                 type="button"
                 onClick={() => setActiveTab('basic')}
-                className={`py-3 border-b-2 transition-colors cursor-pointer ${
+                className={`py-3 border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
                   activeTab === 'basic' ? 'border-emerald-600 text-emerald-700' : 'border-transparent text-gray-500 hover:text-gray-900'
                 }`}
               >
@@ -1001,7 +1147,7 @@ export default function AscManagement() {
               <button
                 type="button"
                 onClick={() => setActiveTab('officers')}
-                className={`py-3 border-b-2 flex items-center gap-1.5 transition-colors cursor-pointer ${
+                className={`py-3 border-b-2 flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
                   activeTab === 'officers' ? 'border-emerald-600 text-emerald-700' : 'border-transparent text-gray-500 hover:text-gray-900'
                 }`}
               >
@@ -1015,11 +1161,25 @@ export default function AscManagement() {
               <button
                 type="button"
                 onClick={() => setActiveTab('notes')}
-                className={`py-3 border-b-2 transition-colors cursor-pointer ${
+                className={`py-3 border-b-2 transition-colors cursor-pointer whitespace-nowrap ${
                   activeTab === 'notes' ? 'border-emerald-600 text-emerald-700' : 'border-transparent text-gray-500 hover:text-gray-900'
                 }`}
               >
                 3. Special Notes & Map
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('gndivisions')}
+                className={`py-3 border-b-2 flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap ${
+                  activeTab === 'gndivisions' ? 'border-blue-600 text-blue-700' : 'border-transparent text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                4. GN Divisions
+                {(form.gnDivisions || []).length > 0 && (
+                  <span className="bg-blue-100 text-blue-800 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                    {(form.gnDivisions || []).length}
+                  </span>
+                )}
               </button>
             </div>
 
@@ -1622,6 +1782,210 @@ export default function AscManagement() {
                 </div>
               )}
 
+              {/* TAB 4: GN Divisions */}
+              {activeTab === 'gndivisions' && (
+                <div className="space-y-5">
+                  {/* Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-gray-100">
+                    <div>
+                      <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                        <Hash size={16} className="text-blue-600" />
+                        ග්‍රාම නිලධාරී වසම් (GN Divisions)
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Add, edit, or remove Gramaniladari (GN) Divisions belonging to this Agrarian Services Center.
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                      {(form.gnDivisions || []).length} Division{(form.gnDivisions || []).length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+
+                  {/* Inline Add / Edit Form */}
+                  <div className="p-4 bg-blue-50/40 rounded-xl border border-blue-100 space-y-3">
+                    <div className="flex items-center justify-between pb-1.5 border-b border-blue-100/60">
+                      <span className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
+                        <Plus size={13} className="text-blue-600" />
+                        {editingGNIndex !== null ? 'Edit GN Division Record' : 'Add New GN Division'}
+                      </span>
+                      {editingGNIndex !== null && (
+                        <button
+                          type="button"
+                          onClick={() => { setEditingGNIndex(null); setGNDivisionForm({ ...defaultGNDivision }); }}
+                          className="text-[11px] text-gray-500 hover:text-gray-700 underline font-medium cursor-pointer"
+                        >
+                          Cancel Edit
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                          අනු අංකය (Serial No.)
+                        </label>
+                        <input
+                          placeholder="e.g. 01"
+                          value={gnDivisionForm.serialNo}
+                          onChange={e => setGNDivisionForm({ ...gnDivisionForm, serialNo: e.target.value })}
+                          className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                          වසම් අංකය (Division Code)
+                        </label>
+                        <input
+                          placeholder="e.g. GN-001"
+                          value={gnDivisionForm.divisionCode}
+                          onChange={e => setGNDivisionForm({ ...gnDivisionForm, divisionCode: e.target.value })}
+                          className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                          ග්‍රාම නිලධාරී වසම *
+                        </label>
+                        <input
+                          required
+                          placeholder="e.g. Mahabage"
+                          value={gnDivisionForm.divisionName}
+                          onChange={e => setGNDivisionForm({ ...gnDivisionForm, divisionName: e.target.value })}
+                          className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2 lg:col-span-2">
+                        <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                          ARPA Officer Name (කෘෂිකර්ම පර්යේෂණ නිෂ්පාදන සහකාර නිලධාරි නම)
+                        </label>
+                        <input
+                          placeholder="e.g. K.A.S. Perera"
+                          value={gnDivisionForm.arpaOfficerName}
+                          onChange={e => setGNDivisionForm({ ...gnDivisionForm, arpaOfficerName: e.target.value })}
+                          className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                          දුරකථන අංකය (Contact No.)
+                        </label>
+                        <input
+                          placeholder="e.g. 0712345678"
+                          value={gnDivisionForm.contactNumber}
+                          onChange={e => setGNDivisionForm({ ...gnDivisionForm, contactNumber: e.target.value })}
+                          className="w-full px-3 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-blue-500/40"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end pt-1">
+                      {editingGNIndex !== null && (
+                        <button
+                          type="button"
+                          onClick={() => { setEditingGNIndex(null); setGNDivisionForm({ ...defaultGNDivision }); }}
+                          className="mr-2 px-3 py-1.5 text-xs text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={handleAddOrUpdateGNDivision}
+                        disabled={!gnDivisionForm.divisionName.trim()}
+                        className="px-4 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        {editingGNIndex !== null ? (
+                          <><CheckCircle2 size={13} /> Update Division</>
+                        ) : (
+                          <><Plus size={13} /> Add Division</>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* GN Divisions Table */}
+                  {(form.gnDivisions || []).length === 0 ? (
+                    <div className="p-8 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                      <Hash size={32} className="mx-auto text-gray-300 mb-2" />
+                      <p className="text-xs font-semibold text-gray-600">No GN Divisions added yet</p>
+                      <p className="text-[11px] text-gray-400 mt-0.5">Use the form above to add GN divisions belonging to this center.</p>
+                    </div>
+                  ) : (
+                    <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+                      <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
+                        <Hash size={14} />
+                        <span className="text-xs font-bold uppercase tracking-wider">GN Divisions List</span>
+                        <span className="ml-auto text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">{(form.gnDivisions || []).length} records</span>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-[11px]">
+                          <thead className="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold text-[10px] border-b border-gray-200">
+                            <tr>
+                              <th className="px-3 py-2.5 text-center w-10">අනු</th>
+                              <th className="px-3 py-2.5">වසම් අංකය</th>
+                              <th className="px-3 py-2.5">ග්‍රාම නිලධාරී වසම</th>
+                              <th className="px-3 py-2.5">ARPA Officer Name</th>
+                              <th className="px-3 py-2.5">දුරකථන අංකය</th>
+                              <th className="px-3 py-2.5 text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-100">
+                            {(form.gnDivisions || []).map((gn, gi) => (
+                              <tr
+                                key={gi}
+                                className={`transition-colors ${
+                                  editingGNIndex === gi ? 'bg-blue-50/50 ring-1 ring-inset ring-blue-200' : 'hover:bg-gray-50/60'
+                                }`}
+                              >
+                                <td className="px-3 py-2.5 text-center">
+                                  <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center mx-auto">
+                                    {gn.serialNo || gi + 1}
+                                  </span>
+                                </td>
+                                <td className="px-3 py-2.5 font-mono font-bold text-blue-700">{gn.divisionCode || '-'}</td>
+                                <td className="px-3 py-2.5 font-semibold text-gray-800">{gn.divisionName}</td>
+                                <td className="px-3 py-2.5 text-gray-600">{gn.arpaOfficerName || '-'}</td>
+                                <td className="px-3 py-2.5">
+                                  {gn.contactNumber ? (
+                                    <span className="flex items-center gap-1 text-gray-700">
+                                      <Phone size={10} className="text-gray-400" /> {gn.contactNumber}
+                                    </span>
+                                  ) : <span className="text-gray-400">-</span>}
+                                </td>
+                                <td className="px-3 py-2.5">
+                                  <div className="flex items-center gap-1 justify-end">
+                                    <button
+                                      type="button"
+                                      onClick={() => handleEditGNDivision(gi)}
+                                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                                      title="Edit"
+                                    >
+                                      <Edit size={12} />
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDeleteGNDivision(gi)}
+                                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                                      title="Delete"
+                                    >
+                                      <Trash2 size={12} />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Modal Actions */}
               <div className="flex items-center justify-between pt-4 border-t border-gray-100">
                 <button
@@ -1633,10 +1997,14 @@ export default function AscManagement() {
                 </button>
 
                 <div className="flex items-center gap-2">
-                  {activeTab !== 'notes' ? (
+                  {activeTab !== 'gndivisions' ? (
                     <button
                       type="button"
-                      onClick={() => setActiveTab(activeTab === 'basic' ? 'officers' : 'notes')}
+                      onClick={() => {
+                        if (activeTab === 'basic') setActiveTab('officers');
+                        else if (activeTab === 'officers') setActiveTab('notes');
+                        else if (activeTab === 'notes') setActiveTab('gndivisions');
+                      }}
                       className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
                     >
                       Next Step <ChevronRight size={14} />

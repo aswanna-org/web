@@ -60,14 +60,14 @@ export default function CoursesSection() {
 
       <div className="container mx-auto px-4 lg:px-8 relative z-10">
         {/* Section Header */}
-        <div className="reveal-fade-up flex flex-col items-center text-center mb-8 sm:mb-12">
-          <div className="flex items-center gap-2 mb-2">
-            <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 text-[var(--color-primary)]" />
-            <span className="text-gray-500 font-bold text-xs sm:text-sm tracking-widest uppercase">
+        <div className="reveal-fade-up flex flex-col items-center text-center mb-6 sm:mb-10">
+          <div className="flex items-center gap-2 mb-1.5">
+            <GraduationCap className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--color-primary)]" />
+            <span className="text-gray-500 font-bold text-[11px] sm:text-xs tracking-widest uppercase">
               {t('courses.subtitle', isSinhala ? 'කෘෂි අධ්‍යාපනය සහ පුහුණු' : 'Agricultural Education & Training')}
             </span>
           </div>
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[var(--color-secondary)]">
+          <h2 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-[var(--color-secondary)]">
             {t('courses.title', isSinhala ? 'නවතම පාඨමාලා' : 'Latest Courses')}
           </h2>
         </div>
@@ -113,9 +113,10 @@ export default function CoursesSection() {
                           to={`/education/${course.slug || course.id}`}
                           image={course.bannerImageUrl || 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=800&q=80'}
                           badge={formatQualificationLevel(course.courseLevel, isSinhala) || (isSinhala ? 'පාඨමාලාව' : 'Course')}
+                          titleClassName="text-sm sm:text-base font-bold text-gray-900 leading-snug mb-1 line-clamp-2"
                           topRightBadge={course.applicationCalled ? (
-                            <div className="h-7 inline-flex items-center gap-1.5 bg-amber-500/85 backdrop-blur-md text-white text-xs font-bold px-3 rounded-full shadow-xs border border-amber-300/40 max-w-full">
-                              <Sparkles size={12} className="shrink-0 text-amber-100" />
+                            <div className="h-6 inline-flex items-center gap-1.5 bg-amber-500/85 backdrop-blur-md text-white text-[11px] font-bold px-2.5 rounded-full shadow-xs border border-amber-300/40 max-w-full">
+                              <Sparkles size={11} className="shrink-0 text-amber-100" />
                               <span className="truncate">{isSinhala ? 'අයදුම්පත් කැඳවා ඇත' : 'Application Called'}</span>
                             </div>
                           ) : null}

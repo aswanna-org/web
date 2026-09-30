@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Image as ImageIcon, Video, PlayCircle } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import Pagination from '../../components/admin/Pagination';
+import AgroLoader from '../../components/common/AgroLoader';
 
 interface GalleryItem {
   id: string;
@@ -97,8 +98,8 @@ export default function Gallery() {
 
           {/* Media Grid */}
           {isLoading ? (
-            <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">
-              <p className="text-xl font-bold text-gray-400">Loading...</p>
+            <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100 flex justify-center">
+              <AgroLoader message={t('galleryPage.loading', 'මාධ්‍ය තොරතුරු පූරණය වෙමින් පවතී...')} />
             </div>
           ) : filteredItems.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">

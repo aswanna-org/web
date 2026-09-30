@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Search, MapPin, Maximize, Phone, Tag, X } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import CustomDropdown from '../../components/ui/CustomDropdown';
+import AgroLoader from '../../components/common/AgroLoader';
 
 interface Lookup {
   id: string;
@@ -185,8 +186,8 @@ export default function AgroLands() {
           
           {/* Results Grid */}
           {isLoading ? (
-            <div className="flex justify-center items-center py-20">
-              <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            <div className="py-12 flex justify-center">
+              <AgroLoader message={t('agroLands.loading', 'ඉඩම් තොරතුරු පූරණය වෙමින් පවතී...')} />
             </div>
           ) : lands.length === 0 ? (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-16 text-center">

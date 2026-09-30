@@ -16,32 +16,42 @@
     "blog": "Blog"
   },
   "hero": {
-    "welcome": "Welcome to Agriculture Farm",
+    "welcome": "Welcome to Aswanna Digital Agricultural Hub",
     "slide1": {
-      "title": "Agriculture & Eco Farming",
-      "desc": "There are many of passages of lorem Ipsum, but the majori have suffered alteration in some form."
+      "tag": "Welcome to Aswanna Digital Agricultural Hub",
+      "title": "The Digital Academy of Modern Agricultural Knowledge",
+      "desc": "From successful crop cultivation to advanced agri-entrepreneurship, all the agro-technical guidance anyone in Sri Lanka needs in one place.",
+      "button": "Explore Knowledge"
     },
     "slide2": {
-      "title": "Organic Harvest Seasons",
-      "desc": "Discover the richness of organic farming and seasonal harvests that bring the best of nature to you."
+      "tag": "The Trusted Digital Haven for Local Agriculture",
+      "title": "The Right Guidance for a Bountiful Harvest",
+      "desc": "Official repository of modern crop cultivation methods, field problem solutions, and profitable agribusiness opportunities.",
+      "button": "Discover More"
     },
     "slide3": {
-      "title": "Modern Farming Methods",
-      "desc": "Innovative eco-farming techniques for a sustainable and greener future."
+      "tag": "Empowering Sri Lankan Farmlands with Modern Technology",
+      "title": "A Trusted Step in Agricultural Knowledge",
+      "desc": "Tailored for agriculture enthusiasts: practical digital guidance spanning from crop management to market access.",
+      "button": "Join Us"
     },
-    "discoverMore": "Discover More"
+    "discoverMore": "Explore Knowledge"
   },
   "features": {
-    "leader": "Agriculture Leader",
-    "quality": "Quality Standards",
-    "services": "Organic Services",
-    "fresh": "Fresh Vegetables"
+    "leader": "Traditional Agriculture",
+    "quality": "Aswanna Agri Advisory",
+    "services": "Smart Crop Guidance",
+    "fresh": "Crop Cost Calculator",
+    "traditional": "Traditional Agriculture",
+    "advisory": "Aswanna Agri Advisory",
+    "smartGuide": "Smart Crop Guidance",
+    "calculator": "Crop Cost Calculator"
   },
   "about": {
     "subtitle": "WELCOME TO ASWANNA",
-    "title": "Better Agriculture for Better Future",
-    "experience": "We have 30 years of agriculture & eco farming experience globally",
-    "desc": "There are many variations of passages of lorem ipsum available, but the majority have suffered alteration in some form by injected humor or random words which don't look even.",
+    "title": "Sri Lanka's Leading Digital Agricultural Hub Guiding Towards Sustainable Farming",
+    "experience": "",
+    "desc": "Reliable knowledge on crop cultivation methods, innovative solutions, and market opportunities are now right at your fingertips.",
     "professional": "Professional Farmers",
     "organic": "Organic & Eco Solutions",
     "button": "Discover More"
@@ -91,22 +101,52 @@
     "course": "Course"
   },
   "contact": {
-    "title": "Contact Us",
-    "desc": "The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English.",
-    "address": "Address",
-    "phone": "Phone",
-    "email": "E-mail"
+    "title": "Connect With Us",
+    "desc": "Connect with 'Aswanna' through the contacts below to find solutions for your agricultural challenges. Join our social media and digital network to receive daily agricultural knowledge.",
+    "infoTitle": "Contact Information",
+    "infoDesc": "Have questions or need help with your agricultural project? Our team is always ready to assist you with professional solutions and reliable support. Feel free to contact us anytime and we will respond as quickly as possible.",
+    "phoneTitle": "Phone Number",
+    "emailTitle": "Email Address",
+    "hoursTitle": "Opening Hour",
+    "locationTitle": "Our Location",
+    "getInTouchBadge": "Get In Touch",
+    "servicePlaceholder": "Service You're Interested",
+    "address": "Head Office",
+    "addressValue": "No. 45, Krushi Mawatha, Narahenpita, Colombo 05, Sri Lanka",
+    "phone": "Phone & Hotline",
+    "phoneValue": "+94 11 234 5678\n+94 77 123 4567 (Hotline)",
+    "email": "Email Address",
+    "emailValue": "support@aswanna.lk\ninfo@aswanna.lk",
+    "whatsapp": "WhatsApp Helpdesk",
+    "whatsappDesc": "For instant agricultural guidance",
+    "hours": "Working Hours",
+    "hoursValue": "Monday - Friday: 8:30 AM - 5:00 PM\nSaturday: 8:30 AM - 1:00 PM",
+    "formTitle": "Send Us a Message",
+    "formSubtitle": "Submit your agricultural inquiries, questions, or feedback to us",
+    "namePlaceholder": "Your Full Name",
+    "emailPlaceholder": "Your Email Address",
+    "phonePlaceholder": "Phone Number (WhatsApp)",
+    "subjectPlaceholder": "Select Department / Subject",
+    "messagePlaceholder": "Write your agricultural inquiry or message here...",
+    "sendButton": "Send Message",
+    "messageSent": "Your message has been sent successfully! Our agricultural advisory team will contact you shortly.",
+    "appTitle": "Download Aswanna Mobile App Today",
+    "appDesc": "Access real-time crop advisory, market prices, disease diagnosis, and expert guidance directly on your smartphone.",
+    "appStore": "Download on the App Store",
+    "playStore": "Get it on Google Play",
+    "socialTitle": "Join Our Digital Community",
+    "socialDesc": "Connect with our official social media channels to get daily agricultural insights, video tutorials, innovation stories, and news."
   },
   "products": {
-    "title1": "Fruits &",
-    "title2": "Vegetables",
-    "subtitle": "Farm Products",
+    "title1": "Agro Crop",
+    "title2": "Cultivation",
+    "subtitle": "Learn More",
     "more": "More About",
-    "healthy": "Healthy ",
-    "life": "life ",
-    "with": "with ",
-    "fresh": "fresh ",
-    "productsTxt": "products",
+    "healthy": "From fertile land ",
+    "life": "to fresh harvest ",
+    "with": "— ",
+    "fresh": "a step towards strong ",
+    "productsTxt": "agri-entrepreneurship",
     "blueberry": "Blueberry",
     "strawberry": "Strawberry",
     "apples": "Apples",
@@ -121,7 +161,7 @@
     "title": "COMPANY",
     "desc": "The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English.",
     "weAre": "WE ARE",
-    "farm": "AGRICULTURE FARM",
+    "farm": "DIGITAL HUB FOR AGRI KNOWLEDGE",
     "getInTouch": "Get in touch"
   },
   "educationPage": {

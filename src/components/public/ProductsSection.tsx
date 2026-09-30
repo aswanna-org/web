@@ -20,8 +20,8 @@ export default function ProductsSection() {
 
       {/* Background Watermark */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0">
-        <span className="text-[7rem] sm:text-[20rem] lg:text-[35rem] font-extrabold text-gray-50 tracking-tighter opacity-70 whitespace-nowrap -translate-y-12 sm:-translate-y-24">
-          AGRO
+        <span className="text-[5rem] sm:text-[14rem] lg:text-[24rem] font-extrabold text-gray-50 tracking-tighter opacity-75 whitespace-nowrap -translate-y-12 sm:-translate-y-24">
+          ASWANNA
         </span>
       </div>
 
@@ -48,7 +48,7 @@ export default function ProductsSection() {
               {t('products.subtitle')}
             </h3>
 
-            <button 
+            <button
               onClick={() => window.location.href = '/marketplace'}
               className="inline-flex items-center gap-3.5 pl-6 sm:pl-7 pr-2.5 sm:pr-3 py-2 sm:py-2.5 rounded-full bg-white/70 hover:bg-white/95 backdrop-blur-xl border border-white/90 hover:border-emerald-300 text-gray-900 font-bold text-xs sm:text-base shadow-[0_8px_30px_rgba(0,0,0,0.06),inset_0_1.5px_2px_rgba(255,255,255,1)] hover:shadow-[0_12px_36px_rgba(0,0,0,0.12)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
             >
@@ -80,13 +80,13 @@ export default function ProductsSection() {
 
         {/* Bottom Half: Handwritten Typography */}
         <div className="reveal-fade-up delay-200 flex justify-center text-center mt-6 sm:mt-12 w-full relative z-10">
-          <h2 className="font-caveat text-[2.2rem] sm:text-[6rem] lg:text-[8rem] leading-[1] drop-shadow-sm w-full">
+          <h2 className="font-caveat text-xl sm:text-3xl md:text-5xl lg:text-[3.4rem] xl:text-[3.8rem] leading-snug sm:leading-tight drop-shadow-sm w-full max-w-6xl mx-auto px-4 font-bold">
             <span className="text-[#6c6742] inline-block hover:scale-105 transition-transform">{t('products.healthy')}</span>
-            <span className="text-[#ff535c] inline-block hover:scale-105 transition-transform ml-2">{t('products.life')}</span>
-            <span className="text-[#fbb140] inline-block hover:scale-105 transition-transform ml-2 sm:ml-5">{t('products.with')}</span>
+            <span className="text-[#ff535c] inline-block hover:scale-105 transition-transform ml-1.5 sm:ml-2">{t('products.life')}</span>
+            <span className="text-[#fbb140] inline-block hover:scale-105 transition-transform ml-1.5 sm:ml-3">{t('products.with')}</span>
             <br />
             <span className="text-[#fbd245] inline-block hover:scale-105 transition-transform mt-1 sm:mt-2">{t('products.fresh')}</span>
-            <span className="text-[#5b9e54] inline-block hover:scale-105 transition-transform ml-2 sm:ml-5">{t('products.productsTxt')}</span>
+            <span className="text-[#5b9e54] inline-block hover:scale-105 transition-transform ml-1.5 sm:ml-3">{t('products.productsTxt')}</span>
           </h2>
         </div>
 

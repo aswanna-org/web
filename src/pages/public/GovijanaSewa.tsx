@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import CustomDropdown from '../../components/ui/CustomDropdown';
+import AgroLoader from '../../components/common/AgroLoader';
 import ManIcon from '@mui/icons-material/Man';
 import WomanIcon from '@mui/icons-material/Woman';
 
@@ -293,11 +294,8 @@ export default function GovijanaSewa() {
 
         {/* ── Centers Grid / List (3 per row on Desktop) ── */}
         {isLoading ? (
-          <div className="py-24 flex flex-col items-center justify-center gap-3">
-            <div className="w-10 h-10 border-4 border-emerald-200 border-t-emerald-700 rounded-full animate-spin" />
-            <p className="text-sm text-gray-500 font-medium">
-              {isSinhala ? 'මධ්‍යස්ථාන තොරතුරු පූරණය වෙමින් පවතී...' : 'Loading agrarian centers...'}
-            </p>
+          <div className="py-16 flex justify-center">
+            <AgroLoader message={isSinhala ? 'මධ්‍යස්ථාන තොරතුරු පූරණය වෙමින් පවතී...' : 'Loading agrarian centers...'} />
           </div>
         ) : filteredCenters.length === 0 ? (
           <div className="py-20 text-center bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">

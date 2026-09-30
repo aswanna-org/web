@@ -4,6 +4,7 @@ import PageHero from '../../components/public/PageHero';
 import { useTranslation } from 'react-i18next';
 import Pagination from '../../components/admin/Pagination';
 import CustomDropdown from '../../components/ui/CustomDropdown';
+import AgroLoader from '../../components/common/AgroLoader';
 
 interface NewsItem {
   id: string;
@@ -152,7 +153,9 @@ export default function News() {
 
             <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5 overflow-y-auto max-h-[500px] sm:max-h-[600px] lg:max-h-[800px] pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
               {isLoading ? (
-                <div className="p-8 sm:p-10 text-center text-sm text-gray-500">{t('newsPage.loading', 'Loading news...')}</div>
+                <div className="py-12 flex justify-center">
+                  <AgroLoader message={t('newsPage.loading', 'පුවත් තොරතුරු පූරණය වෙමින් පවතී...')} />
+                </div>
               ) : newsList.length === 0 ? (
                 <div className="p-8 sm:p-10 text-center text-sm text-gray-500">{t('newsPage.noNews', 'No news articles found.')}</div>
               ) : (

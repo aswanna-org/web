@@ -8,8 +8,9 @@ import {
   Briefcase, Sparkles, Copy, Download
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../context/AuthContext';
 import PageHero from '../../components/public/PageHero';
+import AgroLoader from '../../components/common/AgroLoader';
+import { useAuth } from '../../context/AuthContext';
 
 // Helper to extract or translate bilingual strings like "මාර්තු (March)" based on active language
 export const formatBilingualText = (text: string | undefined | null, isSinhala: boolean): string => {
@@ -221,7 +222,7 @@ export default function EducationDetail() {
   if (loading) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center bg-gray-50 pt-32">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-700"></div>
+        <AgroLoader message={isSinhala ? 'පාඨමාලා විස්තර පූරණය වෙමින් පවතී...' : 'Loading course details...'} />
       </div>
     );
   }

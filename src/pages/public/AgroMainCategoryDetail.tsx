@@ -3,6 +3,7 @@ import { useParams, Link, Navigate } from 'react-router-dom';
 import { Search, ArrowLeft, ChevronRight, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getAgroTheme } from '../../utils/agroTheme';
+import AgroLoader from '../../components/common/AgroLoader';
 
 interface Category {
   id: string;
@@ -127,7 +128,7 @@ export default function AgroMainCategoryDetail() {
   if (!mainCategory) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+        <AgroLoader message={isSinhala ? 'ප්‍රධාන කාණ්ඩ තොරතුරු පූරණය වෙමින් පවතී...' : 'Loading category details...'} />
       </div>
     );
   }

@@ -29,6 +29,7 @@ import {
 import Pagination from '../../components/admin/Pagination';
 import CountryMultiSelect from '../components/CountryMultiSelect';
 import RichTextEditor from '../components/RichTextEditor';
+import AgroLoader from '../../components/common/AgroLoader';
 import type { InstitutionDocument, RegionalCenter } from '../../data/agriInstitutionsData';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -988,9 +989,8 @@ export default function InstitutionManagement() {
       {/* ── Table Card ── */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
         {isLoading ? (
-          <div className="py-24 flex flex-col items-center justify-center gap-2 text-gray-400">
-            <div className="w-7 h-7 border-2 border-gray-300 border-t-emerald-600 rounded-full animate-spin"></div>
-            <p className="text-xs text-gray-500">Loading institutions data...</p>
+          <div className="py-20 flex justify-center items-center">
+            <AgroLoader message="Loading institutions data..." />
           </div>
         ) : institutions.length === 0 ? (
           <div className="py-20 text-center text-gray-400">

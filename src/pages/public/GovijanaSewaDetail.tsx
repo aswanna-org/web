@@ -14,11 +14,13 @@ import {
   PhoneCall,
   ChevronRight,
   Home,
-  ArrowLeft
+  ArrowLeft,
+  Hash
 } from 'lucide-react';
 import ManIcon from '@mui/icons-material/Man';
 import WomanIcon from '@mui/icons-material/Woman';
 import PageHero from '../../components/public/PageHero';
+import AgroLoader from '../../components/common/AgroLoader';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -35,6 +37,16 @@ interface AscOfficer {
   avatar?: string | null;
   gender?: string | null;
   isPrimary?: boolean;
+  order?: number;
+}
+
+interface GNDivision {
+  id?: string;
+  serialNo?: string | null;
+  divisionCode?: string | null;
+  divisionName: string;
+  arpaOfficerName?: string | null;
+  contactNumber?: string | null;
   order?: number;
 }
 
@@ -58,6 +70,7 @@ interface CenterDetail {
   specialNote?: string | null;
   specialNoteSi?: string | null;
   officers?: AscOfficer[];
+  gnDivisions?: GNDivision[];
 }
 
 export default function GovijanaSewaDetail() {
@@ -179,11 +192,8 @@ export default function GovijanaSewaDetail() {
 
   if (isLoading) {
     return (
-      <div className="w-full min-h-screen bg-[#f8faf9] flex flex-col items-center justify-center gap-4 py-32">
-        <div className="w-12 h-12 border-4 border-emerald-200 border-t-emerald-700 rounded-full animate-spin" />
-        <p className="text-gray-600 font-medium text-sm">
-          {isSinhala ? 'මධ්‍යස්ථාන තොරතුරු පූරණය වෙමින් පවතී...' : 'Loading agrarian service center details...'}
-        </p>
+      <div className="w-full min-h-screen bg-[#f8faf9] flex items-center justify-center py-32">
+        <AgroLoader message={isSinhala ? 'මධ්‍යස්ථාන තොරතුරු පූරණය වෙමින් පවතී...' : 'Loading agrarian service center details...'} />
       </div>
     );
   }
@@ -589,6 +599,120 @@ export default function GovijanaSewaDetail() {
                 </div>
               )}
             </div>
+
+            {/* ── GN Divisions Table ── */}
+            {center.gnDivisions && center.gnDivisions.length > 0 && (
+              <div className="bg-white rounded-3xl border border-gray-200/90 shadow-sm overflow-hidden">
+                {/* Header — matches the officers card style */}
+                <div className="flex items-center gap-3 px-6 sm:px-7 py-4 border-b border-gray-100">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center shrink-0">
+                    <Hash size={17} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                      {isSinhala ? 'ග්‍රාම නිලධාරී වසම්' : 'Gramaniladari (GN) Divisions'}
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {isSinhala
+                        ? `මෙම මධ්‍යස්ථානය යටතේ ග්‍රාම නිලධාරී වසම් ${center.gnDivisions.length}ක් ඇත`
+                        : `${center.gnDivisions.length} GN Division${center.gnDivisions.length !== 1 ? 's' : ''} under this Agrarian Service Center`}
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full shrink-0">
+                    {center.gnDivisions.length}
+                  </span>
+                </div>
+
+                {/* Table */}
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs sm:text-sm">
+                    <thead>
+                      <tr className="bg-gray-50/80 border-b border-gray-200 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                        <th className="px-5 py-3 text-center w-12">
+                          {isSinhala ? 'අනු' : 'No.'}
+                        </th>
+                        <th className="px-5 py-3 text-left">
+                          {isSinhala ? 'වසම් අංකය' : 'Division Code'}
+                        </th>
+                        <th className="px-5 py-3 text-left">
+                          {isSinhala ? 'ග්‍රාම නිලධාරී වසම' : 'GN Division Name'}
+                        </th>
+                        <th className="px-5 py-3 text-left">
+                          {isSinhala ? 'ARPA නිලධාරි නම' : 'ARPA Officer Name'}
+                        </th>
+                        <th className="px-5 py-3 text-left">
+                          {isSinhala ? 'දුරකථන අංකය' : 'Contact'}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {center.gnDivisions.map((gn, idx) => (
+                        <tr
+                          key={gn.id || idx}
+                          className="hover:bg-emerald-50/30 transition-colors group"
+                        >
+                          {/* Serial No */}
+                          <td className="px-5 py-3.5 text-center">
+                            <span className="w-7 h-7 rounded-full bg-emerald-700 text-white text-[11px] font-bold flex items-center justify-center mx-auto">
+                              {gn.serialNo || idx + 1}
+                            </span>
+                          </td>
+
+                          {/* Division Code */}
+                          <td className="px-5 py-3.5">
+                            {gn.divisionCode ? (
+                              <span className="font-mono font-bold text-emerald-800 text-xs bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                                {gn.divisionCode}
+                              </span>
+                            ) : (
+                              <span className="text-gray-300 text-xs">—</span>
+                            )}
+                          </td>
+
+                          {/* Division Name */}
+                          <td className="px-5 py-3.5">
+                            <span className="font-semibold text-gray-900">
+                              {gn.divisionName}
+                            </span>
+                          </td>
+
+                          {/* ARPA Officer Name */}
+                          <td className="px-5 py-3.5">
+                            <span className="text-gray-600">
+                              {gn.arpaOfficerName || <span className="text-gray-300">—</span>}
+                            </span>
+                          </td>
+
+                          {/* Contact Number */}
+                          <td className="px-5 py-3.5">
+                            {gn.contactNumber ? (
+                              <a
+                                href={`tel:${gn.contactNumber.replace(/\D/g, '')}`}
+                                className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 hover:text-emerald-600 transition-colors"
+                              >
+                                <Phone size={12} className="shrink-0" />
+                                {gn.contactNumber}
+                              </a>
+                            ) : (
+                              <span className="text-gray-300 text-xs">—</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Footer note */}
+                <div className="px-5 sm:px-7 py-3 border-t border-gray-100 bg-gray-50/60">
+                  <p className="text-[10px] text-gray-400 font-medium">
+                    {isSinhala
+                      ? 'ARPA — කෘෂිකර්ම පර්යේෂණ නිෂ්පාදන සහකාර නිලධාරී'
+                      : 'ARPA — Agricultural Research and Production Assistant Officer'}
+                  </p>
+                </div>
+              </div>
+            )}
 
           </div>
 

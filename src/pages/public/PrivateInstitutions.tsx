@@ -17,6 +17,7 @@ import PageHero from '../../components/public/PageHero';
 import Pagination from '../../components/admin/Pagination';
 import CustomDropdown from '../../components/ui/CustomDropdown';
 import { type AgriInstitution } from '../../data/agriInstitutionsData';
+import AgroLoader from '../../components/common/AgroLoader';
 
 const CLOUD_PALETTE = [
   { fill: '#e2f5dc' }, // 1. Soft Leaf Green
@@ -271,8 +272,8 @@ export default function PrivateInstitutions() {
       <section id="private-institutions-grid-section" className="w-full py-12">
         <div className="container mx-auto px-4 lg:px-12">
           {isLoading ? (
-            <div className="flex justify-center items-center py-24">
-              <div className="w-10 h-10 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" />
+            <div className="flex justify-center items-center py-20">
+              <AgroLoader message={isSinhala ? 'පෞද්ගලික ආයතන තොරතුරු පූරණය වෙමින් පවතී...' : 'Loading private institutions...'} />
             </div>
           ) : institutions.length === 0 ? (
             <div className="text-center py-20 bg-white rounded-3xl border border-gray-100 shadow-sm p-8 max-w-lg mx-auto">

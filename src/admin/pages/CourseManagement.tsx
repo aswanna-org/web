@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import RichTextEditor from '../components/RichTextEditor';
+import AgroLoader from '../../components/common/AgroLoader';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -968,9 +969,8 @@ export default function CourseManagement() {
           {/* ── Courses Table ── */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             {isLoading ? (
-              <div className="flex flex-col justify-center items-center py-20 gap-3">
-                <div className="w-8 h-8 border-3 border-gray-200 border-t-emerald-600 rounded-full animate-spin" />
-                <p className="text-xs text-gray-500 font-medium">Loading courses...</p>
+              <div className="flex justify-center items-center py-20">
+                <AgroLoader message="Loading courses..." />
               </div>
             ) : courses.length === 0 ? (
               <div className="text-center py-16 px-4">
@@ -1244,9 +1244,8 @@ export default function CourseManagement() {
           {/* ── Applications Data Table ── */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             {appLoading ? (
-              <div className="flex flex-col justify-center items-center py-20 gap-3">
-                <div className="w-8 h-8 border-3 border-gray-200 border-t-emerald-600 rounded-full animate-spin" />
-                <p className="text-xs text-gray-500 font-medium">Loading applications...</p>
+              <div className="flex justify-center items-center py-20">
+                <AgroLoader message="Loading applications..." />
               </div>
             ) : applications.length === 0 ? (
               <div className="text-center py-16 px-4">

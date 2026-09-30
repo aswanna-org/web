@@ -3,6 +3,7 @@ import { useParams, Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getAgroTheme } from '../../utils/agroTheme';
+import AgroLoader from '../../components/common/AgroLoader';
 
 const CLOUD_PALETTE = [
   { fill: '#e2f5dc' }, // 1. Soft Leaf Green
@@ -102,7 +103,7 @@ export default function AgroCategoryDetail() {
   if (loading) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+        <AgroLoader message={i18n.language === 'si' ? 'කාණ්ඩ විස්තර පූරණය වෙමින් පවතී...' : 'Loading category details...'} />
       </div>
     );
   }

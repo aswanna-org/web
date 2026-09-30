@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import { useAuth } from '../../context/AuthContext';
+import AgroLoader from '../../components/common/AgroLoader';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -522,9 +523,8 @@ export default function UserManagement() {
               {isLoading ? (
                 <tr>
                   <td colSpan={5} className="py-16 text-center text-slate-400">
-                    <div className="flex flex-col items-center justify-center gap-3">
-                      <div className="w-8 h-8 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
-                      <p className="text-sm font-medium">Loading users data...</p>
+                    <div className="flex justify-center items-center">
+                      <AgroLoader message="Loading users data..." />
                     </div>
                   </td>
                 </tr>

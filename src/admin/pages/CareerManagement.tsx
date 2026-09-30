@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, X, Search, Briefcase, ToggleLeft, ToggleRight } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
+import AgroLoader from '../../components/common/AgroLoader';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -83,7 +84,7 @@ export default function CareerManagement() {
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         {isLoading ? (
-          <div className="flex justify-center items-center py-20"><div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin" /></div>
+          <div className="flex justify-center items-center py-20"><AgroLoader message="Loading careers..." /></div>
         ) : (
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">

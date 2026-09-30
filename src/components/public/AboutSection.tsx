@@ -56,13 +56,17 @@ export default function AboutSection() {
               {t('about.title')}
             </h2>
 
-            <p className="text-base sm:text-2xl text-[var(--color-primary)] mb-3 sm:mb-6 font-medium italic">
-              {t('about.experience')}
-            </p>
+            {t('about.experience') ? (
+              <p className="text-base sm:text-2xl text-[var(--color-primary)] mb-3 sm:mb-6 font-medium italic">
+                {t('about.experience')}
+              </p>
+            ) : null}
 
-            <p className="text-gray-500 mb-6 sm:mb-8 leading-relaxed text-xs sm:text-base">
-              {t('about.desc')}
-            </p>
+            {t('about.desc') ? (
+              <p className="text-gray-500 mb-6 sm:mb-8 leading-relaxed text-xs sm:text-base">
+                {t('about.desc')}
+              </p>
+            ) : null}
 
             <div className="grid grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-10 border-t border-b border-gray-100 py-4 sm:py-8">
               <div className="flex items-center gap-3 sm:gap-4">
