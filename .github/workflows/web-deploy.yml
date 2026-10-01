@@ -25,6 +25,7 @@ jobs:
     - name: Generate .env file
       run: |
         echo "VITE_API_URL=${{ secrets.VITE_API_URL }}" > .env
+        echo "VITE_GA_MEASUREMENT_ID=${{ secrets.VITE_GA_MEASUREMENT_ID }}" >> .env
 
     - name: Build Web App
       run: npm run build
