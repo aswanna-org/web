@@ -160,8 +160,8 @@ export default function Careers() {
               </h2>
               <div className="flex flex-col items-start border-t-2 border-[var(--color-primary)] pt-6 w-full max-w-[200px]">
                 <p className="text-xs font-bold text-[#143d4d] tracking-widest uppercase mb-2">Or contact us with</p>
-                <a href="mailto:hello@aswanna.com" className="text-[#e87f3b] text-lg font-medium underline underline-offset-4 decoration-[#e87f3b]/30 hover:decoration-[#e87f3b] transition-colors">
-                  hello@aswanna.com
+                <a href="mailto:aswanna.agri@gmail.com" className="text-[#e87f3b] text-base sm:text-lg font-medium underline underline-offset-4 decoration-[#e87f3b]/30 hover:decoration-[#e87f3b] transition-colors break-all">
+                  aswanna.agri@gmail.com
                 </a>
               </div>
               <button

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Newspaper, BookOpen, ShoppingBag, MapPin, Building2, ShoppingCart, Sprout, Database, Cloud, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Users, Newspaper, BookOpen, ShoppingBag, MapPin, Building2, ShoppingCart, Sprout, Database, Cloud, CheckCircle2, AlertCircle, Mail } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -40,6 +40,7 @@ export default function Dashboard() {
       fetchStat('courses/admin?limit=1', 'courses'),
       fetchStat('careers/openings?limit=1', 'careers'),
       fetchStat('users/admin/all?limit=1', 'users'),
+      fetchStat('contacts?limit=1', 'contacts'),
     ];
     Promise.all(fetches).finally(() => setIsLoading(false));
   }, []);
@@ -123,6 +124,7 @@ export default function Dashboard() {
     { label: 'Courses', count: stats.courses ?? null, icon: <BookOpen size={24} />, href: '/admin/courses', color: 'bg-sky-500' },
     { label: 'Job Openings', count: stats.careers ?? null, icon: <Users size={24} />, href: '/admin/careers', color: 'bg-amber-500' },
     { label: 'Users', count: stats.users ?? null, icon: <Users size={24} />, href: '/admin/users', color: 'bg-emerald-600' },
+    { label: 'Contact Inquiries', count: stats.contacts ?? null, icon: <Mail size={24} />, href: '/admin/contacts', color: 'bg-rose-500' },
   ];
 
   return (

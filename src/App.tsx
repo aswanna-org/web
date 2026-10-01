@@ -19,6 +19,7 @@ import PlantFinder from './pages/public/PlantFinder';
 import AgroLands from './pages/public/AgroLands';
 import { CartProvider } from './context/CartContext';
 import { LoadingProvider } from './context/LoadingContext';
+import { FontSizeProvider } from './context/FontSizeContext';
 import CartModal from './components/public/CartModal';
 import LoginModal from './components/public/LoginModal';
 import RegisterModal from './components/public/RegisterModal';
@@ -46,12 +47,14 @@ import AscManagement from './admin/pages/AscManagement';
 import OrderManagement from './admin/pages/OrderManagement';
 import CourseManagement from './admin/pages/CourseManagement';
 import UserManagement from './admin/pages/UserManagement';
+import ContactManagement from './admin/pages/ContactManagement';
 import InstitutionManagement from './admin/pages/InstitutionManagement';
 import Login from './admin/pages/Login';
 import { ProtectedRoute } from './admin/components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 
 import ScrollToTop from './components/common/ScrollToTop';
+import GAPageTracker from './components/common/GAPageTracker';
 
 // Simple layouts for demonstration
 function PublicLayout() {
@@ -68,11 +71,13 @@ function PublicLayout() {
 
 function App() {
   return (
-    <LoadingProvider>
+    <FontSizeProvider>
+      <LoadingProvider>
       <CartProvider>
         <AuthProvider>
           <BrowserRouter>
             <ScrollToTop />
+            <GAPageTracker />
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<PublicLayout />}>
@@ -133,6 +138,7 @@ function App() {
               <Route path="orders" element={<OrderManagement />} />
               <Route path="courses" element={<CourseManagement />} />
               <Route path="users" element={<UserManagement />} />
+              <Route path="contacts" element={<ContactManagement />} />
             </Route>
           </Routes>
           <CartModal />
@@ -142,6 +148,7 @@ function App() {
       </AuthProvider>
     </CartProvider>
   </LoadingProvider>
+</FontSizeProvider>
   );
 }
 

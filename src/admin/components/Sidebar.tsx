@@ -15,6 +15,7 @@ import {
   Image as ImageIcon,
   Briefcase,
   Users,
+  Mail,
   ExternalLink,
   LogOut,
   X
@@ -69,7 +70,8 @@ const navGroups: NavGroup[] = [
   {
     title: 'MANAGEMENT',
     items: [
-      { name: 'User Management', path: '/admin/users', icon: Users }
+      { name: 'User Management', path: '/admin/users', icon: Users },
+      { name: 'Contact Inquiries', path: '/admin/contacts', icon: Mail }
     ]
   }
 ];

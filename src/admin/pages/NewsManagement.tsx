@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Upload, X, Newspaper } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Upload, X, Newspaper, MessageSquare, Calendar, Clock } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import RichTextEditor from '../components/RichTextEditor';
 import AgroLoader from '../../components/common/AgroLoader';
@@ -38,6 +38,9 @@ export default function NewsManagement() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [authorAvatarFile, setAuthorAvatarFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [commentsModalItem, setCommentsModalItem] = useState<NewsItem | null>(null);
+  const [comments, setComments] = useState<any[]>([]);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
 
   const token = localStorage.getItem('admin_token');
   const authHeaders = { Authorization: `Bearer ${token}` };
@@ -110,6 +113,40 @@ export default function NewsManagement() {
     fetchItems(currentPage);
   };
 
+  const openComments = async (item: NewsItem) => {
+    setCommentsModalItem(item);
+    setIsLoadingComments(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/news/${item.id}/comments`);
+      if (res.ok) {
+        const data = await res.json();
+        setComments(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoadingComments(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!confirm('Are you sure you want to delete this comment as Administrator?')) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/news/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: authHeaders,
+      });
+      if (res.ok) {
+        setComments(prev => prev.filter(c => c.id !== commentId));
+      } else {
+        alert('Failed to delete comment.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error deleting comment.');
+    }
+  };
+
   const filteredItems = items.filter(i => (i.title || i.sinhalaTitle || '').toLowerCase().includes(search.toLowerCase()));
 
   return (
@@ -162,6 +199,7 @@ export default function NewsManagement() {
                   <td className="px-6 py-4 text-gray-500">{new Date(item.createdAt).toLocaleDateString()}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 justify-end">
+                      <button onClick={() => openComments(item)} title="Manage Comments" className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"><MessageSquare size={16} /></button>
                       <button onClick={() => openEdit(item)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit size={16} /></button>
                       <button onClick={() => handleDelete(item.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
                     </div>
@@ -239,6 +277,54 @@ export default function NewsManagement() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Comments Moderation Modal */}
+      {commentsModalItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setCommentsModalItem(null)} />
+          <div className="bg-white rounded-2xl w-full max-w-2xl relative z-10 shadow-2xl max-h-[85vh] flex flex-col overflow-hidden animate-card-pop">
+            <div className="flex items-center justify-between p-6 border-b border-gray-100">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">News Comments Moderation</h2>
+                <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">Article: {commentsModalItem.title || commentsModalItem.sinhalaTitle}</p>
+              </div>
+              <button onClick={() => setCommentsModalItem(null)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X size={20} /></button>
+            </div>
+            <div className="p-6 overflow-y-auto space-y-3 flex-1">
+              {isLoadingComments ? (
+                <div className="py-12 flex justify-center"><AgroLoader message="Loading comments..." /></div>
+              ) : comments.length === 0 ? (
+                <div className="py-12 text-center text-sm text-gray-400">No comments posted on this article yet.</div>
+              ) : (
+                comments.map((comment) => (
+                  <div key={comment.id} className="p-4 rounded-xl bg-gray-50 border border-gray-100 flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1 flex-wrap">
+                        <span className="font-bold text-sm text-gray-800">{comment.user?.name || 'User'}</span>
+                        <span className="text-xs text-gray-400">({comment.user?.email})</span>
+                        <span className="text-[11px] text-gray-500 ml-auto flex items-center gap-1.5 bg-white px-2 py-0.5 rounded-md border border-gray-200/60 shadow-2xs">
+                          <Calendar size={12} className="text-gray-400" />
+                          <span>{new Date(comment.createdAt).toLocaleDateString()}</span>
+                          <span className="text-gray-300">•</span>
+                          <Clock size={12} className="text-gray-400" />
+                          <span>{new Date(comment.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{comment.content}</p>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteComment(comment.id)}
+                      title="Delete Comment (Admin)"
+                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer shrink-0"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       )}

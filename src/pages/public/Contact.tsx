@@ -8,10 +8,13 @@ import {
   Sparkles, 
   ArrowUpRight, 
   Smartphone, 
-  ChevronDown
+  ChevronDown,
+  AlertCircle
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PageHero from '../../components/public/PageHero';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // --- Official Brand SVGs ---
 function AppleIcon({ className = "w-6 h-6" }: { className?: string }) {
@@ -81,6 +84,22 @@ function TelegramIcon({ className = "w-5 h-5" }: { className?: string }) {
   );
 }
 
+function LinkedInIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 8.76a1.64 1.64 0 1 0 0-3.28 1.64 1.64 0 0 0 0 3.28m1.39 9.74v-8.37H5.07v8.37h2.78z" />
+    </svg>
+  );
+}
+
+function PinterestIcon({ className = "w-5 h-5" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 0 1 .083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146 1.124.347 2.317.535 3.554.535 6.627 0 12-5.373 12-12 0-6.628-5.373-12-12-12z" />
+    </svg>
+  );
+}
+
 export default function Contact() {
   const { t, i18n } = useTranslation();
   const isSinhala = i18n.language === 'si';
@@ -94,13 +113,30 @@ export default function Contact() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [errorAlert, setErrorAlert] = useState<string | null>(null);
   const [appAlert, setAppAlert] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    setErrorAlert(null);
+    setSubmitted(false);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/contacts`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to submit contact message');
+      }
+
       setSubmitted(true);
       setFormData({
         name: '',
@@ -110,7 +146,13 @@ export default function Contact() {
         message: ''
       });
       setTimeout(() => setSubmitted(false), 8000);
-    }, 1000);
+    } catch (err: any) {
+      console.error('Contact submission error:', err);
+      setErrorAlert(err.message || (isSinhala ? 'පණිවිඩය යැවීමට නොහැකි විය. කරුණාකර නැවත උත්සාහ කරන්න.' : 'Failed to send message. Please try again.'));
+      setTimeout(() => setErrorAlert(null), 8000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleAppDownload = (platform: 'apple' | 'google') => {
@@ -123,46 +165,67 @@ export default function Contact() {
 
   const socialLinks = [
     {
-      id: 'whatsapp',
-      name: isSinhala ? 'වට්ස්ඇප් සේවා කවය' : 'WhatsApp Community',
-      desc: isSinhala ? 'ක්ෂණික කෘෂි උපදෙස් සහ සාකච්ඡා' : 'Instant farming advisory & chats',
+      id: 'facebook',
+      name: isSinhala ? 'ෆේස්බුක් නිල පිටුව' : 'Facebook Page',
+      desc: isSinhala ? 'දෛනික කෘෂි පුවත් සහ අස්වනු කතා' : 'Daily agriculture news & stories',
+      icon: FacebookIcon,
+      link: 'https://web.facebook.com/Aswanna.page'
+    },
+    {
+      id: 'whatsapp_chat',
+      name: isSinhala ? 'වට්ස්ඇප් සෘජු සබඳතාව' : 'WhatsApp Chat',
+      desc: isSinhala ? '+94 70 530 0999 වෙත ක්ෂණික පණිවිඩයක්' : 'Direct chat: +94 70 530 0999',
       icon: WhatsAppIcon,
-      link: 'https://wa.me/94771234567'
+      link: 'https://wa.me/94705300999'
+    },
+    {
+      id: 'whatsapp_channel',
+      name: isSinhala ? 'වට්ස්ඇප් නිල නාලිකාව' : 'WhatsApp Channel',
+      desc: isSinhala ? 'දෛනික කෘෂි තොරතුරු සහ යාවත්කාලීන' : 'Official channel updates & alerts',
+      icon: WhatsAppIcon,
+      link: 'https://whatsapp.com/channel/0029VaehoqNCcW4kwbNDZD2o'
     },
     {
       id: 'youtube',
       name: isSinhala ? 'යූටියුබ් නාලිකාව' : 'YouTube Channel',
       desc: isSinhala ? 'ප්‍රායෝගික වගා වීඩියෝ මඟපෙන්වීම්' : 'Field video guides & tutorials',
       icon: YouTubeIcon,
-      link: 'https://youtube.com'
-    },
-    {
-      id: 'facebook',
-      name: isSinhala ? 'ෆේස්බුක් පිටුව' : 'Facebook Page',
-      desc: isSinhala ? 'දෛනික කෘෂි පුවත් සහ අස්වනු කතා' : 'Daily agriculture news & stories',
-      icon: FacebookIcon,
-      link: 'https://facebook.com'
+      link: 'https://www.youtube.com/@Aswanna'
     },
     {
       id: 'tiktok',
       name: isSinhala ? 'ටික්ටොක් (TikTok)' : 'TikTok',
       desc: isSinhala ? 'තත්පර 60 ක්ෂණික ගොවි රහස්' : '60-second smart farming tips',
       icon: TikTokIcon,
-      link: 'https://tiktok.com'
+      link: 'https://www.tiktok.com/@aswanna.lk?_r=1&_t=ZS-9A9ubC8L69t'
     },
     {
       id: 'instagram',
       name: isSinhala ? 'ඉන්ස්ටග්‍රෑම් (Instagram)' : 'Instagram',
       desc: isSinhala ? 'නැවුම් අස්වනු ඡායාරූප සහ කතා' : 'Fresh farm harvest captures',
       icon: InstagramIcon,
-      link: 'https://instagram.com'
+      link: 'https://www.instagram.com/aswanna.agri?stkn=MTBkODM0YzdkeXcw'
     },
     {
       id: 'telegram',
       name: isSinhala ? 'ටෙලිග්‍රෑම් නාලිකාව' : 'Telegram Channel',
       desc: isSinhala ? 'දෛනික තොග වෙළඳපොළ මිල ඇඟවීම්' : 'Daily wholesale market alerts',
       icon: TelegramIcon,
-      link: 'https://telegram.org'
+      link: 'https://t.me/aswanna2'
+    },
+    {
+      id: 'linkedin',
+      name: isSinhala ? 'ලින්ක්ඩ්ඉන් (LinkedIn)' : 'LinkedIn',
+      desc: isSinhala ? 'වෘත්තීය හා ව්‍යවසායක කතිකාවත' : 'Professional & business network',
+      icon: LinkedInIcon,
+      link: 'https://www.linkedin.com/pulse/aswanna-gihan-buddhika'
+    },
+    {
+      id: 'pinterest',
+      name: isSinhala ? 'පින්ටරස්ට් (Pinterest)' : 'Pinterest',
+      desc: isSinhala ? 'නවීන කෘෂි නිර්මාණ සහ සැලසුම්' : 'Agricultural ideas & visuals',
+      icon: PinterestIcon,
+      link: 'https://pin.it/4TDHcXd8n'
     },
   ];
 
@@ -213,19 +276,24 @@ export default function Contact() {
                       <h3 className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wider mb-1.5">
                         {t('contact.phoneTitle', 'Phone Number')}
                       </h3>
-                      <div className="space-y-1">
+                      <div className="space-y-1.5">
                         <a 
-                          href="tel:+94112345678" 
-                          className="text-sm sm:text-base font-semibold text-gray-600 hover:text-[#054a29] transition-colors block"
+                          href="tel:+94705300999" 
+                          className="text-base sm:text-lg font-bold text-gray-800 hover:text-[#054a29] transition-colors block"
                         >
-                          +94 11 234 5678
+                          +94 70 530 0999
                         </a>
-                        <a 
-                          href="tel:+94771234567" 
-                          className="text-sm sm:text-base font-semibold text-gray-600 hover:text-[#054a29] transition-colors block"
-                        >
-                          +94 77 123 4567 (Hotline)
-                        </a>
+                        <div className="flex items-center gap-2">
+                          <a
+                            href="https://wa.me/94705300999"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-full border border-emerald-200/80 transition-colors"
+                          >
+                            <WhatsAppIcon className="w-3.5 h-3.5" />
+                            <span>WhatsApp Chat</span>
+                          </a>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -241,16 +309,10 @@ export default function Contact() {
                       </h3>
                       <div className="space-y-1">
                         <a 
-                          href="mailto:support@aswanna.lk" 
-                          className="text-sm sm:text-base font-semibold text-gray-600 hover:text-[#054a29] transition-colors block"
+                          href="mailto:aswanna.agri@gmail.com" 
+                          className="text-sm sm:text-base font-semibold text-gray-700 hover:text-[#054a29] transition-colors block break-all"
                         >
-                          support@aswanna.lk
-                        </a>
-                        <a 
-                          href="mailto:info@aswanna.lk" 
-                          className="text-sm sm:text-base font-semibold text-gray-600 hover:text-[#054a29] transition-colors block"
-                        >
-                          info@aswanna.lk
+                          aswanna.agri@gmail.com
                         </a>
                       </div>
                     </div>
@@ -283,8 +345,8 @@ export default function Contact() {
                       <h3 className="text-xs sm:text-sm font-bold text-gray-900 uppercase tracking-wider mb-1.5">
                         {t('contact.locationTitle', 'Our Location')}
                       </h3>
-                      <p className="text-sm sm:text-base font-semibold text-gray-600 leading-relaxed">
-                        {t('contact.addressValue', 'No. 45, Krushi Mawatha, Narahenpita, Colombo 05, Sri Lanka')}
+                      <p className={`text-sm sm:text-base font-semibold text-gray-700 leading-relaxed ${isSinhala ? 'font-noto' : ''}`}>
+                        {t('contact.addressValue', isSinhala ? 'අංක 326/A, කොස්හින්න, ගනේමුල්ල' : 'No. 326/A, Koshinna, Ganemulla')}
                       </p>
                     </div>
                   </div>
@@ -322,6 +384,16 @@ export default function Contact() {
                     <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 shrink-0 mt-0.5" />
                     <div className="text-xs sm:text-sm text-emerald-900 font-medium leading-relaxed">
                       {t('contact.messageSent', 'ඔබගේ පණිවිඩය සාර්ථකව ලැබිණි! අපගේ කෘෂි උපදේශක කණ්ඩායම කඩිනමින් ඔබව සම්බන්ධ කරගනු ඇත.')}
+                    </div>
+                  </div>
+                )}
+
+                {/* Error Notification */}
+                {errorAlert && (
+                  <div className="mb-6 p-4 sm:p-5 rounded-2xl bg-red-50/90 backdrop-blur-md border border-red-200 shadow-sm flex items-start gap-3.5 animate-fadeIn">
+                    <AlertCircle className="w-5 h-5 sm:w-6 sm:h-6 text-red-600 shrink-0 mt-0.5" />
+                    <div className="text-xs sm:text-sm text-red-800 font-medium leading-relaxed">
+                      {errorAlert}
                     </div>
                   </div>
                 )}

@@ -1,9 +1,10 @@
-import { ShoppingCart, Menu, X, ChevronDown, ChevronRight, Sprout, Store, Map, Building, User as UserIcon, LogOut } from 'lucide-react';
+import { ShoppingCart, Menu, X, ChevronDown, ChevronRight, Sprout, Store, Map, Building, LogOut } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import LanguageSwitcher from './LanguageSwitcher';
+import FontSizeSwitcher from './FontSizeSwitcher';
 
 interface Category {
   id: string;
@@ -146,6 +147,9 @@ export default function Header() {
 
           {/* Desktop Actions */}
           <div className="hidden xl:flex items-center gap-3">
+            {/* Font Size Switcher */}
+            <FontSizeSwitcher variant="glass" />
+
             {/* Language Switcher Pill */}
             <LanguageSwitcher />
 
@@ -157,43 +161,29 @@ export default function Header() {
               {t('header.contact', 'Contact Us')}
             </Link>
 
-            {/* Login / User Profile / Admin Pill */}
+            {/* Login / Logout Button */}
             {isAuthenticated ? (
-              user?.role === 'ADMIN' ? (
-                <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
+                {user?.role === 'ADMIN' && (
                   <Link
                     to="/admin"
                     className="glass-btn h-[38px] px-5 text-xs sm:text-sm font-bold"
                   >
                     Admin Panel
                   </Link>
-                  <button
-                    onClick={logout}
-                    title="Log out"
-                    className="glass-btn h-[38px] w-[38px] !p-0 flex items-center justify-center text-white/90 hover:text-white"
-                  >
-                    <LogOut size={16} />
-                  </button>
-                </div>
-              ) : (
-                <div className="glass-btn h-[38px] px-3.5 flex items-center gap-2.5 text-xs font-bold">
-                  <div className="flex items-center gap-1.5">
-                    <UserIcon size={14} className="text-emerald-300" />
-                    <span className="max-w-[120px] truncate text-white">{user?.name || user?.email}</span>
-                  </div>
-                  <button
-                    onClick={logout}
-                    className="text-white/80 hover:text-white transition-colors cursor-pointer text-xs font-bold ml-1 pl-2 border-l border-white/25 flex items-center gap-1"
-                  >
-                    <LogOut size={12} />
-                    <span>Logout</span>
-                  </button>
-                </div>
-              )
+                )}
+                <button
+                  onClick={logout}
+                  className="glass-btn h-[38px] px-6 text-xs sm:text-sm tracking-wide font-bold flex items-center gap-1.5 cursor-pointer text-white hover:text-white/90"
+                >
+                  <LogOut size={15} />
+                  <span>Logout</span>
+                </button>
+              </div>
             ) : (
               <button
                 onClick={openLoginModal}
-                className="glass-btn h-[38px] px-6 text-xs sm:text-sm tracking-wide font-bold"
+                className="glass-btn h-[38px] px-6 text-xs sm:text-sm tracking-wide font-bold cursor-pointer"
               >
                 Login
               </button>
@@ -201,13 +191,14 @@ export default function Header() {
           </div>
 
           {/* Mobile Menu Toggle & Mini Actions */}
-          <div className="flex xl:hidden items-center gap-3 sm:gap-4">
+          <div className="flex xl:hidden items-center gap-1.5 sm:gap-2.5">
+            <FontSizeSwitcher variant="transparent" />
             <LanguageSwitcher variant="transparent" />
             <button className="text-white hover:text-[var(--color-primary)]">
               <ShoppingCart className="w-5 h-5" />
             </button>
             <button
-              className="text-white hover:text-[var(--color-primary)] ml-1"
+              className="text-white hover:text-[var(--color-primary)] ml-0.5"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               {isMobileMenuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
@@ -329,6 +320,11 @@ export default function Header() {
               </Link>
             </div>
 
+            {/* Mobile Font Size Accessibility Control */}
+            <div className="mt-4 pt-4 border-t border-white/10">
+              <FontSizeSwitcher showLabels />
+            </div>
+
             {/* Contact & Login for mobile */}
             <div className="flex flex-col gap-4 mt-2 pt-6 border-t border-white/10">
               <Link
@@ -339,42 +335,27 @@ export default function Header() {
                 {t('header.contact', 'Contact Us')}
               </Link>
               {isAuthenticated ? (
-                user?.role === 'ADMIN' ? (
-                  <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2">
+                  {user?.role === 'ADMIN' && (
                     <Link
                       to="/admin"
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="glass-btn-green w-full py-3.5 text-base font-bold"
+                      className="glass-btn-green w-full py-3.5 text-base font-bold text-center"
                     >
                       Admin Panel
                     </Link>
-                    <button
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        logout();
-                      }}
-                      className="glass-btn w-full py-3 text-sm font-semibold cursor-pointer"
-                    >
-                      <span>Logout ({user?.name || 'Admin'})</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-2 p-3 bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 text-center">
-                    <div className="flex items-center justify-center gap-2 text-emerald-300 text-sm font-semibold">
-                      <UserIcon size={16} />
-                      <span>{user?.name || user?.email}</span>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setIsMobileMenuOpen(false);
-                        logout();
-                      }}
-                      className="glass-btn w-full py-2.5 text-xs font-semibold cursor-pointer"
-                    >
-                      <span>Logout (ඉවත් වන්න)</span>
-                    </button>
-                  </div>
-                )
+                  )}
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      logout();
+                    }}
+                    className="glass-btn-light w-full py-3.5 text-base font-bold flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <LogOut size={18} />
+                    <span>Logout</span>
+                  </button>
+                </div>
               ) : (
                 <button
                   onClick={() => {
