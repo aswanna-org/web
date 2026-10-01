@@ -43,10 +43,6 @@ export const initGA = (): void => {
   isInitialized = true;
 };
 
-let lastTrackedPath = '';
-let lastTrackedTitle = '';
-let lastTrackedTime = 0;
-
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 function getOrCreateSessionId(): string {
@@ -60,6 +56,73 @@ function getOrCreateSessionId(): string {
   } catch {
     return 'sid_anon_' + Date.now();
   }
+}
+
+interface QueuedPageView {
+  path: string;
+  title: string;
+  sessionId: string;
+  referrer: string | null;
+  device: string;
+  browser: string;
+  timestamp: number;
+}
+
+// Client-side batch queue to minimize HTTP requests and DB load
+const eventQueue: QueuedPageView[] = [];
+let batchTimer: any = null;
+const BATCH_INTERVAL_MS = 4000; // Flush micro-batch every 4s
+const MAX_BATCH_SIZE = 8;       // Flush immediately when reaching 8 events
+
+let lastTrackedPath = '';
+let lastTrackedTime = 0;
+
+/**
+ * Flush all queued page views to the server in a single batch request
+ */
+export const flushEventQueue = (): void => {
+  if (batchTimer) {
+    clearTimeout(batchTimer);
+    batchTimer = null;
+  }
+
+  if (eventQueue.length === 0) return;
+
+  const events = eventQueue.splice(0, eventQueue.length);
+  const payload = JSON.stringify({ events });
+  const endpoint = `${API_BASE_URL}/analytics/track-batch`;
+
+  try {
+    // 1. Try modern navigator.sendBeacon (ideal for unload, non-blocking)
+    if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+      const blob = new Blob([payload], { type: 'application/json' });
+      const sent = navigator.sendBeacon(endpoint, blob);
+      if (sent) return;
+    }
+  } catch {}
+
+  try {
+    // 2. Fallback to fetch with keepalive: true
+    fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload,
+      keepalive: true,
+      mode: 'cors'
+    }).catch(() => {});
+  } catch {}
+};
+
+// Guarantee queued events are sent when user switches tab or leaves the page
+if (typeof window !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      flushEventQueue();
+    }
+  });
+  window.addEventListener('pagehide', () => {
+    flushEventQueue();
+  });
 }
 
 export const trackInHousePageView = (path: string, title?: string): void => {
@@ -79,43 +142,58 @@ export const trackInHousePageView = (path: string, title?: string): void => {
   else if (ua.includes('Firefox')) browser = 'Firefox';
   else if (ua.includes('Edg')) browser = 'Edge';
 
-  const payload = JSON.stringify({
+  // Check if an event for this path is already waiting in the queue
+  const existing = eventQueue.find(item => item.path === path);
+  if (existing) {
+    // If the new title is richer / more descriptive than previous placeholder, update it
+    if (currentTitle && currentTitle.length > existing.title.length) {
+      existing.title = currentTitle;
+    }
+    return;
+  }
+
+  eventQueue.push({
     path,
     title: currentTitle,
     sessionId,
     referrer,
     device,
-    browser
+    browser,
+    timestamp: Date.now()
   });
 
-  try {
-    fetch(`${API_BASE_URL}/analytics/track`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: payload,
-      keepalive: true,
-      mode: 'cors'
-    }).catch(() => {});
-  } catch {}
+  if (eventQueue.length >= MAX_BATCH_SIZE) {
+    flushEventQueue();
+  } else if (!batchTimer) {
+    batchTimer = setTimeout(() => {
+      batchTimer = null;
+      flushEventQueue();
+    }, BATCH_INTERVAL_MS);
+  }
 };
 
 /**
  * Track a page view. Call on route change or when dynamic title updates.
- * Deduplicates rapid calls within 500ms to avoid double counting.
+ * Deduplicates rapid calls within 8s for the same path to prevent request spam.
  */
 export const trackPageView = (path: string, title?: string): void => {
   const currentTitle = title || document.title;
   const now = Date.now();
 
-  if (lastTrackedPath === path && lastTrackedTitle === currentTitle && now - lastTrackedTime < 3000) {
+  // Deduplicate: same path within 8 seconds is part of the same route visit
+  if (lastTrackedPath === path && now - lastTrackedTime < 8000) {
+    // If title has updated to a richer dynamic title, update the queued item
+    const pending = eventQueue.find(item => item.path === path);
+    if (pending && currentTitle && currentTitle.length > pending.title.length) {
+      pending.title = currentTitle;
+    }
     return;
   }
 
   lastTrackedPath = path;
-  lastTrackedTitle = currentTitle;
   lastTrackedTime = now;
 
-  // 1. In-House Self-Hosted Database Analytics
+  // 1. In-House Micro-Batched Database Analytics
   trackInHousePageView(path, currentTitle);
 
   // 2. Google Analytics (if enabled)
