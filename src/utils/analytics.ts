@@ -31,40 +31,83 @@ export const initGA = (): void => {
   if (isInitialized) return;
 
   if (!isGAEnabled()) {
-    if (import.meta.env.DEV) {
-      console.info('[Analytics] GA disabled – set VITE_GA_MEASUREMENT_ID in .env to enable.');
-    }
     return;
   }
 
   ReactGA.initialize(GA_MEASUREMENT_ID, {
     gaOptions: {
-      send_page_view: false, // We send page views manually on route changes with accurate titles
+      send_page_view: false,
     },
   });
 
   isInitialized = true;
-
-  if (import.meta.env.DEV) {
-    console.info(`[Analytics] GA4 initialised successfully with ID: ${GA_MEASUREMENT_ID}`);
-  }
 };
 
 let lastTrackedPath = '';
 let lastTrackedTitle = '';
 let lastTrackedTime = 0;
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+function getOrCreateSessionId(): string {
+  try {
+    let sid = sessionStorage.getItem('aswanna_sid');
+    if (!sid) {
+      sid = 'sid_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now().toString(36);
+      sessionStorage.setItem('aswanna_sid', sid);
+    }
+    return sid;
+  } catch {
+    return 'sid_anon_' + Date.now();
+  }
+}
+
+export const trackInHousePageView = (path: string, title?: string): void => {
+  if (path.startsWith('/admin')) return;
+
+  const currentTitle = title || document.title;
+  const sessionId = getOrCreateSessionId();
+  const referrer = document.referrer || null;
+  const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
+  const isTablet = /iPad|Tablet/i.test(navigator.userAgent);
+  const device = isTablet ? 'Tablet' : isMobile ? 'Mobile' : 'Desktop';
+
+  let browser = 'Other';
+  const ua = navigator.userAgent;
+  if (ua.includes('Chrome') && !ua.includes('Edg') && !ua.includes('OPR')) browser = 'Chrome';
+  else if (ua.includes('Safari') && !ua.includes('Chrome')) browser = 'Safari';
+  else if (ua.includes('Firefox')) browser = 'Firefox';
+  else if (ua.includes('Edg')) browser = 'Edge';
+
+  const payload = JSON.stringify({
+    path,
+    title: currentTitle,
+    sessionId,
+    referrer,
+    device,
+    browser
+  });
+
+  try {
+    fetch(`${API_BASE_URL}/analytics/track`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload,
+      keepalive: true,
+      mode: 'cors'
+    }).catch(() => {});
+  } catch {}
+};
+
 /**
  * Track a page view. Call on route change or when dynamic title updates.
  * Deduplicates rapid calls within 500ms to avoid double counting.
  */
 export const trackPageView = (path: string, title?: string): void => {
-  if (!isGAEnabled()) return;
-
   const currentTitle = title || document.title;
   const now = Date.now();
 
-  if (lastTrackedPath === path && lastTrackedTitle === currentTitle && now - lastTrackedTime < 500) {
+  if (lastTrackedPath === path && lastTrackedTitle === currentTitle && now - lastTrackedTime < 3000) {
     return;
   }
 
@@ -72,14 +115,16 @@ export const trackPageView = (path: string, title?: string): void => {
   lastTrackedTitle = currentTitle;
   lastTrackedTime = now;
 
-  ReactGA.send({
-    hitType: 'pageview',
-    page: path,
-    title: currentTitle,
-  });
+  // 1. In-House Self-Hosted Database Analytics
+  trackInHousePageView(path, currentTitle);
 
-  if (import.meta.env.DEV) {
-    console.info(`[Analytics] Pageview: ${path} ("${currentTitle}")`);
+  // 2. Google Analytics (if enabled)
+  if (isGAEnabled()) {
+    ReactGA.send({
+      hitType: 'pageview',
+      page: path,
+      title: currentTitle,
+    });
   }
 };
 
@@ -104,10 +149,6 @@ export const trackEvent = (
     label,
     value,
   });
-
-  if (import.meta.env.DEV) {
-    console.info(`[Analytics] Event: [${category}] ${action} ${label ? `(${label})` : ''}`);
-  }
 };
 
 // ── Common Pre-built Event Trackers ──

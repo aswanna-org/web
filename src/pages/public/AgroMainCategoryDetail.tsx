@@ -120,25 +120,7 @@ export default function AgroMainCategoryDetail() {
       (c.sinhalaName && c.sinhalaName.includes(search))
   );
 
-  // Wait for fetch to complete before redirecting
-  if (dbCategories.length > 0 && !mainCategory) {
-    return <Navigate to="/agro" replace />;
-  }
-
-  // Don't render until we have the main category loaded
-  if (!mainCategory) {
-    return (
-      <div className="w-full min-h-screen flex items-center justify-center bg-gray-50">
-        <AgroLoader message={isSinhala ? 'ප්‍රධාන කාණ්ඩ තොරතුරු පූරණය වෙමින් පවතී...' : 'Loading category details...'} />
-      </div>
-    );
-  }
-
-  const heroImage = mainCategory.headerImage || mainCategory.image || 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80';
-  const theme = getAgroTheme(mainCategory.slug || mainSlug, mainCategory.name);
-  const mainName = isSinhala ? (mainCategory.sinhalaName || mainCategory.name) : (mainCategory.name || mainCategory.sinhalaName);
-  const pageTitle = `${mainName} - කෘෂි කාණ්ඩ නාමාවලිය | Aswanna Agro`;
-  const pageDesc = `ශ්‍රී ලංකාවේ ${mainName} යටතේ ඇති සියලුම උප කාණ්ඩ, බෝග වර්ග සහ වගා උපදෙස්. Aswanna Agro Technology.`;
+  const mainName = isSinhala ? (mainCategory?.sinhalaName || mainCategory?.name) : (mainCategory?.name || mainCategory?.sinhalaName);
 
   const keywords = useMemo(() => {
     const words = new Set<string>();
@@ -160,6 +142,25 @@ export default function AgroMainCategoryDetail() {
     words.add('Aswanna Agro');
     return Array.from(words).filter(Boolean).slice(0, 50).join(', ');
   }, [mainName, mainCategory]);
+
+  // Wait for fetch to complete before redirecting
+  if (dbCategories.length > 0 && !mainCategory) {
+    return <Navigate to="/agro" replace />;
+  }
+
+  // Don't render until we have the main category loaded
+  if (!mainCategory) {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center bg-gray-50">
+        <AgroLoader message={isSinhala ? 'ප්‍රධාන කාණ්ඩ තොරතුරු පූරණය වෙමින් පවතී...' : 'Loading category details...'} />
+      </div>
+    );
+  }
+
+  const heroImage = mainCategory.headerImage || mainCategory.image || 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80';
+  const theme = getAgroTheme(mainCategory.slug || mainSlug, mainCategory.name);
+  const pageTitle = `${mainName} - කෘෂි කාණ්ඩ නාමාවලිය | Aswanna Agro`;
+  const pageDesc = `ශ්‍රී ලංකාවේ ${mainName} යටතේ ඇති සියලුම උප කාණ්ඩ, බෝග වර්ග සහ වගා උපදෙස්. Aswanna Agro Technology.`;
 
   return (
     <div className="w-full min-h-screen bg-white">

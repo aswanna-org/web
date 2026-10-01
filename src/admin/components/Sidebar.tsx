@@ -1,6 +1,7 @@
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
+  BarChart3,
   Layers,
   Leaf,
   Landmark,
@@ -36,7 +37,8 @@ const navGroups: NavGroup[] = [
   {
     title: 'MAIN',
     items: [
-      { name: 'Dashboard', path: '/admin', icon: LayoutDashboard }
+      { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
+      { name: 'Analytics & Traffic', path: '/admin/analytics', icon: BarChart3 }
     ]
   },
   {

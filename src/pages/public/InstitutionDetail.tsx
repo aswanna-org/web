@@ -156,6 +156,41 @@ export default function InstitutionDetail() {
     return [];
   }, [institution]);
 
+  const title = institution
+    ? (isSinhala ? institution.nameSi || institution.nameEn : institution.nameEn || institution.nameSi)
+    : '';
+
+  const sectorBadgeText = institution
+    ? (institution.type === 'pvt'
+      ? isSinhala ? 'පුද්ගලික අංශය' : 'Private Sector'
+      : institution.type === 'intl'
+      ? isSinhala ? 'ජාත්‍යන්තර අංශය' : 'International Body'
+      : isSinhala ? 'රාජ්‍ය අංශය' : 'Government Sector')
+    : '';
+
+  const dynamicKeywords = useMemo(() => {
+    if (!institution) return '';
+    const list: string[] = [
+      title,
+      institution.shortName,
+      institution.nameEn,
+      institution.nameSi,
+      sectorBadgeText,
+      'Agri Institutions Sri Lanka',
+      'කෘෂිකාර්මික ආයතන',
+      'Aswanna Agri Hub'
+    ];
+
+    regionalCentersList.forEach((rc: any) => {
+      if (rc.nameEn) list.push(rc.nameEn);
+      if (rc.nameSi) list.push(rc.nameSi);
+      if (rc.locationEn) list.push(rc.locationEn);
+      if (rc.locationSi) list.push(rc.locationSi);
+    });
+
+    return Array.from(new Set(list.filter(Boolean))).slice(0, 30).join(', ');
+  }, [institution, title, sectorBadgeText, regionalCentersList]);
+
   if (isLoading) {
     return (
       <div className="w-full min-h-[70vh] flex items-center justify-center bg-[#f8faf8]">
@@ -187,7 +222,6 @@ export default function InstitutionDetail() {
     );
   }
 
-  const title = isSinhala ? institution.nameSi || institution.nameEn : institution.nameEn || institution.nameSi;
   const description = isSinhala
     ? institution.descriptionSi || institution.descriptionEn
     : institution.descriptionEn || institution.descriptionSi;
@@ -205,13 +239,6 @@ export default function InstitutionDetail() {
     : (institution.workingHoursEn || institution.workingHoursSi || '');
   const officeTime = institution.officeTime || workingHours || '';
 
-  const sectorBadgeText =
-    institution.type === 'pvt'
-      ? isSinhala ? 'පුද්ගලික අංශය' : 'Private Sector'
-      : institution.type === 'intl'
-      ? isSinhala ? 'ජාත්‍යන්තර අංශය' : 'International Body'
-      : isSinhala ? 'රාජ්‍ය අංශය' : 'Government Sector';
-
   const directoryUrl = institution?.type === 'pvt'
     ? '/agri-info-hub/private-institutions'
     : institution?.type === 'intl'
@@ -226,29 +253,6 @@ export default function InstitutionDetail() {
 
   const pageTitle = `${title} (${institution.shortName || ''}) | Aswanna Agri Hub`;
   const pageDesc = description || fullDescription?.slice(0, 160) || `${title} contact details, hotline, and services on Aswanna.`;
-
-  const dynamicKeywords = useMemo(() => {
-    if (!institution) return '';
-    const list: string[] = [
-      title,
-      institution.shortName,
-      institution.nameEn,
-      institution.nameSi,
-      sectorBadgeText,
-      'Agri Institutions Sri Lanka',
-      'කෘෂිකාර්මික ආයතන',
-      'Aswanna Agri Hub'
-    ];
-
-    regionalCentersList.forEach((rc: any) => {
-      if (rc.nameEn) list.push(rc.nameEn);
-      if (rc.nameSi) list.push(rc.nameSi);
-      if (rc.locationEn) list.push(rc.locationEn);
-      if (rc.locationSi) list.push(rc.locationSi);
-    });
-
-    return Array.from(new Set(list.filter(Boolean))).slice(0, 30).join(', ');
-  }, [institution, title, sectorBadgeText, regionalCentersList]);
 
   return (
     <div className="w-full min-h-screen bg-[#f8faf8] font-roboto pb-20">

@@ -33,46 +33,11 @@ export default function AgroProductDetail() {
       .finally(() => setLoading(false));
   }, [mainSlug, subSlug, productId, API_BASE_URL]);
 
-  if (loading) {
-    return (
-      <div className="w-full min-h-screen flex items-center justify-center bg-gray-50">
-        <AgroLoader message={i18n.language === 'si' ? 'නිෂ්පාදන විස්තර පූරණය වෙමින් පවතී...' : 'Loading product details...'} />
-      </div>
-    );
-  }
-
-  if (!mainCategory || !category || !product) return <Navigate to="/agro" replace />;
-  if (product.status === 'UNAVAILABLE') {
-    return <Navigate to={`/agro/${mainCategory.slug}/${category.slug}`} replace />;
-  }
-
   const isSinhala = i18n.language === 'si';
-  let productImages: string[] = [];
-  if (Array.isArray(product.images)) {
-    productImages = product.images;
-  } else if (typeof product.images === 'object' && product.images !== null) {
-    productImages = Object.values(product.images) as string[];
-  } else if (typeof product.images === 'string') {
-    productImages = [product.images];
-  }
-
-  const defaultImage = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80';
-  const headerImage = (productImages.length > 1 && productImages[1]) ? productImages[1] : (productImages[0] || defaultImage);
-  const theme = getAgroTheme(productId || product?.slug || subSlug, product?.name || category?.name);
-
   const displayName = isSinhala 
-    ? (product.sinhalaName || product.name)
-    : (product.name || product.sinhalaName);
-  const altName = isSinhala ? product.name : product.sinhalaName;
-  const pageTitle = altName && altName !== displayName 
-    ? `${displayName} (${altName}) - වගා උපදෙස් සහ තොරතුරු | Aswanna`
-    : `${displayName} - වගා උපදෙස් සහ තොරතුරු | Aswanna`;
-
-  const rawDesc = (isSinhala ? product.sinhalaDescription : product.description) || product.description || product.sinhalaDescription || '';
-  const cleanDesc = rawDesc.replace(/<[^>]*>?/gm, '').trim();
-  const pageDesc = cleanDesc 
-    ? `${cleanDesc.slice(0, 150)}...`
-    : `ශ්‍රී ලංකාවේ ${displayName} වගාව පිළිබඳ සම්පූර්ණ තොරතුරු, දේශගුණය, පස, පළිබෝධ පාලනය සහ උපදෙස්. Aswanna Agri.`;
+    ? (product?.sinhalaName || product?.name)
+    : (product?.name || product?.sinhalaName);
+  const altName = isSinhala ? product?.name : product?.sinhalaName;
 
   const keywords = useMemo(() => {
     if (!product) return '';
@@ -113,6 +78,42 @@ export default function AgroProductDetail() {
     words.add('Aswanna Agro');
     return Array.from(words).filter(Boolean).join(', ');
   }, [product, displayName, altName, category, mainCategory]);
+
+  if (loading) {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center bg-gray-50">
+        <AgroLoader message={i18n.language === 'si' ? 'නිෂ්පාදන විස්තර පූරණය වෙමින් පවතී...' : 'Loading product details...'} />
+      </div>
+    );
+  }
+
+  if (!mainCategory || !category || !product) return <Navigate to="/agro" replace />;
+  if (product.status === 'UNAVAILABLE') {
+    return <Navigate to={`/agro/${mainCategory.slug}/${category.slug}`} replace />;
+  }
+
+  let productImages: string[] = [];
+  if (Array.isArray(product.images)) {
+    productImages = product.images;
+  } else if (typeof product.images === 'object' && product.images !== null) {
+    productImages = Object.values(product.images) as string[];
+  } else if (typeof product.images === 'string') {
+    productImages = [product.images];
+  }
+
+  const defaultImage = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80';
+  const headerImage = (productImages.length > 1 && productImages[1]) ? productImages[1] : (productImages[0] || defaultImage);
+  const theme = getAgroTheme(productId || product?.slug || subSlug, product?.name || category?.name);
+
+  const pageTitle = altName && altName !== displayName 
+    ? `${displayName} (${altName}) - වගා උපදෙස් සහ තොරතුරු | Aswanna`
+    : `${displayName} - වගා උපදෙස් සහ තොරතුරු | Aswanna`;
+
+  const rawDesc = (isSinhala ? product.sinhalaDescription : product.description) || product.description || product.sinhalaDescription || '';
+  const cleanDesc = rawDesc.replace(/<[^>]*>?/gm, '').trim();
+  const pageDesc = cleanDesc 
+    ? `${cleanDesc.slice(0, 150)}...`
+    : `ශ්‍රී ලංකාවේ ${displayName} වගාව පිළිබඳ සම්පූර්ණ තොරතුරු, දේශගුණය, පස, පළිබෝධ පාලනය සහ උපදෙස්. Aswanna Agri.`;
 
   return (
     <div className="w-full min-h-screen bg-white">

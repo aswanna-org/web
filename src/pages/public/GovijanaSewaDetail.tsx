@@ -191,38 +191,6 @@ export default function GovijanaSewaDetail() {
   const primaryPhone = primary?.phone || center?.mobilePhone || center?.officePhone;
   const primaryEmail = primary?.email || center?.email;
 
-  if (isLoading) {
-    return (
-      <div className="w-full min-h-screen bg-[#f8faf9] flex items-center justify-center py-32">
-        <AgroLoader message={isSinhala ? 'මධ්‍යස්ථාන තොරතුරු පූරණය වෙමින් පවතී...' : 'Loading agrarian service center details...'} />
-      </div>
-    );
-  }
-
-  if (!center) {
-    return (
-      <div className="w-full min-h-screen bg-[#f8faf9] flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-20 h-20 bg-amber-50 text-amber-700 rounded-3xl flex items-center justify-center mb-4 border border-amber-200">
-          <Building size={36} />
-        </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          {isSinhala ? 'මධ්‍යස්ථානය හමු නොවීය' : 'Agrarian Service Center Not Found'}
-        </h2>
-        <p className="text-gray-500 text-sm max-w-md mb-6">
-          {isSinhala
-            ? 'ඔබ සොයන ගොවිජන සේවා මධ්‍යස්ථාන තොරතුරු ලබාගත නොහැක හෝ ඉවත් කර ඇත.'
-            : 'The agrarian service center details you requested are not available or may have been removed.'}
-        </p>
-        <button
-          onClick={() => navigate('/govijana-sewa')}
-          className="glass-btn-green px-6 py-3 text-sm font-bold cursor-pointer"
-        >
-          <span>{isSinhala ? 'ගොවිජන සේවා නාමාවලියට' : 'Back to ASC Directory'}</span>
-        </button>
-      </div>
-    );
-  }
-
   const dynamicKeywords = useMemo(() => {
     if (!center) return '';
     const list: string[] = [
@@ -259,6 +227,38 @@ export default function GovijanaSewaDetail() {
 
     return Array.from(new Set(list.filter(Boolean))).join(', ');
   }, [center]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full min-h-screen bg-[#f8faf9] flex items-center justify-center py-32">
+        <AgroLoader message={isSinhala ? 'මධ්‍යස්ථාන තොරතුරු පූරණය වෙමින් පවතී...' : 'Loading agrarian service center details...'} />
+      </div>
+    );
+  }
+
+  if (!center) {
+    return (
+      <div className="w-full min-h-screen bg-[#f8faf9] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-20 h-20 bg-amber-50 text-amber-700 rounded-3xl flex items-center justify-center mb-4 border border-amber-200">
+          <Building size={36} />
+        </div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+          {isSinhala ? 'මධ්‍යස්ථානය හමු නොවීය' : 'Agrarian Service Center Not Found'}
+        </h2>
+        <p className="text-gray-500 text-sm max-w-md mb-6">
+          {isSinhala
+            ? 'ඔබ සොයන ගොවිජන සේවා මධ්‍යස්ථාන තොරතුරු ලබාගත නොහැක හෝ ඉවත් කර ඇත.'
+            : 'The agrarian service center details you requested are not available or may have been removed.'}
+        </p>
+        <button
+          onClick={() => navigate('/govijana-sewa')}
+          className="glass-btn-green px-6 py-3 text-sm font-bold cursor-pointer"
+        >
+          <span>{isSinhala ? 'ගොවිජන සේවා නාමාවලියට' : 'Back to ASC Directory'}</span>
+        </button>
+      </div>
+    );
+  }
 
   const pageTitle = isSinhala
     ? `${center.nameSi || center.name} ගොවිජන සේවා මධ්‍යස්ථානය (${center.district}) | Aswanna`

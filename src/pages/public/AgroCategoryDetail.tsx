@@ -101,27 +101,10 @@ export default function AgroCategoryDetail() {
       .finally(() => setLoading(false));
   }, [mainSlug, subSlug, API_BASE_URL]);
 
-  if (loading) {
-    return (
-      <div className="w-full min-h-screen flex items-center justify-center bg-gray-50">
-        <AgroLoader message={i18n.language === 'si' ? 'කාණ්ඩ විස්තර පූරණය වෙමින් පවතී...' : 'Loading category details...'} />
-      </div>
-    );
-  }
-
-  if (!mainCategory || !category) return <Navigate to="/agro" replace />;
   const isSinhala = i18n.language === 'si';
+  const catName = isSinhala ? (category?.sinhalaName || category?.name) : (category?.name || category?.sinhalaName);
+  const mainName = isSinhala ? (mainCategory?.sinhalaName || mainCategory?.name) : (mainCategory?.name || mainCategory?.sinhalaName);
 
-  const items = (category.items || []).sort((a: any, b: any) => a.order - b.order);
-  const theme = getAgroTheme(category.slug || subSlug, category.name);
-
-  const catName = isSinhala ? (category.sinhalaName || category.name) : (category.name || category.sinhalaName);
-  const mainName = isSinhala ? (mainCategory.sinhalaName || mainCategory.name) : (mainCategory.name || mainCategory.sinhalaName);
-  const itemNames = items.slice(0, 15).map((it: any) => isSinhala ? (it.sinhalaName || it.name) : it.name).filter(Boolean).join(', ');
-  
-  const pageTitle = `${catName} (${mainName}) - වගා තොරතුරු හා ප්‍රභේද | Aswanna`;
-  const pageDesc = `ශ්‍රී ලංකාවේ ${catName} වර්ග, වගා උපදෙස් සහ තොරතුරු. ${itemNames ? `අඩංගු බෝග: ${itemNames}.` : ''} Aswanna Agro.`;
-  
   const keywords = useMemo(() => {
     const words = new Set<string>();
     if (catName) {
@@ -130,7 +113,8 @@ export default function AgroCategoryDetail() {
       words.add(`${catName} farming Sri Lanka`);
     }
     if (mainName) words.add(mainName);
-    items.forEach((it: any) => {
+    const itemsList = category?.items || [];
+    itemsList.forEach((it: any) => {
       if (it.name) {
         words.add(it.name);
         words.add(`${it.name} වගාව`);
@@ -141,7 +125,24 @@ export default function AgroCategoryDetail() {
     words.add('කෘෂිකර්මාන්තය');
     words.add('Aswanna Agro');
     return Array.from(words).filter(Boolean).slice(0, 50).join(', ');
-  }, [catName, mainName, items]);
+  }, [catName, mainName, category]);
+
+  if (loading) {
+    return (
+      <div className="w-full min-h-screen flex items-center justify-center bg-gray-50">
+        <AgroLoader message={i18n.language === 'si' ? 'කාණ්ඩ විස්තර පූරණය වෙමින් පවතී...' : 'Loading category details...'} />
+      </div>
+    );
+  }
+
+  if (!mainCategory || !category) return <Navigate to="/agro" replace />;
+
+  const items = (category.items || []).sort((a: any, b: any) => a.order - b.order);
+  const theme = getAgroTheme(category.slug || subSlug, category.name);
+  const itemNames = items.slice(0, 15).map((it: any) => isSinhala ? (it.sinhalaName || it.name) : it.name).filter(Boolean).join(', ');
+  
+  const pageTitle = `${catName} (${mainName}) - වගා තොරතුරු හා ප්‍රභේද | Aswanna`;
+  const pageDesc = `ශ්‍රී ලංකාවේ ${catName} වර්ග, වගා උපදෙස් සහ තොරතුරු. ${itemNames ? `අඩංගු බෝග: ${itemNames}.` : ''} Aswanna Agro.`;
 
   return (
     <div className="w-full min-h-screen bg-gray-50">

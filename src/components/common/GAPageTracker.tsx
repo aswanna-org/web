@@ -22,11 +22,11 @@ export function useGAPageTracking(): void {
     }
   }, []);
 
-  // Track every route change
+  // Track every route change — delay allows dynamic SEO titles (e.g. product names) to load first
   useEffect(() => {
     const timer = setTimeout(() => {
       trackPageView(location.pathname + location.search, document.title);
-    }, 150);
+    }, 1500);
 
     return () => clearTimeout(timer);
   }, [location.pathname, location.search]);

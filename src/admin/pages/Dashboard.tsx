@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Users, Newspaper, BookOpen, ShoppingBag, MapPin, Building2, ShoppingCart, Sprout, Database, Cloud, CheckCircle2, AlertCircle, Mail } from 'lucide-react';
+import { Users, Newspaper, BookOpen, ShoppingBag, MapPin, Building2, ShoppingCart, Sprout, Database, Cloud, CheckCircle2, AlertCircle, Mail, BarChart3, Activity } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -8,6 +8,7 @@ interface StatCard { label: string; count: number | null; icon: React.ReactNode;
 
 export default function Dashboard() {
   const [stats, setStats] = useState<Record<string, number>>({});
+  const [analyticsData, setAnalyticsData] = useState<{ realTimeActiveUsers: number; totalViews: number; totalUniqueVisitors: number } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [isSyncingS3, setIsSyncingS3] = useState(false);
@@ -41,6 +42,18 @@ export default function Dashboard() {
       fetchStat('careers/openings?limit=1', 'careers'),
       fetchStat('users/admin/all?limit=1', 'users'),
       fetchStat('contacts?limit=1', 'contacts'),
+      fetch(`${API_BASE_URL}/analytics/summary?period=30d`, { headers })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data) {
+            setAnalyticsData({
+              realTimeActiveUsers: data.realTimeActiveUsers || 0,
+              totalViews: data.totalViews || 0,
+              totalUniqueVisitors: data.totalUniqueVisitors || 0
+            });
+          }
+        })
+        .catch(() => {})
     ];
     Promise.all(fetches).finally(() => setIsLoading(false));
   }, []);
@@ -125,6 +138,7 @@ export default function Dashboard() {
     { label: 'Job Openings', count: stats.careers ?? null, icon: <Users size={24} />, href: '/admin/careers', color: 'bg-amber-500' },
     { label: 'Users', count: stats.users ?? null, icon: <Users size={24} />, href: '/admin/users', color: 'bg-emerald-600' },
     { label: 'Contact Inquiries', count: stats.contacts ?? null, icon: <Mail size={24} />, href: '/admin/contacts', color: 'bg-rose-500' },
+    { label: 'Total Page Views', count: analyticsData?.totalViews ?? null, icon: <BarChart3 size={24} />, href: '/admin/analytics', color: 'bg-teal-600' },
   ];
 
   return (
@@ -135,6 +149,13 @@ export default function Dashboard() {
           <p className="text-sm text-gray-500 mt-1">Welcome back! Here's an overview of your content.</p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <Link
+            to="/admin/analytics"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-sm transition-all shadow-sm"
+          >
+            <BarChart3 size={16} />
+            <span>View Analytics</span>
+          </Link>
           <button
             type="button"
             onClick={handleSyncS3Backup}
@@ -158,7 +179,7 @@ export default function Dashboard() {
             type="button"
             onClick={handleDownloadBackup}
             disabled={isBackingUp || isSyncingS3}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-xl font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             title="Download DB dump and upload snapshot copy to S3"
           >
             {isBackingUp ? (
@@ -174,6 +195,32 @@ export default function Dashboard() {
             )}
           </button>
         </div>
+      </div>
+
+      {/* Live Visitors Banner */}
+      <div className="bg-gradient-to-r from-emerald-950 via-slate-900 to-slate-900 text-white p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm border border-emerald-800/40">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+            <Activity size={24} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping inline-block" />
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">Live Traffic Monitor</span>
+            </div>
+            <p className="text-sm sm:text-base font-medium text-slate-200 mt-0.5">
+              <strong className="text-white font-bold">{analyticsData?.realTimeActiveUsers ?? 0} active visitors</strong> on site right now • {analyticsData?.totalViews ?? 0} total page views tracked.
+            </p>
+          </div>
+        </div>
+
+        <Link
+          to="/admin/analytics"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm rounded-xl transition-all shadow-sm shrink-0"
+        >
+          <span>Open Full Analytics & Crop Visits</span>
+          <BarChart3 size={15} />
+        </Link>
       </div>
 
       {backupMessage && (

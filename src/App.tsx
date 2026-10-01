@@ -49,6 +49,7 @@ import CourseManagement from './admin/pages/CourseManagement';
 import UserManagement from './admin/pages/UserManagement';
 import ContactManagement from './admin/pages/ContactManagement';
 import InstitutionManagement from './admin/pages/InstitutionManagement';
+import Analytics from './admin/pages/Analytics';
 import Login from './admin/pages/Login';
 import { ProtectedRoute } from './admin/components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -124,6 +125,7 @@ function App() {
               </ProtectedRoute>
             }>
               <Route index element={<Dashboard />} />
+              <Route path="analytics" element={<Analytics />} />
               <Route path="categories" element={<CategoryManagement />} />
               <Route path="items" element={<ItemManagement />} />
               <Route path="institutions" element={<InstitutionManagement />} />

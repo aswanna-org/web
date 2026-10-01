@@ -220,6 +220,30 @@ export default function EducationDetail() {
     }
   };
 
+  const dynamicKeywords = useMemo(() => {
+    if (!course) return '';
+    const list: string[] = [
+      course.title,
+      course.courseCode,
+      course.courseLevel,
+      course.category?.categoryNameEn,
+      course.category?.categoryNameSi,
+      course.targetAudience,
+      'Agri Courses Sri Lanka',
+      'කෘෂි පාඨමාලා',
+      'Aswanna Education'
+    ];
+
+    if (Array.isArray(course.modules)) {
+      course.modules.forEach((m: any) => {
+        if (typeof m === 'string') list.push(m);
+        else if (m?.moduleName) list.push(m.moduleName);
+      });
+    }
+
+    return Array.from(new Set(list.filter(Boolean))).join(', ');
+  }, [course]);
+
   if (loading) {
     return (
       <div className="w-full min-h-screen flex items-center justify-center bg-gray-50 pt-32">
@@ -248,30 +272,6 @@ export default function EducationDetail() {
 
   const pageTitle = `${course.title} | Aswanna Agro Education`;
   const pageDesc = course.shortDescription || (course.fullDescription ? course.fullDescription.replace(/<[^>]*>?/gm, '').slice(0, 160) : `Aswanna Agro Education course on ${course.title}.`);
-
-  const dynamicKeywords = useMemo(() => {
-    if (!course) return '';
-    const list: string[] = [
-      course.title,
-      course.courseCode,
-      course.courseLevel,
-      course.category?.categoryNameEn,
-      course.category?.categoryNameSi,
-      course.targetAudience,
-      'Agri Courses Sri Lanka',
-      'කෘෂි පාඨමාලා',
-      'Aswanna Education'
-    ];
-
-    if (Array.isArray(course.modules)) {
-      course.modules.forEach((m: any) => {
-        if (typeof m === 'string') list.push(m);
-        else if (m?.moduleName) list.push(m.moduleName);
-      });
-    }
-
-    return Array.from(new Set(list.filter(Boolean))).join(', ');
-  }, [course]);
 
   return (
     <div className="w-full min-h-screen bg-[#f8fafc] pb-20">
