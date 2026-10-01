@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, ChevronRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getAgroTheme } from '../../utils/agroTheme';
 import AgroLoader from '../../components/common/AgroLoader';
+import SEO from '../../components/common/SEO';
 
 const CLOUD_PALETTE = [
   { fill: '#e2f5dc' }, // 1. Soft Leaf Green
@@ -114,8 +115,43 @@ export default function AgroCategoryDetail() {
   const items = (category.items || []).sort((a: any, b: any) => a.order - b.order);
   const theme = getAgroTheme(category.slug || subSlug, category.name);
 
+  const catName = isSinhala ? (category.sinhalaName || category.name) : (category.name || category.sinhalaName);
+  const mainName = isSinhala ? (mainCategory.sinhalaName || mainCategory.name) : (mainCategory.name || mainCategory.sinhalaName);
+  const itemNames = items.slice(0, 15).map((it: any) => isSinhala ? (it.sinhalaName || it.name) : it.name).filter(Boolean).join(', ');
+  
+  const pageTitle = `${catName} (${mainName}) - වගා තොරතුරු හා ප්‍රභේද | Aswanna`;
+  const pageDesc = `ශ්‍රී ලංකාවේ ${catName} වර්ග, වගා උපදෙස් සහ තොරතුරු. ${itemNames ? `අඩංගු බෝග: ${itemNames}.` : ''} Aswanna Agro.`;
+  
+  const keywords = useMemo(() => {
+    const words = new Set<string>();
+    if (catName) {
+      words.add(catName);
+      words.add(`${catName} වගාව`);
+      words.add(`${catName} farming Sri Lanka`);
+    }
+    if (mainName) words.add(mainName);
+    items.forEach((it: any) => {
+      if (it.name) {
+        words.add(it.name);
+        words.add(`${it.name} වගාව`);
+      }
+      if (it.sinhalaName) words.add(it.sinhalaName);
+      if (it.scientificName) words.add(it.scientificName);
+    });
+    words.add('කෘෂිකර්මාන්තය');
+    words.add('Aswanna Agro');
+    return Array.from(words).filter(Boolean).slice(0, 50).join(', ');
+  }, [catName, mainName, items]);
+
   return (
     <div className="w-full min-h-screen bg-gray-50">
+      <SEO 
+        title={pageTitle}
+        description={pageDesc}
+        keywords={keywords}
+        canonical={`/agro/${mainSlug}/${subSlug}`}
+        image={category.headerImage || category.image}
+      />
       {/* ── Hero ── */}
       <section className="relative z-20 w-full h-[24vh] sm:h-[34vh] md:h-[44vh] min-h-[160px] sm:min-h-[250px] md:min-h-[360px] flex flex-col justify-center">
         {/* Background - clipped */}

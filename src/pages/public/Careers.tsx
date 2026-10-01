@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, ChevronDown, X, Briefcase } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import Pagination from '../../components/admin/Pagination';
 import AgroLoader from '../../components/common/AgroLoader';
+import SEO from '../../components/common/SEO';
 
 interface Job {
   id: string;
@@ -90,8 +91,46 @@ export default function Careers() {
     }
   };
 
+  const pageKeywords = useMemo(() => {
+    const list: string[] = [
+      'Agri Jobs Sri Lanka',
+      'කෘෂි රැකියා',
+      'Aswanna careers',
+      'agriculture vacancies',
+      'farming employment Sri Lanka'
+    ];
+
+    if (activeFilter !== 'All') list.push(activeFilter);
+    if (searchQuery.trim()) list.push(searchQuery.trim());
+
+    jobsData.forEach(j => {
+      if (j.title) list.push(j.title);
+      if (j.sinhalaTitle) list.push(j.sinhalaTitle);
+      if (j.location) list.push(j.location);
+      if (j.sinhalaLocation) list.push(j.sinhalaLocation);
+    });
+
+    return Array.from(new Set(list.filter(Boolean))).slice(0, 30).join(', ');
+  }, [jobsData, activeFilter, searchQuery]);
+
   return (
     <div className="w-full min-h-screen bg-white font-roboto">
+      <SEO 
+        title="රැකියා අවස්ථා | Careers at Aswanna"
+        description="කෘෂිකාර්මික ක්ෂේත්‍රයේ නවීන රැකියා අවස්ථා සහ වෘත්තීය මඟපෙන්වීම්. Be part of the agricultural revolution with Aswanna."
+        canonical="/careers"
+        keywords={pageKeywords}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "itemListElement": jobsData.slice(0, 10).map((job, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "name": job.title,
+            "description": job.description
+          }))
+        }}
+      />
       {/* Hero Section */}
       <PageHero 
         title={t('careers.title', 'CAREERS')} 

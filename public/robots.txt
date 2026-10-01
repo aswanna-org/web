@@ -1,0 +1,12 @@
+# Robots.txt for Aswanna Ceylon Agro (PVT) LTD
+User-agent: *
+Allow: /
+
+# Disallow admin panel and internal management routes
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /api/*
+
+# Host & Sitemap
+Host: https://aswanna.lk
+Sitemap: https://aswanna.lk/sitemap.xml

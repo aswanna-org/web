@@ -13,6 +13,8 @@ import {
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PageHero from '../../components/public/PageHero';
+import SEO from '../../components/common/SEO';
+import { trackContactSubmit, trackSocialClick, trackAppDownload } from '../../utils/analytics';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -137,6 +139,9 @@ export default function Contact() {
         throw new Error(data.error || 'Failed to submit contact message');
       }
 
+      // Track successful submission in Google Analytics
+      trackContactSubmit(formData.service);
+
       setSubmitted(true);
       setFormData({
         name: '',
@@ -156,6 +161,7 @@ export default function Contact() {
   };
 
   const handleAppDownload = (platform: 'apple' | 'google') => {
+    trackAppDownload(platform === 'apple' ? 'iOS' : 'Android');
     const msg = platform === 'apple'
       ? (isSinhala ? 'Aswanna iOS යෙදුම App Store වෙතින් බාගත කිරීමට සූදානම් කෙරේ...' : 'Preparing Aswanna iOS App download on the App Store...')
       : (isSinhala ? 'Aswanna Android යෙදුම Google Play Store වෙතින් බාගත කිරීමට සූදානම් කෙරේ...' : 'Preparing Aswanna Android App download on Google Play...');
@@ -231,6 +237,14 @@ export default function Contact() {
 
   return (
     <div className="w-full min-h-screen bg-[#faf9f6] font-roboto">
+      <SEO 
+        title={isSinhala ? 'අප හා සම්බන්ධ වන්න | Contact Us' : 'Contact Us | Aswanna Ceylon Agro'}
+        description={isSinhala
+          ? 'කෘෂි ගැටලුවකට පිළිතුරු ලබාගැනීමට හෝ උපදෙස් සඳහා Aswanna හා සම්බන්ධ වන්න. ලිපිනය: අංක 326/A, කොස්හින්න, ගනේමුල්ල. දුරකථන: +94 70 530 0999.'
+          : 'Get in touch with Aswanna Ceylon Agro for agricultural inquiries, crop farming advisory, pest control, and partnerships.'}
+        canonical="/contact"
+        keywords="Contact Aswanna, අස්වැන්න දුරකථන අංකය, Aswanna contact number, Agri advisory Sri Lanka, Aswanna address"
+      />
       {/* Hero Section */}
       <PageHero 
         title={t('contact.title', 'අප හා සම්බන්ධ වන්න')} 
@@ -513,6 +527,7 @@ export default function Contact() {
                   href={item.link}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackSocialClick(item.name)}
                   className="group bg-white rounded-2xl sm:rounded-3xl p-5 border border-gray-100 hover:border-emerald-600/30 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_12px_32px_rgba(5,74,41,0.08)] transition-all duration-300 hover:-translate-y-1 flex items-center justify-between"
                 >
                   <div className="flex items-center gap-4 min-w-0">

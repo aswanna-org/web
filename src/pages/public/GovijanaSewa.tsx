@@ -11,6 +11,7 @@ import {
 import PageHero from '../../components/public/PageHero';
 import CustomDropdown from '../../components/ui/CustomDropdown';
 import AgroLoader from '../../components/common/AgroLoader';
+import SEO from '../../components/common/SEO';
 import ManIcon from '@mui/icons-material/Man';
 import WomanIcon from '@mui/icons-material/Woman';
 
@@ -172,8 +173,55 @@ export default function GovijanaSewa() {
     return { primary, additional };
   };
 
+  const pageKeywords = useMemo(() => {
+    const list: string[] = [
+      'Govijana Sewa Sri Lanka',
+      'ගොවිජන සේවා',
+      'Agrarian Service Centers',
+      'ARPA officers',
+      'Aswanna',
+      selectedDistrictName,
+      selectedProvince !== 'All' ? selectedProvince : ''
+    ];
+
+    // Extract dynamic centers loaded from DB
+    centers.forEach(c => {
+      if (c.name) list.push(c.name);
+      if (c.nameSi) list.push(c.nameSi);
+      if (c.officerInCharge) list.push(c.officerInCharge);
+    });
+
+    if (searchQuery.trim()) {
+      list.push(searchQuery.trim());
+    }
+
+    return Array.from(new Set(list.filter(Boolean))).slice(0, 30).join(', ');
+  }, [centers, selectedDistrictName, selectedProvince, searchQuery]);
+
+  const dynamicTitle = selectedDistrictName
+    ? isSinhala
+      ? `${selectedDistrictName} ගොවිජන සේවා මධ්‍යස්ථාන | Agrarian Services | Aswanna`
+      : `${selectedDistrictName} Agrarian Service Centers | Aswanna`
+    : isSinhala
+      ? "ගොවිජන සේවා තොරතුරු පද්ධතිය | Agrarian Services | Aswanna"
+      : "Agrarian Services Directory Sri Lanka | Aswanna";
+
+  const dynamicDesc = selectedDistrictName
+    ? isSinhala
+      ? `${selectedDistrictName} දිස්ත්‍රික්කයේ සියලුම ගොවිජන සේවා මධ්‍යස්ථාන, දුරකථන අංක සහ නිලධාරීන්ගේ තොරතුරු එකම තැනකින් සොයාගන්න.`
+      : `Find all Agrarian Service Centers, contact numbers, and officers in ${selectedDistrictName} district on Aswanna.`
+    : isSinhala
+      ? "දිවයින පුරා පිහිටි සියලුම ගොවිජන සේවා මධ්‍යස්ථාන, දුරකථන අංක සහ නිලධාරීන්ගේ තොරතුරු එකම තැනකින් සොයාගන්න. Aswanna Govijana Sewa."
+      : "Comprehensive directory of Agrarian Service Centers (ASC), appointed officers, and agricultural support contacts across Sri Lanka.";
+
   return (
     <div className="w-full min-h-screen bg-gray-50/60 pb-24">
+      <SEO 
+        title={dynamicTitle}
+        description={dynamicDesc}
+        canonical="/govijana-sewa"
+        keywords={pageKeywords}
+      />
       {/* ── Page Hero ── */}
       <PageHero 
         title={isSinhala ? "ගොවිජන සේවා තොරතුරු පද්ධතිය" : "Agrarian Services Information System"} 

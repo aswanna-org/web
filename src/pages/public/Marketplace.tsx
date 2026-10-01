@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import PageHero from '../../components/public/PageHero';
 import { useTranslation } from 'react-i18next';
 import { Search, ShoppingCart, Filter, ShoppingBag, X } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import Pagination from '../../components/admin/Pagination';
 import AgroLoader from '../../components/common/AgroLoader';
+import SEO from '../../components/common/SEO';
+import { trackAddToCart } from '../../utils/analytics';
 
 interface Product {
   id: string;
@@ -68,8 +70,71 @@ export default function Marketplace() {
     }
   };
 
+  const isSinhala = i18n.language === 'si';
+
+  const pageKeywords = useMemo(() => {
+    const list: string[] = [
+      'Agro Products Sri Lanka',
+      'Aswanna Agri Marketplace',
+      'කෘෂි උපකරණ',
+      'පොහොර',
+      'බීජ',
+      'farming tools Sri Lanka'
+    ];
+
+    if (selectedCategory) {
+      list.push(selectedCategory);
+      const catObj = PREDEFINED_CATEGORIES.find(c => c.en === selectedCategory);
+      if (catObj?.si) list.push(catObj.si);
+    }
+
+    if (searchQuery.trim()) {
+      list.push(searchQuery.trim());
+    }
+
+    // Dynamic product names and categories from DB
+    products.forEach(p => {
+      if (p.name) list.push(p.name);
+      if (p.category) list.push(p.category);
+      if (p.categorySinhala) list.push(p.categorySinhala);
+    });
+
+    return Array.from(new Set(list.filter(Boolean))).slice(0, 30).join(', ');
+  }, [products, selectedCategory, searchQuery]);
+
+  const pageTitle = searchQuery.trim()
+    ? `${searchQuery.trim()} | කෘෂි වෙළඳසැල - Aswanna`
+    : selectedCategory
+    ? `${selectedCategory} | Agri Marketplace - Aswanna`
+    : (isSinhala ? "කෘෂි වෙළඳසැල | Agri Marketplace - Aswanna" : "Agri Marketplace Sri Lanka | Aswanna");
+
+  const pageDesc = selectedCategory
+    ? (isSinhala 
+        ? `${selectedCategory} කාණ්ඩයේ උසස් තත්ත්වයේ කෘෂි ද්‍රව්‍ය සහ උපකරණ Aswanna වෙළඳසැලෙන් ඇණවුම් කරන්න.`
+        : `Order quality ${selectedCategory} and farming supplies online at Aswanna Agri Marketplace.`)
+    : (isSinhala
+        ? "ගුණාත්මක බීජ, පොහොර, නවීන කෘෂි උපකරණ සහ ප්‍රකාශන පහසුවෙන් ඇණවුම් කර ගෙන්වා ගන්න. Aswanna Agri Marketplace."
+        : "Buy high quality seeds, fertilizer, farming equipment, and agro publications online at Aswanna Sri Lanka.");
+
   return (
     <div className="w-full min-h-screen bg-gray-50">
+      <SEO 
+        title={pageTitle}
+        description={pageDesc}
+        canonical={selectedCategory ? `/marketplace?category=${encodeURIComponent(selectedCategory)}` : '/marketplace'}
+        keywords={pageKeywords}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "itemListElement": products.slice(0, 10).map((prod, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "name": prod.name,
+            "description": prod.description || undefined,
+            "image": prod.image || undefined
+          }))
+        }}
+      />
       <PageHero 
         title={t('marketplace.title', 'MARKETPLACE')} 
         description={t('marketplace.desc', 'Buy seeds, fertilizers, and agricultural equipment.')} 
@@ -211,7 +276,10 @@ export default function Marketplace() {
                           <div className="font-bold text-xl text-green-600">Rs. {product.price?.toFixed(2) || '0.00'}</div>
                         </div>
                         <button 
-                          onClick={() => addToCart(product, 1)}
+                          onClick={() => {
+                            addToCart(product, 1);
+                            trackAddToCart(product.name, product.price || 0);
+                          }}
                           className="bg-green-600 hover:bg-green-700 text-white p-2.5 rounded-lg transition-colors shadow-sm shadow-green-600/30 flex items-center justify-center group-hover:scale-110 duration-300"
                         >
                           <ShoppingCart size={18} />

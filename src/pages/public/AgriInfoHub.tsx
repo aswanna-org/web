@@ -3,6 +3,7 @@ import { Landmark, Building2, MapPin, Globe2, ArrowRight, X, Phone, Mail, Globe,
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PageHero from '../../components/public/PageHero';
+import SEO from '../../components/common/SEO';
 
 interface DirectoryItem {
   id: string;
@@ -313,6 +314,14 @@ export default function AgriInfoHub() {
 
   return (
     <div className="w-full min-h-screen bg-[#f7faf8]">
+      <SEO 
+        title={isSinhala ? "කෘෂි තොරතුරු කේන්ද්‍රය | Agri Information Hub - Aswanna" : "Agri Information Hub Sri Lanka | Aswanna"}
+        description={isSinhala 
+          ? "ශ්‍රී ලංකාවේ ගොවි ප්‍රජාව සඳහා රාජ්‍ය ආයතන, පුද්ගලික ආයතන, ගොවිජන සේවා සහ ජාත්‍යන්තර ආයතන වල තොරතුරු සපයන ඒකාබද්ධ කේන්ද්‍රස්ථානය."
+          : "Sri Lanka Agricultural Information Hub: Directory of Government, Private, ASC, and International Agriculture organizations."}
+        canonical="/agri-info-hub"
+        keywords="Agri Info Hub, Sri Lanka Agriculture Directory, Gov Institutions, Private Agribusiness, International Agri, ගොවිජන සේවා, කෘෂි තොරතුරු, Aswanna"
+      />
       {/* ── Hero Banner ── */}
       <PageHero
         title={t('agriInfoHub.heroTitle', isSinhala ? 'කෘෂි තොරතුරු කේන්ද්‍රය' : 'AGRI INFORMATION HUB')}

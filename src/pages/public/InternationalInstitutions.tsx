@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -18,6 +18,7 @@ import Pagination from '../../components/admin/Pagination';
 import CustomDropdown from '../../components/ui/CustomDropdown';
 import { type AgriInstitution } from '../../data/agriInstitutionsData';
 import AgroLoader from '../../components/common/AgroLoader';
+import SEO from '../../components/common/SEO';
 
 const CLOUD_PALETTE = [
   { fill: '#e2f5dc' }, // 1. Soft Leaf Green
@@ -177,6 +178,29 @@ export default function InternationalInstitutions() {
     ? 'තිරසාර කෘෂිකර්මාන්තය නඟාසිටුවීමට සහ ගෝලීය දැනුම හුවමාරුවට දායක වන ජාත්‍යන්තර නියෝජිතායතන සහ සංවර්ධන අරමුදල්.'
     : 'Global bodies, funding agencies, and research organizations supporting sustainable agriculture in Sri Lanka.';
 
+  const pageKeywords = useMemo(() => {
+    const list: string[] = [
+      'International Agriculture Institutions Sri Lanka',
+      'ජාත්‍යන්තර කෘෂි ආයතන',
+      'FAO Sri Lanka',
+      'IWMI Sri Lanka',
+      'Global Agri Partners',
+      'Aswanna Agri Hub'
+    ];
+
+    if (searchQuery.trim()) {
+      list.push(searchQuery.trim());
+    }
+
+    institutions.forEach((item: any) => {
+      if (item.nameSi) list.push(item.nameSi);
+      if (item.nameEn) list.push(item.nameEn);
+      if (item.shortName) list.push(item.shortName);
+    });
+
+    return Array.from(new Set(list.filter(Boolean))).slice(0, 30).join(', ');
+  }, [institutions, searchQuery]);
+
   const handleCardClick = (item: any) => {
     const slug = item.slug || item.id;
     navigate(`/agri-info-hub/institutions/${slug}`);
@@ -184,6 +208,22 @@ export default function InternationalInstitutions() {
 
   return (
     <div className="w-full min-h-screen bg-[#fbfdfa] font-roboto">
+      <SEO 
+        title={isSinhala ? `${pageTitle} | Aswanna Agri Hub` : `${pageTitle} | Aswanna Agri Hub`}
+        description={pageSubtitle}
+        canonical="/agri-info-hub/international-institutions"
+        keywords={pageKeywords}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "itemListElement": institutions.slice(0, 10).map((item: any, index: number) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "name": isSinhala ? item.nameSi || item.nameEn : item.nameEn || item.nameSi,
+            "description": item.descriptionEn || item.descriptionSi || undefined
+          }))
+        }}
+      />
       {/* ── Page Hero ── */}
       <PageHero
         title={pageTitle}

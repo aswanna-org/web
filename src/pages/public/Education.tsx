@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Clock, BookOpen, DollarSign, Search, X, Sparkles, GraduationCap } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
@@ -8,6 +8,7 @@ import CustomDropdown from '../../components/ui/CustomDropdown';
 import AgroLoader from '../../components/common/AgroLoader';
 import { QUALIFICATION_LEVELS } from '../../data/educationData';
 import { formatQualificationLevel, formatDurationUnit } from './EducationDetail';
+import SEO from '../../components/common/SEO';
 
 export default function Education() {
   const { t, i18n } = useTranslation();
@@ -72,8 +73,68 @@ export default function Education() {
     setCurrentPage(1);
   };
 
+  const pageKeywords = useMemo(() => {
+    const list: string[] = [
+      'Agri courses Sri Lanka',
+      'Agriculture diploma',
+      'කෘෂි පාඨමාලා',
+      'farming education Sri Lanka',
+      'NVQ agriculture courses',
+      'Aswanna Agro Education'
+    ];
+
+    if (selectedLevel !== 'All') {
+      list.push(selectedLevel);
+    }
+
+    if (debouncedSearch.trim()) {
+      list.push(debouncedSearch.trim());
+    }
+
+    // Dynamic course titles, categories, and target audiences from DB
+    courses.forEach(c => {
+      if (c.title) list.push(c.title);
+      if (c.courseCode) list.push(c.courseCode);
+      if (c.qualificationLevel) list.push(c.qualificationLevel);
+      if (c.targetAudience) list.push(c.targetAudience);
+      if (c.category?.name) list.push(c.category.name);
+    });
+
+    return Array.from(new Set(list.filter(Boolean))).slice(0, 30).join(', ');
+  }, [courses, selectedLevel, debouncedSearch]);
+
+  const pageTitle = debouncedSearch.trim()
+    ? `${debouncedSearch.trim()} | කෘෂි පාඨමාලා - Aswanna`
+    : selectedLevel !== 'All'
+    ? `${selectedLevel} | Agro Education - Aswanna`
+    : (isSinhala ? 'කෘෂි අධ්‍යාපනය හා පාඨමාලා | Agro Education' : 'Agro Education & Courses | Aswanna');
+
+  const pageDesc = selectedLevel !== 'All'
+    ? (isSinhala 
+        ? `${selectedLevel} මට්ටමේ කෘෂිකාර්මික පාඨමාලා සහ වෘත්තීය සහතිකපත් තොරතුරු. Aswanna Agro Education.`
+        : `Explore ${selectedLevel} agriculture training courses and qualifications in Sri Lanka.`)
+    : (isSinhala 
+        ? 'නවීන කෘෂිකාර්මික කුසලතා, වෘත්තීය පුහුණු පාඨමාලා සහ ඩිප්ලෝමා තොරතුරු. Aswanna Agro Education.' 
+        : 'Explore professional courses and vocational training designed to equip you with modern agricultural skills in Sri Lanka.');
+
   return (
     <div className="w-full min-h-screen bg-gray-50/50">
+      <SEO 
+        title={pageTitle}
+        description={pageDesc}
+        canonical={selectedLevel !== 'All' ? `/education?level=${encodeURIComponent(selectedLevel)}` : '/education'}
+        keywords={pageKeywords}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "itemListElement": courses.slice(0, 10).map((c, index) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "name": c.title,
+            "description": c.shortDescription || undefined
+          }))
+        }}
+      />
       {/* ── Page Hero ── */}
       <PageHero
         title={t('educationPage.title', isSinhala ? 'කෘෂි අධ්‍යාපනය' : 'AGRO EDUCATION')}

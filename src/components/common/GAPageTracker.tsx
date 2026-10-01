@@ -1,8 +1,8 @@
 /**
  * useGAPageTracking hook
  *
- * Automatically fires a GA4 page_view event every time the URL path changes.
- * Drop <GAPageTracker /> inside your BrowserRouter (after AuthProvider) to activate.
+ * Automatically fires a GA4 page_view event on every URL path change.
+ * Waits 150ms to allow page-level <SEO /> components to set document.title.
  */
 
 import { useEffect } from 'react';
@@ -14,7 +14,7 @@ let gaInitialised = false;
 export function useGAPageTracking(): void {
   const location = useLocation();
 
-  // Initialise GA once
+  // Initialise GA once on mount
   useEffect(() => {
     if (!gaInitialised) {
       initGA();
@@ -24,13 +24,16 @@ export function useGAPageTracking(): void {
 
   // Track every route change
   useEffect(() => {
-    trackPageView(location.pathname + location.search, document.title);
+    const timer = setTimeout(() => {
+      trackPageView(location.pathname + location.search, document.title);
+    }, 150);
+
+    return () => clearTimeout(timer);
   }, [location.pathname, location.search]);
 }
 
 /**
  * Drop-in component version of useGAPageTracking.
- * Renders nothing – just activates the hook.
  */
 export default function GAPageTracker() {
   useGAPageTracking();

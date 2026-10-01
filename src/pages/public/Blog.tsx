@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Share2, Clock, User, Image as ImageIcon, Link as LinkIcon, MessageCircle, Check, BookOpen } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import { useTranslation } from 'react-i18next';
@@ -6,6 +6,7 @@ import Pagination from '../../components/admin/Pagination';
 import AgroLoader from '../../components/common/AgroLoader';
 import FontSizeSwitcher from '../../components/public/FontSizeSwitcher';
 import CommentSection from '../../components/public/CommentSection';
+import SEO from '../../components/common/SEO';
 
 interface BlogItem {
   id: string;
@@ -97,8 +98,65 @@ export default function Blog() {
     }
   };
 
+  const currentTitle = selectedBlog 
+    ? (isSinhala ? (selectedBlog.sinhalaTitle || selectedBlog.title || 'ලිපි') : (selectedBlog.title || selectedBlog.sinhalaTitle || 'Articles'))
+    : (isSinhala ? 'කෘෂි ලිපි හා උපදෙස් | Agri Blog' : 'Agri Blog & Farming Guides');
+
+  const currentDesc = selectedBlog
+    ? ((isSinhala ? selectedBlog.sinhalaContent : selectedBlog.content)?.replace(/<[^>]*>?/gm, '').slice(0, 160) || 'Aswanna Blog Article')
+    : (isSinhala ? 'නවතම වගා උපදෙස්, පළිබෝධ පාලනය, සහ කෘෂි ව්‍යවසායකත්ව ලිපි සහ මඟපෙන්වීම්.' : 'Practical farming guides, crop techniques, pest management, and agro-business insights.');
+
+  const pageKeywords = useMemo(() => {
+    if (selectedBlog) {
+      const list = [
+        selectedBlog.title,
+        selectedBlog.sinhalaTitle,
+        selectedBlog.authorName,
+        'Aswanna Agri Blog',
+        'කෘෂි ලිපි',
+        'වගා උපදෙස්',
+        'Farming Guides Sri Lanka'
+      ];
+      return Array.from(new Set(list.filter(Boolean))).join(', ');
+    }
+
+    const list: string[] = [
+      'Aswanna Agri Blog',
+      'කෘෂි ලිපි',
+      'වගා උපදෙස්',
+      'Farming Guides Sri Lanka',
+      'කෘෂි තාක්ෂණය'
+    ];
+
+    blogList.forEach(b => {
+      if (b.title) list.push(b.title);
+      if (b.sinhalaTitle) list.push(b.sinhalaTitle);
+    });
+
+    return Array.from(new Set(list.filter(Boolean))).slice(0, 30).join(', ');
+  }, [selectedBlog, blogList]);
+
   return (
     <div className="w-full min-h-screen bg-gray-50">
+      <SEO 
+        title={currentTitle}
+        description={currentDesc}
+        keywords={pageKeywords}
+        canonical={selectedBlog ? `/blog?slug=${selectedBlog.slug || selectedBlog.id}` : '/blog'}
+        image={selectedBlog?.image || undefined}
+        type={selectedBlog ? 'article' : 'website'}
+        jsonLd={selectedBlog ? {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": currentTitle,
+          "image": selectedBlog.image ? [selectedBlog.image] : [],
+          "datePublished": selectedBlog.createdAt,
+          "author": [{
+            "@type": "Person",
+            "name": selectedBlog.authorName || "Aswanna Editorial Team"
+          }]
+        } : undefined}
+      />
 
       {/* ── Page Hero ── */}
       <PageHero

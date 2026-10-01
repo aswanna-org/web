@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getAgroTheme } from '../../utils/agroTheme';
 import AgroLoader from '../../components/common/AgroLoader';
+import SEO from '../../components/common/SEO';
 
 export default function AgroProductDetail() {
   const { mainSlug, subSlug, productId } = useParams<{ mainSlug: string; subSlug: string; productId: string }>();
@@ -59,8 +60,89 @@ export default function AgroProductDetail() {
   const headerImage = (productImages.length > 1 && productImages[1]) ? productImages[1] : (productImages[0] || defaultImage);
   const theme = getAgroTheme(productId || product?.slug || subSlug, product?.name || category?.name);
 
+  const displayName = isSinhala 
+    ? (product.sinhalaName || product.name)
+    : (product.name || product.sinhalaName);
+  const altName = isSinhala ? product.name : product.sinhalaName;
+  const pageTitle = altName && altName !== displayName 
+    ? `${displayName} (${altName}) - වගා උපදෙස් සහ තොරතුරු | Aswanna`
+    : `${displayName} - වගා උපදෙස් සහ තොරතුරු | Aswanna`;
+
+  const rawDesc = (isSinhala ? product.sinhalaDescription : product.description) || product.description || product.sinhalaDescription || '';
+  const cleanDesc = rawDesc.replace(/<[^>]*>?/gm, '').trim();
+  const pageDesc = cleanDesc 
+    ? `${cleanDesc.slice(0, 150)}...`
+    : `ශ්‍රී ලංකාවේ ${displayName} වගාව පිළිබඳ සම්පූර්ණ තොරතුරු, දේශගුණය, පස, පළිබෝධ පාලනය සහ උපදෙස්. Aswanna Agri.`;
+
+  const keywords = useMemo(() => {
+    if (!product) return '';
+    const words = new Set<string>();
+    if (displayName) words.add(displayName);
+    if (altName) words.add(altName);
+    if (product.name) {
+      words.add(`${product.name} වගාව`);
+      words.add(`${product.name} cultivation`);
+      words.add(`${product.name} farming in Sri Lanka`);
+      words.add(`${product.name} seeds`);
+      words.add(`${product.name} harvest`);
+    }
+    if (product.sinhalaName) {
+      words.add(`${product.sinhalaName} වගාව`);
+      words.add(`${product.sinhalaName} බීජ`);
+      words.add(`${product.sinhalaName} අස්වැන්න`);
+      words.add(`${product.sinhalaName} පළිබෝධ පාලනය`);
+    }
+    if (product.scientificName) words.add(product.scientificName);
+    if (product.location) words.add(product.location);
+    if (product.sinhalaLocation) words.add(product.sinhalaLocation);
+    if (category?.name) words.add(category.name);
+    if (category?.sinhalaName) words.add(category.sinhalaName);
+    if (mainCategory?.name) words.add(mainCategory.name);
+    if (mainCategory?.sinhalaName) words.add(mainCategory.sinhalaName);
+    
+    // Add districts from Sri Lanka agri data in the DB
+    if (Array.isArray(product.slAgriData?.districts)) {
+      product.slAgriData.districts.forEach((d: any) => {
+        if (d.districtName) words.add(d.districtName);
+        if (d.sinhalaDistrictName) words.add(d.sinhalaDistrictName);
+      });
+    }
+
+    words.add('කෘෂිකර්මාන්තය');
+    words.add('ගොවිතැන');
+    words.add('Aswanna Agro');
+    return Array.from(words).filter(Boolean).join(', ');
+  }, [product, displayName, altName, category, mainCategory]);
+
   return (
     <div className="w-full min-h-screen bg-white">
+      <SEO 
+        title={pageTitle}
+        description={pageDesc}
+        keywords={keywords}
+        canonical={`/agro/${mainSlug}/${subSlug}/${productId}`}
+        image={productImages[0] || headerImage}
+        type="article"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Article",
+          "headline": pageTitle,
+          "description": pageDesc,
+          "image": productImages.length > 0 ? productImages : [headerImage],
+          "author": {
+            "@type": "Organization",
+            "name": "Aswanna Ceylon Agro"
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "Aswanna Ceylon Agro",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://aswanna.lk/images/aswanna_logo.png"
+            }
+          }
+        }}
+      />
       <section className="relative z-20 w-full h-[24vh] sm:h-[34vh] md:h-[44vh] min-h-[160px] sm:min-h-[250px] md:min-h-[360px] flex flex-col justify-center">
         {/* Background Image Container - clipped */}
         <div className="absolute inset-0 overflow-hidden z-0">

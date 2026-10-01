@@ -17,6 +17,7 @@ import {
   Award
 } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
+import SEO from '../../components/common/SEO';
 
 export default function About() {
   const { t, i18n } = useTranslation();
@@ -133,6 +134,14 @@ export default function About() {
 
   return (
     <div className="w-full min-h-screen bg-[#faf9f6] font-roboto">
+      <SEO 
+        title={isSinhala ? 'අප ගැන | About Us' : 'About Us | Aswanna Ceylon Agro'}
+        description={isSinhala 
+          ? 'දශකයක ඩිජිටල් මෙහෙවරක සිට තිරසර කෘෂි පරිවර්තනයක් දක්වා. ශ්‍රී ලාංකේය කෘෂිකර්මාන්තයට නවීන තාක්ෂණයේ සවිය එක් කරන Aswanna Ceylon Agro (PVT) LTD.'
+          : 'From a decade-long digital mission to sustainable agricultural transformation. Empowering Sri Lankan agriculture with modern technology - Aswanna Ceylon Agro.'}
+        canonical="/about"
+        keywords="About Aswanna, අප ගැන, Aswanna Ceylon Agro, Sri Lanka Agri Tech, කෘෂි මෙහෙවර"
+      />
       {/* ── 1. Page Hero ── */}
       <PageHero
         title={t('aboutPage.title', 'Aswanna Ceylon Agro (PVT) LTD')}

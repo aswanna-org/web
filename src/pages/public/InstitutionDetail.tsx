@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
+import SEO from '../../components/common/SEO';
 import {
   type InstitutionDocument
 } from '../../data/agriInstitutionsData';
@@ -223,8 +224,55 @@ export default function InstitutionDetail() {
     ? (isSinhala ? 'ජාත්‍යන්තර ආයතන' : 'International Institutions')
     : (isSinhala ? 'රාජ්‍ය ආයතන' : 'Government Institutions');
 
+  const pageTitle = `${title} (${institution.shortName || ''}) | Aswanna Agri Hub`;
+  const pageDesc = description || fullDescription?.slice(0, 160) || `${title} contact details, hotline, and services on Aswanna.`;
+
+  const dynamicKeywords = useMemo(() => {
+    if (!institution) return '';
+    const list: string[] = [
+      title,
+      institution.shortName,
+      institution.nameEn,
+      institution.nameSi,
+      sectorBadgeText,
+      'Agri Institutions Sri Lanka',
+      'කෘෂිකාර්මික ආයතන',
+      'Aswanna Agri Hub'
+    ];
+
+    regionalCentersList.forEach((rc: any) => {
+      if (rc.nameEn) list.push(rc.nameEn);
+      if (rc.nameSi) list.push(rc.nameSi);
+      if (rc.locationEn) list.push(rc.locationEn);
+      if (rc.locationSi) list.push(rc.locationSi);
+    });
+
+    return Array.from(new Set(list.filter(Boolean))).slice(0, 30).join(', ');
+  }, [institution, title, sectorBadgeText, regionalCentersList]);
+
   return (
     <div className="w-full min-h-screen bg-[#f8faf8] font-roboto pb-20">
+      <SEO 
+        title={pageTitle}
+        description={pageDesc}
+        keywords={dynamicKeywords}
+        canonical={`/institutions/${institution.slug || slug}`}
+        image={institution.logoUrl || undefined}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": institution.type === 'gov' ? 'GovernmentOrganization' : 'Organization',
+          "name": title,
+          "alternateName": institution.shortName,
+          "description": pageDesc,
+          "telephone": hotline || phone || undefined,
+          "email": email || undefined,
+          "address": address ? {
+            "@type": "PostalAddress",
+            "streetAddress": address,
+            "addressCountry": "LK"
+          } : undefined
+        }}
+      />
       {/* ── Page Hero Header (Displaying short name only as the title) ── */}
       <PageHero
         title={institution.shortName || title}

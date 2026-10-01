@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -21,6 +21,7 @@ import ManIcon from '@mui/icons-material/Man';
 import WomanIcon from '@mui/icons-material/Woman';
 import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
+import SEO from '../../components/common/SEO';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -222,8 +223,71 @@ export default function GovijanaSewaDetail() {
     );
   }
 
+  const dynamicKeywords = useMemo(() => {
+    if (!center) return '';
+    const list: string[] = [
+      center.name,
+      center.nameSi || '',
+      center.district,
+      center.province,
+      center.ascId,
+      'Govijana Sewa',
+      'Agrarian Services Center',
+      'ගොවිජන සේවා මධ්‍යස්ථානය',
+      'Aswanna'
+    ];
+
+    if (center.officerInCharge) list.push(center.officerInCharge);
+    if (center.officerInChargeSi) list.push(center.officerInChargeSi);
+
+    // Extract GN Divisions loaded from database
+    if (center.gnDivisions && center.gnDivisions.length > 0) {
+      center.gnDivisions.forEach(gn => {
+        if (gn.divisionName) list.push(gn.divisionName);
+        if (gn.arpaOfficerName) list.push(gn.arpaOfficerName);
+      });
+    }
+
+    // Extract ASC Officers loaded from database
+    if (center.officers && center.officers.length > 0) {
+      center.officers.forEach(o => {
+        if (o.name) list.push(o.name);
+        if (o.nameSi) list.push(o.nameSi);
+        if (o.position) list.push(o.position);
+      });
+    }
+
+    return Array.from(new Set(list.filter(Boolean))).join(', ');
+  }, [center]);
+
+  const pageTitle = isSinhala
+    ? `${center.nameSi || center.name} ගොවිජන සේවා මධ්‍යස්ථානය (${center.district}) | Aswanna`
+    : `${center.name} Agrarian Service Center (${center.district}) | Aswanna`;
+  const pageDesc = isSinhala
+    ? `${center.district} දිස්ත්‍රික්කයේ ${center.nameSi || center.name} ගොවිජන සේවා මධ්‍යස්ථානයේ නිල තොරතුරු, දුරකථන අංක, ලිපිනය සහ නිලධාරීන්ගේ විස්තර.`
+    : `Official contact information, telephone, address, and officers list for ${center.name} Agrarian Service Center in ${center.district} district.`;
+
   return (
     <div className="w-full min-h-screen bg-[#f8faf9] pb-24 font-roboto">
+      <SEO 
+        title={pageTitle}
+        description={pageDesc}
+        keywords={dynamicKeywords}
+        canonical={`/govijana-sewa/${center.id || center.ascId}`}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "GovernmentOffice",
+          "name": pageTitle,
+          "description": pageDesc,
+          "telephone": center.officePhone || center.mobilePhone || undefined,
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": center.address || undefined,
+            "addressLocality": center.district,
+            "addressCountry": "LK"
+          }
+        }}
+      />
       {/* ── Page Hero ── */}
       <PageHero
         title={centerName}

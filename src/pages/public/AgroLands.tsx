@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import PageHero from '../../components/public/PageHero';
 import { useTranslation } from 'react-i18next';
 import { Search, MapPin, Maximize, Phone, Tag, X } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import CustomDropdown from '../../components/ui/CustomDropdown';
 import AgroLoader from '../../components/common/AgroLoader';
+import SEO from '../../components/common/SEO';
 
 interface Lookup {
   id: string;
@@ -91,8 +92,52 @@ export default function AgroLands() {
     }
   };
 
+  const pageKeywords = useMemo(() => {
+    const list: string[] = [
+      'Agro Lands Sri Lanka',
+      'Agricultural land for sale',
+      'කෘෂිකාර්මික ඉඩම්',
+      'වගා ඉඩම්',
+      'Aswanna Lands',
+      'farm land for lease'
+    ];
+
+    if (selectedLocation) list.push(selectedLocation);
+    if (selectedType) list.push(selectedType);
+    if (searchQuery.trim()) list.push(searchQuery.trim());
+
+    lands.forEach(l => {
+      if (l.title) list.push(l.title);
+      if (l.titleSi) list.push(l.titleSi);
+      if (l.location) list.push(l.location);
+      if (l.locationSi) list.push(l.locationSi);
+    });
+
+    return Array.from(new Set(list.filter(Boolean))).slice(0, 30).join(', ');
+  }, [lands, selectedLocation, selectedType, searchQuery]);
+
+  const pageTitle = searchQuery.trim() 
+    ? `${searchQuery.trim()} - කෘෂිකාර්මික ඉඩම් | Agro Lands - Aswanna`
+    : selectedLocation
+    ? `${selectedLocation} කෘෂිකාර්මික ඉඩම් | Agro Lands in ${selectedLocation} - Aswanna`
+    : (isSinhala ? 'කෘෂිකාර්මික ඉඩම් | Agro Lands for Sale & Lease' : 'Agro Lands for Sale and Lease in Sri Lanka | Aswanna');
+
+  const pageDesc = selectedLocation
+    ? (isSinhala 
+        ? `${selectedLocation} ප්‍රදේශයේ වගාවට සුදුසු කෘෂිකාර්මික ඉඩම් මිලදී ගැනීමට සහ බදු ගැනීමට සොයාගන්න. Aswanna Agro Lands.`
+        : `Explore prime agricultural and cultivation lands for sale or lease in ${selectedLocation}, Sri Lanka.`)
+    : (isSinhala
+        ? 'වගාවට සුදුසු පොල්, තේ, කුරුඳු, එළවළු සහ වාණිජ කෘෂි ඉඩම් මිලදී ගැනීමට සහ බදු ගැනීමට සොයාගන්න. Aswanna Agro Lands.'
+        : 'Browse agricultural lands for sale and lease across Sri Lanka. Coconut, tea, cinnamon, and commercial cultivation lands.');
+
   return (
     <div className="w-full min-h-screen bg-gray-50 pb-20">
+      <SEO 
+        title={pageTitle}
+        description={pageDesc}
+        keywords={pageKeywords}
+        canonical={selectedLocation ? `/agro-lands?location=${encodeURIComponent(selectedLocation)}` : '/agro-lands'}
+      />
       <PageHero 
         title={t('agroLands.title', 'AGRO LANDS')} 
         description={t('agroLands.desc', 'Find agricultural lands for sale and lease.')} 

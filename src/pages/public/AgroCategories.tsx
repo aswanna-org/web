@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, ChevronRight, Layers, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
+import SEO from '../../components/common/SEO';
 
 interface Category {
   id: string;
@@ -116,8 +117,30 @@ export default function AgroCategories() {
       (c.sinhalaName && c.sinhalaName.includes(search))
   );
 
+  const keywords = useMemo(() => {
+    const words = new Set<string>();
+    categories.forEach(c => {
+      if (c.name) {
+        words.add(c.name);
+        words.add(`${c.name} වගාව`);
+      }
+      if (c.sinhalaName) words.add(c.sinhalaName);
+    });
+    words.add('කෘෂි තාක්ෂණික නාමාවලිය');
+    words.add('Agro Technology Hub');
+    words.add('Sri Lanka Crops');
+    words.add('Aswanna');
+    return Array.from(words).filter(Boolean).slice(0, 50).join(', ');
+  }, [categories]);
+
   return (
     <div className="w-full min-h-screen bg-white">
+      <SEO 
+        title="කෘෂි තාක්ෂණික නාමාවලිය | Agro Technology Hub"
+        description="ශ්‍රී ලංකාවේ සියලුම බෝග වර්ග, එළවළු, පළතුරු, ධාන්‍ය, මල් සහ වාණිජ වගා තොරතුරු. Aswanna Agro Technology Hub."
+        canonical="/agro"
+        keywords={keywords}
+      />
       {/* ── Hero ── */}
       <PageHero
         title={t('agro.title', 'Agro Technology')}

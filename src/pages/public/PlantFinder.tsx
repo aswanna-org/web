@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import PageHero from '../../components/public/PageHero';
 import { useTranslation } from 'react-i18next';
 import { Search, Sprout, MapPin, Layers, Clock, X } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import CustomDropdown from '../../components/ui/CustomDropdown';
 import AgroLoader from '../../components/common/AgroLoader';
+import SEO from '../../components/common/SEO';
 
 interface Lookup {
   id: string;
@@ -88,8 +89,58 @@ export default function PlantFinder() {
     }
   };
 
+  const pageTitle = searchQuery.trim() 
+    ? `${searchQuery.trim()} - බෝග තොරතුරු හා වගා මඟපෙන්වීම් | Plant Finder - Aswanna`
+    : (isSinhala ? 'බෝග සොයන්නා | Plant Finder - Aswanna' : 'Plant Finder - Find Crops by Zone & Soil | Aswanna');
+
+  const pageDesc = searchQuery.trim()
+    ? `ශ්‍රී ලංකාවේ ${searchQuery.trim()} වගාව සඳහා ගැළපෙන දේශගුණ කලාප, පස් වර්ග, අස්වනු නෙළන කාලය සහ විශේෂඥ උපදෙස්. Aswanna Plant Finder.`
+    : (isSinhala ? 'ඔබේ ප්‍රදේශයේ දේශගුණයට සහ පසට වඩාත්ම ගැළපෙන බෝග සහ වගා ක්‍රම සොයාගන්න. Aswanna Plant Finder.' : 'Find the best crops and plants for your climatic zone, soil type, and harvest duration in Sri Lanka.');
+
+  const pageKeywords = useMemo(() => {
+    const words = new Set<string>();
+    if (searchQuery.trim()) {
+      words.add(searchQuery.trim());
+      words.add(`${searchQuery.trim()} වගාව`);
+      words.add(`${searchQuery.trim()} farming Sri Lanka`);
+    }
+    plants.forEach(p => {
+      if (p.name) {
+        words.add(p.name);
+        words.add(`${p.name} වගාව`);
+        words.add(`${p.name} farming`);
+      }
+      if (p.sinhalaName) words.add(p.sinhalaName);
+      if (p.climaticZone?.name) words.add(p.climaticZone.name);
+      if (p.climaticZone?.nameSi) words.add(p.climaticZone.nameSi);
+      if (p.soilType?.name) words.add(p.soilType.name);
+      if (p.soilType?.nameSi) words.add(p.soilType.nameSi);
+      if (p.harvestTime?.name) words.add(p.harvestTime.name);
+      if (p.harvestTime?.nameSi) words.add(p.harvestTime.nameSi);
+    });
+    availableFilters.climaticZones?.forEach(z => {
+      if (z.name) words.add(z.name);
+      if (z.nameSi) words.add(z.nameSi);
+    });
+    availableFilters.soilTypes?.forEach(s => {
+      if (s.name) words.add(s.name);
+      if (s.nameSi) words.add(s.nameSi);
+    });
+    words.add('Plant Finder');
+    words.add('බෝග සොයන්නා');
+    words.add('කෘෂිකර්මාන්තය');
+    words.add('Aswanna');
+    return Array.from(words).filter(Boolean).slice(0, 50).join(', ');
+  }, [plants, availableFilters, searchQuery]);
+
   return (
     <div className="w-full min-h-screen bg-gray-50">
+      <SEO 
+        title={pageTitle}
+        description={pageDesc}
+        keywords={pageKeywords}
+        canonical="/plant-finder"
+      />
       <PageHero 
         title={t('plantFinder.title', 'Plant Finder')} 
         description={t('plantFinder.desc', 'Find the best plants for your climatic zone and soil type.')} 

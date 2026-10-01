@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Share2, Clock, User, Image as ImageIcon, Link as LinkIcon, MessageCircle, Check, Newspaper } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +7,7 @@ import CustomDropdown from '../../components/ui/CustomDropdown';
 import AgroLoader from '../../components/common/AgroLoader';
 import FontSizeSwitcher from '../../components/public/FontSizeSwitcher';
 import CommentSection from '../../components/public/CommentSection';
+import SEO from '../../components/common/SEO';
 
 interface NewsItem {
   id: string;
@@ -113,8 +114,66 @@ export default function News() {
     }
   };
 
+  const currentTitle = selectedNews 
+    ? (isSinhala ? (selectedNews.sinhalaTitle || selectedNews.title || 'පුවත්') : (selectedNews.title || selectedNews.sinhalaTitle || 'News'))
+    : (isSinhala ? 'නවතම පුවත් | News' : 'Latest Agri News');
+
+  const currentDesc = selectedNews
+    ? ((isSinhala ? selectedNews.sinhalaContent : selectedNews.content)?.replace(/<[^>]*>?/gm, '').slice(0, 160) || 'Aswanna News')
+    : (isSinhala ? 'Aswanna නවතම කෘෂි පුවත්, රාජ්‍ය ප්‍රතිපත්ති, සංවර්ධන සහ වෙළඳපොළ තොරතුරු.' : 'Latest Sri Lankan agriculture news, policy updates, and market reports.');
+
+  const pageKeywords = useMemo(() => {
+    if (selectedNews) {
+      const list = [
+        selectedNews.title,
+        selectedNews.sinhalaTitle,
+        selectedNews.category,
+        selectedNews.authorName,
+        'Aswanna Agri News',
+        'කෘෂි පුවත්',
+        'Sri Lanka Agriculture News'
+      ];
+      return Array.from(new Set(list.filter(Boolean))).join(', ');
+    }
+
+    const list: string[] = [
+      'Aswanna Agri News',
+      'කෘෂි පුවත්',
+      'Sri Lanka Agriculture News',
+      'කෘෂිකාර්මික පුවත්',
+      'Agriculture Policy Sri Lanka'
+    ];
+
+    newsList.forEach(n => {
+      if (n.title) list.push(n.title);
+      if (n.sinhalaTitle) list.push(n.sinhalaTitle);
+      if (n.category) list.push(n.category);
+    });
+
+    return Array.from(new Set(list.filter(Boolean))).slice(0, 30).join(', ');
+  }, [selectedNews, newsList]);
+
   return (
     <div className="w-full min-h-screen bg-gray-50">
+      <SEO 
+        title={currentTitle}
+        description={currentDesc}
+        keywords={pageKeywords}
+        canonical={selectedNews ? `/news?slug=${selectedNews.slug || selectedNews.id}` : '/news'}
+        image={selectedNews?.image || undefined}
+        type={selectedNews ? 'article' : 'website'}
+        jsonLd={selectedNews ? {
+          "@context": "https://schema.org",
+          "@type": "NewsArticle",
+          "headline": currentTitle,
+          "image": selectedNews.image ? [selectedNews.image] : [],
+          "datePublished": selectedNews.createdAt,
+          "author": [{
+            "@type": "Person",
+            "name": selectedNews.authorName || "Aswanna Editorial Team"
+          }]
+        } : undefined}
+      />
 
       {/* ── Page Hero ── */}
       <PageHero

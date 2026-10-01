@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image as ImageIcon, Video, PlayCircle } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import Pagination from '../../components/admin/Pagination';
 import AgroLoader from '../../components/common/AgroLoader';
+import SEO from '../../components/common/SEO';
 
 interface GalleryItem {
   id: string;
@@ -53,8 +54,29 @@ export default function Gallery() {
     return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '';
   };
 
+  const pageKeywords = useMemo(() => {
+    const list: string[] = [
+      'Aswanna Gallery',
+      'කෘෂි ඡායාරූප',
+      'කෘෂි වීඩියෝ',
+      'Sri Lanka Agriculture Gallery',
+      'farming photos and videos Sri Lanka'
+    ];
+    items.forEach(i => {
+      if (i.title) list.push(i.title);
+      if (i.sinhalaTitle) list.push(i.sinhalaTitle);
+    });
+    return Array.from(new Set(list.filter(Boolean))).slice(0, 30).join(', ');
+  }, [items]);
+
   return (
     <div className="w-full min-h-screen bg-gray-50">
+      <SEO 
+        title={isSinhala ? "කෘෂි ඡායාරූප හා වීඩියෝ එකතුව | Gallery - Aswanna" : "Agri Photo & Video Gallery | Aswanna"}
+        description={isSinhala ? "ශ්‍රී ලංකාවේ කෘෂිකාර්මික ව්‍යාපෘති, ක්ෂේත්‍ර චාරිකා සහ ප්‍රජා වැඩසටහන් වල ඡායාරූප සහ වීඩියෝ එකතුව." : "Explore photography and videos of agricultural projects, field visits, and farmer empowerment initiatives in Sri Lanka."}
+        canonical="/gallery"
+        keywords={pageKeywords}
+      />
       {/* ── Page Hero ── */}
       <PageHero
         title={t('galleryPage.title', 'GALLERY')}

@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { Search, ArrowLeft, ChevronRight, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getAgroTheme } from '../../utils/agroTheme';
 import AgroLoader from '../../components/common/AgroLoader';
+import SEO from '../../components/common/SEO';
 
 interface Category {
   id: string;
@@ -135,9 +136,40 @@ export default function AgroMainCategoryDetail() {
 
   const heroImage = mainCategory.headerImage || mainCategory.image || 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80';
   const theme = getAgroTheme(mainCategory.slug || mainSlug, mainCategory.name);
+  const mainName = isSinhala ? (mainCategory.sinhalaName || mainCategory.name) : (mainCategory.name || mainCategory.sinhalaName);
+  const pageTitle = `${mainName} - කෘෂි කාණ්ඩ නාමාවලිය | Aswanna Agro`;
+  const pageDesc = `ශ්‍රී ලංකාවේ ${mainName} යටතේ ඇති සියලුම උප කාණ්ඩ, බෝග වර්ග සහ වගා උපදෙස්. Aswanna Agro Technology.`;
+
+  const keywords = useMemo(() => {
+    const words = new Set<string>();
+    if (mainName) {
+      words.add(mainName);
+      words.add(`${mainName} වගාව`);
+      words.add(`${mainName} farming Sri Lanka`);
+    }
+    (mainCategory?.children || []).forEach((c: any) => {
+      if (c.name) words.add(c.name);
+      if (c.sinhalaName) words.add(c.sinhalaName);
+      (c.items || []).forEach((it: any) => {
+        if (it.name) words.add(it.name);
+        if (it.sinhalaName) words.add(it.sinhalaName);
+      });
+    });
+    words.add('කෘෂි කාණ්ඩ');
+    words.add('වගා තාක්ෂණය');
+    words.add('Aswanna Agro');
+    return Array.from(words).filter(Boolean).slice(0, 50).join(', ');
+  }, [mainName, mainCategory]);
 
   return (
     <div className="w-full min-h-screen bg-white">
+      <SEO 
+        title={pageTitle}
+        description={pageDesc}
+        canonical={`/agro/${mainCategory.slug || mainSlug}`}
+        image={heroImage}
+        keywords={keywords}
+      />
       {/* ── Hero ── */}
       <section className="relative z-20 w-full h-[24vh] sm:h-[34vh] md:h-[44vh] min-h-[160px] sm:min-h-[250px] md:min-h-[360px] flex flex-col justify-center">
         {/* Background - clipped */}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Clock, MapPin, Award, CheckCircle2,
@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
 import { useAuth } from '../../context/AuthContext';
+import SEO from '../../components/common/SEO';
 
 // Helper to extract or translate bilingual strings like "මාර්තු (March)" based on active language
 export const formatBilingualText = (text: string | undefined | null, isSinhala: boolean): string => {
@@ -245,9 +246,53 @@ export default function EducationDetail() {
   const defaultImage = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80';
   const heroImage = course.bannerImageUrl || defaultImage;
 
+  const pageTitle = `${course.title} | Aswanna Agro Education`;
+  const pageDesc = course.shortDescription || (course.fullDescription ? course.fullDescription.replace(/<[^>]*>?/gm, '').slice(0, 160) : `Aswanna Agro Education course on ${course.title}.`);
+
+  const dynamicKeywords = useMemo(() => {
+    if (!course) return '';
+    const list: string[] = [
+      course.title,
+      course.courseCode,
+      course.courseLevel,
+      course.category?.categoryNameEn,
+      course.category?.categoryNameSi,
+      course.targetAudience,
+      'Agri Courses Sri Lanka',
+      'කෘෂි පාඨමාලා',
+      'Aswanna Education'
+    ];
+
+    if (Array.isArray(course.modules)) {
+      course.modules.forEach((m: any) => {
+        if (typeof m === 'string') list.push(m);
+        else if (m?.moduleName) list.push(m.moduleName);
+      });
+    }
+
+    return Array.from(new Set(list.filter(Boolean))).join(', ');
+  }, [course]);
+
   return (
     <div className="w-full min-h-screen bg-[#f8fafc] pb-20">
-
+      <SEO 
+        title={pageTitle}
+        description={pageDesc}
+        keywords={dynamicKeywords}
+        canonical={`/education/${course.slug || course.id}`}
+        image={heroImage}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Course",
+          "name": course.title,
+          "description": pageDesc,
+          "courseCode": course.courseCode,
+          "provider": {
+            "@type": "Organization",
+            "name": "Aswanna Ceylon Agro"
+          }
+        }}
+      />
       {/* ── Page Hero ── */}
       <PageHero
         title={course.title}

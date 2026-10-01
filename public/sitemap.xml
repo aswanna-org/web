@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- Home Page -->
+  <url>
+    <loc>https://aswanna.lk/</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="si" href="https://aswanna.lk/?lang=si"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aswanna.lk/?lang=en"/>
+  </url>
+
+  <!-- About Us -->
+  <url>
+    <loc>https://aswanna.lk/about</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Contact Us -->
+  <url>
+    <loc>https://aswanna.lk/contact</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- News -->
+  <url>
+    <loc>https://aswanna.lk/news</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Blogs & Agri Articles -->
+  <url>
+    <loc>https://aswanna.lk/blog</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Marketplace / Products -->
+  <url>
+    <loc>https://aswanna.lk/marketplace</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Agro Knowledge Hub -->
+  <url>
+    <loc>https://aswanna.lk/agro</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Education & Courses -->
+  <url>
+    <loc>https://aswanna.lk/education</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Plant Finder -->
+  <url>
+    <loc>https://aswanna.lk/plant-finder</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Govijana Sewa Centers -->
+  <url>
+    <loc>https://aswanna.lk/govijana-sewa</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Agro Lands -->
+  <url>
+    <loc>https://aswanna.lk/agro-lands</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <!-- Agri Info Hub -->
+  <url>
+    <loc>https://aswanna.lk/agri-info-hub</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <!-- Careers -->
+  <url>
+    <loc>https://aswanna.lk/careers</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Gallery -->
+  <url>
+    <loc>https://aswanna.lk/gallery</loc>
+    <lastmod>2026-10-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.65</priority>
+  </url>
+
+</urlset>

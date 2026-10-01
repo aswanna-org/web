@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -20,6 +20,7 @@ import Pagination from '../../components/admin/Pagination';
 import CustomDropdown from '../../components/ui/CustomDropdown';
 import { type AgriInstitution } from '../../data/agriInstitutionsData';
 import AgroLoader from '../../components/common/AgroLoader';
+import SEO from '../../components/common/SEO';
 
 const CLOUD_PALETTE = [
   { fill: '#e2f5dc' }, // 1. Soft Leaf Green
@@ -220,6 +221,29 @@ export default function GovernmentInstitutions() {
     ? 'ශ්‍රී ලංකාවේ කෘෂිකර්මාන්තයට සම්බන්ධ අමාත්‍යාංශ, දෙපාර්තමේන්තු, පර්යේෂණ ආයතන සහ ව්‍යවස්ථාපිත මණ්ඩල වල නිල වෙබ් අඩවි සහ තොරතුරු ජාලය.'
     : 'Official portal connecting farmers, agribusinesses, and researchers with Sri Lankan Government Ministries, Departments, and Statutory Boards.';
 
+  const pageKeywords = useMemo(() => {
+    const list: string[] = [
+      'Sri Lanka Government Agriculture Institutions',
+      'රාජ්‍ය කෘෂිකාර්මික ආයතන',
+      'Department of Agriculture Sri Lanka',
+      'Ministry of Agriculture Sri Lanka',
+      'Gov Institutions Agri',
+      'Aswanna'
+    ];
+
+    if (searchQuery.trim()) {
+      list.push(searchQuery.trim());
+    }
+
+    institutions.forEach((item: any) => {
+      if (item.nameSi) list.push(item.nameSi);
+      if (item.nameEn) list.push(item.nameEn);
+      if (item.shortName) list.push(item.shortName);
+    });
+
+    return Array.from(new Set(list.filter(Boolean))).slice(0, 30).join(', ');
+  }, [institutions, searchQuery]);
+
   const handleCardClick = (item: any) => {
     const slug = item.slug || item.id;
     navigate(`/agri-info-hub/institutions/${slug}`);
@@ -227,6 +251,22 @@ export default function GovernmentInstitutions() {
 
   return (
     <div className="w-full min-h-screen bg-[#fbfdfa] font-roboto">
+      <SEO 
+        title={isSinhala ? `${pageTitle} | Aswanna Agri Hub` : `${pageTitle} | Aswanna Agri Hub`}
+        description={pageSubtitle}
+        canonical="/agri-info-hub/government-institutions"
+        keywords={pageKeywords}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "ItemList",
+          "itemListElement": institutions.slice(0, 10).map((item: any, index: number) => ({
+            "@type": "ListItem",
+            "position": index + 1,
+            "name": isSinhala ? item.nameSi || item.nameEn : item.nameEn || item.nameSi,
+            "description": item.descriptionEn || item.descriptionSi || undefined
+          }))
+        }}
+      />
       {/* ── Page Hero ── */}
       <PageHero
         title={pageTitle}
