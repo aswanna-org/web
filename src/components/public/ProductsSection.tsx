@@ -10,6 +10,7 @@ interface CropItem {
   slug: string;
   image: string;
   detailUrl: string;
+  status?: string;
 }
 
 export default function ProductsSection() {
@@ -30,7 +31,12 @@ export default function ProductsSection() {
       })
       .then((data: CropItem[]) => {
         if (isMounted && Array.isArray(data) && data.length > 0) {
-          setCrops(data);
+          // Strictly exclude coming soon / unavailable items
+          const activeOnly = data.filter(item => {
+            const s = (item.status || '').toUpperCase().trim();
+            return s !== 'UNAVAILABLE' && s !== 'COMING_SOON';
+          });
+          setCrops(activeOnly);
         }
       })
       .catch(() => {})
