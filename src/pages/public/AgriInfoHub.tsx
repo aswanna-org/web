@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Landmark, Building2, MapPin, Globe2, ArrowRight, X, Phone, Mail, Globe, MapPin as LocationIcon, Search, ExternalLink } from 'lucide-react';
+import { Landmark, Building2, MapPin, Globe2, ArrowUpRight, X, Phone, Mail, Globe, MapPin as LocationIcon, Search, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import PageHero from '../../components/public/PageHero';
@@ -391,10 +391,12 @@ export default function AgriInfoHub() {
                         e.stopPropagation();
                         card.action();
                       }}
-                      className="bg-[#006837]/90 hover:bg-[#006837] text-white border border-white/30 backdrop-blur-md px-2.5 py-1 sm:px-4 sm:py-2 rounded-full font-bold text-[10px] sm:text-xs inline-flex items-center gap-1 sm:gap-2 transition-all duration-300 shadow-sm hover:shadow-md group-hover:gap-2.5 cursor-pointer"
+                      className="inline-flex items-center gap-2 pl-3 sm:pl-3.5 pr-1 sm:pr-1.5 py-1 sm:py-1.5 rounded-full bg-[#006837]/90 hover:bg-[#006837] text-white font-bold text-[10px] sm:text-xs shadow-[0_4px_16px_rgba(0,0,0,0.1),inset_0_1px_1.5px_rgba(255,255,255,0.4)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 group/btn cursor-pointer"
                     >
                       <span>{t('agriInfoHub.enter', isSinhala ? 'පිවිසෙන්න' : 'Access')}</span>
-                      <ArrowRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 transition-transform group-hover:translate-x-0.5" />
+                      <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center text-white group-hover:rotate-45 group-hover/btn:rotate-45 transition-transform duration-300 shrink-0">
+                        <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
+                      </div>
                     </button>
 
                     {/* Green Leaves Illustration Decor in Bottom Right */}

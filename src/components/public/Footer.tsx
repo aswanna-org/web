@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { MapPin, Phone, Mail } from 'lucide-react';
 import { CONTACT_INFO } from '../../data/contactInfo';
 
 // --- Brand SVG Icons for Footer ---
@@ -96,49 +95,30 @@ export default function Footer() {
             className="w-full relative overflow-hidden bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: `url('/images/footer_image.jpeg')` }}
         >
-            {/* Subtle overlay to make text more readable */}
-            <div className="absolute inset-0 bg-black/10 pointer-events-none"></div>
+            {/* Subtle gradient overlay to enhance depth & glass contrast */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-black/10 to-black/30 pointer-events-none"></div>
 
             <div className="container mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-10 md:py-14 relative z-10 max-w-[1400px]">
                 
-                {/* Glassy Box */}
-                <div className="reveal-fade-up bg-white/75 backdrop-blur-xl border border-white/60 shadow-[0_8px_32px_0_rgba(0,0,0,0.08)] rounded-2xl sm:rounded-3xl p-4 sm:p-7 md:p-9">
+                {/* Ultra-Frosted Glassmorphism Box */}
+                <div className="reveal-fade-up relative overflow-hidden bg-white/65 hover:bg-white/70 backdrop-blur-2xl backdrop-saturate-150 border border-white/70 shadow-[0_16px_40px_-10px_rgba(0,0,0,0.15),inset_0_1px_2px_rgba(255,255,255,0.9)] rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10 transition-all duration-300">
+                    {/* Specular glass sheen highlight */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/35 via-transparent to-white/10 pointer-events-none rounded-2xl sm:rounded-3xl"></div>
+
                     {/* Top Section */}
-                    <div className="flex flex-col lg:flex-row justify-between gap-6 sm:gap-8 lg:gap-12 mb-4 sm:mb-8">
-                        {/* Left Column - Brand & Info */}
-                        <div className="lg:w-2/5 flex flex-col items-center lg:items-start text-center lg:text-left gap-3">
+                    <div className="relative z-10 flex flex-col lg:flex-row justify-between items-center lg:items-center gap-6 sm:gap-8 lg:gap-12 mb-6 sm:mb-8">
+                        {/* Left Column - Brand & Socials */}
+                        <div className="lg:w-2/5 flex flex-col items-center lg:items-start text-center lg:text-left gap-4">
                             <Link to="/" onClick={scrollToTop} className="inline-flex items-center justify-center transition-transform hover:scale-105 duration-200">
-                               <img src="/images/aswanna_logo.png" alt="Aswanna Logo" className="h-16 sm:h-20 md:h-24 w-auto object-contain drop-shadow-xs" />
+                               <img 
+                                 src="/images/aswanna_logo.png" 
+                                 alt="Aswanna Logo" 
+                                 className="h-20 sm:h-24 md:h-28 lg:h-32 w-auto object-contain drop-shadow-md hover:drop-shadow-lg transition-all duration-300" 
+                               />
                             </Link>
 
-                            <p className="text-gray-700 text-xs sm:text-sm font-medium leading-relaxed max-w-md">
-                                {isSinhala
-                                    ? 'ශ්‍රී ලාංකේය කෘෂිකර්මාන්තයට නවීන තාක්ෂණයේ සවිය එක් කරමින් ගොවිබිමේ සිට වෙළඳපොළ දක්වා ගොඩනැගෙන පුරෝගාමී ඩිජිටල් කේන්ද්‍රස්ථානය.'
-                                    : 'Empowering Sri Lankan agriculture through modern digital technology and innovative farming solutions.'}
-                            </p>
-
-                            {/* Contact Details */}
-                            <div className="flex flex-col gap-1.5 text-xs sm:text-sm text-gray-700 font-medium pt-1">
-                                <div className="flex items-center justify-center lg:justify-start gap-2">
-                                    <MapPin className="w-3.5 h-3.5 text-[#1c7454] shrink-0" />
-                                    <span>{isSinhala ? CONTACT_INFO.address.si : CONTACT_INFO.address.en}</span>
-                                </div>
-                                <div className="flex items-center justify-center lg:justify-start gap-2">
-                                    <Phone className="w-3.5 h-3.5 text-[#1c7454] shrink-0" />
-                                    <a href={`tel:${CONTACT_INFO.phone.tel}`} className="hover:text-[#1c7454] font-semibold transition-colors">
-                                        {CONTACT_INFO.phone.display}
-                                    </a>
-                                </div>
-                                <div className="flex items-center justify-center lg:justify-start gap-2">
-                                    <Mail className="w-3.5 h-3.5 text-[#1c7454] shrink-0" />
-                                    <a href={`mailto:${CONTACT_INFO.email}`} className="hover:text-[#1c7454] transition-colors break-all">
-                                        {CONTACT_INFO.email}
-                                    </a>
-                                </div>
-                            </div>
-
                             {/* Social Media Links */}
-                            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 pt-2">
+                            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2.5 pt-1">
                                 {footerSocials.map((soc) => {
                                     const Icon = soc.icon;
                                     return (
@@ -148,7 +128,7 @@ export default function Footer() {
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             title={soc.name}
-                                            className={`w-8 h-8 rounded-full bg-white/90 hover:bg-white text-gray-700 ${soc.color} border border-gray-200/80 shadow-xs flex items-center justify-center transition-all duration-200 hover:scale-110 active:scale-95`}
+                                            className={`w-9 h-9 rounded-full bg-white/75 hover:bg-white text-gray-700 ${soc.color} border border-white/80 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(28,116,84,0.25)] flex items-center justify-center transition-all duration-300 hover:scale-110 active:scale-95`}
                                         >
                                             <Icon className="w-4 h-4" />
                                         </a>
@@ -158,7 +138,7 @@ export default function Footer() {
                         </div>
 
                         {/* Right Column - Links Grid (3 columns) */}
-                        <div className="lg:w-3/5 grid grid-cols-3 gap-2 sm:gap-6 lg:gap-8 pt-2 lg:pt-0">
+                        <div className="lg:w-3/5 grid grid-cols-3 gap-3 sm:gap-6 lg:gap-8 pt-2 lg:pt-0 w-full sm:w-auto">
                             {/* Column 1: Main Menu */}
                             <div className="flex flex-col gap-1 sm:gap-2">
                                 <h4 className="font-extrabold text-gray-900 text-[11px] sm:text-sm mb-0.5 truncate">{t('footer.mainMenu', 'Main Menu')}</h4>

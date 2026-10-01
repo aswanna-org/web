@@ -504,7 +504,9 @@ body {
   flex-shrink: 0;
 }
 
-.group:hover .btn-circle-icon {
+.group:hover .btn-circle-icon,
+button:hover .btn-circle-icon,
+a:hover .btn-circle-icon {
   transform: rotate(45deg);
 }
 
@@ -630,4 +632,17 @@ body {
 
 .animate-agro-shimmer {
   animation: agroShimmerBar 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes arrowNudge {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(3px, -3px);
+  }
+}
+
+.animate-arrow-nudge {
+  animation: arrowNudge 1.8s ease-in-out infinite;
 }

@@ -6,7 +6,8 @@ import type { District } from 'sl-gnd-dsd-districts';
 import {
   Search,
   X,
-  Building
+  Building,
+  ArrowUpRight
 } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import CustomDropdown from '../../components/ui/CustomDropdown';
@@ -518,9 +519,12 @@ export default function GovijanaSewa() {
                         e.stopPropagation();
                         navigate(centerUrl);
                       }}
-                      className="glass-btn-green px-5 py-2 text-xs font-bold"
+                      className="inline-flex items-center gap-2 pl-4 pr-1.5 py-1.5 rounded-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group/btn cursor-pointer"
                     >
-                      {isSinhala ? 'තොරතුරු' : 'Details'}
+                      <span>{isSinhala ? 'තොරතුරු' : 'Details'}</span>
+                      <div className="w-5 h-5 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center text-white group-hover:rotate-45 group-hover/btn:rotate-45 transition-transform duration-300 shrink-0">
+                        <ArrowUpRight className="w-3 h-3 stroke-[2.5]" />
+                      </div>
                     </button>
                   </div>
                 </div>

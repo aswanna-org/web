@@ -1,19 +1,47 @@
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowUpRight } from 'lucide-react';
 
-export default function ProductsSection() {
-  const { t } = useTranslation();
+interface CropItem {
+  id: string;
+  name: string;
+  sinhalaName?: string;
+  slug: string;
+  image: string;
+  detailUrl: string;
+}
 
-  const products = [
-    { name: t('products.blueberry'), emoji: '🫐' },
-    { name: t('products.strawberry'), emoji: '🍓' },
-    { name: t('products.apples'), emoji: '🍎' },
-    { name: t('products.orange'), emoji: '🍊' },
-    { name: t('products.carrot'), emoji: '🥕' },
-    { name: t('products.cabbage'), emoji: '🥬' },
-    { name: t('products.potato'), emoji: '🥔' },
-    { name: t('products.eggplant'), emoji: '🍆' },
-  ];
+export default function ProductsSection() {
+  const { t, i18n } = useTranslation();
+  const isSinhala = i18n.language === 'si';
+
+  const [crops, setCrops] = useState<CropItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+  useEffect(() => {
+    let isMounted = true;
+    fetch(`${API_BASE_URL}/items/random?categorySlug=crop-production&limit=8`)
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch');
+        return res.json();
+      })
+      .then((data: CropItem[]) => {
+        if (isMounted && Array.isArray(data) && data.length > 0) {
+          setCrops(data);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [API_BASE_URL]);
 
   return (
     <section className="relative w-full py-8 sm:py-24 bg-white overflow-hidden font-roboto">
@@ -48,32 +76,57 @@ export default function ProductsSection() {
               {t('products.subtitle')}
             </h3>
 
-            <button
-              onClick={() => window.location.href = '/marketplace'}
+            <Link
+              to="/agro"
               className="inline-flex items-center gap-3.5 pl-6 sm:pl-7 pr-2.5 sm:pr-3 py-2 sm:py-2.5 rounded-full bg-white/70 hover:bg-white/95 backdrop-blur-xl border border-white/90 hover:border-emerald-300 text-gray-900 font-bold text-xs sm:text-base shadow-[0_8px_30px_rgba(0,0,0,0.06),inset_0_1.5px_2px_rgba(255,255,255,1)] hover:shadow-[0_12px_36px_rgba(0,0,0,0.12)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
             >
               <span>{t('products.more')}</span>
               <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-white/90 border border-white shadow-xs flex items-center justify-center text-gray-900 group-hover:rotate-45 transition-transform duration-300 shrink-0">
                 <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
               </div>
-            </button>
+            </Link>
           </div>
 
-          {/* Right Grid Area */}
-          <div className="grid grid-cols-4 gap-y-4 gap-x-2 sm:gap-y-12 sm:gap-x-6 w-full max-w-2xl mx-auto lg:mr-0 pt-2 lg:pt-0">
-            {products.map((item, index) => {
-              const delays = ['delay-75', 'delay-150', 'delay-200', 'delay-250', 'delay-300', 'delay-350', 'delay-400', 'delay-500'];
-              return (
-                <div key={index} className={`reveal-fade-up ${delays[index % delays.length]} flex flex-col items-center justify-center group cursor-pointer`}>
-                  <div className="text-3xl sm:text-6xl mb-1.5 sm:mb-4 group-hover:scale-110 transition-transform duration-300 drop-shadow-md">
-                    {item.emoji}
-                  </div>
-                  <span className="text-xs sm:text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors text-center">
-                    {item.name}
-                  </span>
+          {/* Right Grid Area: 8 Dynamic Random Crops */}
+          <div className="grid grid-cols-4 gap-y-4 gap-x-2 sm:gap-y-10 sm:gap-x-4 md:gap-x-6 w-full max-w-2xl mx-auto lg:mr-0 pt-2 lg:pt-0">
+            {loading && crops.length === 0 ? (
+              // Loading Skeleton
+              Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="flex flex-col items-center justify-center p-2 animate-pulse">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-gray-100 mb-2"></div>
+                  <div className="w-12 h-3 bg-gray-100 rounded"></div>
                 </div>
-              );
-            })}
+              ))
+            ) : (
+              crops.map((crop, index) => {
+                const title = isSinhala ? (crop.sinhalaName || crop.name) : crop.name;
+                const delays = ['delay-75', 'delay-150', 'delay-200', 'delay-250', 'delay-300', 'delay-350', 'delay-400', 'delay-500'];
+
+                return (
+                  <Link
+                    key={crop.id || index}
+                    to={crop.detailUrl || `/agro/crop-production`}
+                    className={`reveal-fade-up ${delays[index % delays.length]} flex flex-col items-center justify-center group cursor-pointer p-1 transition-all duration-300 hover:-translate-y-1`}
+                  >
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center mb-1.5 sm:mb-2.5">
+                      {crop.image ? (
+                        <img
+                          src={crop.image}
+                          alt={title}
+                          className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-md"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span className="text-3xl sm:text-5xl select-none">🌱</span>
+                      )}
+                    </div>
+                    <span className="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-emerald-700 transition-colors text-center line-clamp-1 max-w-[85px] sm:max-w-[120px]">
+                      {title}
+                    </span>
+                  </Link>
+                );
+              })
+            )}
           </div>
 
         </div>
@@ -94,3 +147,4 @@ export default function ProductsSection() {
     </section>
   );
 }
+

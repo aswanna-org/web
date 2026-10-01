@@ -72,8 +72,8 @@ export default function HeroCarousel() {
       ))}
 
       {/* Content */}
-      <div className="relative z-20 container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
-        <div className="max-w-3xl lg:max-w-4xl mt-4 sm:mt-20 lg:mt-0">
+      <div className="relative z-20 container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-center sm:justify-start">
+        <div className="w-full max-w-3xl lg:max-w-4xl mt-4 sm:mt-20 lg:mt-0 flex flex-col items-center sm:items-start text-center sm:text-left">
           <p className="uppercase tracking-widest text-[11px] sm:text-sm font-semibold mb-1.5 sm:mb-4 opacity-90 text-[var(--color-primary)]">
             {t(slides[currentSlide].tagKey)}
           </p>
@@ -88,7 +88,7 @@ export default function HeroCarousel() {
             </span>
           </h1>
 
-          <p className="text-xs sm:text-base md:text-lg lg:text-xl mb-4 sm:mb-10 opacity-90 max-w-2xl leading-relaxed line-clamp-3 sm:line-clamp-none">
+          <p className="text-xs sm:text-base md:text-lg lg:text-xl mb-4 sm:mb-10 opacity-90 max-w-2xl leading-relaxed line-clamp-3 sm:line-clamp-none mx-auto sm:mx-0">
             {t(slides[currentSlide].descKey)}
           </p>
 
