@@ -5,6 +5,7 @@ import Header from './components/public/Header';
 import SecondaryNav from './components/public/SecondaryNav';
 import Contact from './pages/public/Contact';
 import Careers from './pages/public/Careers';
+import JobDetail from './pages/public/JobDetail';
 import News from './pages/public/News';
 import Blog from './pages/public/Blog';
 import Education from './pages/public/Education';
@@ -89,6 +90,8 @@ function App() {
               <Route path="about" element={<About />} />
               <Route path="pages/team" element={<div className="p-20 text-center font-roboto">Team Page Placeholder <br /><a href="/" className="text-blue-500 underline">Back</a></div>} />
               <Route path="careers" element={<Careers />} />
+              <Route path="careers/:id" element={<JobDetail />} />
+              <Route path="careers/jobs/:id" element={<JobDetail />} />
               <Route path="pages/faq" element={<div className="p-20 text-center font-roboto">FAQ Page Placeholder <br /><a href="/" className="text-blue-500 underline">Back</a></div>} />
               <Route path="pages/contact" element={<Contact />} />
               <Route path="contact" element={<Contact />} />
