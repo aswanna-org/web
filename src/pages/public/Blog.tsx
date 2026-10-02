@@ -77,23 +77,24 @@ export default function Blog() {
   const selectedBlog = blogList.find((n) => n.id === selectedBlogId) || blogList[0];
 
   const handleShare = (type: 'copy' | 'whatsapp' | 'facebook') => {
-    if (!selectedBlog) return;
+    if (!selectedBlog || !selectedBlog.slug) return;
     
-    const shareUrl = `${window.location.origin}${window.location.pathname}?slug=${selectedBlog.slug || selectedBlog.id}`;
+    // Social preview URL that servers dynamic Open Graph meta tags to Facebook, WhatsApp, etc.
+    const socialShareUrl = `${API_BASE_URL}/share/blog/${encodeURIComponent(selectedBlog.slug)}`;
     const title = isSinhala ? (selectedBlog.sinhalaTitle || selectedBlog.title || '') : (selectedBlog.title || selectedBlog.sinhalaTitle || '');
 
     if (type === 'copy') {
-      navigator.clipboard.writeText(shareUrl);
+      navigator.clipboard.writeText(socialShareUrl);
       setCopied(true);
       setTimeout(() => {
         setCopied(false);
         setShowShareMenu(false);
       }, 2000);
     } else if (type === 'whatsapp') {
-      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(title + ' - ' + shareUrl)}`, '_blank');
+      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(title + ' - ' + socialShareUrl)}`, '_blank');
       setShowShareMenu(false);
     } else if (type === 'facebook') {
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
+      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(socialShareUrl)}`, '_blank');
       setShowShareMenu(false);
     }
   };

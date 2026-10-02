@@ -1,152 +1,2437 @@
-import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, X, Search, Briefcase, ToggleLeft, ToggleRight } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import {
+  Plus, Edit, Trash2, X, Search, Briefcase, ToggleLeft, ToggleRight,
+  CheckCircle2, XCircle, Clock, Building2, Layers, DollarSign,
+  GraduationCap, FileText, Download, ExternalLink,
+  Landmark, Filter, Check, Eye
+} from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import AgroLoader from '../../components/common/AgroLoader';
+import RichTextEditor from '../components/RichTextEditor';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-interface Job {
-  id: string; title: string; sinhalaTitle?: string; description: string;
-  sinhalaDescription?: string; location: string; sinhalaLocation?: string;
-  isActive: boolean; createdAt: string;
+// --- Interfaces ---
+interface Ministry {
+  id: number;
+  name: string;
+  nameSi?: string | null;
+  institutions?: Institution[];
+  _count?: { institutions: number };
 }
 
-const defaultForm = { title: '', sinhalaTitle: '', description: '', sinhalaDescription: '', location: '', sinhalaLocation: '', isActive: true };
+interface Institution {
+  id: number;
+  name: string;
+  nameSi?: string | null;
+  ministryId?: number | null;
+  ministry?: Ministry;
+  _count?: { jobs: number };
+}
+
+interface JobCategory {
+  id: number;
+  name: string;
+  nameSi?: string | null;
+  _count?: { jobs: number };
+}
+
+interface SalaryDetail {
+  id?: number;
+  salaryCode?: string | null;
+  basicSalary?: string | null;
+  basicSalarySi?: string | null;
+  salaryScale?: string | null;
+  salaryScaleSi?: string | null;
+  allowances?: string | null;
+  allowancesSi?: string | null;
+  salaryDisplay?: string | null;
+  salaryDisplaySi?: string | null;
+}
+
+interface EligibilityCriteria {
+  id?: number;
+  ageLimit?: string | null;
+  ageLimitSi?: string | null;
+  ageRelaxation?: string | null;
+  ageRelaxationSi?: string | null;
+  qualifications?: string | null;
+  qualificationsSi?: string | null;
+  basicExperience?: string | null;
+  basicExperienceSi?: string | null;
+}
+
+interface SelectionProcedure {
+  id?: number;
+  method?: string | null;
+  methodSi?: string | null;
+  examDetails?: string | null;
+  examDetailsSi?: string | null;
+}
+
+interface ApplicationDetail {
+  id?: number;
+  gazetteNo?: string | null;
+  gazetteDate?: string | null;
+  examFee?: string | null;
+  examFeeSi?: string | null;
+  gazetteUrl?: string | null;
+  gazetteUrlSi?: string | null;
+  specimenAppUrl?: string | null;
+  specimenAppUrlSi?: string | null;
+  postalAddress?: string | null;
+  postalAddressSi?: string | null;
+  envelopeMarking?: string | null;
+  envelopeMarkingSi?: string | null;
+  submissionDetails?: string | null;
+  submissionDetailsSi?: string | null;
+}
+
+interface JobPost {
+  id: number;
+  designation: string;
+  designationSi?: string | null;
+  userId?: string | null;
+  user?: { id: string; name: string; email: string; role: string } | null;
+  jobCategoryId: number;
+  jobCategory?: JobCategory;
+  institutionId: number;
+  institution?: Institution;
+  serviceCategory?: string | null;
+  serviceCategorySi?: string | null;
+  jobNature?: string | null;
+  jobNatureSi?: string | null;
+  serviceConditions?: string | null;
+  serviceConditionsSi?: string | null;
+  expiryDate: string;
+  approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  salaryDetails?: SalaryDetail | null;
+  eligibility?: EligibilityCriteria | null;
+  selectionProcedure?: SelectionProcedure | null;
+  applicationInfo?: ApplicationDetail | null;
+}
+
+const JOB_NATURE_OPTIONS = [
+  { label: 'ස්ථිර (Permanent)', en: 'Permanent', si: 'ස්ථිර' },
+  { label: 'කොන්ත්‍රාත් පදනම මත (Contract Basis)', en: 'Contract Basis', si: 'කොන්ත්‍රාත් පදනම මත' },
+  { label: 'තාවකාලික (Temporary)', en: 'Temporary', si: 'තාවකාලික' },
+  { label: 'අනුයුක්ත (On Assignment / Secondment)', en: 'On Assignment / Secondment', si: 'අනුයුක්ත' },
+];
+
+const SERVICE_CONDITIONS_OPTIONS = [
+  { label: 'ස්ථිර හා විශ්‍රාම වැටුප් සහිතයි (Pensionable)', en: 'Pensionable', si: 'ස්ථිර හා විශ්‍රාම වැටුප් සහිතයි' },
+  { label: 'විශ්‍රාම වැටුප් රහිත (EPF/ETF දායකත්ව)', en: 'Non-pensionable (EPF/ETF)', si: 'විශ්‍රාම වැටුප් රහිත (EPF/ETF දායකත්ව)' },
+  { label: 'ගිවිසුම්ගත / ව්‍යාපෘති පදනම', en: 'Contract / Project Basis', si: 'ගිවිසුම්ගත / ව්‍යාපෘති පදනම' },
+];
+
+const defaultJobForm = {
+  designation: '',
+  designationSi: '',
+  jobCategoryId: '',
+  selectedMinistryId: '',
+  institutionId: '',
+  serviceCategory: '',
+  serviceCategorySi: '',
+  jobNature: 'Permanent',
+  jobNatureSi: 'ස්ථිර',
+  serviceConditions: 'Pensionable',
+  serviceConditionsSi: 'ස්ථිර හා විශ්‍රාම වැටුප් සහිතයි',
+  expiryDate: '',
+  isActive: true,
+  approvalStatus: 'APPROVED' as 'PENDING' | 'APPROVED' | 'REJECTED',
+
+  // Salary
+  salaryCode: '',
+  basicSalary: '',
+  basicSalarySi: '',
+  salaryScale: '',
+  salaryScaleSi: '',
+  allowances: '',
+  allowancesSi: '',
+  salaryDisplay: '',
+  salaryDisplaySi: '',
+
+  // Eligibility
+  ageLimit: '',
+  ageLimitSi: '',
+  ageRelaxation: '',
+  ageRelaxationSi: '',
+  qualifications: '',
+  qualificationsSi: '',
+  basicExperience: '',
+  basicExperienceSi: '',
+
+  // Selection
+  selectionMethod: '',
+  selectionMethodSi: '',
+  examDetails: '',
+  examDetailsSi: '',
+
+  // Application Info
+  gazetteNo: '',
+  gazetteDate: '',
+  examFee: '',
+  examFeeSi: '',
+  postalAddress: '',
+  postalAddressSi: '',
+  envelopeMarking: '',
+  envelopeMarkingSi: '',
+  submissionDetails: '',
+  submissionDetailsSi: '',
+  existingGazetteUrl: '',
+  existingGazetteUrlSi: '',
+  existingSpecimenAppUrl: '',
+  existingSpecimenAppUrlSi: ''
+};
 
 export default function CareerManagement() {
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<typeof defaultForm>({ ...defaultForm });
-  const [search, setSearch] = useState('');
+  // Navigation Tabs
+  const [activeTab, setActiveTab] = useState<'jobs' | 'categories' | 'ministries' | 'institutions'>('jobs');
+
+  // Job Posts State
+  const [jobs, setJobs] = useState<JobPost[]>([]);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState('');
+  const [filterApproval, setFilterApproval] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
+  const [filterCategory, setFilterCategory] = useState<string>('ALL');
+
+  // Lookups State
+  const [categories, setCategories] = useState<JobCategory[]>([]);
+  const [ministries, setMinistries] = useState<Ministry[]>([]);
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
+
+  // Job Modal State
+  const [isJobModalOpen, setIsJobModalOpen] = useState(false);
+  const [editingJobId, setEditingJobId] = useState<number | null>(null);
+  const [jobForm, setJobForm] = useState({ ...defaultJobForm });
+  const [modalTab, setModalTab] = useState<'basic' | 'salary' | 'eligibility' | 'application'>('basic');
+  const [gazetteFile, setGazetteFile] = useState<File | null>(null);
+  const [gazetteFileSi, setGazetteFileSi] = useState<File | null>(null);
+  const [specimenAppFile, setSpecimenAppFile] = useState<File | null>(null);
+  const [specimenAppFileSi, setSpecimenAppFileSi] = useState<File | null>(null);
+  const [isSavingJob, setIsSavingJob] = useState(false);
+
+  // View Details Modal State
+  const [viewingJob, setViewingJob] = useState<JobPost | null>(null);
+
+  // Category Modal State
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
+  const [categoryName, setCategoryName] = useState('');
+  const [categoryNameSi, setCategoryNameSi] = useState('');
+
+  // Ministry Modal State
+  const [isMinistryModalOpen, setIsMinistryModalOpen] = useState(false);
+  const [editingMinistryId, setEditingMinistryId] = useState<number | null>(null);
+  const [ministryName, setMinistryName] = useState('');
+  const [ministryNameSi, setMinistryNameSi] = useState('');
+
+  // Institution Modal State
+  const [isInstitutionModalOpen, setIsInstitutionModalOpen] = useState(false);
+  const [editingInstitutionId, setEditingInstitutionId] = useState<number | null>(null);
+  const [institutionName, setInstitutionName] = useState('');
+  const [institutionNameSi, setInstitutionNameSi] = useState('');
+  const [institutionMinistryId, setInstitutionMinistryId] = useState<string>('');
 
   const token = localStorage.getItem('admin_token');
-  const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
+  const authHeaders = useMemo(() => ({
+    Authorization: `Bearer ${token}`
+  }), [token]);
 
-  const fetchJobs = async (page = 1) => {
-    setIsLoading(true);
+  // --- Fetch Lookups ---
+  const fetchLookups = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/careers/openings?page=${page}&limit=15`, { headers });
+      const [catsRes, minsRes, instsRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/careers/categories`),
+        fetch(`${API_BASE_URL}/careers/ministries`),
+        fetch(`${API_BASE_URL}/careers/institutions`)
+      ]);
+
+      if (catsRes.ok) setCategories(await catsRes.json());
+      if (minsRes.ok) setMinistries(await minsRes.json());
+      if (instsRes.ok) setInstitutions(await instsRes.json());
+    } catch (err) {
+      console.error('Failed to fetch lookups:', err);
+    }
+  };
+
+  // --- Fetch Job Posts ---
+  const fetchJobs = async (page = 1) => {
+    setIsLoadingJobs(true);
+    try {
+      let url = `${API_BASE_URL}/careers/jobs?page=${page}&limit=12`;
+      if (filterApproval !== 'ALL') url += `&approvalStatus=${filterApproval}`;
+      if (filterCategory !== 'ALL') url += `&jobCategoryId=${filterCategory}`;
+      if (search.trim()) url += `&search=${encodeURIComponent(search.trim())}`;
+
+      const res = await fetch(url, { headers: authHeaders });
       if (res.ok) {
         const data = await res.json();
         setJobs(data.data || []);
         if (data.meta) setTotalPages(data.meta.totalPages);
       }
-    } finally { setIsLoading(false); }
+    } catch (err) {
+      console.error('Failed to fetch jobs:', err);
+    } finally {
+      setIsLoadingJobs(false);
+    }
   };
 
-  useEffect(() => { fetchJobs(currentPage); }, [currentPage]);
+  useEffect(() => {
+    fetchLookups();
+  }, []);
 
-  const openCreate = () => { setForm({ ...defaultForm }); setEditingId(null); setIsModalOpen(true); };
-  const openEdit = (job: Job) => {
-    setForm({ title: job.title, sinhalaTitle: job.sinhalaTitle || '', description: job.description, sinhalaDescription: job.sinhalaDescription || '', location: job.location, sinhalaLocation: job.sinhalaLocation || '', isActive: job.isActive });
-    setEditingId(job.id); setIsModalOpen(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const method = editingId ? 'PUT' : 'POST';
-    const url = editingId ? `${API_BASE_URL}/careers/openings/${editingId}` : `${API_BASE_URL}/careers/openings`;
-    const res = await fetch(url, { method, headers, body: JSON.stringify(form) });
-    if (res.ok) { setIsModalOpen(false); fetchJobs(currentPage); }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Delete this job opening?')) return;
-    await fetch(`${API_BASE_URL}/careers/openings/${id}`, { method: 'DELETE', headers });
+  useEffect(() => {
     fetchJobs(currentPage);
+  }, [currentPage, filterApproval, filterCategory]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCurrentPage(1);
+    fetchJobs(1);
   };
 
-  const filteredJobs = jobs.filter(j => j.title.toLowerCase().includes(search.toLowerCase()));
+  // Filter institutions based on selected ministry in job modal
+  const filteredModalInstitutions = useMemo(() => {
+    if (!jobForm.selectedMinistryId) return institutions;
+    return institutions.filter(inst => inst.ministryId === Number(jobForm.selectedMinistryId));
+  }, [institutions, jobForm.selectedMinistryId]);
+
+  // Counts for tabs
+  const pendingCount = useMemo(() => jobs.filter(j => j.approvalStatus === 'PENDING').length, [jobs]);
+
+  // --- Job Form Handlers ---
+  const openCreateJob = () => {
+    setJobForm({ ...defaultJobForm });
+    setGazetteFile(null);
+    setGazetteFileSi(null);
+    setSpecimenAppFile(null);
+    setSpecimenAppFileSi(null);
+    setEditingJobId(null);
+    setModalTab('basic');
+    setIsJobModalOpen(true);
+  };
+
+  const openEditJob = (job: JobPost) => {
+    setEditingJobId(job.id);
+    setJobForm({
+      designation: job.designation || '',
+      designationSi: job.designationSi || '',
+      jobCategoryId: job.jobCategoryId ? String(job.jobCategoryId) : '',
+      selectedMinistryId: job.institution?.ministryId ? String(job.institution.ministryId) : '',
+      institutionId: job.institutionId ? String(job.institutionId) : '',
+      serviceCategory: job.serviceCategory || '',
+      serviceCategorySi: job.serviceCategorySi || '',
+      jobNature: job.jobNature || 'Permanent',
+      jobNatureSi: job.jobNatureSi || 'ස්ථිර',
+      serviceConditions: job.serviceConditions || 'Pensionable',
+      serviceConditionsSi: job.serviceConditionsSi || 'ස්ථිර හා විශ්‍රාම වැටුප් සහිතයි',
+      expiryDate: job.expiryDate ? job.expiryDate.split('T')[0] : '',
+      isActive: job.isActive,
+      approvalStatus: job.approvalStatus,
+
+      salaryCode: job.salaryDetails?.salaryCode || '',
+      basicSalary: job.salaryDetails?.basicSalary || '',
+      basicSalarySi: job.salaryDetails?.basicSalarySi || '',
+      salaryScale: job.salaryDetails?.salaryScale || '',
+      salaryScaleSi: job.salaryDetails?.salaryScaleSi || '',
+      allowances: job.salaryDetails?.allowances || '',
+      allowancesSi: job.salaryDetails?.allowancesSi || '',
+      salaryDisplay: job.salaryDetails?.salaryDisplay || '',
+      salaryDisplaySi: job.salaryDetails?.salaryDisplaySi || '',
+
+      ageLimit: job.eligibility?.ageLimit || '',
+      ageLimitSi: job.eligibility?.ageLimitSi || '',
+      ageRelaxation: job.eligibility?.ageRelaxation || '',
+      ageRelaxationSi: job.eligibility?.ageRelaxationSi || '',
+      qualifications: job.eligibility?.qualifications || '',
+      qualificationsSi: job.eligibility?.qualificationsSi || '',
+      basicExperience: job.eligibility?.basicExperience || '',
+      basicExperienceSi: job.eligibility?.basicExperienceSi || '',
+
+      selectionMethod: job.selectionProcedure?.method || '',
+      selectionMethodSi: job.selectionProcedure?.methodSi || '',
+      examDetails: job.selectionProcedure?.examDetails || '',
+      examDetailsSi: job.selectionProcedure?.examDetailsSi || '',
+
+      gazetteNo: job.applicationInfo?.gazetteNo || '',
+      gazetteDate: job.applicationInfo?.gazetteDate ? job.applicationInfo.gazetteDate.split('T')[0] : '',
+      examFee: job.applicationInfo?.examFee || '',
+      examFeeSi: job.applicationInfo?.examFeeSi || '',
+      postalAddress: job.applicationInfo?.postalAddress || '',
+      postalAddressSi: job.applicationInfo?.postalAddressSi || '',
+      envelopeMarking: job.applicationInfo?.envelopeMarking || '',
+      envelopeMarkingSi: job.applicationInfo?.envelopeMarkingSi || '',
+      submissionDetails: job.applicationInfo?.submissionDetails || '',
+      submissionDetailsSi: job.applicationInfo?.submissionDetailsSi || '',
+      existingGazetteUrl: job.applicationInfo?.gazetteUrl || '',
+      existingGazetteUrlSi: job.applicationInfo?.gazetteUrlSi || '',
+      existingSpecimenAppUrl: job.applicationInfo?.specimenAppUrl || '',
+      existingSpecimenAppUrlSi: job.applicationInfo?.specimenAppUrlSi || ''
+    });
+    setGazetteFile(null);
+    setGazetteFileSi(null);
+    setSpecimenAppFile(null);
+    setSpecimenAppFileSi(null);
+    setModalTab('basic');
+    setIsJobModalOpen(true);
+  };
+
+  const handleSaveJob = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const finalDesignation = (jobForm.designation || jobForm.designationSi || '').trim();
+    if (!finalDesignation || !jobForm.jobCategoryId || !jobForm.institutionId || !jobForm.expiryDate) {
+      alert('Please fill required fields: Designation, Category, Institution, and Expiry Date.');
+      return;
+    }
+
+    setIsSavingJob(true);
+    try {
+      const formData = new FormData();
+      formData.append('designation', finalDesignation);
+      if (jobForm.designationSi) formData.append('designationSi', jobForm.designationSi.trim());
+      formData.append('jobCategoryId', String(jobForm.jobCategoryId));
+      formData.append('institutionId', String(jobForm.institutionId));
+      formData.append('expiryDate', jobForm.expiryDate);
+      formData.append('isActive', String(jobForm.isActive));
+      formData.append('approvalStatus', jobForm.approvalStatus);
+
+      if (jobForm.serviceCategory) formData.append('serviceCategory', jobForm.serviceCategory);
+      if (jobForm.serviceCategorySi) formData.append('serviceCategorySi', jobForm.serviceCategorySi);
+      if (jobForm.jobNature) formData.append('jobNature', jobForm.jobNature);
+      if (jobForm.jobNatureSi) formData.append('jobNatureSi', jobForm.jobNatureSi);
+      if (jobForm.serviceConditions) formData.append('serviceConditions', jobForm.serviceConditions);
+      if (jobForm.serviceConditionsSi) formData.append('serviceConditionsSi', jobForm.serviceConditionsSi);
+
+      // Salary Details
+      formData.append('salaryDetails', JSON.stringify({
+        salaryCode: jobForm.salaryCode,
+        basicSalary: jobForm.basicSalary,
+        basicSalarySi: jobForm.basicSalarySi,
+        salaryScale: jobForm.salaryScale,
+        salaryScaleSi: jobForm.salaryScaleSi,
+        allowances: jobForm.allowances,
+        allowancesSi: jobForm.allowancesSi,
+        salaryDisplay: jobForm.salaryDisplay,
+        salaryDisplaySi: jobForm.salaryDisplaySi
+      }));
+
+      // Eligibility
+      formData.append('eligibility', JSON.stringify({
+        ageLimit: jobForm.ageLimit,
+        ageLimitSi: jobForm.ageLimitSi,
+        ageRelaxation: jobForm.ageRelaxation,
+        ageRelaxationSi: jobForm.ageRelaxationSi,
+        qualifications: jobForm.qualifications,
+        qualificationsSi: jobForm.qualificationsSi,
+        basicExperience: jobForm.basicExperience,
+        basicExperienceSi: jobForm.basicExperienceSi
+      }));
+
+      // Selection Procedure
+      formData.append('selectionProcedure', JSON.stringify({
+        method: jobForm.selectionMethod,
+        methodSi: jobForm.selectionMethodSi,
+        examDetails: jobForm.examDetails,
+        examDetailsSi: jobForm.examDetailsSi
+      }));
+
+      // Application Info
+      formData.append('applicationInfo', JSON.stringify({
+        gazetteNo: jobForm.gazetteNo,
+        gazetteDate: jobForm.gazetteDate || null,
+        examFee: jobForm.examFee,
+        examFeeSi: jobForm.examFeeSi,
+        postalAddress: jobForm.postalAddress,
+        postalAddressSi: jobForm.postalAddressSi,
+        envelopeMarking: jobForm.envelopeMarking,
+        envelopeMarkingSi: jobForm.envelopeMarkingSi,
+        submissionDetails: jobForm.submissionDetails,
+        submissionDetailsSi: jobForm.submissionDetailsSi,
+        gazetteUrl: jobForm.existingGazetteUrl || null,
+        gazetteUrlSi: jobForm.existingGazetteUrlSi || null,
+        specimenAppUrl: jobForm.existingSpecimenAppUrl || null,
+        specimenAppUrlSi: jobForm.existingSpecimenAppUrlSi || null
+      }));
+
+      // PDF Files (English & Sinhala)
+      if (gazetteFile) formData.append('gazetteFile', gazetteFile);
+      if (gazetteFileSi) formData.append('gazetteFileSi', gazetteFileSi);
+      if (specimenAppFile) formData.append('specimenAppFile', specimenAppFile);
+      if (specimenAppFileSi) formData.append('specimenAppFileSi', specimenAppFileSi);
+
+      const method = editingJobId ? 'PUT' : 'POST';
+      const url = editingJobId
+        ? `${API_BASE_URL}/careers/jobs/${editingJobId}`
+        : `${API_BASE_URL}/careers/jobs`;
+
+      const res = await fetch(url, {
+        method,
+        headers: authHeaders,
+        body: formData
+      });
+
+      if (res.ok) {
+        setIsJobModalOpen(false);
+        fetchJobs(currentPage);
+      } else {
+        const errorData = await res.json();
+        alert(errorData.error || 'Failed to save job post');
+      }
+    } catch (err) {
+      console.error('Error saving job:', err);
+      alert('An unexpected error occurred while saving the job.');
+    } finally {
+      setIsSavingJob(false);
+    }
+  };
+
+  const handleToggleActive = async (job: JobPost) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/careers/jobs/${job.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify({ isActive: !job.isActive })
+      });
+      if (res.ok) {
+        setJobs(jobs.map(j => (j.id === job.id ? { ...j, isActive: !j.isActive } : j)));
+      }
+    } catch (err) {
+      console.error('Failed to toggle job status:', err);
+    }
+  };
+
+  const handleApproveJob = async (jobId: number) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/careers/jobs/${jobId}/approve`, {
+        method: 'PATCH',
+        headers: authHeaders
+      });
+      if (res.ok) {
+        setJobs(jobs.map(j => (j.id === jobId ? { ...j, approvalStatus: 'APPROVED', isActive: true } : j)));
+      }
+    } catch (err) {
+      console.error('Failed to approve job:', err);
+    }
+  };
+
+  const handleRejectJob = async (jobId: number) => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/careers/jobs/${jobId}/reject`, {
+        method: 'PATCH',
+        headers: authHeaders
+      });
+      if (res.ok) {
+        setJobs(jobs.map(j => (j.id === jobId ? { ...j, approvalStatus: 'REJECTED', isActive: false } : j)));
+      }
+    } catch (err) {
+      console.error('Failed to reject job:', err);
+    }
+  };
+
+  const handleDeleteJob = async (jobId: number) => {
+    if (!confirm('Are you sure you want to delete this job post? This will delete all attached salary, eligibility, and application files.')) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/careers/jobs/${jobId}`, {
+        method: 'DELETE',
+        headers: authHeaders
+      });
+      if (res.ok) {
+        fetchJobs(currentPage);
+      }
+    } catch (err) {
+      console.error('Failed to delete job:', err);
+    }
+  };
+
+  // --- Category CRUD Handlers ---
+  const handleSaveCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!categoryName.trim() && !categoryNameSi.trim()) return;
+    try {
+      const method = editingCategoryId ? 'PUT' : 'POST';
+      const url = editingCategoryId ? `${API_BASE_URL}/careers/categories/${editingCategoryId}` : `${API_BASE_URL}/careers/categories`;
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify({
+          name: (categoryName || categoryNameSi).trim(),
+          nameSi: categoryNameSi.trim() || null
+        })
+      });
+      if (res.ok) {
+        setIsCategoryModalOpen(false);
+        setCategoryName('');
+        setCategoryNameSi('');
+        setEditingCategoryId(null);
+        fetchLookups();
+      }
+    } catch (err) {
+      console.error('Error saving category:', err);
+    }
+  };
+
+  const handleDeleteCategory = async (cat: JobCategory) => {
+    if (!confirm(`Delete category "${cat.name}"?`)) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/careers/categories/${cat.id}`, {
+        method: 'DELETE',
+        headers: authHeaders
+      });
+      if (res.ok) {
+        fetchLookups();
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to delete category');
+      }
+    } catch (err) {
+      console.error('Error deleting category:', err);
+    }
+  };
+
+  // --- Ministry CRUD Handlers ---
+  const handleSaveMinistry = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ministryName.trim() && !ministryNameSi.trim()) return;
+    try {
+      const method = editingMinistryId ? 'PUT' : 'POST';
+      const url = editingMinistryId ? `${API_BASE_URL}/careers/ministries/${editingMinistryId}` : `${API_BASE_URL}/careers/ministries`;
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify({
+          name: (ministryName || ministryNameSi).trim(),
+          nameSi: ministryNameSi.trim() || null
+        })
+      });
+      if (res.ok) {
+        setIsMinistryModalOpen(false);
+        setMinistryName('');
+        setMinistryNameSi('');
+        setEditingMinistryId(null);
+        fetchLookups();
+      }
+    } catch (err) {
+      console.error('Error saving ministry:', err);
+    }
+  };
+
+  const handleDeleteMinistry = async (min: Ministry) => {
+    if (!confirm(`Delete ministry "${min.name}"?`)) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/careers/ministries/${min.id}`, {
+        method: 'DELETE',
+        headers: authHeaders
+      });
+      if (res.ok) {
+        fetchLookups();
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to delete ministry');
+      }
+    } catch (err) {
+      console.error('Error deleting ministry:', err);
+    }
+  };
+
+  // --- Institution CRUD Handlers ---
+  const handleSaveInstitution = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!institutionName.trim() && !institutionNameSi.trim()) return;
+    try {
+      const method = editingInstitutionId ? 'PUT' : 'POST';
+      const url = editingInstitutionId ? `${API_BASE_URL}/careers/institutions/${editingInstitutionId}` : `${API_BASE_URL}/careers/institutions`;
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify({
+          name: (institutionName || institutionNameSi).trim(),
+          nameSi: institutionNameSi.trim() || null,
+          ministryId: institutionMinistryId ? Number(institutionMinistryId) : null
+        })
+      });
+      if (res.ok) {
+        setIsInstitutionModalOpen(false);
+        setInstitutionName('');
+        setInstitutionNameSi('');
+        setInstitutionMinistryId('');
+        setEditingInstitutionId(null);
+        fetchLookups();
+      }
+    } catch (err) {
+      console.error('Error saving institution:', err);
+    }
+  };
+
+  const handleDeleteInstitution = async (inst: Institution) => {
+    if (!confirm(`Delete institution "${inst.name}"?`)) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/careers/institutions/${inst.id}`, {
+        method: 'DELETE',
+        headers: authHeaders
+      });
+      if (res.ok) {
+        fetchLookups();
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to delete institution');
+      }
+    } catch (err) {
+      console.error('Error deleting institution:', err);
+    }
+  };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">Career Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage job openings and applications</p>
+          <h1 className="text-2xl font-bold text-gray-800">Careers & Job Openings</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Manage government and agricultural job postings, categories, ministries, and institutions
+          </p>
         </div>
-        <button onClick={openCreate} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-          <Plus size={18} /> Add Job
-        </button>
+        <div className="flex items-center gap-3">
+          {activeTab === 'jobs' && (
+            <button
+              onClick={openCreateJob}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors cursor-pointer"
+            >
+              <Plus size={18} /> Add Job Post
+            </button>
+          )}
+          {activeTab === 'categories' && (
+            <button
+              onClick={() => { setCategoryName(''); setEditingCategoryId(null); setIsCategoryModalOpen(true); }}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors cursor-pointer"
+            >
+              <Plus size={18} /> Add Category
+            </button>
+          )}
+          {activeTab === 'ministries' && (
+            <button
+              onClick={() => { setMinistryName(''); setEditingMinistryId(null); setIsMinistryModalOpen(true); }}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors cursor-pointer"
+            >
+              <Plus size={18} /> Add Ministry
+            </button>
+          )}
+          {activeTab === 'institutions' && (
+            <button
+              onClick={() => { setInstitutionName(''); setInstitutionMinistryId(''); setEditingInstitutionId(null); setIsInstitutionModalOpen(true); }}
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors cursor-pointer"
+            >
+              <Plus size={18} /> Add Institution
+            </button>
+          )}
+        </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-        <div className="relative max-w-md">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input type="text" placeholder="Search jobs..." value={search} onChange={e => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" />
+      {/* Main Tabs Navigation (Segmented pill bar matching InstitutionManagement) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="inline-flex bg-gray-100 p-1 rounded-xl border border-gray-200 text-xs font-medium">
+          <button
+            onClick={() => setActiveTab('jobs')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all cursor-pointer ${
+              activeTab === 'jobs'
+                ? 'bg-white text-gray-900 font-semibold shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <Briefcase size={14} className="text-gray-600" />
+            <span>Job Postings</span>
+            {pendingCount > 0 && (
+              <span className="bg-amber-100 text-amber-800 text-[10px] px-1.5 py-0.5 rounded-full font-bold">
+                {pendingCount} Pending
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('categories')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all cursor-pointer ${
+              activeTab === 'categories'
+                ? 'bg-white text-gray-900 font-semibold shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <Layers size={14} className="text-gray-600" />
+            <span>Categories ({categories.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('ministries')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all cursor-pointer ${
+              activeTab === 'ministries'
+                ? 'bg-white text-gray-900 font-semibold shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <Landmark size={14} className="text-gray-600" />
+            <span>Ministries ({ministries.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('institutions')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all cursor-pointer ${
+              activeTab === 'institutions'
+                ? 'bg-white text-gray-900 font-semibold shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <Building2 size={14} className="text-gray-600" />
+            <span>Institutions ({institutions.length})</span>
+          </button>
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        {isLoading ? (
-          <div className="flex justify-center items-center py-20"><AgroLoader message="Loading careers..." /></div>
-        ) : (
+      {/* ======================================================== */}
+      {/* TAB 1: JOB POSTINGS */}
+      {/* ======================================================== */}
+      {activeTab === 'jobs' && (
+        <div className="space-y-4">
+          {/* Filter Bar */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between">
+            {/* Search form */}
+            <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md">
+              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search job designation, nature, service..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+              />
+            </form>
+
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Category Filter */}
+              <div className="flex items-center gap-2">
+                <Filter size={15} className="text-gray-400" />
+                <select
+                  value={filterCategory}
+                  onChange={e => { setFilterCategory(e.target.value); setCurrentPage(1); }}
+                  className="px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm bg-white"
+                >
+                  <option value="ALL">All Categories</option>
+                  {categories.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Approval Filter Pill Buttons */}
+              <div className="inline-flex bg-gray-100 p-1 rounded-lg text-xs font-medium">
+                {(['ALL', 'PENDING', 'APPROVED', 'REJECTED'] as const).map(status => (
+                  <button
+                    key={status}
+                    onClick={() => { setFilterApproval(status); setCurrentPage(1); }}
+                    className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+                      filterApproval === status ? 'bg-white text-gray-900 font-semibold shadow-sm' : 'text-gray-500 hover:text-gray-900'
+                    }`}
+                  >
+                    {status === 'ALL' ? 'All' : status}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Jobs Table */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            {isLoadingJobs ? (
+              <div className="flex justify-center items-center py-20">
+                <AgroLoader message="Loading job posts..." />
+              </div>
+            ) : jobs.length === 0 ? (
+              <div className="text-center py-16 text-gray-400">
+                <Briefcase className="mx-auto mb-2 opacity-50" size={36} />
+                <p className="text-base font-medium text-gray-600">No job postings found</p>
+                <p className="text-xs text-gray-400 mt-1">Try changing filters or add a new job post.</p>
+              </div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Designation</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Institution & Ministry</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Closing Date</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Approval Status</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Active</th>
+                    <th className="px-6 py-3" />
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {jobs.map(job => {
+                    const isExpired = new Date(job.expiryDate) < new Date();
+                    return (
+                      <tr key={job.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4">
+                          <div className="font-medium text-gray-800 leading-snug">{job.designation}</div>
+                          {job.designationSi && (
+                            <div className="text-xs text-gray-500 font-normal mt-0.5">{job.designationSi}</div>
+                          )}
+                          <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                            {job.jobNature && (
+                              <span className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-medium">
+                                {JOB_NATURE_OPTIONS.find(o => o.en === job.jobNature || o.si === job.jobNatureSi)?.label || job.jobNature}
+                              </span>
+                            )}
+                            {job.serviceConditions && (
+                              <span className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded font-medium">
+                                {SERVICE_CONDITIONS_OPTIONS.find(o => o.en === job.serviceConditions || o.si === job.serviceConditionsSi)?.label || job.serviceConditions}
+                              </span>
+                            )}
+                            {job.user && <span className="text-gray-400">By: {job.user.name}</span>}
+                          </div>
+                        </td>
+
+                        <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
+                          <span className="bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                            {job.jobCategory?.name || 'Unassigned'}
+                          </span>
+                          {job.jobCategory?.nameSi && (
+                            <div className="text-[11px] text-gray-400 mt-0.5">{job.jobCategory.nameSi}</div>
+                          )}
+                        </td>
+
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="font-medium text-gray-800">{job.institution?.name || '—'}</div>
+                          {job.institution?.nameSi && (
+                            <div className="text-xs text-gray-500">{job.institution.nameSi}</div>
+                          )}
+                          {job.institution?.ministry && (
+                            <div className="text-xs text-gray-400">{job.institution.ministry.name}</div>
+                          )}
+                        </td>
+
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+                            isExpired ? 'bg-red-50 text-red-600' : 'text-gray-600'
+                          }`}>
+                            {new Date(job.expiryDate).toLocaleDateString()}
+                            {isExpired && ' (Expired)'}
+                          </span>
+                        </td>
+
+                        {/* Approval Status & Quick Action Buttons */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            {job.approvalStatus === 'APPROVED' && (
+                              <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs px-2.5 py-1 rounded-full font-medium border border-green-200">
+                                <CheckCircle2 size={12} /> Approved
+                              </span>
+                            )}
+                            {job.approvalStatus === 'PENDING' && (
+                              <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 text-xs px-2.5 py-1 rounded-full font-medium border border-amber-200">
+                                <Clock size={12} /> Pending Review
+                              </span>
+                            )}
+                            {job.approvalStatus === 'REJECTED' && (
+                              <span className="inline-flex items-center gap-1 bg-red-50 text-red-700 text-xs px-2.5 py-1 rounded-full font-medium border border-red-200">
+                                <XCircle size={12} /> Rejected
+                              </span>
+                            )}
+
+                            {/* Quick Approve / Reject buttons for PENDING jobs */}
+                            {job.approvalStatus === 'PENDING' && (
+                              <div className="flex items-center gap-1 ml-1">
+                                <button
+                                  onClick={() => handleApproveJob(job.id)}
+                                  title="Approve Job Post"
+                                  className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors cursor-pointer"
+                                >
+                                  <Check size={16} />
+                                </button>
+                                <button
+                                  onClick={() => handleRejectJob(job.id)}
+                                  title="Reject Job Post"
+                                  className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                                >
+                                  <X size={16} />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Active Toggle Switch */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleActive(job)}
+                            className="cursor-pointer transition-transform active:scale-95"
+                            title={job.isActive ? 'Active (Click to disable)' : 'Inactive (Click to enable)'}
+                          >
+                            {job.isActive ? (
+                              <ToggleRight size={26} className="text-green-600" />
+                            ) : (
+                              <ToggleLeft size={26} className="text-gray-300 hover:text-gray-400" />
+                            )}
+                          </button>
+                        </td>
+
+                        {/* Action Buttons */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2 justify-end">
+                            <button
+                              onClick={() => setViewingJob(job)}
+                              title="View Details"
+                              className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <Eye size={16} />
+                            </button>
+                            <button
+                              onClick={() => openEditJob(job)}
+                              title="Edit Job"
+                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteJob(job.id)}
+                              title="Delete Job"
+                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+
+            {totalPages > 1 && (
+              <div className="border-t border-gray-100">
+                <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* TAB 2: JOB CATEGORIES */}
+      {/* ======================================================== */}
+      {activeTab === 'categories' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Title</th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category Name</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Linked Jobs</th>
                 <th className="px-6 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filteredJobs.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-12 text-gray-400"><Briefcase className="mx-auto mb-2" size={32} /><p>No job openings found</p></td></tr>
-              ) : filteredJobs.map(job => (
-                <tr key={job.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4 font-medium text-gray-800">{job.title}</td>
-                  <td className="px-6 py-4 text-gray-600">{job.location}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${job.isActive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>{job.isActive ? 'Active' : 'Inactive'}</span>
+              {categories.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="text-center py-12 text-gray-400">
+                    <Layers className="mx-auto mb-2 opacity-50" size={32} />
+                    <p>No job categories found</p>
                   </td>
-                  <td className="px-6 py-4 text-gray-500">{new Date(job.createdAt).toLocaleDateString()}</td>
+                </tr>
+              ) : categories.map(cat => (
+                <tr key={cat.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 text-gray-400 font-mono text-xs">#{cat.id}</td>
+                  <td className="px-6 py-4 font-medium text-gray-800">
+                    <div>{cat.name}</div>
+                    {cat.nameSi && <div className="text-xs text-gray-400 font-normal">{cat.nameSi}</div>}
+                  </td>
+                  <td className="px-6 py-4 text-gray-500">
+                    <span className="bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                      {cat._count?.jobs ?? 0} jobs
+                    </span>
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 justify-end">
-                      <button onClick={() => openEdit(job)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit size={16} /></button>
-                      <button onClick={() => handleDelete(job.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                      <button
+                        onClick={() => { setCategoryName(cat.name); setCategoryNameSi(cat.nameSi || ''); setEditingCategoryId(cat.id); setIsCategoryModalOpen(true); }}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCategory(cat)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        )}
-        {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
-      </div>
+        </div>
+      )}
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-          <div className="bg-white rounded-2xl w-full max-w-2xl relative z-10 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between p-6 border-b border-gray-100">
-              <h2 className="text-xl font-bold text-gray-800">{editingId ? 'Edit Job' : 'Add New Job'}</h2>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors"><X size={20} /></button>
+      {/* ======================================================== */}
+      {/* TAB 3: MINISTRIES */}
+      {/* ======================================================== */}
+      {activeTab === 'ministries' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Ministry Name</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Institutions</th>
+                <th className="px-6 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {ministries.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="text-center py-12 text-gray-400">
+                    <Landmark className="mx-auto mb-2 opacity-50" size={32} />
+                    <p>No ministries found</p>
+                  </td>
+                </tr>
+              ) : ministries.map(min => (
+                <tr key={min.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 text-gray-400 font-mono text-xs">#{min.id}</td>
+                  <td className="px-6 py-4 font-medium text-gray-800">
+                    <div>{min.name}</div>
+                    {min.nameSi && <div className="text-xs text-gray-400 font-normal">{min.nameSi}</div>}
+                  </td>
+                  <td className="px-6 py-4 text-gray-500">
+                    <span className="bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                      {min._count?.institutions ?? min.institutions?.length ?? 0} institutions
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2 justify-end">
+                      <button
+                        onClick={() => { setMinistryName(min.name); setMinistryNameSi(min.nameSi || ''); setEditingMinistryId(min.id); setIsMinistryModalOpen(true); }}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteMinistry(min)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* TAB 4: INSTITUTIONS */}
+      {/* ======================================================== */}
+      {activeTab === 'institutions' && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Institution Name</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Ministry</th>
+                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Linked Jobs</th>
+                <th className="px-6 py-3" />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {institutions.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-12 text-gray-400">
+                    <Building2 className="mx-auto mb-2 opacity-50" size={32} />
+                    <p>No institutions found</p>
+                  </td>
+                </tr>
+              ) : institutions.map(inst => (
+                <tr key={inst.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 text-gray-400 font-mono text-xs">#{inst.id}</td>
+                  <td className="px-6 py-4 font-medium text-gray-800">
+                    <div>{inst.name}</div>
+                    {inst.nameSi && <div className="text-xs text-gray-400 font-normal">{inst.nameSi}</div>}
+                  </td>
+                  <td className="px-6 py-4 text-gray-600">{inst.ministry?.name || '—'}</td>
+                  <td className="px-6 py-4 text-gray-500">
+                    <span className="bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                      {inst._count?.jobs ?? 0} jobs
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-2 justify-end">
+                      <button
+                        onClick={() => {
+                          setInstitutionName(inst.name);
+                          setInstitutionNameSi(inst.nameSi || '');
+                          setInstitutionMinistryId(inst.ministryId ? String(inst.ministryId) : '');
+                          setEditingInstitutionId(inst.id);
+                          setIsInstitutionModalOpen(true);
+                        }}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteInstitution(inst)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* ADD / EDIT JOB MODAL (WITH EVERY FIELD) */}
+      {/* ======================================================== */}
+      {isJobModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsJobModalOpen(false)} />
+          <div className="bg-white rounded-2xl w-full max-w-6xl xl:max-w-7xl 2xl:max-w-[1450px] relative z-10 shadow-2xl h-[94vh] max-h-[96vh] flex flex-col overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-5 sm:p-6 border-b border-gray-100 shrink-0">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+                  {editingJobId ? 'Edit Job Posting' : 'Add New Job Post'}
+                </h2>
+                <p className="text-xs text-gray-500 mt-1">
+                  Complete all applicable fields including salary, eligibility, selection, and gazette documents
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsJobModalOpen(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer text-gray-400 hover:text-gray-600"
+              >
+                <X size={20} />
+              </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Title (EN) *</label><input required value={form.title} onChange={e => setForm({...form, title: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Title (SI)</label><input value={form.sinhalaTitle} onChange={e => setForm({...form, sinhalaTitle: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Location</label><input value={form.location} onChange={e => setForm({...form, location: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
-                <div><label className="block text-sm font-medium text-gray-700 mb-1">Location (SI)</label><input value={form.sinhalaLocation} onChange={e => setForm({...form, sinhalaLocation: e.target.value})} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
+
+            {/* Modal Section Navigation */}
+            <div className="flex border-b border-gray-100 px-6 pt-2 bg-gray-50/50 gap-2 overflow-x-auto shrink-0">
+              <button
+                type="button"
+                onClick={() => setModalTab('basic')}
+                className={`py-2.5 px-3 text-xs font-semibold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+                  modalTab === 'basic' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                1. General & Organization
+              </button>
+              <button
+                type="button"
+                onClick={() => setModalTab('salary')}
+                className={`py-2.5 px-3 text-xs font-semibold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+                  modalTab === 'salary' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                2. Salary Details
+              </button>
+              <button
+                type="button"
+                onClick={() => setModalTab('eligibility')}
+                className={`py-2.5 px-3 text-xs font-semibold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+                  modalTab === 'eligibility' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                3. Eligibility & Selection
+              </button>
+              <button
+                type="button"
+                onClick={() => setModalTab('application')}
+                className={`py-2.5 px-3 text-xs font-semibold border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+                  modalTab === 'application' ? 'border-green-600 text-green-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                4. Application & Gazette PDFs
+              </button>
+            </div>
+
+            {/* Modal Body / Form */}
+            <form onSubmit={handleSaveJob} className="p-6 space-y-6 flex-1 overflow-y-auto">
+              {/* SECTION 1: BASIC & ORGANIZATION */}
+              {modalTab === 'basic' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Designation (Job Title - English) <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Agriculture Instructor (Class III)"
+                        value={jobForm.designation}
+                        onChange={e => setJobForm({ ...jobForm, designation: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        තනතුර (Sinhala Title - Optional)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="උදා: කෘෂිකර්ම උපදේශක (III ශ්‍රේණිය)"
+                        value={jobForm.designationSi}
+                        onChange={e => setJobForm({ ...jobForm, designationSi: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Job Category <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        required
+                        value={jobForm.jobCategoryId}
+                        onChange={e => setJobForm({ ...jobForm, jobCategoryId: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm bg-white"
+                      >
+                        <option value="">Select Category...</option>
+                        {categories.map(c => (
+                          <option key={c.id} value={c.id}>
+                            {c.name}{c.nameSi ? ` (${c.nameSi})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Filter by Ministry (Optional)
+                      </label>
+                      <select
+                        value={jobForm.selectedMinistryId}
+                        onChange={e => setJobForm({ ...jobForm, selectedMinistryId: e.target.value, institutionId: '' })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm bg-white"
+                      >
+                        <option value="">All Ministries</option>
+                        {ministries.map(m => (
+                          <option key={m.id} value={m.id}>
+                            {m.name}{m.nameSi ? ` (${m.nameSi})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Institution / Department <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        required
+                        value={jobForm.institutionId}
+                        onChange={e => setJobForm({ ...jobForm, institutionId: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm bg-white"
+                      >
+                        <option value="">Select Institution...</option>
+                        {filteredModalInstitutions.map(inst => (
+                          <option key={inst.id} value={inst.id}>
+                            {inst.name}{inst.nameSi ? ` (${inst.nameSi})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Closing / Expiry Date <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="date"
+                        required
+                        value={jobForm.expiryDate}
+                        onChange={e => setJobForm({ ...jobForm, expiryDate: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Job Nature & Service Conditions Dropdowns */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                        තනතුරේ ස්වභාවය <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        required
+                        value={
+                          JOB_NATURE_OPTIONS.find(
+                            o => o.en === jobForm.jobNature || o.label === jobForm.jobNature || o.si === jobForm.jobNatureSi
+                          )?.en || jobForm.jobNature || 'Permanent'
+                        }
+                        onChange={e => {
+                          const val = e.target.value;
+                          const match = JOB_NATURE_OPTIONS.find(o => o.en === val);
+                          setJobForm({
+                            ...jobForm,
+                            jobNature: val,
+                            jobNatureSi: match ? match.si : val,
+                          });
+                        }}
+                        className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm bg-white font-medium text-gray-800 shadow-sm cursor-pointer"
+                      >
+                        {JOB_NATURE_OPTIONS.map(opt => (
+                          <option key={opt.en} value={opt.en}>
+                            {opt.label}
+                          </option>
+                        ))}
+                        {!JOB_NATURE_OPTIONS.some(o => o.en === jobForm.jobNature) && jobForm.jobNature && (
+                          <option value={jobForm.jobNature}>{jobForm.jobNature}</option>
+                        )}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                        සේවා කොන්දේසි (Pensionable etc.) <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        required
+                        value={
+                          SERVICE_CONDITIONS_OPTIONS.find(
+                            o => o.en === jobForm.serviceConditions || o.label === jobForm.serviceConditions || o.si === jobForm.serviceConditionsSi
+                          )?.en || jobForm.serviceConditions || 'Pensionable'
+                        }
+                        onChange={e => {
+                          const val = e.target.value;
+                          const match = SERVICE_CONDITIONS_OPTIONS.find(o => o.en === val);
+                          setJobForm({
+                            ...jobForm,
+                            serviceConditions: val,
+                            serviceConditionsSi: match ? match.si : val,
+                          });
+                        }}
+                        className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm bg-white font-medium text-gray-800 shadow-sm cursor-pointer"
+                      >
+                        {SERVICE_CONDITIONS_OPTIONS.map(opt => (
+                          <option key={opt.en} value={opt.en}>
+                            {opt.label}
+                          </option>
+                        ))}
+                        {!SERVICE_CONDITIONS_OPTIONS.some(o => o.en === jobForm.serviceConditions) && jobForm.serviceConditions && (
+                          <option value={jobForm.serviceConditions}>{jobForm.serviceConditions}</option>
+                        )}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Service Category */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Service Category (English)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Technological Service"
+                        value={jobForm.serviceCategory}
+                        onChange={e => setJobForm({ ...jobForm, serviceCategory: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">සේවා ගණය (Sinhala - Optional)</label>
+                      <input
+                        type="text"
+                        placeholder="උදා: තාක්ෂණික සේවය"
+                        value={jobForm.serviceCategorySi}
+                        onChange={e => setJobForm({ ...jobForm, serviceCategorySi: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Status & Visibility Row */}
+                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setJobForm({ ...jobForm, isActive: !jobForm.isActive })}
+                        className="cursor-pointer"
+                      >
+                        {jobForm.isActive ? (
+                          <ToggleRight size={28} className="text-green-600" />
+                        ) : (
+                          <ToggleLeft size={28} className="text-gray-300 hover:text-gray-400" />
+                        )}
+                      </button>
+                      <div>
+                        <div className="text-sm font-medium text-gray-800">
+                          {jobForm.isActive ? 'Active (Publicly Visible)' : 'Inactive (Hidden)'}
+                        </div>
+                        <div className="text-xs text-gray-400">Controls visibility on the public careers page.</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs font-semibold text-gray-700">Approval State:</label>
+                      <select
+                        value={jobForm.approvalStatus}
+                        onChange={e => setJobForm({ ...jobForm, approvalStatus: e.target.value as any })}
+                        className="px-2.5 py-1 text-xs font-medium rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-green-500/50"
+                      >
+                        <option value="APPROVED">APPROVED</option>
+                        <option value="PENDING">PENDING</option>
+                        <option value="REJECTED">REJECTED</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION 2: SALARY DETAILS */}
+              {modalTab === 'salary' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Salary Code</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. MN-1-2016"
+                      value={jobForm.salaryCode}
+                      onChange={e => setJobForm({ ...jobForm, salaryCode: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Basic Salary (English)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Rs. 31,040"
+                        value={jobForm.basicSalary}
+                        onChange={e => setJobForm({ ...jobForm, basicSalary: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">මූලික වැටුප (Sinhala - Optional)</label>
+                      <input
+                        type="text"
+                        placeholder="උදා: රු. 31,040"
+                        value={jobForm.basicSalarySi}
+                        onChange={e => setJobForm({ ...jobForm, basicSalarySi: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Salary Scale (English)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Rs. 31,040 - 10x445 - 11x660 - 50,060"
+                        value={jobForm.salaryScale}
+                        onChange={e => setJobForm({ ...jobForm, salaryScale: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">වැටුප් පරිමාණය (Sinhala - Optional)</label>
+                      <input
+                        type="text"
+                        placeholder="උදා: රු. 31,040 - 10x445 - 11x660 - 50,060"
+                        value={jobForm.salaryScaleSi}
+                        onChange={e => setJobForm({ ...jobForm, salaryScaleSi: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Allowances (English)</label>
+                      <RichTextEditor
+                        value={jobForm.allowances}
+                        onChange={val => setJobForm({ ...jobForm, allowances: val })}
+                        placeholder="e.g. Cost of Living Allowance, Transport..."
+                        minHeight="120px"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">දීමනා (Sinhala - Optional)</label>
+                      <RichTextEditor
+                        value={jobForm.allowancesSi}
+                        onChange={val => setJobForm({ ...jobForm, allowancesSi: val })}
+                        placeholder="උදා: ජීවන වියදම් දීමනාව සහ අනෙකුත් රජයේ දීමනා..."
+                        minHeight="120px"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Public Display String (English)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Rs. 31,040 - 50,060 + Allowances"
+                        value={jobForm.salaryDisplay}
+                        onChange={e => setJobForm({ ...jobForm, salaryDisplay: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">ප්‍රදර්ශනය වන වැටුප (Sinhala - Optional)</label>
+                      <input
+                        type="text"
+                        placeholder="උදා: රු. 31,040 - 50,060 + දීමනා"
+                        value={jobForm.salaryDisplaySi}
+                        onChange={e => setJobForm({ ...jobForm, salaryDisplaySi: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION 3: ELIGIBILITY & SELECTION */}
+              {modalTab === 'eligibility' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Age Limit (English)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Not less than 21 and not more than 35 years"
+                        value={jobForm.ageLimit}
+                        onChange={e => setJobForm({ ...jobForm, ageLimit: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">වයස් සීමාව (Sinhala - Optional)</label>
+                      <input
+                        type="text"
+                        placeholder="උදා: අවුරුදු 21ට නොඅඩු සහ 35ට නොවැඩි විය යුතුය"
+                        value={jobForm.ageLimitSi}
+                        onChange={e => setJobForm({ ...jobForm, ageLimitSi: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Age Relaxation (English)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Upper age limit does not apply to officers in Public Service"
+                        value={jobForm.ageRelaxation}
+                        onChange={e => setJobForm({ ...jobForm, ageRelaxation: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">වයස් ලිහිල් කිරීම (Sinhala - Optional)</label>
+                      <input
+                        type="text"
+                        placeholder="උදා: රාජ්‍ය සේවයේ නිලධාරීන්ට උපරිම වයස් සීමාව අදාළ නොවේ"
+                        value={jobForm.ageRelaxationSi}
+                        onChange={e => setJobForm({ ...jobForm, ageRelaxationSi: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Qualifications (English)</label>
+                      <RichTextEditor
+                        value={jobForm.qualifications}
+                        onChange={val => setJobForm({ ...jobForm, qualifications: val })}
+                        placeholder="e.g. NVQ Level 5 or Higher National Diploma in Agriculture..."
+                        minHeight="150px"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">අධ්‍යාපනික හා වෘත්තීය සුදුසුකම් (Sinhala - Optional)</label>
+                      <RichTextEditor
+                        value={jobForm.qualificationsSi}
+                        onChange={val => setJobForm({ ...jobForm, qualificationsSi: val })}
+                        placeholder="උදා: NVQ 5 මට්ටම හෝ කෘෂිකර්ම උසස් ජාතික ඩිප්ලෝමාව..."
+                        minHeight="150px"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Basic Experience & Citizenship (English)</label>
+                      <RichTextEditor
+                        value={jobForm.basicExperience}
+                        onChange={val => setJobForm({ ...jobForm, basicExperience: val })}
+                        placeholder="e.g. Should be a citizen of Sri Lanka with excellent moral character..."
+                        minHeight="130px"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">මූලික පළපුරුද්ද හා පුරවැසිභාවය (Sinhala - Optional)</label>
+                      <RichTextEditor
+                        value={jobForm.basicExperienceSi}
+                        onChange={val => setJobForm({ ...jobForm, basicExperienceSi: val })}
+                        placeholder="උදා: ශ්‍රී ලංකාවේ පුරවැසියෙකු විය යුතු අතර යහපත් චරිතයකින් යුක්ත විය යුතුය..."
+                        minHeight="130px"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="border-t border-gray-100 pt-3">
+                    <h3 className="text-sm font-bold text-gray-800 mb-2">Selection Procedure</h3>
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Selection Method (English)</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. Written Competitive Examination & General Interview"
+                            value={jobForm.selectionMethod}
+                            onChange={e => setJobForm({ ...jobForm, selectionMethod: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">තෝරා ගැනීමේ ක්‍රමවේදය (Sinhala - Optional)</label>
+                          <input
+                            type="text"
+                            placeholder="උදා: ලිඛිත තරඟ විභාගය සහ සාමාන්‍ය සම්මුඛ පරීක්ෂණය"
+                            value={jobForm.selectionMethodSi}
+                            onChange={e => setJobForm({ ...jobForm, selectionMethodSi: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Examination Details (English)</label>
+                          <RichTextEditor
+                            value={jobForm.examDetails}
+                            onChange={val => setJobForm({ ...jobForm, examDetails: val })}
+                            placeholder="e.g. Subject Knowledge (100 Marks), Aptitude (100 Marks)..."
+                            minHeight="130px"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">විභාග විස්තර (Sinhala - Optional)</label>
+                          <RichTextEditor
+                            value={jobForm.examDetailsSi}
+                            onChange={val => setJobForm({ ...jobForm, examDetailsSi: val })}
+                            placeholder="උදා: විෂය දැනුම (ලකුණු 100), අභියෝග්‍යතාව (ලකුණු 100)..."
+                            minHeight="130px"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION 4: APPLICATION & GAZETTE WITH PDF UPLOADS */}
+              {modalTab === 'application' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Gazette Number</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 2,374"
+                        value={jobForm.gazetteNo}
+                        onChange={e => setJobForm({ ...jobForm, gazetteNo: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Gazette Date</label>
+                      <input
+                        type="date"
+                        value={jobForm.gazetteDate}
+                        onChange={e => setJobForm({ ...jobForm, gazetteDate: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Exam Fee (English)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Rs. 600"
+                        value={jobForm.examFee}
+                        onChange={e => setJobForm({ ...jobForm, examFee: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">විභාග ගාස්තුව (Sinhala - Optional)</label>
+                      <input
+                        type="text"
+                        placeholder="උදා: රු. 600"
+                        value={jobForm.examFeeSi}
+                        onChange={e => setJobForm({ ...jobForm, examFeeSi: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {/* PDF Upload Cards (English & Sinhala) */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {/* English Gazette PDF */}
+                    <div className="border border-dashed border-gray-200 rounded-xl p-4 bg-gray-50/50">
+                      <div className="flex items-center gap-2 mb-2 font-medium text-xs text-gray-700">
+                        <FileText size={15} className="text-green-600" />
+                        <span>Gazette PDF Document (English)</span>
+                      </div>
+                      <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 bg-white rounded-lg cursor-pointer hover:bg-gray-50 text-xs text-gray-600">
+                        <span className="truncate">{gazetteFile ? gazetteFile.name : 'Choose English Gazette PDF...'}</span>
+                        <input
+                          type="file"
+                          accept=".pdf,application/pdf"
+                          className="hidden"
+                          onChange={e => setGazetteFile(e.target.files?.[0] || null)}
+                        />
+                      </label>
+                      {gazetteFile && (
+                        <p className="mt-1.5 text-xs text-green-700 font-medium">
+                          Selected: {gazetteFile.name} ({(gazetteFile.size / 1024 / 1024).toFixed(2)} MB)
+                        </p>
+                      )}
+                      {jobForm.existingGazetteUrl && !gazetteFile && (
+                        <div className="mt-2 flex items-center gap-1.5 text-xs text-blue-600">
+                          <ExternalLink size={13} />
+                          <a href={jobForm.existingGazetteUrl} target="_blank" rel="noreferrer" className="underline font-medium">
+                            View Existing English Gazette
+                          </a>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Sinhala Gazette PDF */}
+                    <div className="border border-dashed border-gray-200 rounded-xl p-4 bg-gray-50/50">
+                      <div className="flex items-center gap-2 mb-2 font-medium text-xs text-gray-700">
+                        <FileText size={15} className="text-emerald-700" />
+                        <span>ගැසට් පත්‍රය PDF (සිංහල - Optional)</span>
+                      </div>
+                      <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 bg-white rounded-lg cursor-pointer hover:bg-gray-50 text-xs text-gray-600">
+                        <span className="truncate">{gazetteFileSi ? gazetteFileSi.name : 'සිංහල ගැසට් පත්‍රය තෝරන්න...'}</span>
+                        <input
+                          type="file"
+                          accept=".pdf,application/pdf"
+                          className="hidden"
+                          onChange={e => setGazetteFileSi(e.target.files?.[0] || null)}
+                        />
+                      </label>
+                      {gazetteFileSi && (
+                        <p className="mt-1.5 text-xs text-green-700 font-medium">
+                          Selected: {gazetteFileSi.name} ({(gazetteFileSi.size / 1024 / 1024).toFixed(2)} MB)
+                        </p>
+                      )}
+                      {jobForm.existingGazetteUrlSi && !gazetteFileSi && (
+                        <div className="mt-2 flex items-center gap-1.5 text-xs text-blue-600">
+                          <ExternalLink size={13} />
+                          <a href={jobForm.existingGazetteUrlSi} target="_blank" rel="noreferrer" className="underline font-medium">
+                            දැනට පවතින සිංහල ගැසට් පත්‍රය බලන්න
+                          </a>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* English Specimen Application PDF */}
+                    <div className="border border-dashed border-gray-200 rounded-xl p-4 bg-gray-50/50">
+                      <div className="flex items-center gap-2 mb-2 font-medium text-xs text-gray-700">
+                        <Download size={15} className="text-blue-600" />
+                        <span>Specimen Application Form PDF (English)</span>
+                      </div>
+                      <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 bg-white rounded-lg cursor-pointer hover:bg-gray-50 text-xs text-gray-600">
+                        <span className="truncate">{specimenAppFile ? specimenAppFile.name : 'Choose English Application PDF...'}</span>
+                        <input
+                          type="file"
+                          accept=".pdf,application/pdf"
+                          className="hidden"
+                          onChange={e => setSpecimenAppFile(e.target.files?.[0] || null)}
+                        />
+                      </label>
+                      {specimenAppFile && (
+                        <p className="mt-1.5 text-xs text-green-700 font-medium">
+                          Selected: {specimenAppFile.name} ({(specimenAppFile.size / 1024 / 1024).toFixed(2)} MB)
+                        </p>
+                      )}
+                      {jobForm.existingSpecimenAppUrl && !specimenAppFile && (
+                        <div className="mt-2 flex items-center gap-1.5 text-xs text-blue-600">
+                          <ExternalLink size={13} />
+                          <a href={jobForm.existingSpecimenAppUrl} target="_blank" rel="noreferrer" className="underline font-medium">
+                            View Existing English Form
+                          </a>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Sinhala Specimen Application PDF */}
+                    <div className="border border-dashed border-gray-200 rounded-xl p-4 bg-gray-50/50">
+                      <div className="flex items-center gap-2 mb-2 font-medium text-xs text-gray-700">
+                        <Download size={15} className="text-blue-700" />
+                        <span>ආදර්ශ අයදුම්පත්‍රය PDF (සිංහල - Optional)</span>
+                      </div>
+                      <label className="flex items-center gap-2 px-3 py-2 border border-gray-200 bg-white rounded-lg cursor-pointer hover:bg-gray-50 text-xs text-gray-600">
+                        <span className="truncate">{specimenAppFileSi ? specimenAppFileSi.name : 'සිංහල ආදර්ශ අයදුම්පත්‍රය තෝරන්න...'}</span>
+                        <input
+                          type="file"
+                          accept=".pdf,application/pdf"
+                          className="hidden"
+                          onChange={e => setSpecimenAppFileSi(e.target.files?.[0] || null)}
+                        />
+                      </label>
+                      {specimenAppFileSi && (
+                        <p className="mt-1.5 text-xs text-green-700 font-medium">
+                          Selected: {specimenAppFileSi.name} ({(specimenAppFileSi.size / 1024 / 1024).toFixed(2)} MB)
+                        </p>
+                      )}
+                      {jobForm.existingSpecimenAppUrlSi && !specimenAppFileSi && (
+                        <div className="mt-2 flex items-center gap-1.5 text-xs text-blue-600">
+                          <ExternalLink size={13} />
+                          <a href={jobForm.existingSpecimenAppUrlSi} target="_blank" rel="noreferrer" className="underline font-medium">
+                            දැනට පවතින සිංහල අයදුම්පත්‍රය බලන්න
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Postal Address for Submission (English)</label>
+                      <textarea
+                        rows={2}
+                        placeholder="e.g. Director General, Department of Agriculture, P.O. Box 01, Peradeniya"
+                        value={jobForm.postalAddress}
+                        onChange={e => setJobForm({ ...jobForm, postalAddress: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">ලිපිනය (Sinhala - Optional)</label>
+                      <textarea
+                        rows={2}
+                        placeholder="උදා: කෘෂිකර්ම අධ්‍යක්ෂ ජනරාල්, කෘෂිකර්ම දෙපාර්තමේන්තුව, තැ.පෙ. 01, පේරාදෙණිය"
+                        value={jobForm.postalAddressSi}
+                        onChange={e => setJobForm({ ...jobForm, postalAddressSi: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Envelope Marking (English)</label>
+                      <RichTextEditor
+                        value={jobForm.envelopeMarking}
+                        onChange={val => setJobForm({ ...jobForm, envelopeMarking: val })}
+                        placeholder="e.g. Recruitment to the post of Agriculture Instructor - 2026..."
+                        minHeight="120px"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">කවරයේ වම්පස ඉහළ සටහන (Sinhala - Optional)</label>
+                      <RichTextEditor
+                        value={jobForm.envelopeMarkingSi}
+                        onChange={val => setJobForm({ ...jobForm, envelopeMarkingSi: val })}
+                        placeholder="උදා: කෘෂිකර්ම උපදේශක තනතුරට බඳවා ගැනීම - 2026..."
+                        minHeight="120px"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Submission Details (English)</label>
+                      <RichTextEditor
+                        value={jobForm.submissionDetails}
+                        onChange={val => setJobForm({ ...jobForm, submissionDetails: val })}
+                        placeholder="e.g. Applications must be sent under registered cover on or before the closing date..."
+                        minHeight="140px"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">ඉදිරිපත් කිරීමේ උපදෙස් (Sinhala - Optional)</label>
+                      <RichTextEditor
+                        value={jobForm.submissionDetailsSi}
+                        onChange={val => setJobForm({ ...jobForm, submissionDetailsSi: val })}
+                        placeholder="උදා: සම්පූර්ණ කරන ලද අයදුම්පත් ලියාපදිංචි තැපෑලෙන් අවසන් දිනට පෙර එවිය යුතුය..."
+                        minHeight="140px"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Form Action Buttons */}
+              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                <div className="flex gap-2">
+                  {modalTab !== 'basic' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (modalTab === 'application') setModalTab('eligibility');
+                        else if (modalTab === 'eligibility') setModalTab('salary');
+                        else if (modalTab === 'salary') setModalTab('basic');
+                      }}
+                      className="px-3 py-2 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                    >
+                      ← Previous
+                    </button>
+                  )}
+                  {modalTab !== 'application' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (modalTab === 'basic') setModalTab('salary');
+                        else if (modalTab === 'salary') setModalTab('eligibility');
+                        else if (modalTab === 'eligibility') setModalTab('application');
+                      }}
+                      className="px-3 py-2 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                    >
+                      Next →
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsJobModalOpen(false)}
+                    className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSavingJob}
+                    className="flex items-center gap-2 px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {isSavingJob ? 'Saving...' : editingJobId ? 'Update Job' : 'Publish Job'}
+                  </button>
+                </div>
               </div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Description (EN) *</label><textarea required value={form.description} onChange={e => setForm({...form, description: e.target.value})} rows={4} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
-              <div><label className="block text-sm font-medium text-gray-700 mb-1">Description (SI)</label><textarea value={form.sinhalaDescription} onChange={e => setForm({...form, sinhalaDescription: e.target.value})} rows={4} className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50" /></div>
-              <div className="flex items-center gap-3">
-                <button type="button" onClick={() => setForm({...form, isActive: !form.isActive})}>
-                  {form.isActive ? <ToggleRight size={28} className="text-green-600" /> : <ToggleLeft size={28} className="text-gray-400" />}
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* VIEW DETAILS MODAL */}
+      {/* ======================================================== */}
+      {viewingJob && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setViewingJob(null)} />
+          <div className="bg-white rounded-2xl w-full max-w-5xl xl:max-w-6xl relative z-10 shadow-2xl max-h-[92vh] overflow-y-auto p-6 space-y-6">
+            <div className="flex items-start justify-between border-b border-gray-100 pb-4">
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-medium text-green-700 bg-green-50 px-2 py-0.5 rounded border border-green-200">
+                    {viewingJob.jobCategory?.name || 'Job Post'}
+                  </span>
+                  {viewingJob.jobCategory?.nameSi && (
+                    <span className="text-xs font-medium text-green-800 bg-green-100/70 px-2 py-0.5 rounded">
+                      {viewingJob.jobCategory.nameSi}
+                    </span>
+                  )}
+                </div>
+                <h2 className="text-xl font-bold text-gray-800 mt-2">{viewingJob.designation}</h2>
+                {viewingJob.designationSi && (
+                  <h3 className="text-base font-semibold text-emerald-800 mt-0.5">{viewingJob.designationSi}</h3>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  {viewingJob.institution?.name} {viewingJob.institution?.nameSi ? `(${viewingJob.institution.nameSi})` : ''} 
+                  {viewingJob.institution?.ministry ? ` • ${viewingJob.institution.ministry.name}` : ''}
+                </p>
+              </div>
+              <button onClick={() => setViewingJob(null)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer text-gray-400 hover:text-gray-600">
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Quick stats grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-gray-50 p-3 rounded-xl text-xs">
+              <div>
+                <span className="text-gray-400">Nature:</span> 
+                <div className="font-semibold text-gray-700">
+                  {JOB_NATURE_OPTIONS.find(o => o.en === viewingJob.jobNature || o.si === viewingJob.jobNatureSi)?.label || viewingJob.jobNature || '—'}
+                </div>
+              </div>
+              <div>
+                <span className="text-gray-400">Conditions:</span> 
+                <div className="font-semibold text-gray-700">
+                  {SERVICE_CONDITIONS_OPTIONS.find(o => o.en === viewingJob.serviceConditions || o.si === viewingJob.serviceConditionsSi)?.label || viewingJob.serviceConditions || '—'}
+                </div>
+              </div>
+              <div><span className="text-gray-400">Closing Date:</span> <div className="font-semibold text-gray-700">{new Date(viewingJob.expiryDate).toLocaleDateString()}</div></div>
+              <div><span className="text-gray-400">Approval:</span> <div className="font-semibold text-gray-700">{viewingJob.approvalStatus}</div></div>
+            </div>
+
+            {/* Salary */}
+            {viewingJob.salaryDetails && (
+              <div className="border border-gray-100 rounded-xl p-4 space-y-1.5 bg-gray-50/50">
+                <h4 className="text-xs font-semibold text-gray-600 uppercase flex items-center gap-1.5">
+                  <DollarSign size={14} className="text-green-600" /> Salary Information
+                </h4>
+                <p className="text-sm font-semibold text-gray-800">
+                  {viewingJob.salaryDetails.salaryDisplay || viewingJob.salaryDetails.basicSalary || 'Not specified'}
+                </p>
+                {viewingJob.salaryDetails.salaryDisplaySi && (
+                  <p className="text-xs font-medium text-emerald-800">{viewingJob.salaryDetails.salaryDisplaySi}</p>
+                )}
+                {viewingJob.salaryDetails.salaryScale && <p className="text-xs text-gray-600">Scale (EN): {viewingJob.salaryDetails.salaryScale}</p>}
+                {viewingJob.salaryDetails.salaryScaleSi && <p className="text-xs text-gray-600">පරිමාණය (SI): {viewingJob.salaryDetails.salaryScaleSi}</p>}
+                {viewingJob.salaryDetails.allowances && (
+                  <div>
+                    <span className="font-semibold text-gray-700 block mb-1">Allowances (English):</span>
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.salaryDetails.allowances }} />
+                  </div>
+                )}
+                {viewingJob.salaryDetails.allowancesSi && (
+                  <div>
+                    <span className="font-semibold text-emerald-800 block mb-1">දීමනා (Sinhala):</span>
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.salaryDetails.allowancesSi }} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Eligibility */}
+            {viewingJob.eligibility && (
+              <div className="border border-gray-100 rounded-xl p-4 space-y-4 bg-gray-50/50 text-xs">
+                <h4 className="text-xs font-semibold text-gray-600 uppercase flex items-center gap-1.5">
+                  <GraduationCap size={14} className="text-green-600" /> Eligibility Criteria
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {viewingJob.eligibility.ageLimit && <p><span className="font-semibold text-gray-700">Age Limit:</span> {viewingJob.eligibility.ageLimit}</p>}
+                  {viewingJob.eligibility.ageLimitSi && <p><span className="font-semibold text-emerald-800">වයස් සීමාව:</span> {viewingJob.eligibility.ageLimitSi}</p>}
+                  {viewingJob.eligibility.ageRelaxation && <p><span className="font-semibold text-gray-700">Age Relaxation:</span> {viewingJob.eligibility.ageRelaxation}</p>}
+                  {viewingJob.eligibility.ageRelaxationSi && <p><span className="font-semibold text-emerald-800">වයස් ලිහිල් කිරීම:</span> {viewingJob.eligibility.ageRelaxationSi}</p>}
+                </div>
+
+                {viewingJob.eligibility.qualifications && (
+                  <div>
+                    <span className="font-semibold text-gray-700 block mb-1">Qualifications (English):</span>
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.eligibility.qualifications }} />
+                  </div>
+                )}
+                {viewingJob.eligibility.qualificationsSi && (
+                  <div>
+                    <span className="font-semibold text-emerald-800 block mb-1">අධ්‍යාපනික හා වෘත්තීය සුදුසුකම් (Sinhala):</span>
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.eligibility.qualificationsSi }} />
+                  </div>
+                )}
+                {viewingJob.eligibility.basicExperience && (
+                  <div>
+                    <span className="font-semibold text-gray-700 block mb-1">Basic Experience & Citizenship (English):</span>
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.eligibility.basicExperience }} />
+                  </div>
+                )}
+                {viewingJob.eligibility.basicExperienceSi && (
+                  <div>
+                    <span className="font-semibold text-emerald-800 block mb-1">මූලික පළපුරුද්ද හා පුරවැසිභාවය (Sinhala):</span>
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.eligibility.basicExperienceSi }} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Selection Procedure */}
+            {viewingJob.selectionProcedure && (
+              <div className="border border-gray-100 rounded-xl p-4 space-y-4 bg-gray-50/50 text-xs">
+                <h4 className="text-xs font-semibold text-gray-600 uppercase flex items-center gap-1.5">
+                  <CheckCircle2 size={14} className="text-green-600" /> Selection Procedure
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {viewingJob.selectionProcedure.method && <p><span className="font-semibold text-gray-700">Method (EN):</span> {viewingJob.selectionProcedure.method}</p>}
+                  {viewingJob.selectionProcedure.methodSi && <p><span className="font-semibold text-emerald-800">ක්‍රමවේදය (SI):</span> {viewingJob.selectionProcedure.methodSi}</p>}
+                </div>
+                {viewingJob.selectionProcedure.examDetails && (
+                  <div>
+                    <span className="font-semibold text-gray-700 block mb-1">Examination Details (English):</span>
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.selectionProcedure.examDetails }} />
+                  </div>
+                )}
+                {viewingJob.selectionProcedure.examDetailsSi && (
+                  <div>
+                    <span className="font-semibold text-emerald-800 block mb-1">විභාග විස්තර (Sinhala):</span>
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.selectionProcedure.examDetailsSi }} />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Application Info & Downloads */}
+            {viewingJob.applicationInfo && (
+              <div className="border border-gray-100 rounded-xl p-4 space-y-4 bg-gray-50/50 text-xs">
+                <h4 className="text-xs font-semibold text-gray-600 uppercase flex items-center gap-1.5">
+                  <FileText size={14} className="text-green-600" /> Application & Gazette Information
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {viewingJob.applicationInfo.gazetteNo && <p><span className="font-semibold text-gray-700">Gazette No:</span> {viewingJob.applicationInfo.gazetteNo}</p>}
+                  {viewingJob.applicationInfo.gazetteDate && <p><span className="font-semibold text-gray-700">Gazette Date:</span> {new Date(viewingJob.applicationInfo.gazetteDate).toLocaleDateString()}</p>}
+                  {viewingJob.applicationInfo.examFee && <p><span className="font-semibold text-gray-700">Exam Fee (EN):</span> {viewingJob.applicationInfo.examFee}</p>}
+                  {viewingJob.applicationInfo.examFeeSi && <p><span className="font-semibold text-emerald-800">විභාග ගාස්තුව (SI):</span> {viewingJob.applicationInfo.examFeeSi}</p>}
+                  {viewingJob.applicationInfo.postalAddress && <p><span className="font-semibold text-gray-700">Send To (EN):</span> {viewingJob.applicationInfo.postalAddress}</p>}
+                  {viewingJob.applicationInfo.postalAddressSi && <p><span className="font-semibold text-emerald-800">ලිපිනය (SI):</span> {viewingJob.applicationInfo.postalAddressSi}</p>}
+                </div>
+
+                {viewingJob.applicationInfo.envelopeMarking && (
+                  <div>
+                    <span className="font-semibold text-gray-700 block mb-1">Envelope Marking (English):</span>
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.applicationInfo.envelopeMarking }} />
+                  </div>
+                )}
+                {viewingJob.applicationInfo.envelopeMarkingSi && (
+                  <div>
+                    <span className="font-semibold text-emerald-800 block mb-1">කවරයේ සටහන (Sinhala):</span>
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.applicationInfo.envelopeMarkingSi }} />
+                  </div>
+                )}
+
+                {viewingJob.applicationInfo.submissionDetails && (
+                  <div>
+                    <span className="font-semibold text-gray-700 block mb-1">Submission Details (English):</span>
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.applicationInfo.submissionDetails }} />
+                  </div>
+                )}
+                {viewingJob.applicationInfo.submissionDetailsSi && (
+                  <div>
+                    <span className="font-semibold text-emerald-800 block mb-1">ඉදිරිපත් කිරීමේ විස්තර (Sinhala):</span>
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.applicationInfo.submissionDetailsSi }} />
+                  </div>
+                )}
+
+                {/* PDF Download Buttons */}
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200/60">
+                  {viewingJob.applicationInfo.gazetteUrl && (
+                    <a
+                      href={viewingJob.applicationInfo.gazetteUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-green-700 transition-colors"
+                    >
+                      <Download size={14} /> English Gazette PDF
+                    </a>
+                  )}
+                  {viewingJob.applicationInfo.gazetteUrlSi && (
+                    <a
+                      href={viewingJob.applicationInfo.gazetteUrlSi}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-emerald-800 transition-colors"
+                    >
+                      <Download size={14} /> ගැසට් පත්‍රය (සිංහල)
+                    </a>
+                  )}
+                  {viewingJob.applicationInfo.specimenAppUrl && (
+                    <a
+                      href={viewingJob.applicationInfo.specimenAppUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                    >
+                      <Download size={14} /> English Specimen Form
+                    </a>
+                  )}
+                  {viewingJob.applicationInfo.specimenAppUrlSi && (
+                    <a
+                      href={viewingJob.applicationInfo.specimenAppUrlSi}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-800 transition-colors"
+                    >
+                      <Download size={14} /> ආදර්ශ අයදුම්පත්‍රය (සිංහල)
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end pt-2">
+              <button
+                onClick={() => setViewingJob(null)}
+                className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* CATEGORY MODAL */}
+      {/* ======================================================== */}
+      {isCategoryModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsCategoryModalOpen(false)} />
+          <div className="bg-white rounded-2xl w-full max-w-md relative z-10 shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="text-lg font-bold text-gray-800">{editingCategoryId ? 'Edit Category' : 'New Job Category'}</h3>
+              <button onClick={() => setIsCategoryModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer text-gray-400">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveCategory} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category Name (English) *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Government Gazette Jobs"
+                  value={categoryName}
+                  onChange={e => setCategoryName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category Name (සිංහල - Optional)</label>
+                <input
+                  type="text"
+                  placeholder="උදා: රජයේ ගැසට් රැකියා"
+                  value={categoryNameSi}
+                  onChange={e => setCategoryNameSi(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setIsCategoryModalOpen(false)} className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
+                  Cancel
                 </button>
-                <span className="text-sm font-medium text-gray-700">Active (visible to public)</span>
+                <button type="submit" className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors cursor-pointer">
+                  Save
+                </button>
               </div>
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 font-medium transition-colors">Cancel</button>
-                <button type="submit" className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">{editingId ? 'Update' : 'Post Job'}</button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* MINISTRY MODAL */}
+      {/* ======================================================== */}
+      {isMinistryModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsMinistryModalOpen(false)} />
+          <div className="bg-white rounded-2xl w-full max-w-md relative z-10 shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="text-lg font-bold text-gray-800">{editingMinistryId ? 'Edit Ministry' : 'New Ministry'}</h3>
+              <button onClick={() => setIsMinistryModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer text-gray-400">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveMinistry} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Ministry Name (English) *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Ministry of Agriculture"
+                  value={ministryName}
+                  onChange={e => setMinistryName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Ministry Name (සිංහල - Optional)</label>
+                <input
+                  type="text"
+                  placeholder="උදා: කෘෂිකර්ම අමාත්‍යාංශය"
+                  value={ministryNameSi}
+                  onChange={e => setMinistryNameSi(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setIsMinistryModalOpen(false)} className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
+                  Cancel
+                </button>
+                <button type="submit" className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors cursor-pointer">
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* INSTITUTION MODAL */}
+      {/* ======================================================== */}
+      {isInstitutionModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsInstitutionModalOpen(false)} />
+          <div className="bg-white rounded-2xl w-full max-w-md relative z-10 shadow-2xl p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="text-lg font-bold text-gray-800">{editingInstitutionId ? 'Edit Institution' : 'New Institution'}</h3>
+              <button onClick={() => setIsInstitutionModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer text-gray-400">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveInstitution} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Institution Name (English) *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Department of Agriculture"
+                  value={institutionName}
+                  onChange={e => setInstitutionName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Institution Name (සිංහල - Optional)</label>
+                <input
+                  type="text"
+                  placeholder="උදා: කෘෂිකර්ම දෙපාර්තමේන්තුව"
+                  value={institutionNameSi}
+                  onChange={e => setInstitutionNameSi(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Governing Ministry (Optional)</label>
+                <select
+                  value={institutionMinistryId}
+                  onChange={e => setInstitutionMinistryId(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm bg-white"
+                >
+                  <option value="">No Ministry / Independent</option>
+                  {ministries.map(m => (
+                    <option key={m.id} value={m.id}>
+                      {m.name}{m.nameSi ? ` (${m.nameSi})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex justify-end gap-2 pt-2">
+                <button type="button" onClick={() => setIsInstitutionModalOpen(false)} className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer">
+                  Cancel
+                </button>
+                <button type="submit" className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition-colors cursor-pointer">
+                  Save
+                </button>
               </div>
             </form>
           </div>

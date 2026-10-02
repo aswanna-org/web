@@ -145,8 +145,8 @@ export default function Marketplace() {
         waveColor="text-gray-50"
       />
       
-      {/* Floating Cart Button (Optional, can also put in Navbar) */}
-      <div className="fixed bottom-8 right-8 z-40">
+      {/* Floating Cart Button (Desktop only; on mobile, Cart is integrated in the bottom bar) */}
+      <div className="hidden lg:flex fixed bottom-8 right-8 z-40">
         <button 
           onClick={() => setIsCartOpen(true)}
           className="bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition-colors relative flex items-center justify-center group"

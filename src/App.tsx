@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, useLocation } from 'react-router-dom';
 import Home from './pages/public/Home';
 import About from './pages/public/About';
 import Header from './components/public/Header';
@@ -57,13 +57,16 @@ import { AuthProvider } from './context/AuthContext';
 import ScrollToTop from './components/common/ScrollToTop';
 import GAPageTracker from './components/common/GAPageTracker';
 
-// Simple layouts for demonstration
+// Public layout with bottom spacing for mobile floating bar on inner pages
 function PublicLayout() {
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
+
   return (
     <>
       <Header />
       <SecondaryNav />
-      <div className="min-h-screen flex flex-col">
+      <div className={`min-h-screen flex flex-col ${!isHomePage ? 'pb-24 sm:pb-28 lg:pb-0' : ''}`}>
         <Outlet />
       </div>
     </>

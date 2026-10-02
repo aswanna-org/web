@@ -172,7 +172,7 @@ export default function Footer() {
                     <hr className="border-gray-900/10 my-3 sm:my-5" />
 
                     {/* Bottom Legal Notice & Copyright */}
-                    <div className="flex flex-col items-center gap-2.5 pt-1 text-center">
+                    <div className="flex flex-col items-center gap-2.5 pt-1 pb-16 lg:pb-0 text-center">
                         <p className="text-gray-700 text-[9px] sm:text-[10px] leading-relaxed font-normal opacity-85 max-w-6xl mx-auto">
                             &quot;අස්වැන්න&quot; (Aswanna) ලියාපදිංචි වෙළඳ නාමය, නිල ලාංඡනය මෙන්ම මෙම වෙබ් අඩවිය තුළ පළ කර ඇති සියලුම ලිපි, ඡායාරූප, වීඩියෝ දර්ශන, ග්රැෆික් නිර්මාණ සහ අනෙකුත් බහුමාධ්ය අන්තර්ගතයන් ශ්රී ලංකාවේ 2003 අංක 36 දරන බුද්ධිමය දේපළ පනත යටතේ නීත්යානුකූලව ආරක්ෂා කර ඇති නෛතික දේපළ වේ. පූර්ව ලිඛිත නිල අනුමැතියකින් තොරව මෙහි අන්තර්ගත කිසිවක් සම්පූර්ණයෙන්ම හෝ කොටස් වශයෙන් පිටපත් කිරීම, බාගත කර නැවත පළ කිරීම, විකෘති කිරීම හෝ වාණිජමය හා ප්රවර්ධන කටයුතු සඳහා භාවිත කිරීම සපුරා තහනම් වන අතර, එවැනි අනවසර භාවිතයන්ට එරෙහිව දැඩි නීතිමය පියවර ගනු ලැබේ.
                         </p>
