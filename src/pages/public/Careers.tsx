@@ -14,7 +14,8 @@ import { useAuth } from '../../context/AuthContext';
 import { SRI_LANKA_PROVINCES, getDistrictsForProvince, getDSDsForDistrict } from '../../data/sriLankaLocations';
 
 interface Job {
-  id: string | number;
+  id: string;
+  slug?: string;
   designation?: string;
   designationSi?: string;
   title?: string;
@@ -23,14 +24,16 @@ interface Job {
   sinhalaDescription?: string;
   location?: string;
   sinhalaLocation?: string;
-  jobCategory?: { id: number; name: string; nameSi?: string };
-  institution?: { id: number; name: string; nameSi?: string; ministry?: { id: number; name: string; nameSi?: string } };
+  jobCategory?: { id: string; name: string; nameSi?: string };
+  institution?: { id: string; name: string; nameSi?: string; ministry?: { id: string; name: string; nameSi?: string } };
   serviceCategory?: string;
   serviceCategorySi?: string;
   jobNature?: string;
   jobNatureSi?: string;
   serviceConditions?: string;
   serviceConditionsSi?: string;
+  recruitmentType?: string;
+  recruitmentTypeSi?: string;
   companyName?: string | null;
   companyNameSi?: string | null;
   governingMinistry?: string | null;
@@ -40,6 +43,7 @@ interface Job {
   country?: string | null;
   countrySi?: string | null;
   applyLink?: string | null;
+  bannerImage?: string | null;
   expiryDate?: string;
   salaryDetails?: {
     salaryCode?: string;
@@ -114,12 +118,24 @@ interface DailyWageWorker {
   skills: { skill: DailyWageSkill }[];
 }
 
+interface JobCategoryData {
+  id: string;
+  slug?: string;
+  name: string;
+  nameSi?: string | null;
+  image?: string | null;
+  _count?: { jobs: number };
+}
+
 interface CategoryCardItem {
-  id: string | number;
+  id: string;
+  slug?: string;
   title: string;
   image: string;
   icon: any;
-  filterId: string | number;
+  filterId: string;
+  jobCount?: number;
+  isDailyWage?: boolean;
 }
 
 // Reusable SVG for wavy card divider matching reference UI
@@ -150,12 +166,12 @@ export default function Careers() {
   const isSi = i18n.language === 'si';
 
   // Navigation State: null = Categories view; non-null = inside category view
-  const [activeCategoryView, setActiveCategoryView] = useState<string | number | null>(null);
+  const [activeCategoryView, setActiveCategoryView] = useState<string | null>(null);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | number>('ALL');
-  const [categories, setCategories] = useState<{ id: number; name: string; nameSi?: string; image?: string | null }[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('ALL');
+  const [categories, setCategories] = useState<JobCategoryData[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -220,64 +236,54 @@ export default function Careers() {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Category cards using exact Job Categories and exact UI (with DB image or fallback)
+  // Category cards dynamically mapped from backend Job Categories
   const categoryCards: CategoryCardItem[] = useMemo(() => {
-    const cards: CategoryCardItem[] = [];
+    return categories.map(cat => {
+      const slugLower = (cat.slug || '').toLowerCase();
+      const nameLower = (cat.name || '').toLowerCase();
+      const isDailyWage = slugLower.includes('daily') || nameLower.includes('daily') || Boolean(cat.nameSi && cat.nameSi.includes('දෛනික'));
 
-    // 1. Government Jobs
-    const govCat = categories.find(c => c.name.toLowerCase().includes('government') || c.nameSi?.includes('රාජ්‍ය'));
-    cards.push({
-      id: govCat ? govCat.id : 'GOVERNMENT',
-      title: isSi ? 'රාජ්‍ය අංශයේ රැකියා' : 'Government Jobs',
-      image: govCat?.image || 'https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=800&q=80',
-      icon: Landmark,
-      filterId: govCat ? govCat.id : 1
-    });
-
-    // 2. Private Sector Jobs
-    const privCat = categories.find(c => c.name.toLowerCase().includes('private') || c.nameSi?.includes('පුද්ගලික'));
-    cards.push({
-      id: privCat ? privCat.id : 'PRIVATE',
-      title: isSi ? 'පුද්ගලික අංශයේ රැකියා' : 'Private Sector Jobs',
-      image: privCat?.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80',
-      icon: Building2,
-      filterId: privCat ? privCat.id : 2
-    });
-
-    // 3. Daily Wage Workers
-    cards.push({
-      id: 'DAILY_WAGE',
-      title: isSi ? 'දෛනික කෘෂි ශ්‍රමිකයන්' : 'Daily Wage Workers',
-      image: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800&q=80',
-      icon: Tractor,
-      filterId: 'DAILY_WAGE'
-    });
-
-    // 4. Foreign Jobs
-    const forCat = categories.find(c => c.name.toLowerCase().includes('foreign') || c.nameSi?.includes('විදේශ'));
-    cards.push({
-      id: forCat ? forCat.id : 'FOREIGN',
-      title: isSi ? 'විදේශ රැකියා අවස්ථා' : 'Foreign Jobs',
-      image: forCat?.image || 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80',
-      icon: Plane,
-      filterId: forCat ? forCat.id : 3
-    });
-
-    // Any other dynamic categories from database
-    categories.forEach(c => {
-      const isHandled = [govCat?.id, privCat?.id, forCat?.id].filter(Boolean).includes(c.id);
-      if (!isHandled) {
-        cards.push({
-          id: c.id,
-          title: isSi && c.nameSi ? c.nameSi.replace(/\s*\([^)]*\)/g, '').trim() : c.name,
-          image: c.image || 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80',
-          icon: Briefcase,
-          filterId: c.id
-        });
+      // Clean title for Sinhala display (remove English name in brackets if present, e.g. "රාජ්‍ය අංශයේ රැකියා (Government Jobs)" -> "රාජ්‍ය අංශයේ රැකියා")
+      let title = cat.name;
+      if (isSi && cat.nameSi) {
+        title = cat.nameSi.replace(/\s*\([^)]*\)/g, '').trim();
       }
-    });
 
-    return cards;
+      // Determine Icon
+      let icon = Briefcase;
+      if (slugLower.includes('gov') || nameLower.includes('gov') || Boolean(cat.nameSi && cat.nameSi.includes('රාජ්‍ය'))) {
+        icon = Landmark;
+      } else if (slugLower.includes('private') || nameLower.includes('private') || Boolean(cat.nameSi && cat.nameSi.includes('පුද්ගලික'))) {
+        icon = Building2;
+      } else if (isDailyWage) {
+        icon = Tractor;
+      } else if (slugLower.includes('foreign') || nameLower.includes('foreign') || Boolean(cat.nameSi && cat.nameSi.includes('විදේශ'))) {
+        icon = Plane;
+      }
+
+      // Fallback image based on type
+      let fallbackImage = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80';
+      if (slugLower.includes('gov') || nameLower.includes('gov') || Boolean(cat.nameSi && cat.nameSi.includes('රාජ්‍ය'))) {
+        fallbackImage = 'https://images.unsplash.com/photo-1541872703-74c5e44368f9?w=800&q=80';
+      } else if (slugLower.includes('private') || nameLower.includes('private') || Boolean(cat.nameSi && cat.nameSi.includes('පුද්ගලික'))) {
+        fallbackImage = 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80';
+      } else if (isDailyWage) {
+        fallbackImage = 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800&q=80';
+      } else if (slugLower.includes('foreign') || nameLower.includes('foreign') || Boolean(cat.nameSi && cat.nameSi.includes('විදේශ'))) {
+        fallbackImage = 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80';
+      }
+
+      return {
+        id: cat.id,
+        slug: cat.slug,
+        title,
+        image: cat.image || fallbackImage,
+        icon,
+        filterId: isDailyWage ? 'DAILY_WAGE' : cat.id,
+        jobCount: cat._count?.jobs ?? 0,
+        isDailyWage
+      };
+    });
   }, [categories, isSi]);
 
   // Handle clicking a category card to go inside
@@ -438,6 +444,9 @@ export default function Careers() {
   };
 
   const getJobCardImage = (job: Job) => {
+    if (job.bannerImage && typeof job.bannerImage === 'string' && job.bannerImage.trim() !== '') {
+      return job.bannerImage;
+    }
     if (job.country || job.agency) {
       return 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80';
     }
@@ -451,9 +460,9 @@ export default function Careers() {
   };
 
   const getJobCategoryIcon = (job: Job) => {
-    if (job.country || job.agency) return <Plane className="w-5 h-5" />;
-    if (job.companyName || job.companyNameSi) return <Building2 className="w-5 h-5" />;
-    return <Landmark className="w-5 h-5" />;
+    if (job.country || job.agency) return <Plane className="w-4 h-4 sm:w-5 sm:h-5" />;
+    if (job.companyName || job.companyNameSi) return <Building2 className="w-4 h-4 sm:w-5 sm:h-5" />;
+    return <Landmark className="w-4 h-4 sm:w-5 sm:h-5" />;
   };
 
   const activeCategoryTitle = useMemo(() => {
@@ -482,7 +491,51 @@ export default function Careers() {
       />
 
       {/* Main Container */}
-      <div className="container mx-auto px-4 lg:px-12 py-10 sm:py-14">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-12 py-8 sm:py-14">
+
+        {/* Top Back Button & Breadcrumbs Navigation */}
+        <div className="flex items-center justify-between gap-3 mb-6 pb-3 border-b border-gray-100">
+          {activeCategoryView !== null || searchQuery ? (
+            <button
+              onClick={() => {
+                setActiveCategoryView(null);
+                setSelectedCategoryId('ALL');
+                setSearchQuery('');
+              }}
+              className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-800 hover:text-emerald-950 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all cursor-pointer shadow-xs"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span>{isSi ? 'ආපසු සියලු කාණ්ඩ වෙත' : 'Back to Categories'}</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => navigate('/')}
+              className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-gray-700 hover:text-emerald-900 bg-white hover:bg-emerald-50/60 border border-gray-200 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all cursor-pointer shadow-xs"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-700" />
+              <span>{isSi ? 'ප්‍රධාන පිටුවට (Home)' : 'Back to Home'}</span>
+            </button>
+          )}
+
+          <div className="text-xs text-gray-400 font-medium">
+            <span
+              className="cursor-pointer hover:underline"
+              onClick={() => {
+                setActiveCategoryView(null);
+                setSelectedCategoryId('ALL');
+                setSearchQuery('');
+              }}
+            >
+              {isSi ? 'රැකියා අවස්ථා' : 'Careers'}
+            </span>
+            {activeCategoryView && (
+              <>
+                <span className="mx-1.5">/</span>
+                <span className="text-emerald-800 font-bold">{activeCategoryTitle}</span>
+              </>
+            )}
+          </div>
+        </div>
 
         {/* Top Controls: Search Bar & Daily Worker Button */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8">
@@ -526,7 +579,7 @@ export default function Careers() {
         {/* VIEW 1: Categories Overview (The 4 Category Cards - Exact Match to UI Image, NO Extra Text!) */}
         {activeCategoryView === null && !searchQuery.trim() ? (
           <div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-7">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 lg:gap-7">
               {categoryCards.map((cat, idx) => {
                 const IconComponent = cat.icon;
                 return (
@@ -534,12 +587,12 @@ export default function Careers() {
                     key={cat.id}
                     onClick={() => handleSelectCategoryCard(cat)}
                     style={{ animationDelay: `${idx * 80}ms` }}
-                    className="bg-white rounded-3xl border border-gray-100 shadow-[0_6px_24px_rgba(0,0,0,0.06)] hover:shadow-[0_16px_36px_rgba(0,0,0,0.12)] overflow-hidden transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1.5 cursor-pointer"
+                    className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 shadow-[0_4px_16px_rgba(0,0,0,0.05)] sm:shadow-[0_6px_24px_rgba(0,0,0,0.06)] hover:shadow-[0_16px_36px_rgba(0,0,0,0.12)] overflow-hidden transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1.5 cursor-pointer"
                   >
                     {/* Top Media Wrapper */}
                     <div className="relative">
                       {/* Image & Wavy Divider (constrained to rounded top of card) */}
-                      <div className="h-48 sm:h-52 w-full relative overflow-hidden bg-gray-100">
+                      <div className="h-32 sm:h-48 lg:h-52 w-full relative overflow-hidden bg-gray-100">
                         <img
                           src={cat.image}
                           alt={cat.title}
@@ -556,28 +609,30 @@ export default function Careers() {
                       </div>
 
                       {/* Floating Round Icon Badge - sits half on the wave and half on the white body, completely unclipped! */}
-                      <div className="absolute -bottom-5 left-6 z-20 w-12 h-12 rounded-full bg-[#006837] text-white flex items-center justify-center border-[3.5px] border-white shadow-lg group-hover:scale-110 transition-transform">
-                        <IconComponent className="w-5 h-5" />
+                      <div className="absolute -bottom-4 sm:-bottom-5 left-3 sm:left-6 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#006837] text-white flex items-center justify-center border-[2.5px] sm:border-[3.5px] border-white shadow-md sm:shadow-lg group-hover:scale-110 transition-transform">
+                        <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" />
                       </div>
                     </div>
 
                     {/* Card Content Area: Job Category Title ONLY! */}
-                    <div className="pt-8 px-6 pb-6 flex-1 flex flex-col justify-between">
-                      <h3 className="text-xl font-bold text-[#143d4d] leading-snug group-hover:text-[#006837] transition-colors mb-6 min-h-[3.2rem]">
+                    <div className="pt-6 sm:pt-8 px-3 sm:px-6 pb-3.5 sm:pb-6 flex-1 flex flex-col justify-between">
+                      <h3 className="text-xs sm:text-xl font-bold text-[#143d4d] leading-snug group-hover:text-[#006837] transition-colors mb-2 sm:mb-6 min-h-[2rem] sm:min-h-[3.2rem] line-clamp-2">
                         {cat.title}
                       </h3>
 
                       {/* Card Footer: Button & Leaf Watermark */}
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-50 mt-auto">
+                      <div className="flex items-center justify-between pt-2.5 sm:pt-3 border-t border-gray-50 mt-auto">
                         <button
                           type="button"
-                          className="bg-[#006837] hover:bg-[#00532c] text-white text-xs sm:text-sm font-semibold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shadow-xs group-hover:shadow"
+                          className="bg-[#006837] hover:bg-[#00532c] text-white text-[11px] sm:text-sm font-semibold px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full flex items-center gap-1 transition-all shadow-xs group-hover:shadow cursor-pointer"
                         >
                           <span>{isSi ? 'පිවිසෙන්න' : 'Explore'}</span>
-                          <ArrowUpRight className="w-4 h-4" />
+                          <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </button>
 
-                        <AswannaLeafBadge />
+                        <div className="hidden xs:block sm:block">
+                          <AswannaLeafBadge />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -647,15 +702,15 @@ export default function Careers() {
                     <AgroLoader message={isSi ? 'දෛනික ශ්‍රමිකයන් පූරණය වෙමින් පවතී...' : 'Loading daily workers...'} />
                   </div>
                 ) : dailyWorkers.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-7">
                     {dailyWorkers.map((worker) => (
                       <div
                         key={worker.id}
-                        className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_16px_36px_rgba(0,0,0,0.12)] overflow-hidden transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1.5"
+                        className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 shadow-[0_4px_16px_rgba(0,0,0,0.05)] sm:shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_16px_36px_rgba(0,0,0,0.12)] overflow-hidden transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1.5"
                       >
                         {/* Top Media Wrapper */}
                         <div className="relative">
-                          <div className="h-44 sm:h-48 w-full relative overflow-hidden bg-gray-100">
+                          <div className="h-32 sm:h-44 lg:h-48 w-full relative overflow-hidden bg-gray-100">
                             <img
                               src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800&q=80"
                               alt={worker.fullName}
@@ -669,49 +724,51 @@ export default function Careers() {
                             <CardWaveDivider />
                           </div>
 
-                          <div className="absolute -bottom-5 left-6 z-20 w-12 h-12 rounded-full bg-[#006837] text-white flex items-center justify-center border-[3.5px] border-white shadow-lg">
-                            <Users className="w-5 h-5" />
+                          <div className="absolute -bottom-4 sm:-bottom-5 left-3 sm:left-6 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#006837] text-white flex items-center justify-center border-[2.5px] sm:border-[3.5px] border-white shadow-md sm:shadow-lg">
+                            <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                           </div>
                         </div>
 
                         {/* Card Content Area */}
-                        <div className="pt-8 px-6 pb-6 flex-1 flex flex-col justify-between">
+                        <div className="pt-6 sm:pt-8 px-3 sm:px-6 pb-3.5 sm:pb-6 flex-1 flex flex-col justify-between">
                           <div>
-                            <h3 className="text-lg sm:text-xl font-bold text-[#143d4d] leading-snug group-hover:text-[#006837] transition-colors mb-1">
+                            <h3 className="text-xs sm:text-xl font-bold text-[#143d4d] leading-snug group-hover:text-[#006837] transition-colors mb-0.5 sm:mb-1 line-clamp-1">
                               {worker.fullName}
                             </h3>
-                            <p className="text-xs text-gray-500 font-medium mb-3">
+                            <p className="text-[10px] sm:text-xs text-gray-500 font-medium mb-2 sm:mb-3 line-clamp-1">
                               {worker.dsDivision}, {worker.district} ({worker.province})
                             </p>
 
                             {/* Skills Pills */}
-                            <div className="flex flex-wrap gap-1 mb-4">
-                              {worker.skills?.slice(0, 3).map((item) => (
+                            <div className="flex flex-wrap gap-1 mb-2.5 sm:mb-4">
+                              {worker.skills?.slice(0, 2).map((item) => (
                                 <span
                                   key={item.skill.id}
-                                  className="bg-emerald-50 text-emerald-800 text-[11px] px-2 py-0.5 rounded-md border border-emerald-100 font-medium"
+                                  className="bg-emerald-50 text-emerald-800 text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-md border border-emerald-100 font-medium line-clamp-1"
                                 >
                                   ✓ {isSi && item.skill.nameSi ? item.skill.nameSi : item.skill.name}
                                 </span>
                               ))}
-                              {worker.skills?.length > 3 && (
-                                <span className="text-[10px] text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-md">
-                                  +{worker.skills.length - 3}
+                              {worker.skills && worker.skills.length > 2 && (
+                                <span className="text-[9px] sm:text-[10px] text-gray-400 bg-gray-100 px-1 py-0.5 rounded-md">
+                                  +{worker.skills.length - 2}
                                 </span>
                               )}
                             </div>
                           </div>
 
                           {/* Footer with Call Button & Leaf Watermark */}
-                          <div className="flex items-center justify-between pt-3 border-t border-gray-50 mt-auto">
+                          <div className="flex items-center justify-between pt-2.5 sm:pt-3 border-t border-gray-50 mt-auto">
                             <a
                               href={`tel:${worker.phone}`}
-                              className="bg-[#006837] hover:bg-[#00532c] text-white text-xs sm:text-sm font-semibold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shadow-xs group-hover:shadow"
+                              className="bg-[#006837] hover:bg-[#00532c] text-white text-[10px] sm:text-sm font-semibold px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full flex items-center gap-1 sm:gap-1.5 transition-all shadow-xs group-hover:shadow"
                             >
-                              <Phone className="w-3.5 h-3.5" />
-                              <span>{worker.phone}</span>
+                              <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                              <span className="truncate max-w-[80px] sm:max-w-none">{worker.phone}</span>
                             </a>
-                            <AswannaLeafBadge />
+                            <div className="hidden xs:block sm:block">
+                              <AswannaLeafBadge />
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -734,7 +791,7 @@ export default function Careers() {
                   </div>
                 ) : jobsData.length > 0 ? (
                   <div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-7">
                       {jobsData.map((job, idx) => {
                         const displayTitle = isSi && job.designationSi ? job.designationSi : (job.designation || job.title);
                         const companyOrInstitution = job.companyNameSi || job.companyName
@@ -746,13 +803,13 @@ export default function Careers() {
                         return (
                           <div
                             key={job.id}
-                            onClick={() => navigate(`/careers/${job.id}`)}
+                            onClick={() => navigate(`/careers/${job.slug || job.id}`)}
                             style={{ animationDelay: `${idx * 60}ms` }}
-                            className="bg-white rounded-3xl border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_16px_36px_rgba(0,0,0,0.12)] overflow-hidden transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1.5 cursor-pointer"
+                            className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 shadow-[0_4px_16px_rgba(0,0,0,0.05)] sm:shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_16px_36px_rgba(0,0,0,0.12)] overflow-hidden transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1.5 cursor-pointer"
                           >
                             {/* Top Media Wrapper */}
                             <div className="relative">
-                              <div className="h-44 sm:h-48 w-full relative overflow-hidden bg-gray-100">
+                              <div className="h-32 sm:h-44 lg:h-48 w-full relative overflow-hidden bg-gray-100">
                                 <img
                                   src={getJobCardImage(job)}
                                   alt={displayTitle}
@@ -769,37 +826,51 @@ export default function Careers() {
                               </div>
 
                               {/* Round Icon Badge */}
-                              <div className="absolute -bottom-5 left-6 z-20 w-12 h-12 rounded-full bg-[#006837] text-white flex items-center justify-center border-[3.5px] border-white shadow-lg group-hover:scale-110 transition-transform">
+                              <div className="absolute -bottom-4 sm:-bottom-5 left-3 sm:left-6 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#006837] text-white flex items-center justify-center border-[2.5px] sm:border-[3.5px] border-white shadow-md sm:shadow-lg group-hover:scale-110 transition-transform">
                                 {getJobCategoryIcon(job)}
                               </div>
                             </div>
 
                             {/* Card Content Area: Job Title and Institution ONLY */}
-                            <div className="pt-8 px-6 pb-6 flex-1 flex flex-col justify-between">
+                            <div className="pt-6 sm:pt-8 px-3 sm:px-6 pb-3.5 sm:pb-6 flex-1 flex flex-col justify-between">
                               <div>
-                                <h3 className="text-lg sm:text-xl font-bold text-[#143d4d] leading-snug group-hover:text-[#006837] transition-colors mb-2 line-clamp-2 min-h-[3rem]">
+                                <div className="flex items-center gap-1 sm:gap-2 mb-1.5 sm:mb-2 flex-wrap">
+                                  {(job.recruitmentType || job.recruitmentTypeSi) && (
+                                    <span className="text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                      {isSi && job.recruitmentTypeSi ? job.recruitmentTypeSi : (job.recruitmentType || job.recruitmentTypeSi)}
+                                    </span>
+                                  )}
+                                  {job.jobNature && (
+                                    <span className="text-[10px] sm:text-[11px] font-medium text-gray-600 bg-gray-100 px-1.5 sm:px-2 py-0.5 rounded-full">
+                                      {isSi && job.jobNatureSi ? job.jobNatureSi : job.jobNature}
+                                    </span>
+                                  )}
+                                </div>
+                                <h3 className="text-xs sm:text-xl font-bold text-[#143d4d] leading-snug group-hover:text-[#006837] transition-colors mb-1 min-h-[2rem] sm:min-h-[3rem] line-clamp-2">
                                   {displayTitle}
                                 </h3>
-                                <p className="text-xs sm:text-sm text-gray-500 font-medium line-clamp-1 mb-4">
+                                <p className="text-[10px] sm:text-sm text-gray-500 font-medium line-clamp-1 mb-2.5 sm:mb-4">
                                   {companyOrInstitution}
                                 </p>
                               </div>
 
                               {/* Card Footer: Button & Leaf Watermark */}
-                              <div className="flex items-center justify-between pt-3 border-t border-gray-50 mt-auto">
+                              <div className="flex items-center justify-between pt-2.5 sm:pt-3 border-t border-gray-50 mt-auto">
                                 <button
                                   type="button"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    navigate(`/careers/${job.id}`);
+                                    navigate(`/careers/${job.slug || job.id}`);
                                   }}
-                                  className="bg-[#006837] hover:bg-[#00532c] text-white text-xs sm:text-sm font-semibold px-4 py-2 rounded-full flex items-center gap-1.5 transition-all shadow-xs group-hover:shadow"
+                                  className="bg-[#006837] hover:bg-[#00532c] text-white text-[10px] sm:text-sm font-semibold px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full flex items-center gap-1 transition-all shadow-xs group-hover:shadow cursor-pointer"
                                 >
                                   <span>{isSi ? 'විස්තර බලන්න' : 'View Details'}</span>
-                                  <ArrowUpRight className="w-4 h-4" />
+                                  <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                                 </button>
 
-                                <AswannaLeafBadge />
+                                <div className="hidden xs:block sm:block">
+                                  <AswannaLeafBadge />
+                                </div>
                               </div>
                             </div>
                           </div>

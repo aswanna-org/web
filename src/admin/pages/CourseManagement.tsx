@@ -173,7 +173,7 @@ const defaultFormData = {
   slug: '',
   categoryId: '',
   instructorId: '',
-  courseLevel: 'NVQ 4 (ශිල්පීය සහතිකය)',
+  courseLevel: 'NVQ Level 4 (Craft Certificate)',
   deliveryMode: 'Physical_Farm',
   mediums: ['සිංහල'],
   description: '',
@@ -208,6 +208,7 @@ export default function CourseManagement() {
   const [categories, setCategories] = useState<CourseCategory[]>([]);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [relatedJobs, setRelatedJobs] = useState<RelatedJob[]>([]);
+  const [dbLevels, setDbLevels] = useState<{ id: string; name: string; nameSi?: string }[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -395,18 +396,22 @@ export default function CourseManagement() {
 
   const fetchCategoriesAndInstructors = async () => {
     try {
-      const [catRes, insRes, jobsRes] = await Promise.all([
+      const [catRes, insRes, jobsRes, levelsRes] = await Promise.all([
         fetch(`${API_BASE_URL}/courses/categories?all=true`),
         fetch(`${API_BASE_URL}/courses/instructors`),
-        fetch(`${API_BASE_URL}/courses/related-jobs`)
+        fetch(`${API_BASE_URL}/courses/related-jobs`),
+        fetch(`${API_BASE_URL}/courses/levels`)
       ]);
       if (catRes.ok) setCategories(await catRes.json());
       if (insRes.ok) setInstructors(await insRes.json());
       if (jobsRes.ok) setRelatedJobs(await jobsRes.json());
+      if (levelsRes.ok) setDbLevels(await levelsRes.json());
     } catch (err) {
       console.error(err);
     }
   };
+
+  const availableLevels = dbLevels.length > 0 ? dbLevels.map(l => l.name) : QUALIFICATION_LEVELS;
 
   useEffect(() => {
     fetchCourses(currentPage);
@@ -945,7 +950,7 @@ export default function CourseManagement() {
                   className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-600"
                 >
                   <option value="all">All Qualification Levels</option>
-                  {QUALIFICATION_LEVELS.map(lvl => (
+                  {availableLevels.map(lvl => (
                     <option key={lvl} value={lvl}>{lvl}</option>
                   ))}
                 </select>
@@ -1699,7 +1704,7 @@ export default function CourseManagement() {
                       onChange={e => setForm({ ...form, courseLevel: e.target.value })}
                       className="w-full px-4 py-3.5 border border-gray-300 rounded-xl text-sm font-semibold text-gray-900 bg-white focus:ring-1 focus:ring-emerald-600 outline-none"
                     >
-                      {QUALIFICATION_LEVELS.map(lvl => (
+                      {availableLevels.map(lvl => (
                         <option key={lvl} value={lvl}>{lvl}</option>
                       ))}
                     </select>

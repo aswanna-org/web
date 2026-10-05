@@ -92,6 +92,7 @@ function App() {
               <Route path="careers" element={<Careers />} />
               <Route path="careers/:id" element={<JobDetail />} />
               <Route path="careers/jobs/:id" element={<JobDetail />} />
+              <Route path="careers/slug/:slug" element={<JobDetail />} />
               <Route path="pages/faq" element={<div className="p-20 text-center font-roboto">FAQ Page Placeholder <br /><a href="/" className="text-blue-500 underline">Back</a></div>} />
               <Route path="pages/contact" element={<Contact />} />
               <Route path="contact" element={<Contact />} />
@@ -101,6 +102,7 @@ function App() {
               <Route path="education" element={<Education />} />
               <Route path="education/:slug" element={<EducationDetail />} />
               <Route path="gallery" element={<Gallery />} />
+              <Route path="gallery/:slug" element={<Gallery />} />
               <Route path="govijana-sewa" element={<GovijanaSewa />} />
               <Route path="govijana-sewa/:id" element={<GovijanaSewaDetail />} />
               <Route path="agro" element={<AgroCategories />} />

@@ -67,16 +67,48 @@ export const formatDurationUnit = (unit: string | undefined | null, isSinhala: b
 export const formatQualificationLevel = (level: string | undefined | null, isSinhala: boolean): string => {
   if (!level) return '';
   const levelMap: Record<string, { si: string; en: string }> = {
+    // Standard English and Sinhala keys
+    'NVQ Level 3 (Certificate)': { si: 'NVQ 3 (සහතිකය)', en: 'NVQ Level 3 (Certificate)' },
     'NVQ 3 (සහතිකය)': { si: 'NVQ 3 (සහතිකය)', en: 'NVQ Level 3 (Certificate)' },
+    'NVQ_Level_3': { si: 'NVQ 3 (සහතිකය)', en: 'NVQ Level 3 (Certificate)' },
+    'NVQ Level 3': { si: 'NVQ 3 (සහතිකය)', en: 'NVQ Level 3 (Certificate)' },
+
+    'NVQ Level 4 (Craft Certificate)': { si: 'NVQ 4 (ශිල්පීය සහතිකය)', en: 'NVQ Level 4 (Craft Certificate)' },
     'NVQ 4 (ශිල්පීය සහතිකය)': { si: 'NVQ 4 (ශිල්පීය සහතිකය)', en: 'NVQ Level 4 (Craft Certificate)' },
+    'NVQ_Level_4': { si: 'NVQ 4 (ශිල්පීය සහතිකය)', en: 'NVQ Level 4 (Craft Certificate)' },
+    'NVQ Level 4': { si: 'NVQ 4 (ශිල්පීය සහතිකය)', en: 'NVQ Level 4 (Craft Certificate)' },
+
+    'NVQ Level 5 (Diploma)': { si: 'NVQ 5 (ඩිප්ලෝමා)', en: 'NVQ Level 5 (Diploma)' },
     'NVQ 5 (ඩිප්ලෝමා)': { si: 'NVQ 5 (ඩිප්ලෝමා)', en: 'NVQ Level 5 (Diploma)' },
+    'NVQ_Level_5': { si: 'NVQ 5 (ඩිප්ලෝමා)', en: 'NVQ Level 5 (Diploma)' },
+    'NVQ Level 5': { si: 'NVQ 5 (ඩිප්ලෝමා)', en: 'NVQ Level 5 (Diploma)' },
+
+    'NVQ Level 6 (Higher Diploma)': { si: 'NVQ 6 (උසස් ඩිප්ලෝමා)', en: 'NVQ Level 6 (Higher Diploma)' },
     'NVQ 6 (උසස් ඩිප්ලෝමා)': { si: 'NVQ 6 (උසස් ඩිප්ලෝමා)', en: 'NVQ Level 6 (Higher Diploma)' },
+    'NVQ_Level_6': { si: 'NVQ 6 (උසස් ඩිප්ලෝමා)', en: 'NVQ Level 6 (Higher Diploma)' },
+    'NVQ Level 6': { si: 'NVQ 6 (උසස් ඩිප්ලෝමා)', en: 'NVQ Level 6 (Higher Diploma)' },
+
+    'NVQ 7 / SLQF 6 (Bachelor\'s Degree)': { si: 'NVQ 7 / SLQF 6 (ප්‍රථම උපාධිය)', en: 'NVQ 7 / SLQF 6 (Bachelor\'s Degree)' },
     'NVQ 7 / SLQF 6 (ප්‍රථම උපාධිය)': { si: 'NVQ 7 / SLQF 6 (ප්‍රථම උපාධිය)', en: 'NVQ 7 / SLQF 6 (Bachelor\'s Degree)' },
+    'NVQ_Level_7': { si: 'NVQ 7 / SLQF 6 (ප්‍රථම උපාධිය)', en: 'NVQ 7 / SLQF 6 (Bachelor\'s Degree)' },
+    'NVQ Level 7': { si: 'NVQ 7 / SLQF 6 (ප්‍රථම උපාධිය)', en: 'NVQ 7 / SLQF 6 (Bachelor\'s Degree)' },
+
+    'SLQF 7 (Postgraduate Certificate)': { si: 'SLQF 7 (පශ්චාත් උපාධි සහතිකය)', en: 'SLQF 7 (Postgraduate Certificate)' },
     'SLQF 7 (පශ්චාත් උපාධි සහතිකය)': { si: 'SLQF 7 (පශ්චාත් උපාධි සහතිකය)', en: 'SLQF 7 (Postgraduate Certificate)' },
+
+    'SLQF 8 (Postgraduate Diploma)': { si: 'SLQF 8 (පශ්චාත් උපාධි ඩිප්ලෝමාව)', en: 'SLQF 8 (Postgraduate Diploma)' },
     'SLQF 8 (පශ්චාත් උපාධි ඩිප්ලෝමාව)': { si: 'SLQF 8 (පශ්චාත් උපාධි ඩිප්ලෝමාව)', en: 'SLQF 8 (Postgraduate Diploma)' },
+
+    'SLQF 9 (Master\'s by Coursework)': { si: 'SLQF 9 (ශාස්ත්‍රපති / විද්‍යාපති පාඨමාලා උපාධිය)', en: 'SLQF 9 (Master\'s by Coursework)' },
     'SLQF 9 (ශාස්ත්‍රපති / විද්‍යාපති පාඨමාලා උපාධිය)': { si: 'SLQF 9 (ශාස්ත්‍රපති / විද්‍යාපති පාඨමාලා උපාධිය)', en: 'SLQF 9 (Master\'s by Coursework)' },
+
+    'SLQF 10 (Master\'s with Research)': { si: 'SLQF 10 (පර්යේෂණ සහිත ශාස්ත්‍රපති / විද්‍යාපති උපාධිය)', en: 'SLQF 10 (Master\'s with Research)' },
     'SLQF 10 (පර්යේෂණ සහිත ශාස්ත්‍රපති / විද්‍යාපති උපාධිය)': { si: 'SLQF 10 (පර්යේෂණ සහිත ශාස්ත්‍රපති / විද්‍යාපති උපාධිය)', en: 'SLQF 10 (Master\'s with Research)' },
+
+    'SLQF 11 (Master of Philosophy - M.Phil)': { si: 'SLQF 11 (දර්ශනපති උපාධිය - M.Phil)', en: 'SLQF 11 (Master of Philosophy - M.Phil)' },
     'SLQF 11 (දර්ශනපති උපාධිය - M.Phil)': { si: 'SLQF 11 (දර්ශනපති උපාධිය - M.Phil)', en: 'SLQF 11 (Master of Philosophy - M.Phil)' },
+
+    'SLQF 12 (Doctor of Philosophy - Ph.D)': { si: 'SLQF 12 (ආචාර්ය උපාධිය - Ph.D)', en: 'SLQF 12 (Doctor of Philosophy - Ph.D)' },
     'SLQF 12 (ආචාර්ය උපාධිය - Ph.D)': { si: 'SLQF 12 (ආචාර්ය උපාධිය - Ph.D)', en: 'SLQF 12 (Doctor of Philosophy - Ph.D)' },
   };
 

@@ -41,7 +41,7 @@ interface DailyWageWorker {
 }
 
 interface Ministry {
-  id: number;
+  id: string;
   name: string;
   nameSi?: string | null;
   institutions?: Institution[];
@@ -49,16 +49,17 @@ interface Ministry {
 }
 
 interface Institution {
-  id: number;
+  id: string;
   name: string;
   nameSi?: string | null;
-  ministryId?: number | null;
+  ministryId?: string | null;
   ministry?: Ministry;
   _count?: { jobs: number };
 }
 
 interface JobCategory {
-  id: number;
+  id: string;
+  slug?: string;
   name: string;
   nameSi?: string | null;
   image?: string | null;
@@ -66,7 +67,8 @@ interface JobCategory {
 }
 
 interface SalaryDetail {
-  id?: number;
+  id?: string;
+  jobPostId?: string;
   salaryCode?: string | null;
   basicSalary?: string | null;
   basicSalarySi?: string | null;
@@ -79,7 +81,8 @@ interface SalaryDetail {
 }
 
 interface EligibilityCriteria {
-  id?: number;
+  id?: string;
+  jobPostId?: string;
   ageLimit?: string | null;
   ageLimitSi?: string | null;
   ageRelaxation?: string | null;
@@ -91,7 +94,8 @@ interface EligibilityCriteria {
 }
 
 interface SelectionProcedure {
-  id?: number;
+  id?: string;
+  jobPostId?: string;
   method?: string | null;
   methodSi?: string | null;
   examDetails?: string | null;
@@ -99,7 +103,8 @@ interface SelectionProcedure {
 }
 
 interface ApplicationDetail {
-  id?: number;
+  id?: string;
+  jobPostId?: string;
   gazetteNo?: string | null;
   gazetteDate?: string | null;
   examFee?: string | null;
@@ -118,14 +123,15 @@ interface ApplicationDetail {
 }
 
 interface JobPost {
-  id: number;
+  id: string;
+  slug: string;
   designation: string;
   designationSi?: string | null;
   userId?: string | null;
   user?: { id: string; name: string; email: string; role: string } | null;
-  jobCategoryId: number;
+  jobCategoryId: string;
   jobCategory?: JobCategory;
-  institutionId?: number | null;
+  institutionId?: string | null;
   institution?: Institution | null;
   serviceCategory?: string | null;
   serviceCategorySi?: string | null;
@@ -133,6 +139,8 @@ interface JobPost {
   jobNatureSi?: string | null;
   serviceConditions?: string | null;
   serviceConditionsSi?: string | null;
+  recruitmentType?: string | null;
+  recruitmentTypeSi?: string | null;
   companyName?: string | null;
   companyNameSi?: string | null;
   governingMinistry?: string | null;
@@ -142,6 +150,7 @@ interface JobPost {
   country?: string | null;
   countrySi?: string | null;
   applyLink?: string | null;
+  bannerImage?: string | null;
   expiryDate: string;
   approvalStatus: 'PENDING' | 'APPROVED' | 'REJECTED';
   isActive: boolean;
@@ -166,7 +175,15 @@ const SERVICE_CONDITIONS_OPTIONS = [
   { label: 'ගිවිසුම්ගත / ව්‍යාපෘති පදනම', en: 'Contract / Project Basis', si: 'ගිවිසුම්ගත / ව්‍යාපෘති පදනම' },
 ];
 
+export const RECRUITMENT_TYPE_OPTIONS = [
+  { label: 'විවෘත (Open)', en: 'Open', si: 'විවෘත' },
+  { label: 'සීමිත (Limited)', en: 'Limited', si: 'සීමිත' },
+  { label: 'විවෘත හා සීමිත (Open & Limited)', en: 'Open & Limited', si: 'විවෘත හා සීමිත' },
+  { label: 'දෙපාර්තමේන්තු / අභ්‍යන්තර (Internal)', en: 'Internal', si: 'දෙපාර්තමේන්තු / අභ්‍යන්තර' },
+];
+
 const defaultJobForm = {
+  slug: '',
   designation: '',
   designationSi: '',
   jobCategoryId: '',
@@ -178,6 +195,8 @@ const defaultJobForm = {
   jobNatureSi: 'ස්ථිර',
   serviceConditions: 'Pensionable',
   serviceConditionsSi: 'ස්ථිර හා විශ්‍රාම වැටුප් සහිතයි',
+  recruitmentType: 'Open',
+  recruitmentTypeSi: 'විවෘත',
   companyName: '',
   companyNameSi: '',
   governingMinistry: '',
@@ -232,7 +251,8 @@ const defaultJobForm = {
   existingGazetteUrl: '',
   existingGazetteUrlSi: '',
   existingSpecimenAppUrl: '',
-  existingSpecimenAppUrlSi: ''
+  existingSpecimenAppUrlSi: '',
+  existingBannerImage: ''
 };
 
 export default function CareerManagement() {
@@ -248,6 +268,10 @@ export default function CareerManagement() {
   const [filterApproval, setFilterApproval] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
   const [filterCategory, setFilterCategory] = useState<string>('ALL');
   const [totalJobs, setTotalJobs] = useState(0);
+
+  // Job Banner Image Upload State
+  const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
+  const [bannerImagePreview, setBannerImagePreview] = useState<string | null>(null);
 
   // Daily Wage Workers State
   const [workers, setWorkers] = useState<DailyWageWorker[]>([]);
@@ -316,8 +340,9 @@ export default function CareerManagement() {
 
   // Job Modal State
   const [isJobModalOpen, setIsJobModalOpen] = useState(false);
-  const [editingJobId, setEditingJobId] = useState<number | null>(null);
+  const [editingJobId, setEditingJobId] = useState<string | null>(null);
   const [jobForm, setJobForm] = useState({ ...defaultJobForm });
+  const [isSlugCustomized, setIsSlugCustomized] = useState(false);
   const [modalTab, setModalTab] = useState<'basic' | 'salary' | 'eligibility' | 'application'>('basic');
   const [gazetteFile, setGazetteFile] = useState<File | null>(null);
   const [gazetteFileSi, setGazetteFileSi] = useState<File | null>(null);
@@ -330,21 +355,23 @@ export default function CareerManagement() {
 
   // Category Modal State
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-  const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState('');
   const [categoryNameSi, setCategoryNameSi] = useState('');
+  const [categorySlug, setCategorySlug] = useState('');
+  const [isCategorySlugCustomized, setIsCategorySlugCustomized] = useState(false);
   const [categoryImage, setCategoryImage] = useState('');
   const [categoryImageFile, setCategoryImageFile] = useState<File | null>(null);
 
   // Ministry Modal State
   const [isMinistryModalOpen, setIsMinistryModalOpen] = useState(false);
-  const [editingMinistryId, setEditingMinistryId] = useState<number | null>(null);
+  const [editingMinistryId, setEditingMinistryId] = useState<string | null>(null);
   const [ministryName, setMinistryName] = useState('');
   const [ministryNameSi, setMinistryNameSi] = useState('');
 
   // Institution Modal State
   const [isInstitutionModalOpen, setIsInstitutionModalOpen] = useState(false);
-  const [editingInstitutionId, setEditingInstitutionId] = useState<number | null>(null);
+  const [editingInstitutionId, setEditingInstitutionId] = useState<string | null>(null);
   const [institutionName, setInstitutionName] = useState('');
   const [institutionNameSi, setInstitutionNameSi] = useState('');
   const [institutionMinistryId, setInstitutionMinistryId] = useState<string>('');
@@ -464,7 +491,7 @@ export default function CareerManagement() {
   // Filter institutions based on selected ministry in job modal
   const filteredModalInstitutions = useMemo(() => {
     if (!jobForm.selectedMinistryId) return institutions;
-    return institutions.filter(inst => inst.ministryId === Number(jobForm.selectedMinistryId));
+    return institutions.filter(inst => String(inst.ministryId) === String(jobForm.selectedMinistryId));
   }, [institutions, jobForm.selectedMinistryId]);
 
   // Counts for tabs
@@ -753,13 +780,25 @@ export default function CareerManagement() {
     }
   };
 
+  const generateSlug = (val: string) => {
+    return (val || '')
+      .toString()
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+  };
+
   // --- Job Form Handlers ---
   const openCreateJob = () => {
     setJobForm({ ...defaultJobForm });
+    setIsSlugCustomized(false);
     setGazetteFile(null);
     setGazetteFileSi(null);
     setSpecimenAppFile(null);
     setSpecimenAppFileSi(null);
+    setBannerImageFile(null);
+    setBannerImagePreview(null);
     setEditingJobId(null);
     setModalTab('basic');
     setIsJobModalOpen(true);
@@ -767,7 +806,9 @@ export default function CareerManagement() {
 
   const openEditJob = (job: JobPost) => {
     setEditingJobId(job.id);
+    setIsSlugCustomized(true);
     setJobForm({
+      slug: job.slug || '',
       designation: job.designation || '',
       designationSi: job.designationSi || '',
       jobCategoryId: job.jobCategoryId ? String(job.jobCategoryId) : '',
@@ -779,6 +820,8 @@ export default function CareerManagement() {
       jobNatureSi: job.jobNatureSi || 'ස්ථිර',
       serviceConditions: job.serviceConditions || 'Pensionable',
       serviceConditionsSi: job.serviceConditionsSi || 'ස්ථිර හා විශ්‍රාම වැටුප් සහිතයි',
+      recruitmentType: job.recruitmentType || 'Open',
+      recruitmentTypeSi: job.recruitmentTypeSi || 'විවෘත',
       companyName: job.companyName || '',
       companyNameSi: job.companyNameSi || '',
       governingMinistry: job.governingMinistry || '',
@@ -829,12 +872,15 @@ export default function CareerManagement() {
       existingGazetteUrl: job.applicationInfo?.gazetteUrl || '',
       existingGazetteUrlSi: job.applicationInfo?.gazetteUrlSi || '',
       existingSpecimenAppUrl: job.applicationInfo?.specimenAppUrl || '',
-      existingSpecimenAppUrlSi: job.applicationInfo?.specimenAppUrlSi || ''
+      existingSpecimenAppUrlSi: job.applicationInfo?.specimenAppUrlSi || '',
+      existingBannerImage: job.bannerImage || ''
     });
     setGazetteFile(null);
     setGazetteFileSi(null);
     setSpecimenAppFile(null);
     setSpecimenAppFileSi(null);
+    setBannerImageFile(null);
+    setBannerImagePreview(job.bannerImage || null);
     setModalTab('basic');
     setIsJobModalOpen(true);
   };
@@ -847,8 +893,9 @@ export default function CareerManagement() {
     const isGovJob = !isPrivateJob && !isForeignJob;
 
     const finalDesignation = (jobForm.designation || jobForm.designationSi || '').trim();
-    if (!finalDesignation || !jobForm.jobCategoryId || !jobForm.expiryDate) {
-      alert('Please fill required fields: Designation, Category, and Expiry Date.');
+    const finalSlug = (jobForm.slug || generateSlug(finalDesignation)).trim();
+    if (!finalDesignation || !finalSlug || !jobForm.jobCategoryId || !jobForm.expiryDate) {
+      alert('Please fill required fields: Designation, URL Slug, Category, and Expiry Date.');
       return;
     }
 
@@ -860,6 +907,7 @@ export default function CareerManagement() {
     setIsSavingJob(true);
     try {
       const formData = new FormData();
+      formData.append('slug', finalSlug);
       formData.append('designation', finalDesignation);
       if (jobForm.designationSi) formData.append('designationSi', jobForm.designationSi.trim());
       formData.append('jobCategoryId', String(jobForm.jobCategoryId));
@@ -874,6 +922,8 @@ export default function CareerManagement() {
       if (jobForm.jobNatureSi) formData.append('jobNatureSi', jobForm.jobNatureSi);
       if (jobForm.serviceConditions) formData.append('serviceConditions', jobForm.serviceConditions);
       if (jobForm.serviceConditionsSi) formData.append('serviceConditionsSi', jobForm.serviceConditionsSi);
+      if (jobForm.recruitmentType) formData.append('recruitmentType', jobForm.recruitmentType);
+      if (jobForm.recruitmentTypeSi) formData.append('recruitmentTypeSi', jobForm.recruitmentTypeSi);
 
       if (jobForm.companyName) formData.append('companyName', jobForm.companyName);
       if (jobForm.companyNameSi) formData.append('companyNameSi', jobForm.companyNameSi);
@@ -937,6 +987,15 @@ export default function CareerManagement() {
         specimenAppUrlSi: jobForm.existingSpecimenAppUrlSi || null
       }));
 
+      // Banner Image
+      if (bannerImageFile) {
+        formData.append('bannerImage', bannerImageFile);
+      } else if (jobForm.existingBannerImage) {
+        formData.append('bannerImage', jobForm.existingBannerImage);
+      } else if (!bannerImagePreview) {
+        formData.append('bannerImage', '');
+      }
+
       // PDF Files (English & Sinhala)
       if (gazetteFile) formData.append('gazetteFile', gazetteFile);
       if (gazetteFileSi) formData.append('gazetteFileSi', gazetteFileSi);
@@ -984,7 +1043,7 @@ export default function CareerManagement() {
     }
   };
 
-  const handleApproveJob = async (jobId: number) => {
+  const handleApproveJob = async (jobId: string) => {
     try {
       const res = await fetch(`${API_BASE_URL}/careers/jobs/${jobId}/approve`, {
         method: 'PATCH',
@@ -998,7 +1057,7 @@ export default function CareerManagement() {
     }
   };
 
-  const handleRejectJob = async (jobId: number) => {
+  const handleRejectJob = async (jobId: string) => {
     try {
       const res = await fetch(`${API_BASE_URL}/careers/jobs/${jobId}/reject`, {
         method: 'PATCH',
@@ -1012,7 +1071,7 @@ export default function CareerManagement() {
     }
   };
 
-  const handleDeleteJob = async (jobId: number) => {
+  const handleDeleteJob = async (jobId: string) => {
     if (!confirm('Are you sure you want to delete this job post? This will delete all attached salary, eligibility, and application files.')) return;
     try {
       const res = await fetch(`${API_BASE_URL}/careers/jobs/${jobId}`, {
@@ -1040,6 +1099,7 @@ export default function CareerManagement() {
         const formData = new FormData();
         formData.append('name', (categoryName || categoryNameSi).trim());
         if (categoryNameSi.trim()) formData.append('nameSi', categoryNameSi.trim());
+        if (categorySlug.trim()) formData.append('slug', categorySlug.trim());
         formData.append('image', categoryImageFile);
         
         const headers: Record<string, string> = {};
@@ -1057,6 +1117,7 @@ export default function CareerManagement() {
           body: JSON.stringify({
             name: (categoryName || categoryNameSi).trim(),
             nameSi: categoryNameSi.trim() || null,
+            slug: categorySlug.trim() || undefined,
             image: categoryImage.trim() || null
           })
         });
@@ -1065,6 +1126,8 @@ export default function CareerManagement() {
         setIsCategoryModalOpen(false);
         setCategoryName('');
         setCategoryNameSi('');
+        setCategorySlug('');
+        setIsCategorySlugCustomized(false);
         setCategoryImage('');
         setCategoryImageFile(null);
         setEditingCategoryId(null);
@@ -1154,7 +1217,7 @@ export default function CareerManagement() {
         body: JSON.stringify({
           name: (institutionName || institutionNameSi).trim(),
           nameSi: institutionNameSi.trim() || null,
-          ministryId: institutionMinistryId ? Number(institutionMinistryId) : null
+          ministryId: institutionMinistryId ? String(institutionMinistryId) : null
         })
       });
       if (res.ok) {
@@ -1420,11 +1483,31 @@ export default function CareerManagement() {
                     return (
                       <tr key={job.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4">
-                          <div className="font-medium text-gray-800 leading-snug">{job.designation}</div>
-                          {job.designationSi && (
-                            <div className="text-xs text-gray-500 font-normal mt-0.5">{job.designationSi}</div>
-                          )}
-                          <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                          <div className="flex items-start gap-3">
+                            {job.bannerImage ? (
+                              <img
+                                src={job.bannerImage.startsWith('http') || job.bannerImage.startsWith('/api') ? job.bannerImage : `${API_BASE_URL.replace('/api', '')}${job.bannerImage}`}
+                                alt={job.designation}
+                                className="w-12 h-12 rounded-xl object-cover border border-gray-200 shrink-0 shadow-2xs"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                                <Briefcase className="w-5 h-5" />
+                              </div>
+                            )}
+                            <div>
+                              <div className="font-medium text-gray-800 leading-snug">{job.designation}</div>
+                              {job.designationSi && (
+                                <div className="text-xs text-gray-500 font-normal mt-0.5">{job.designationSi}</div>
+                              )}
+                              {job.slug && (
+                                <div className="text-[11px] font-mono text-emerald-700 mt-1">
+                                  /{job.slug}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1 text-xs text-gray-500 flex-wrap">
                             {job.jobNature && (
                               <span className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-medium">
                                 {JOB_NATURE_OPTIONS.find(o => o.en === job.jobNature || o.si === job.jobNatureSi)?.label || job.jobNature}
@@ -1433,6 +1516,11 @@ export default function CareerManagement() {
                             {job.serviceConditions && (
                               <span className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded font-medium">
                                 {SERVICE_CONDITIONS_OPTIONS.find(o => o.en === job.serviceConditions || o.si === job.serviceConditionsSi)?.label || job.serviceConditions}
+                              </span>
+                            )}
+                            {job.recruitmentType && (
+                              <span className="bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-medium">
+                                {RECRUITMENT_TYPE_OPTIONS.find(o => o.en === job.recruitmentType || o.si === job.recruitmentTypeSi)?.label || job.recruitmentType}
                               </span>
                             )}
                             {job.user && <span className="text-gray-400">By: {job.user.name}</span>}
@@ -1558,6 +1646,15 @@ export default function CareerManagement() {
                                 <ExternalLink size={16} />
                               </a>
                             )}
+                            <a
+                              href={`/careers/${job.slug || job.id}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              title="View Public Page"
+                              className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <ExternalLink size={16} />
+                            </a>
                             <button
                               onClick={() => setViewingJob(job)}
                               title="View Details"
@@ -1625,7 +1722,16 @@ export default function CareerManagement() {
                 />
               </div>
               <button
-                onClick={() => { setCategoryName(''); setCategoryNameSi(''); setCategoryImage(''); setCategoryImageFile(null); setEditingCategoryId(null); setIsCategoryModalOpen(true); }}
+                onClick={() => {
+                  setCategoryName('');
+                  setCategoryNameSi('');
+                  setCategorySlug('');
+                  setIsCategorySlugCustomized(false);
+                  setCategoryImage('');
+                  setCategoryImageFile(null);
+                  setEditingCategoryId(null);
+                  setIsCategoryModalOpen(true);
+                }}
                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium text-sm transition-colors cursor-pointer whitespace-nowrap"
               >
                 <Plus size={18} /> Add Category
@@ -1638,8 +1744,8 @@ export default function CareerManagement() {
               <thead className="bg-gray-50 border-b border-gray-100">
                 <tr>
                   <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Image</th>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
                   <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category Name</th>
+                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Slug</th>
                   <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Linked Jobs</th>
                   <th className="px-6 py-3" />
                 </tr>
@@ -1670,10 +1776,14 @@ export default function CareerManagement() {
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-gray-400 font-mono text-xs">#{cat.id}</td>
                     <td className="px-6 py-4 font-medium text-gray-800">
                       <div>{cat.name}</div>
                       {cat.nameSi && <div className="text-xs text-gray-400 font-normal">{cat.nameSi}</div>}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="font-mono text-xs text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md">
+                        {cat.slug || '—'}
+                      </span>
                     </td>
                     <td className="px-6 py-4 text-gray-500">
                       <span className="bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-full text-xs font-medium">
@@ -1686,6 +1796,8 @@ export default function CareerManagement() {
                           onClick={() => {
                             setCategoryName(cat.name);
                             setCategoryNameSi(cat.nameSi || '');
+                            setCategorySlug(cat.slug || generateSlug(cat.name));
+                            setIsCategorySlugCustomized(true);
                             setCategoryImage(cat.image || '');
                             setCategoryImageFile(null);
                             setEditingCategoryId(cat.id);
@@ -2312,7 +2424,14 @@ export default function CareerManagement() {
                         required
                         placeholder="e.g. Agriculture Instructor (Class III)"
                         value={jobForm.designation}
-                        onChange={e => setJobForm({ ...jobForm, designation: e.target.value })}
+                        onChange={e => {
+                          const val = e.target.value;
+                          setJobForm(prev => ({
+                            ...prev,
+                            designation: val,
+                            slug: (!isSlugCustomized || !prev.slug) ? generateSlug(val) : prev.slug
+                          }));
+                        }}
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
                       />
                     </div>
@@ -2328,6 +2447,40 @@ export default function CareerManagement() {
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
                       />
                     </div>
+                  </div>
+
+                  {/* Slug Field */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-sm font-medium text-gray-700">
+                        URL Slug <span className="text-red-500">*</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const auto = generateSlug(jobForm.designation || jobForm.designationSi);
+                          setJobForm(prev => ({ ...prev, slug: auto }));
+                          setIsSlugCustomized(false);
+                        }}
+                        className="text-xs text-emerald-600 hover:text-emerald-700 font-semibold cursor-pointer hover:underline flex items-center gap-1"
+                      >
+                        ↻ Auto-generate from Title
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. agriculture-instructor-class-iii"
+                      value={jobForm.slug}
+                      onChange={e => {
+                        setIsSlugCustomized(true);
+                        setJobForm({ ...jobForm, slug: generateSlug(e.target.value) });
+                      }}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm font-mono bg-white"
+                    />
+                    <p className="text-[11px] text-gray-500 mt-1">
+                      Public Link: <span className="font-mono text-emerald-700">/careers/{jobForm.slug || 'job-slug'}</span>
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -2364,6 +2517,80 @@ export default function CareerManagement() {
                       <p className="text-[11px] text-gray-500 mt-1">
                         මෙම දිනය අවසන් වූ පසු රැකියා දැන්වීම ස්වයංක්‍රීයව පද්ධතිය මඟින් unpublish (අක්‍රිය) කෙරේ.
                       </p>
+                    </div>
+                  </div>
+
+                  {/* Banner Image Upload */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Job Banner Image / පෝස්ටරය (Optional)
+                    </label>
+                    <div className="border-2 border-dashed border-gray-200 hover:border-emerald-500/50 rounded-xl p-4 transition-colors bg-gray-50/50">
+                      {bannerImagePreview ? (
+                        <div className="flex flex-col sm:flex-row items-center gap-4">
+                          <img
+                            src={bannerImagePreview.startsWith('http') || bannerImagePreview.startsWith('blob:') || bannerImagePreview.startsWith('/api') ? bannerImagePreview : `${API_BASE_URL.replace('/api', '')}${bannerImagePreview}`}
+                            alt="Banner Preview"
+                            className="w-full sm:w-48 h-28 object-cover rounded-lg border border-gray-200 shadow-xs"
+                          />
+                          <div className="flex-1 space-y-2 text-center sm:text-left">
+                            <p className="text-xs text-gray-700 font-medium">
+                              {bannerImageFile ? bannerImageFile.name : 'Current Banner Image'}
+                            </p>
+                            <div className="flex items-center justify-center sm:justify-start gap-2">
+                              <label className="cursor-pointer text-xs font-semibold px-3 py-1.5 bg-white border border-gray-200 hover:bg-gray-100 rounded-lg text-gray-700 transition-colors shadow-2xs">
+                                <span>Change Image</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={e => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      setBannerImageFile(file);
+                                      setBannerImagePreview(URL.createObjectURL(file));
+                                    }
+                                  }}
+                                />
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setBannerImageFile(null);
+                                  setBannerImagePreview(null);
+                                  setJobForm(prev => ({ ...prev, existingBannerImage: '' }));
+                                }}
+                                className="text-xs font-semibold px-3 py-1.5 bg-red-50 border border-red-200 hover:bg-red-100 rounded-lg text-red-600 transition-colors shadow-2xs cursor-pointer"
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center gap-2 cursor-pointer py-3">
+                          <div className="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                            <Briefcase className="w-5 h-5" />
+                          </div>
+                          <div className="text-center">
+                            <span className="text-xs font-bold text-emerald-700 hover:underline">Click to upload banner image</span>
+                            <span className="text-xs text-gray-500"> or drag and drop</span>
+                            <p className="text-[11px] text-gray-400 mt-0.5">PNG, JPG, WEBP up to 5MB (16:9 or banner ratio recommended)</p>
+                          </div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={e => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setBannerImageFile(file);
+                                setBannerImagePreview(URL.createObjectURL(file));
+                              }
+                            }}
+                          />
+                        </label>
+                      )}
                     </div>
                   </div>
 
@@ -2503,8 +2730,8 @@ export default function CareerManagement() {
                         </div>
                       </div>
 
-                      {/* Job Nature & Service Conditions Dropdowns */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                      {/* Job Nature, Service Conditions & Recruitment Type Dropdowns */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
                         <div>
                           <label className="block text-sm font-semibold text-gray-800 mb-1.5">
                             තනතුරේ ස්වභාවය <span className="text-red-500">*</span>
@@ -2567,6 +2794,39 @@ export default function CareerManagement() {
                             ))}
                             {!SERVICE_CONDITIONS_OPTIONS.some(o => o.en === jobForm.serviceConditions) && jobForm.serviceConditions && (
                               <option value={jobForm.serviceConditions}>{jobForm.serviceConditions}</option>
+                            )}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-800 mb-1.5">
+                            බඳවා ගැනීමේ ක්‍රමය <span className="text-red-500">*</span>
+                          </label>
+                          <select
+                            required
+                            value={
+                              RECRUITMENT_TYPE_OPTIONS.find(
+                                o => o.en === jobForm.recruitmentType || o.label === jobForm.recruitmentType || o.si === jobForm.recruitmentTypeSi
+                              )?.en || jobForm.recruitmentType || 'Open'
+                            }
+                            onChange={e => {
+                              const val = e.target.value;
+                              const match = RECRUITMENT_TYPE_OPTIONS.find(o => o.en === val);
+                              setJobForm({
+                                ...jobForm,
+                                recruitmentType: val,
+                                recruitmentTypeSi: match ? match.si : val,
+                              });
+                            }}
+                            className="w-full px-3.5 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm bg-white font-medium text-gray-800 shadow-sm cursor-pointer"
+                          >
+                            {RECRUITMENT_TYPE_OPTIONS.map(opt => (
+                              <option key={opt.en} value={opt.en}>
+                                {opt.label}
+                              </option>
+                            ))}
+                            {!RECRUITMENT_TYPE_OPTIONS.some(o => o.en === jobForm.recruitmentType) && jobForm.recruitmentType && (
+                              <option value={jobForm.recruitmentType}>{jobForm.recruitmentType}</option>
                             )}
                           </select>
                         </div>
@@ -3293,8 +3553,19 @@ export default function CareerManagement() {
               </button>
             </div>
 
+            {/* Banner Image Preview */}
+            {viewingJob.bannerImage && (
+              <div className="w-full h-48 sm:h-64 rounded-xl overflow-hidden border border-gray-200 bg-gray-100 shadow-xs">
+                <img
+                  src={viewingJob.bannerImage.startsWith('http') || viewingJob.bannerImage.startsWith('/api') ? viewingJob.bannerImage : `${API_BASE_URL.replace('/api', '')}${viewingJob.bannerImage}`}
+                  alt={viewingJob.designation}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+
             {/* Quick stats grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-gray-50 p-3 rounded-xl text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 bg-gray-50 p-3 rounded-xl text-xs">
               <div>
                 <span className="text-gray-400">Nature:</span> 
                 <div className="font-semibold text-gray-700">
@@ -3305,6 +3576,12 @@ export default function CareerManagement() {
                 <span className="text-gray-400">Conditions:</span> 
                 <div className="font-semibold text-gray-700">
                   {SERVICE_CONDITIONS_OPTIONS.find(o => o.en === viewingJob.serviceConditions || o.si === viewingJob.serviceConditionsSi)?.label || viewingJob.serviceConditions || '—'}
+                </div>
+              </div>
+              <div>
+                <span className="text-gray-400">Recruitment:</span> 
+                <div className="font-semibold text-gray-700">
+                  {RECRUITMENT_TYPE_OPTIONS.find(o => o.en === viewingJob.recruitmentType || o.si === viewingJob.recruitmentTypeSi)?.label || viewingJob.recruitmentType || '—'}
                 </div>
               </div>
               <div><span className="text-gray-400">Closing Date:</span> <div className="font-semibold text-gray-700">{new Date(viewingJob.expiryDate).toLocaleDateString()}</div></div>
@@ -3523,11 +3800,48 @@ export default function CareerManagement() {
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Government Gazette Jobs"
+                  placeholder="e.g. Government Jobs"
                   value={categoryName}
-                  onChange={e => setCategoryName(e.target.value)}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setCategoryName(val);
+                    if (!isCategorySlugCustomized) {
+                      setCategorySlug(generateSlug(val));
+                    }
+                  }}
                   className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
                 />
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Category URL Slug *</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCategorySlug(generateSlug(categoryName));
+                      setIsCategorySlugCustomized(false);
+                    }}
+                    className="text-xs text-green-700 hover:text-green-800 font-medium hover:underline cursor-pointer"
+                  >
+                    ↻ Auto-generate
+                  </button>
+                </div>
+                <div className="flex items-center rounded-lg border border-gray-200 overflow-hidden focus-within:ring-2 focus-within:ring-green-500/50 bg-gray-50">
+                  <span className="px-3 py-2 text-xs text-gray-400 bg-gray-100 border-r border-gray-200 select-none">
+                    /careers/
+                  </span>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. government-jobs"
+                    value={categorySlug}
+                    onChange={e => {
+                      setCategorySlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''));
+                      setIsCategorySlugCustomized(true);
+                    }}
+                    className="w-full px-3 py-2 bg-transparent text-sm focus:outline-none font-mono"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category Name (සිංහල - Optional)</label>

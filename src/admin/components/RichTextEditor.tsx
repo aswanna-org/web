@@ -40,6 +40,8 @@ import {
   Upload,
   Palette,
   Type,
+  Maximize2,
+  Minimize2,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
@@ -309,8 +311,10 @@ interface RichTextEditorProps {
   onChange: (value: string) => void;
   placeholder?: string;
   minHeight?: string;
-  /** @deprecated use minHeight instead */
   height?: string;
+  maxHeight?: string;
+  className?: string;
+  resizable?: boolean;
 }
 
 export default function RichTextEditor({
@@ -319,8 +323,52 @@ export default function RichTextEditor({
   placeholder = 'Write content here...',
   minHeight,
   height,
+  maxHeight,
+  className = '',
+  resizable = true,
 }: RichTextEditorProps) {
-  const resolvedMinHeight = minHeight || height || '260px';
+  const resolvedMinHeight = minHeight || (height && height !== '100%' ? height : '260px');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [customHeight, setCustomHeight] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
+  const startYRef = useRef(0);
+  const startHeightRef = useRef(0);
+
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!containerRef.current) return;
+    isDraggingRef.current = true;
+    startYRef.current = e.clientY;
+    startHeightRef.current = containerRef.current.offsetHeight;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      if (!isDraggingRef.current) return;
+      const deltaY = moveEvent.clientY - startYRef.current;
+      const newHeight = Math.max(160, startHeightRef.current + deltaY);
+      setCustomHeight(newHeight);
+    };
+
+    const onMouseUp = () => {
+      isDraggingRef.current = false;
+      window.removeEventListener('mousemove', onMouseMove);
+      window.removeEventListener('mouseup', onMouseUp);
+    };
+
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen]);
+
   const { token } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const colorInputRef = useRef<HTMLInputElement>(null);
@@ -476,11 +524,36 @@ export default function RichTextEditor({
   const currentFontSize = editor.getAttributes('textStyle').fontSize || 'default';
   const currentColor = editor.getAttributes('textStyle').color || '#333333';
 
+  const containerStyle: React.CSSProperties = isFullscreen
+    ? {
+        position: 'fixed',
+        inset: '1.5rem',
+        zIndex: 9999,
+        maxHeight: 'none',
+        height: 'calc(100vh - 3rem)',
+      }
+    : {
+        height: customHeight ? `${customHeight}px` : (height || 'auto'),
+        minHeight: resolvedMinHeight,
+        maxHeight: maxHeight || undefined,
+        resize: resizable && !isFullscreen ? 'vertical' : 'none',
+      };
+
   return (
-    <div
-      className="bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col focus-within:border-green-600 focus-within:ring-2 focus-within:ring-green-500/10 transition"
-      style={{ minHeight: resolvedMinHeight, resize: 'vertical', overflow: 'auto' }}
-    >
+    <>
+      {isFullscreen && (
+        <div
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[9998]"
+          onClick={() => setIsFullscreen(false)}
+        />
+      )}
+      <div
+        ref={containerRef}
+        className={`bg-white rounded-xl border border-gray-200 shadow-sm flex flex-col focus-within:border-green-600 focus-within:ring-2 focus-within:ring-green-500/10 transition-all overflow-hidden ${
+          isFullscreen ? 'shadow-2xl' : 'relative'
+        } ${className}`}
+        style={containerStyle}
+      >
       {/* Hidden File Inputs */}
       <input
         type="file"
@@ -797,6 +870,16 @@ export default function RichTextEditor({
         >
           <RemoveFormatting className="w-4 h-4" />
         </button>
+
+        {/* Fullscreen / Expand Toggle */}
+        <button
+          type="button"
+          onClick={() => setIsFullscreen(!isFullscreen)}
+          className={`ml-auto ${btnClass(isFullscreen)}`}
+          title={isFullscreen ? 'Exit Fullscreen (Esc)' : 'Fullscreen Editor'}
+        >
+          {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+        </button>
       </div>
 
       {/* Table Action Sub-bar (shows only when cursor is inside a table) */}
@@ -844,9 +927,25 @@ export default function RichTextEditor({
       )}
 
       {/* Editor Content Area */}
-      <div className="flex-1 overflow-y-auto bg-white cursor-text p-1">
-        <EditorContent editor={editor} className="h-full" />
+      <div className="flex-1 min-h-0 overflow-y-auto bg-white cursor-text p-2 sm:p-3">
+        <EditorContent editor={editor} className="min-h-full" />
       </div>
+
+      {/* Bottom Drag-to-Resize Handle */}
+      {resizable && !isFullscreen && (
+        <div
+          onMouseDown={handleMouseDown}
+          className="h-3.5 bg-gray-50 hover:bg-emerald-50 active:bg-emerald-100 border-t border-gray-200 cursor-ns-resize flex items-center justify-center shrink-0 select-none group transition-colors"
+          title="Drag up or down to resize editor height"
+        >
+          <div className="flex items-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+            <div className="w-1 h-1 rounded-full bg-gray-400 group-hover:bg-emerald-600" />
+            <div className="w-6 h-1 rounded-full bg-gray-400 group-hover:bg-emerald-600" />
+            <div className="w-1 h-1 rounded-full bg-gray-400 group-hover:bg-emerald-600" />
+          </div>
+        </div>
+      )}
     </div>
+  </>
   );
 }

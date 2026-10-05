@@ -225,7 +225,6 @@ export default function ItemManagement() {
   };
 
   const filteredItems = items.filter(i => i.name.toLowerCase().includes(search.toLowerCase()));
-  const editorHeight = 'calc(95vh - 200px)';
 
   return (
     <div className="space-y-6">
@@ -417,17 +416,29 @@ export default function ItemManagement() {
                   </div>
                   <div className="flex-1 min-h-0 overflow-hidden">
                     {/* EN Tab */}
-                    <div className={`h-full flex flex-col p-6 ${activeTab === 'EN' ? 'flex' : 'hidden'}`}>
+                    <div className={`h-full flex flex-col p-6 overflow-y-auto ${activeTab === 'EN' ? 'flex' : 'hidden'}`}>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Description (EN)</label>
-                      <div className="flex-1 min-h-0">
-                        <RichTextEditor value={form.description} onChange={value => setForm({ ...form, description: value })} placeholder="Enter item description in English..." height={editorHeight} />
+                      <div className="flex-1 min-h-[380px] flex flex-col">
+                        <RichTextEditor
+                          value={form.description}
+                          onChange={value => setForm({ ...form, description: value })}
+                          placeholder="Enter item description in English..."
+                          height="100%"
+                          minHeight="320px"
+                        />
                       </div>
                     </div>
                     {/* SI Tab */}
-                    <div className={`h-full flex flex-col p-6 ${activeTab === 'SI' ? 'flex' : 'hidden'}`}>
+                    <div className={`h-full flex flex-col p-6 overflow-y-auto ${activeTab === 'SI' ? 'flex' : 'hidden'}`}>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Description (SI)</label>
-                      <div className="flex-1 min-h-0">
-                        <RichTextEditor value={form.sinhalaDescription} onChange={value => setForm({ ...form, sinhalaDescription: value })} placeholder="Enter item description in Sinhala..." height={editorHeight} />
+                      <div className="flex-1 min-h-[380px] flex flex-col">
+                        <RichTextEditor
+                          value={form.sinhalaDescription}
+                          onChange={value => setForm({ ...form, sinhalaDescription: value })}
+                          placeholder="Enter item description in Sinhala..."
+                          height="100%"
+                          minHeight="320px"
+                        />
                       </div>
                     </div>
                     {/* SL Data Tab */}

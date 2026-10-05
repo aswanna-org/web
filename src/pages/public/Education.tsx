@@ -10,12 +10,22 @@ import { QUALIFICATION_LEVELS } from '../../data/educationData';
 import { formatQualificationLevel, formatDurationUnit } from './EducationDetail';
 import SEO from '../../components/common/SEO';
 
+interface DBLevel {
+  id: string;
+  name: string;
+  nameSi?: string;
+  slug: string;
+  levelCode?: string;
+  levelOrder?: number;
+}
+
 export default function Education() {
   const { t, i18n } = useTranslation();
   const [selectedLevel, setSelectedLevel] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [courses, setCourses] = useState<any[]>([]);
+  const [dbLevels, setDbLevels] = useState<DBLevel[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,6 +33,31 @@ export default function Education() {
 
   const isSinhala = i18n.language === 'si';
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+  // Fetch qualification levels dynamically from DB table
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/courses/levels`)
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setDbLevels(data);
+        }
+      })
+      .catch(() => {});
+  }, [API_BASE_URL]);
+
+  const qualificationOptions = useMemo(() => {
+    if (dbLevels.length > 0) {
+      return dbLevels.map(lvl => ({
+        value: lvl.name,
+        label: isSinhala && lvl.nameSi ? lvl.nameSi : formatQualificationLevel(lvl.name, isSinhala)
+      }));
+    }
+    return QUALIFICATION_LEVELS.map(level => ({
+      value: level,
+      label: formatQualificationLevel(level, isSinhala)
+    }));
+  }, [dbLevels, isSinhala]);
 
   // Debounce search query
   useEffect(() => {
@@ -166,10 +201,7 @@ export default function Education() {
                   onChange={(val) => handleLevelSelect(val)}
                   options={[
                     { value: 'All', label: isSinhala ? 'සියලුම පාඨමාලා' : 'All Courses' },
-                    ...QUALIFICATION_LEVELS.map((level) => ({
-                      value: level,
-                      label: formatQualificationLevel(level, isSinhala),
-                    }))
+                    ...qualificationOptions
                   ]}
                 />
               </div>

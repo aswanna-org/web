@@ -13,33 +13,110 @@ interface CropItem {
   status?: string;
 }
 
+// Fallback curated crops in case of offline, network delay, or empty categories
+const FALLBACK_CROPS: CropItem[] = [
+  {
+    id: 'fb-mango',
+    name: 'Mango',
+    sinhalaName: 'අඹ',
+    slug: 'mango',
+    image: 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=200&q=80',
+    detailUrl: '/agro/crop-production'
+  },
+  {
+    id: 'fb-banana',
+    name: 'Banana',
+    sinhalaName: 'කෙසෙල්',
+    slug: 'banana',
+    image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=200&q=80',
+    detailUrl: '/agro/crop-production'
+  },
+  {
+    id: 'fb-sweet-potato',
+    name: 'Sweet Potato',
+    sinhalaName: 'බතල',
+    slug: 'sweet-potato',
+    image: 'https://images.unsplash.com/photo-1596097635121-14b63b7a0c19?w=200&q=80',
+    detailUrl: '/agro/crop-production'
+  },
+  {
+    id: 'fb-potato',
+    name: 'Potato',
+    sinhalaName: 'අර්තාපල්',
+    slug: 'potato',
+    image: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=200&q=80',
+    detailUrl: '/agro/crop-production'
+  },
+  {
+    id: 'fb-chilli',
+    name: 'Chilli',
+    sinhalaName: 'මිරිස්',
+    slug: 'chilli',
+    image: 'https://images.unsplash.com/photo-1588252303782-cb80119abd6d?w=200&q=80',
+    detailUrl: '/agro/crop-production'
+  },
+  {
+    id: 'fb-cabbage',
+    name: 'Cabbage',
+    sinhalaName: 'ගෝවා',
+    slug: 'cabbage',
+    image: 'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=200&q=80',
+    detailUrl: '/agro/crop-production'
+  },
+  {
+    id: 'fb-tomato',
+    name: 'Tomato',
+    sinhalaName: 'තක්කාලි',
+    slug: 'tomato',
+    image: 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=200&q=80',
+    detailUrl: '/agro/crop-production'
+  },
+  {
+    id: 'fb-carrot',
+    name: 'Carrot',
+    sinhalaName: 'කැරට්',
+    slug: 'carrot',
+    image: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5c317?w=200&q=80',
+    detailUrl: '/agro/crop-production'
+  }
+];
+
 export default function ProductsSection() {
   const { t, i18n } = useTranslation();
   const isSinhala = i18n.language === 'si';
 
   const [crops, setCrops] = useState<CropItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [failedImages, setFailedImages] = useState<Record<string, boolean>>({});
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
     let isMounted = true;
+    setLoading(true);
+
     fetch(`${API_BASE_URL}/items/random?categorySlug=crop-production&limit=8`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch');
         return res.json();
       })
       .then((data: CropItem[]) => {
-        if (isMounted && Array.isArray(data) && data.length > 0) {
+        if (!isMounted) return;
+        if (Array.isArray(data) && data.length > 0) {
           // Strictly exclude coming soon / unavailable items
           const activeOnly = data.filter(item => {
             const s = (item.status || '').toUpperCase().trim();
             return s !== 'UNAVAILABLE' && s !== 'COMING_SOON';
           });
-          setCrops(activeOnly);
+          setCrops(activeOnly.length > 0 ? activeOnly : FALLBACK_CROPS);
+        } else {
+          setCrops(FALLBACK_CROPS);
         }
       })
-      .catch(() => {})
+      .catch(err => {
+        console.warn('Could not load dynamic crops, using fallback list:', err);
+        if (isMounted) setCrops(FALLBACK_CROPS);
+      })
       .finally(() => {
         if (isMounted) setLoading(false);
       });
@@ -51,7 +128,6 @@ export default function ProductsSection() {
 
   return (
     <section className="relative w-full py-8 sm:py-24 bg-white overflow-hidden font-roboto">
-
       {/* Background Watermark */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0">
         <span className="text-[5rem] sm:text-[14rem] lg:text-[24rem] font-extrabold text-gray-50 tracking-tighter opacity-75 whitespace-nowrap -translate-y-12 sm:-translate-y-24">
@@ -60,10 +136,8 @@ export default function ProductsSection() {
       </div>
 
       <div className="container mx-auto px-4 lg:px-12 relative z-10">
-
         {/* Top Half: Left Title + Right Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center mb-8 sm:mb-32">
-
           {/* Left Title Area */}
           <div className="reveal-fade-right flex flex-col items-center lg:items-start text-center lg:text-left max-w-lg mx-auto lg:mx-0">
             {/* Custom 3-leaf icon */}
@@ -93,37 +167,44 @@ export default function ProductsSection() {
             </Link>
           </div>
 
-          {/* Right Grid Area: 8 Dynamic Random Crops */}
-          <div className="grid grid-cols-4 gap-y-4 gap-x-2 sm:gap-y-10 sm:gap-x-4 md:gap-x-6 w-full max-w-2xl mx-auto lg:mr-0 pt-2 lg:pt-0">
-            {loading && crops.length === 0 ? (
-              // Loading Skeleton
+          {/* Right Grid Area: 8 Dynamic Random Crops / Skeletons */}
+          <div className="grid grid-cols-4 gap-y-4 gap-x-2 sm:gap-y-10 sm:gap-x-4 md:gap-x-6 w-full max-w-2xl mx-auto lg:mr-0 pt-2 lg:pt-0 min-h-[170px] sm:min-h-[220px]">
+            {loading ? (
+              // Enhanced Premium Pulsing Shimmer Skeletons
               Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="flex flex-col items-center justify-center p-2 animate-pulse">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full bg-gray-100 mb-2"></div>
-                  <div className="w-12 h-3 bg-gray-100 rounded"></div>
+                <div key={`crop-skeleton-${i}`} className="flex flex-col items-center justify-center p-2 animate-pulse">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-emerald-50 via-gray-100 to-gray-50 border border-gray-100 mb-2 shadow-xs flex items-center justify-center">
+                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-100/50"></div>
+                  </div>
+                  <div className="w-12 sm:w-16 h-3 bg-gray-200/80 rounded-full"></div>
                 </div>
               ))
             ) : (
               crops.map((crop, index) => {
                 const title = isSinhala ? (crop.sinhalaName || crop.name) : crop.name;
-                const delays = ['delay-75', 'delay-150', 'delay-200', 'delay-250', 'delay-300', 'delay-350', 'delay-400', 'delay-500'];
+                const delays = ['delay-75', 'delay-100', 'delay-150', 'delay-200', 'delay-200', 'delay-250', 'delay-300', 'delay-350'];
+                const cropKey = crop.id || `crop-${index}`;
+                const hasFailedImg = failedImages[cropKey];
 
                 return (
                   <Link
-                    key={crop.id || index}
+                    key={cropKey}
                     to={crop.detailUrl || `/agro/crop-production`}
-                    className={`reveal-fade-up ${delays[index % delays.length]} flex flex-col items-center justify-center group cursor-pointer p-1 transition-all duration-300 hover:-translate-y-1`}
+                    className={`reveal-fade-up is-revealed ${delays[index % delays.length]} flex flex-col items-center justify-center group cursor-pointer p-1 transition-all duration-300 hover:-translate-y-1`}
                   >
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center mb-1.5 sm:mb-2.5">
-                      {crop.image ? (
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center mb-1.5 sm:mb-2.5 relative">
+                      {!hasFailedImg && crop.image ? (
                         <img
                           src={crop.image}
                           alt={title}
+                          onError={() => setFailedImages(prev => ({ ...prev, [cropKey]: true }))}
                           className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-md"
                           loading="lazy"
                         />
                       ) : (
-                        <span className="text-3xl sm:text-5xl select-none">🌱</span>
+                        <div className="w-full h-full rounded-2xl bg-emerald-50/80 border border-emerald-100 flex items-center justify-center text-emerald-600 shadow-xs group-hover:scale-110 transition-transform duration-300">
+                          <span className="text-2xl sm:text-4xl select-none">🌱</span>
+                        </div>
                       )}
                     </div>
                     <span className="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-emerald-700 transition-colors text-center line-clamp-1 max-w-[85px] sm:max-w-[120px]">
@@ -134,11 +215,10 @@ export default function ProductsSection() {
               })
             )}
           </div>
-
         </div>
 
         {/* Bottom Half: Handwritten Typography */}
-        <div className="reveal-fade-up delay-200 flex justify-center text-center mt-6 sm:mt-12 w-full relative z-10">
+        <div className="reveal-fade-up is-revealed delay-200 flex justify-center text-center mt-6 sm:mt-12 w-full relative z-10">
           <h2 className="font-caveat text-xl sm:text-3xl md:text-5xl lg:text-[3.4rem] xl:text-[3.8rem] leading-snug sm:leading-tight drop-shadow-sm w-full max-w-6xl mx-auto px-4 font-bold">
             <span className="text-[#6c6742] inline-block hover:scale-105 transition-transform">{t('products.healthy')}</span>
             <span className="text-[#ff535c] inline-block hover:scale-105 transition-transform ml-1.5 sm:ml-2">{t('products.life')}</span>
@@ -148,9 +228,7 @@ export default function ProductsSection() {
             <span className="text-[#5b9e54] inline-block hover:scale-105 transition-transform ml-1.5 sm:ml-3">{t('products.productsTxt')}</span>
           </h2>
         </div>
-
       </div>
     </section>
   );
 }
-

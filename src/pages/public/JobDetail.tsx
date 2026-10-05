@@ -11,7 +11,8 @@ import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
 
 interface Job {
-  id: string | number;
+  id: string;
+  slug?: string;
   designation?: string;
   designationSi?: string;
   title?: string;
@@ -20,14 +21,16 @@ interface Job {
   sinhalaDescription?: string;
   location?: string;
   sinhalaLocation?: string;
-  jobCategory?: { id: number; name: string; nameSi?: string };
-  institution?: { id: number; name: string; nameSi?: string; ministry?: { id: number; name: string; nameSi?: string } };
+  jobCategory?: { id: string; name: string; nameSi?: string };
+  institution?: { id: string; name: string; nameSi?: string; ministry?: { id: string; name: string; nameSi?: string } };
   serviceCategory?: string;
   serviceCategorySi?: string;
   jobNature?: string;
   jobNatureSi?: string;
   serviceConditions?: string;
   serviceConditionsSi?: string;
+  recruitmentType?: string;
+  recruitmentTypeSi?: string;
   companyName?: string | null;
   companyNameSi?: string | null;
   governingMinistry?: string | null;
@@ -37,6 +40,7 @@ interface Job {
   country?: string | null;
   countrySi?: string | null;
   applyLink?: string | null;
+  bannerImage?: string | null;
   expiryDate?: string;
   salaryDetails?: {
     salaryCode?: string;
@@ -88,7 +92,8 @@ interface Job {
 }
 
 export default function JobDetail() {
-  const { id } = useParams<{ id: string }>();
+  const { id, slug } = useParams<{ id?: string; slug?: string }>();
+  const jobIdentifier = slug || id;
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const isSi = i18n.language === 'si';
@@ -101,12 +106,12 @@ export default function JobDetail() {
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
-    if (!id) return;
+    if (!jobIdentifier) return;
     const fetchJob = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${API_BASE_URL}/careers/openings/${id}`);
+        const res = await fetch(`${API_BASE_URL}/careers/openings/${jobIdentifier}`);
         if (!res.ok) {
           throw new Error('රැකියා තොරතුරු ලබා ගැනීමට නොහැකි විය.');
         }
@@ -120,16 +125,20 @@ export default function JobDetail() {
       }
     };
     fetchJob();
-  }, [id, API_BASE_URL]);
+  }, [jobIdentifier, API_BASE_URL]);
 
   const handleShare = () => {
+    const jobUrl = job?.slug
+      ? `${window.location.origin}/careers/${job.slug}`
+      : window.location.href;
+
     if (navigator.share) {
       navigator.share({
         title: job?.designationSi || job?.designation || 'Aswanna Careers',
-        url: window.location.href
+        url: jobUrl
       }).catch(() => {});
     } else {
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(jobUrl);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2500);
     }
@@ -171,6 +180,7 @@ export default function JobDetail() {
   const displayCategory = isSi && job.jobCategory?.nameSi ? job.jobCategory.nameSi : (job.jobCategory?.name || 'CAREERS');
   const displayNature = isSi && job.jobNatureSi ? job.jobNatureSi : job.jobNature;
   const displayServiceCategory = isSi && job.serviceCategorySi ? job.serviceCategorySi : job.serviceCategory;
+  const displayRecruitmentType = isSi && job.recruitmentTypeSi ? job.recruitmentTypeSi : job.recruitmentType;
   const displaySalary = isSi && (job.salaryDetails?.salaryDisplaySi || job.salaryDetails?.basicSalarySi)
     ? (job.salaryDetails?.salaryDisplaySi || job.salaryDetails?.basicSalarySi)
     : (job.salaryDetails?.salaryDisplay || job.salaryDetails?.basicSalary);
@@ -195,7 +205,7 @@ export default function JobDetail() {
       <SEO 
         title={`${displayTitle} | Aswanna Careers`}
         description={job.description ? job.description.slice(0, 160) : `Agricultural career opportunity: ${displayTitle}`}
-        canonical={`/careers/${job.id}`}
+        canonical={`/careers/${job.slug || job.id}`}
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "JobPosting",
@@ -214,7 +224,7 @@ export default function JobDetail() {
       <PageHero 
         title={t('careers.title', 'CAREERS')} 
         description=""
-        image="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
+        image={job.bannerImage || "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"}
         gradientColor="#006837"
         icon={Briefcase}
         badgeBg="bg-[#006837]"
@@ -244,6 +254,23 @@ export default function JobDetail() {
           </div>
         </div>
 
+        {/* Job Banner Showcase (When uploaded for this specific job) */}
+        {job.bannerImage && (
+          <div className="w-full h-56 sm:h-72 md:h-96 rounded-3xl overflow-hidden mb-8 border border-gray-100 shadow-[0_6px_24px_rgba(0,0,0,0.06)] relative group bg-gray-100">
+            <img
+              src={job.bannerImage}
+              alt={displayTitle}
+              className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+            <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between text-white pointer-events-none">
+              <span className="text-xs sm:text-sm font-bold bg-[#006837]/90 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-sm">
+                {displayCategory}
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Job Header Card */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_6px_24px_rgba(0,0,0,0.05)] p-6 sm:p-10 mb-8 relative overflow-hidden">
           <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -258,6 +285,11 @@ export default function JobDetail() {
             {displayServiceCategory && (
               <span className="text-xs font-medium text-gray-700 bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
                 {displayServiceCategory}
+              </span>
+            )}
+            {displayRecruitmentType && (
+              <span className="text-xs font-bold text-blue-800 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                {displayRecruitmentType}
               </span>
             )}
             {job.expiryDate && (
@@ -675,6 +707,13 @@ export default function JobDetail() {
                   <div>
                     <span className="text-gray-400 block text-xs">{isSi ? 'සේවා ස්වභාවය' : 'Employment Type'}</span>
                     <span className="font-bold text-gray-800">{displayNature}</span>
+                  </div>
+                )}
+
+                {displayRecruitmentType && (
+                  <div>
+                    <span className="text-gray-400 block text-xs">{isSi ? 'බඳවා ගැනීමේ ක්‍රමය' : 'Recruitment Type'}</span>
+                    <span className="font-bold text-emerald-800">{displayRecruitmentType}</span>
                   </div>
                 )}
 
