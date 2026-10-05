@@ -191,17 +191,27 @@ export default function Header() {
           </div>
 
           {/* Mobile Menu Toggle & Mini Actions */}
-          <div className="flex xl:hidden items-center gap-1.5 sm:gap-2.5">
+          <div className="flex xl:hidden items-center gap-1.5 sm:gap-2">
             <FontSizeSwitcher variant="transparent" />
-            <LanguageSwitcher variant="transparent" />
-            <button className="text-white hover:text-[var(--color-primary)]">
-              <ShoppingCart className="w-5 h-5" />
-            </button>
-            <button
-              className="text-white hover:text-[var(--color-primary)] ml-0.5"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            <LanguageSwitcher variant="globe" />
+            <Link
+              to="/marketplace"
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all duration-200 cursor-pointer select-none"
+              title="Marketplace Cart"
             >
-              {isMobileMenuOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
+              <ShoppingCart className="w-5 h-5 text-white" />
+            </Link>
+            <button
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all duration-200 cursor-pointer select-none"
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              title={isMobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+            >
+              {isMobileMenuOpen ? (
+                <X className="w-5 h-5 text-white" />
+              ) : (
+                <Menu className="w-5 h-5 text-white" />
+              )}
             </button>
           </div>
         </div>

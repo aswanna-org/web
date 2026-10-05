@@ -11,7 +11,7 @@ import Pagination from '../../components/admin/Pagination';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
 import { useAuth } from '../../context/AuthContext';
-import { SRI_LANKA_PROVINCES, getDistrictsForProvince, getDSDsForDistrict } from '../../data/sriLankaLocations';
+import { SRI_LANKA_PROVINCES, getDistrictsForProvince, getDSDsForDistrict, getGNDsForDSD } from '../../data/sriLankaLocations';
 
 interface Job {
   id: string;
@@ -141,11 +141,11 @@ interface CategoryCardItem {
 // Reusable SVG for wavy card divider matching reference UI
 const CardWaveDivider = () => (
   <svg
-    className="absolute -bottom-0.5 left-0 right-0 w-full h-7 text-white fill-current pointer-events-none"
-    viewBox="0 0 500 60"
+    className="absolute -bottom-1 left-0 right-0 w-full h-8 text-white fill-current pointer-events-none z-10 translate-y-0.5"
+    viewBox="0 0 500 62"
     preserveAspectRatio="none"
   >
-    <path d="M0,25 C150,55 350,0 500,25 L500,60 L0,60 Z" />
+    <path d="M0,25 C150,55 350,0 500,25 L500,62 L0,62 Z" />
   </svg>
 );
 
@@ -384,8 +384,31 @@ export default function Careers() {
 
   const availableDSDs = useMemo(() => {
     if (!dailyWorkerForm.district) return [];
-    return getDSDsForDistrict(dailyWorkerForm.district);
-  }, [dailyWorkerForm.district]);
+    const list = getDSDsForDistrict(dailyWorkerForm.district);
+    return list.slice().sort((a, b) => {
+      const nameA = isSi ? (a.nameSi || a.nameEn) : a.nameEn;
+      const nameB = isSi ? (b.nameSi || b.nameEn) : b.nameEn;
+      return nameA.localeCompare(nameB, isSi ? 'si' : 'en');
+    });
+  }, [dailyWorkerForm.district, isSi]);
+
+  const availableGNDs = useMemo(() => {
+    if (!dailyWorkerForm.dsDivision) return [];
+    const list = getGNDsForDSD(dailyWorkerForm.dsDivision, dailyWorkerForm.district);
+    return list.slice().sort((a, b) => {
+      if (a.gnCode && b.gnCode) {
+        const numA = parseInt(a.gnCode, 10);
+        const numB = parseInt(b.gnCode, 10);
+        if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
+          return numA - numB;
+        }
+        return a.gnCode.localeCompare(b.gnCode);
+      }
+      const nameA = isSi ? (a.nameSi || a.nameEn) : a.nameEn;
+      const nameB = isSi ? (b.nameSi || b.nameEn) : b.nameEn;
+      return nameA.localeCompare(nameB, isSi ? 'si' : 'en');
+    });
+  }, [dailyWorkerForm.dsDivision, dailyWorkerForm.district, isSi]);
 
   const handleRegisterWorker = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -591,7 +614,7 @@ export default function Careers() {
                   >
                     {/* Top Media Wrapper */}
                     <div className="relative">
-                      {/* Image & Wavy Divider (constrained to rounded top of card) */}
+                      {/* Image & Gradient (constrained to rounded top of card) */}
                       <div className="h-32 sm:h-48 lg:h-52 w-full relative overflow-hidden bg-gray-100">
                         <img
                           src={cat.image}
@@ -603,10 +626,10 @@ export default function Careers() {
                           loading="lazy"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-
-                        {/* Smooth Wave Divider */}
-                        <CardWaveDivider />
                       </div>
+
+                      {/* Smooth Wave Divider */}
+                      <CardWaveDivider />
 
                       {/* Floating Round Icon Badge - sits half on the wave and half on the white body, completely unclipped! */}
                       <div className="absolute -bottom-4 sm:-bottom-5 left-3 sm:left-6 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#006837] text-white flex items-center justify-center border-[2.5px] sm:border-[3.5px] border-white shadow-md sm:shadow-lg group-hover:scale-110 transition-transform">
@@ -1026,8 +1049,8 @@ export default function Careers() {
                     <select
                       required
                       value={dailyWorkerForm.province}
-                      onChange={e => setDailyWorkerForm({ ...dailyWorkerForm, province: e.target.value, district: '' })}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#006837] outline-none text-sm cursor-pointer"
+                      onChange={e => setDailyWorkerForm({ ...dailyWorkerForm, province: e.target.value, district: '', dsDivision: '', gnDivision: '' })}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#006837] outline-none text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
                       <option value="">{isSi ? 'පළාත තෝරන්න...' : 'Select Province...'}</option>
                       {SRI_LANKA_PROVINCES.map(p => (
@@ -1046,8 +1069,8 @@ export default function Careers() {
                       required
                       disabled={!dailyWorkerForm.province}
                       value={dailyWorkerForm.district}
-                      onChange={e => setDailyWorkerForm({ ...dailyWorkerForm, district: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#006837] outline-none text-sm cursor-pointer disabled:opacity-50"
+                      onChange={e => setDailyWorkerForm({ ...dailyWorkerForm, district: e.target.value, dsDivision: '', gnDivision: '' })}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#006837] outline-none text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                     >
                       <option value="">{isSi ? 'දිස්ත්‍රික්කය තෝරන්න...' : 'Select District...'}</option>
                       {availableDistricts.map(d => (
@@ -1065,34 +1088,57 @@ export default function Careers() {
                     <label className="text-xs sm:text-sm font-bold text-gray-700">
                       {isSi ? 'ප්‍රාදේශීය ලේකම් කොට්ඨාසය' : 'DS Division'} <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="text"
+                    <select
                       required
-                      list="worker-dsd-list"
+                      disabled={!dailyWorkerForm.district}
                       value={dailyWorkerForm.dsDivision}
-                      onChange={e => setDailyWorkerForm({ ...dailyWorkerForm, dsDivision: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#006837] outline-none text-sm"
-                      placeholder={isSi ? 'උදා: කැස්බෑව / තෝරන්න' : 'e.g. Kesbewa / Select'}
-                    />
-                    <datalist id="worker-dsd-list">
-                      {availableDSDs.map(dsd => (
-                        <option key={dsd.fid} value={dsd.name} />
-                      ))}
-                    </datalist>
+                      onChange={e => setDailyWorkerForm({ ...dailyWorkerForm, dsDivision: e.target.value, gnDivision: '' })}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#006837] outline-none text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      <option value="">{isSi ? 'ප්‍රාදේශීය ලේකම් කොට්ඨාසය තෝරන්න...' : 'Select DS Division...'}</option>
+                      {availableDSDs.map(dsd => {
+                        const val = isSi ? (dsd.nameSi || dsd.nameEn) : dsd.nameEn;
+                        return (
+                          <option key={dsd.id || dsd.nameEn} value={val}>
+                            {val}
+                          </option>
+                        );
+                      })}
+                      {dailyWorkerForm.dsDivision && !availableDSDs.some(d => (isSi ? (d.nameSi || d.nameEn) : d.nameEn) === dailyWorkerForm.dsDivision) && (
+                        <option value={dailyWorkerForm.dsDivision}>{dailyWorkerForm.dsDivision}</option>
+                      )}
+                    </select>
                   </div>
 
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs sm:text-sm font-bold text-gray-700">
                       {isSi ? 'ග්‍රාම නිලධාරී වසම' : 'GN Division'} <span className="text-red-500">*</span>
                     </label>
-                    <input
-                      type="text"
+                    <select
                       required
+                      disabled={!dailyWorkerForm.dsDivision}
                       value={dailyWorkerForm.gnDivision}
                       onChange={e => setDailyWorkerForm({ ...dailyWorkerForm, gnDivision: e.target.value })}
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#006837] outline-none text-sm"
-                      placeholder={isSi ? 'උදා: 574 මකුළුදූව' : 'e.g. 574 Makuluduwa'}
-                    />
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 focus:bg-white focus:border-[#006837] outline-none text-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      <option value="">{isSi ? 'ග්‍රාම නිලධාරී වසම තෝරන්න...' : 'Select GN Division...'}</option>
+                      {availableGNDs.map(gnd => {
+                        const name = isSi ? (gnd.nameSi || gnd.nameEn) : gnd.nameEn;
+                        const label = gnd.gnCode ? `${gnd.gnCode} - ${name}` : name;
+                        return (
+                          <option key={gnd.id || gnd.lifeCode || label} value={label}>
+                            {label}
+                          </option>
+                        );
+                      })}
+                      {dailyWorkerForm.gnDivision && !availableGNDs.some(g => {
+                        const name = isSi ? (g.nameSi || g.nameEn) : g.nameEn;
+                        const label = g.gnCode ? `${g.gnCode} - ${name}` : name;
+                        return label === dailyWorkerForm.gnDivision;
+                      }) && (
+                        <option value={dailyWorkerForm.gnDivision}>{dailyWorkerForm.gnDivision}</option>
+                      )}
+                    </select>
                   </div>
                 </div>
 

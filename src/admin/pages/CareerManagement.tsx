@@ -8,7 +8,7 @@ import {
 import Pagination from '../../components/admin/Pagination';
 import AgroLoader from '../../components/common/AgroLoader';
 import RichTextEditor from '../components/RichTextEditor';
-import { SRI_LANKA_PROVINCES, getDistrictsForProvince, getDSDsForDistrict } from '../../data/sriLankaLocations';
+import { SRI_LANKA_PROVINCES, getDistrictsForProvince, getDSDsForDistrict, getGNDsForDSD } from '../../data/sriLankaLocations';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -529,8 +529,25 @@ export default function CareerManagement() {
 
   const availableWorkerDSDs = useMemo(() => {
     if (!workerForm.district) return [];
-    return getDSDsForDistrict(workerForm.district);
+    const list = getDSDsForDistrict(workerForm.district);
+    return list.slice().sort((a, b) => (a.nameSi || a.nameEn).localeCompare(b.nameSi || b.nameEn, 'si'));
   }, [workerForm.district]);
+
+  const availableWorkerGNDs = useMemo(() => {
+    if (!workerForm.dsDivision) return [];
+    const list = getGNDsForDSD(workerForm.dsDivision, workerForm.district);
+    return list.slice().sort((a, b) => {
+      if (a.gnCode && b.gnCode) {
+        const numA = parseInt(a.gnCode, 10);
+        const numB = parseInt(b.gnCode, 10);
+        if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
+          return numA - numB;
+        }
+        return a.gnCode.localeCompare(b.gnCode);
+      }
+      return (a.nameSi || a.nameEn).localeCompare(b.nameSi || b.nameEn, 'si');
+    });
+  }, [workerForm.dsDivision, workerForm.district]);
 
   // Categories filtering & pagination
   const filteredCategories = useMemo(() => {
@@ -4082,7 +4099,7 @@ export default function CareerManagement() {
                 </div>
               </div>
 
-              {/* Location Cascade: Province & District */}
+              {/* Location Cascade: Province, District, DS Division & GN Division */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
@@ -4091,7 +4108,7 @@ export default function CareerManagement() {
                   <select
                     required
                     value={workerForm.province}
-                    onChange={e => setWorkerForm({ ...workerForm, province: e.target.value, district: '' })}
+                    onChange={e => setWorkerForm({ ...workerForm, province: e.target.value, district: '', dsDivision: '', gnDivision: '' })}
                     className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm bg-white"
                   >
                     <option value="">Select Province...</option>
@@ -4111,8 +4128,8 @@ export default function CareerManagement() {
                     required
                     disabled={!workerForm.province}
                     value={workerForm.district}
-                    onChange={e => setWorkerForm({ ...workerForm, district: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm bg-white disabled:bg-gray-100"
+                    onChange={e => setWorkerForm({ ...workerForm, district: e.target.value, dsDivision: '', gnDivision: '' })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
                   >
                     <option value="">Select District...</option>
                     {availableWorkerDistricts.map(d => (
@@ -4127,34 +4144,55 @@ export default function CareerManagement() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    DS Division (ප්‍රාදේශීය ලේකම් කොට්ඨාසය)
+                    DS Division (ප්‍රාදේශීය ලේකම් කොට්ඨාසය) <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
-                    list="admin-worker-dsd-list"
-                    placeholder="e.g. Kesbewa / තෝරන්න"
+                  <select
+                    required
+                    disabled={!workerForm.district}
                     value={workerForm.dsDivision}
-                    onChange={e => setWorkerForm({ ...workerForm, dsDivision: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
-                  />
-                  <datalist id="admin-worker-dsd-list">
+                    onChange={e => setWorkerForm({ ...workerForm, dsDivision: e.target.value, gnDivision: '' })}
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  >
+                    <option value="">Select DS Division...</option>
                     {availableWorkerDSDs.map(dsd => (
-                      <option key={dsd.fid} value={dsd.name} />
+                      <option key={dsd.id || dsd.nameEn} value={dsd.nameSi}>
+                        {dsd.nameSi} ({dsd.nameEn})
+                      </option>
                     ))}
-                  </datalist>
+                    {workerForm.dsDivision && !availableWorkerDSDs.some(d => d.nameSi === workerForm.dsDivision || d.nameEn === workerForm.dsDivision) && (
+                      <option value={workerForm.dsDivision}>{workerForm.dsDivision}</option>
+                    )}
+                  </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1">
-                    GN Division (ග්‍රාම නිලධාරී වසම)
+                    GN Division (ග්‍රාම නිලධාරී වසම) <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
-                    placeholder="උදා: මාවතගම නැගෙනහිර"
+                  <select
+                    required
+                    disabled={!workerForm.dsDivision}
                     value={workerForm.gnDivision}
                     onChange={e => setWorkerForm({ ...workerForm, gnDivision: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm"
-                  />
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500/50 text-sm bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  >
+                    <option value="">Select GN Division...</option>
+                    {availableWorkerGNDs.map(gnd => {
+                      const val = gnd.gnCode ? `${gnd.gnCode} - ${gnd.nameSi}` : gnd.nameSi;
+                      const label = gnd.gnCode ? `${gnd.gnCode} - ${gnd.nameSi} (${gnd.nameEn})` : `${gnd.nameSi} (${gnd.nameEn})`;
+                      return (
+                        <option key={gnd.id || gnd.lifeCode || val} value={val}>
+                          {label}
+                        </option>
+                      );
+                    })}
+                    {workerForm.gnDivision && !availableWorkerGNDs.some(g => {
+                      const val = g.gnCode ? `${g.gnCode} - ${g.nameSi}` : g.nameSi;
+                      return val === workerForm.gnDivision;
+                    }) && (
+                      <option value={workerForm.gnDivision}>{workerForm.gnDivision}</option>
+                    )}
+                  </select>
                 </div>
               </div>
 

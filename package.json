@@ -38,7 +38,7 @@
     "react-ga4": "^3.0.1",
     "react-i18next": "^17.0.12",
     "react-router-dom": "^7.18.2",
-    "sl-gnd-dsd-districts": "^1.0.0",
+    "sl-gnd-dsd-districts": "^2.0.1",
     "world-countries": "^5.1.0"
   },
   "devDependencies": {

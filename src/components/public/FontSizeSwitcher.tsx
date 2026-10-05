@@ -85,7 +85,7 @@ export default function FontSizeSwitcher({
   const containerStyle = isGlass
     ? 'glass-btn h-[38px] !p-1 flex items-center rounded-full'
     : isTransparent
-    ? 'h-[34px] flex items-center p-0.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white shadow-2xs'
+    ? 'h-9 sm:h-10 flex items-center p-0.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white shadow-2xs'
     : 'h-[34px] flex items-center p-0.5 rounded-full bg-white text-gray-800 shadow-xs border border-gray-200/90';
 
   return (

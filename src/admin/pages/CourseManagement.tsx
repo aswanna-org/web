@@ -5,7 +5,8 @@ import {
   Layers, FileText, Eye, Calendar,
   ChevronUp, ChevronDown, Check, UserCheck, AlertCircle,
   Phone, Mail, MessageSquare, CheckCircle2, XCircle,
-  Briefcase, Sparkles, Lock, Megaphone, Globe
+  Briefcase, Sparkles, Lock, Megaphone, Globe,
+  GraduationCap, Landmark
 } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import RichTextEditor from '../components/RichTextEditor';
@@ -68,6 +69,40 @@ export const MONTH_OPTIONS = [
   { value: 'On Demand', label: 'On Demand' }
 ];
 
+export const TYPE_ICON_OPTIONS = [
+  { value: 'GraduationCap', label: 'Graduation Cap (අධ්‍යයන පාඨමාලා)' },
+  { value: 'Clock', label: 'Clock (කෙටිකාලීන හා ප්‍රායෝගික පුහුණු)' },
+  { value: 'FileText', label: 'File Text (පර්යේෂණ පත්‍රිකා)' },
+  { value: 'BookOpen', label: 'Book Open (කෘෂි ප්‍රකාශන සහ අත්පොත්)' },
+  { value: 'Layers', label: 'Layers (කෘෂි ව්‍යාප්ති ඉගෙනුම් ද්‍රව්‍ය)' },
+  { value: 'Landmark', label: 'Landmark (කෘෂිකාර්මික අධ්‍යාපන ආයතන)' }
+];
+
+export const renderTypeIcon = (iconName?: string | null, size = 18, className = '') => {
+  switch (iconName) {
+    case 'GraduationCap':
+    case 'fa-graduation-cap':
+      return <GraduationCap size={size} className={className} />;
+    case 'Clock':
+    case 'fa-clock':
+      return <Clock size={size} className={className} />;
+    case 'FileText':
+    case 'fa-file-text':
+      return <FileText size={size} className={className} />;
+    case 'BookOpen':
+    case 'fa-book-open':
+      return <BookOpen size={size} className={className} />;
+    case 'Layers':
+    case 'fa-layer-group':
+      return <Layers size={size} className={className} />;
+    case 'Landmark':
+    case 'fa-landmark':
+      return <Landmark size={size} className={className} />;
+    default:
+      return <BookOpen size={size} className={className} />;
+  }
+};
+
 interface CourseModule {
   id?: string;
   moduleOrder: number;
@@ -81,6 +116,23 @@ interface CourseCategory {
   categoryNameEn: string;
   slug: string;
   iconClass?: string;
+}
+
+export interface EducationType {
+  id: string;
+  nameSi: string;
+  nameEn: string;
+  nameTa?: string | null;
+  slug: string;
+  description?: string | null;
+  image?: string | null;
+  iconClass?: string | null;
+  order: number;
+  isActive: boolean;
+  coursesCount?: number;
+  _count?: { courses: number };
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface Instructor {
@@ -134,6 +186,7 @@ interface Course {
   title: string;
   slug: string;
   categoryId: string;
+  educationTypeId?: string | null;
   instructorId?: string | null;
   courseLevel: string;
   deliveryMode: string;
@@ -161,6 +214,7 @@ interface Course {
   internalNotes?: string | null;
   createdAt: string;
   category?: CourseCategory;
+  educationType?: EducationType;
   instructor?: Instructor;
   relatedJobs?: RelatedJob[];
   modules?: CourseModule[];
@@ -172,6 +226,7 @@ const defaultFormData = {
   title: '',
   slug: '',
   categoryId: '',
+  educationTypeId: '',
   instructorId: '',
   courseLevel: 'NVQ Level 4 (Craft Certificate)',
   deliveryMode: 'Physical_Farm',
@@ -202,10 +257,11 @@ const defaultFormData = {
 
 export default function CourseManagement() {
   // Top View Mode
-  const [viewMode, setViewMode] = useState<'courses' | 'applications'>('courses');
+  const [viewMode, setViewMode] = useState<'courses' | 'applications' | 'types'>('courses');
 
   const [courses, setCourses] = useState<Course[]>([]);
   const [categories, setCategories] = useState<CourseCategory[]>([]);
+  const [educationTypes, setEducationTypes] = useState<EducationType[]>([]);
   const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [relatedJobs, setRelatedJobs] = useState<RelatedJob[]>([]);
   const [dbLevels, setDbLevels] = useState<{ id: string; name: string; nameSi?: string }[]>([]);
@@ -219,6 +275,7 @@ export default function CourseManagement() {
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
+  const [filterEducationType, setFilterEducationType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterLevel, setFilterLevel] = useState('all');
   const [kpis, setKpis] = useState({ total: 0, published: 0, draft: 0, archived: 0, free: 0 });
@@ -234,6 +291,25 @@ export default function CourseManagement() {
   const [appKpis, setAppKpis] = useState({ total: 0, pending: 0, approved: 0, contacted: 0, rejected: 0 });
   const [selectedApp, setSelectedApp] = useState<CourseApplication | null>(null);
   const [isAppDetailModalOpen, setIsAppDetailModalOpen] = useState(false);
+
+  // Education Types Tab & Modal State
+  const [typesSearch, setTypesSearch] = useState('');
+  const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
+  const [editingType, setEditingType] = useState<EducationType | null>(null);
+  const [typeForm, setTypeForm] = useState({
+    nameSi: '',
+    nameEn: '',
+    slug: '',
+    description: '',
+    image: '',
+    iconClass: 'GraduationCap',
+    order: 1,
+    isActive: true,
+  });
+  const [isTypeSlugCustomized, setIsTypeSlugCustomized] = useState(false);
+  const [typeImageFile, setTypeImageFile] = useState<File | null>(null);
+  const [typeImagePreview, setTypeImagePreview] = useState<string | null>(null);
+  const [isSubmittingType, setIsSubmittingType] = useState(false);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -271,6 +347,7 @@ export default function CourseManagement() {
       let url = `${API_BASE_URL}/courses/admin/all?page=${page}&limit=12`;
       if (search) url += `&search=${encodeURIComponent(search)}`;
       if (filterCategory !== 'all') url += `&categoryId=${filterCategory}`;
+      if (filterEducationType !== 'all') url += `&educationTypeId=${filterEducationType}`;
       if (filterStatus !== 'all') url += `&status=${filterStatus}`;
       if (filterLevel !== 'all') url += `&courseLevel=${encodeURIComponent(filterLevel)}`;
 
@@ -394,18 +471,32 @@ export default function CourseManagement() {
     }
   };
 
+  const fetchEducationTypes = async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/courses/types?all=true`);
+      if (res.ok) {
+        const data = await res.json();
+        setEducationTypes(data || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch education types:', err);
+    }
+  };
+
   const fetchCategoriesAndInstructors = async () => {
     try {
-      const [catRes, insRes, jobsRes, levelsRes] = await Promise.all([
+      const [catRes, insRes, jobsRes, levelsRes, typesRes] = await Promise.all([
         fetch(`${API_BASE_URL}/courses/categories?all=true`),
         fetch(`${API_BASE_URL}/courses/instructors`),
         fetch(`${API_BASE_URL}/courses/related-jobs`),
-        fetch(`${API_BASE_URL}/courses/levels`)
+        fetch(`${API_BASE_URL}/courses/levels`),
+        fetch(`${API_BASE_URL}/courses/types?all=true`)
       ]);
       if (catRes.ok) setCategories(await catRes.json());
       if (insRes.ok) setInstructors(await insRes.json());
       if (jobsRes.ok) setRelatedJobs(await jobsRes.json());
       if (levelsRes.ok) setDbLevels(await levelsRes.json());
+      if (typesRes.ok) setEducationTypes(await typesRes.json());
     } catch (err) {
       console.error(err);
     }
@@ -415,7 +506,7 @@ export default function CourseManagement() {
 
   useEffect(() => {
     fetchCourses(currentPage);
-  }, [currentPage, search, filterCategory, filterStatus, filterLevel]);
+  }, [currentPage, search, filterCategory, filterEducationType, filterStatus, filterLevel]);
 
   useEffect(() => {
     fetchApplications(appCurrentPage);
@@ -519,6 +610,7 @@ export default function CourseManagement() {
     setForm({
       ...defaultFormData,
       categoryId: categories.length > 0 ? categories[0].id : '',
+      educationTypeId: educationTypes.length > 0 ? educationTypes[0].id : '',
       instructorId: instructors.length > 0 ? instructors[0].id : '',
       applicationCalled: false,
       relatedJobIds: [],
@@ -541,6 +633,7 @@ export default function CourseManagement() {
       title: course.title || '',
       slug: course.slug || '',
       categoryId: course.categoryId || '',
+      educationTypeId: course.educationTypeId || '',
       instructorId: course.instructorId || '',
       courseLevel: course.courseLevel || 'NVQ 4 (ශිල්පීය සහතිකය)',
       deliveryMode: course.deliveryMode || 'Physical_Farm',
@@ -771,6 +864,137 @@ export default function CourseManagement() {
     }
   };
 
+  const openCreateTypeModal = () => {
+    setEditingType(null);
+    setTypeForm({
+      nameSi: '',
+      nameEn: '',
+      slug: '',
+      description: '',
+      image: '',
+      iconClass: 'GraduationCap',
+      order: educationTypes.length + 1,
+      isActive: true,
+    });
+    setIsTypeSlugCustomized(false);
+    setTypeImageFile(null);
+    setTypeImagePreview(null);
+    setErrorMsg('');
+    setIsTypeModalOpen(true);
+  };
+
+  const openEditTypeModal = (type: EducationType) => {
+    setEditingType(type);
+    setTypeForm({
+      nameSi: type.nameSi || '',
+      nameEn: type.nameEn || '',
+      slug: type.slug || '',
+      description: type.description || '',
+      image: type.image || '',
+      iconClass: type.iconClass || 'GraduationCap',
+      order: type.order || 1,
+      isActive: type.isActive !== false,
+    });
+    setIsTypeSlugCustomized(true);
+    setTypeImageFile(null);
+    setTypeImagePreview(type.image || null);
+    setErrorMsg('');
+    setIsTypeModalOpen(true);
+  };
+
+  const handleSaveType = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!typeForm.nameSi.trim() || !typeForm.nameEn.trim()) {
+      setErrorMsg('Sinhala and English names are required.');
+      return;
+    }
+    setIsSubmittingType(true);
+    setErrorMsg('');
+
+    try {
+      const fd = new FormData();
+      fd.append('nameSi', typeForm.nameSi.trim());
+      fd.append('nameEn', typeForm.nameEn.trim());
+      fd.append('slug', typeForm.slug.trim());
+      fd.append('description', typeForm.description.trim());
+      fd.append('iconClass', typeForm.iconClass);
+      fd.append('order', String(typeForm.order));
+      fd.append('isActive', String(typeForm.isActive));
+      if (typeForm.image) {
+        fd.append('image', typeForm.image);
+      }
+      if (typeImageFile) {
+        fd.append('image', typeImageFile);
+      }
+
+      const method = editingType ? 'PUT' : 'POST';
+      const url = editingType
+        ? `${API_BASE_URL}/courses/types/${editingType.id}`
+        : `${API_BASE_URL}/courses/types`;
+
+      const res = await fetch(url, {
+        method,
+        headers: authHeaders,
+        body: fd
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save education type.');
+      }
+
+      setSuccessMsg(editingType ? 'Education type updated successfully!' : 'Education type created successfully!');
+      setTimeout(() => setSuccessMsg(''), 4000);
+      setIsTypeModalOpen(false);
+      await fetchEducationTypes();
+      await fetchCourses(currentPage);
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Error saving education type.');
+    } finally {
+      setIsSubmittingType(false);
+    }
+  };
+
+  const handleToggleTypeActive = async (type: EducationType) => {
+    try {
+      const nextVal = !type.isActive;
+      const res = await fetch(`${API_BASE_URL}/courses/types/${type.id}`, {
+        method: 'PUT',
+        headers: { ...authHeaders, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive: nextVal })
+      });
+      if (res.ok) {
+        setEducationTypes(prev => prev.map(t => t.id === type.id ? { ...t, isActive: nextVal } : t));
+      }
+    } catch (err) {
+      console.error('Failed to toggle active status:', err);
+    }
+  };
+
+  const handleDeleteType = async (type: EducationType) => {
+    const count = type._count?.courses || type.coursesCount || 0;
+    if (!confirm(`Are you sure you want to delete "${type.nameSi} (${type.nameEn})"?${count > 0 ? `\nWarning: ${count} course(s) are linked to this type. Their education type will be reset to None.` : ''}`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE_URL}/courses/types/${type.id}`, {
+        method: 'DELETE',
+        headers: authHeaders
+      });
+      if (res.ok) {
+        setSuccessMsg('Education type deleted successfully.');
+        setTimeout(() => setSuccessMsg(''), 4000);
+        await fetchEducationTypes();
+        await fetchCourses(currentPage);
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to delete education type.');
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* ── Page Header ── */}
@@ -801,6 +1025,12 @@ export default function CourseManagement() {
             <UserCheck size={15} /> New Instructor
           </button>
           <button
+            onClick={openCreateTypeModal}
+            className="flex items-center gap-1.5 bg-white hover:bg-emerald-50 text-emerald-800 hover:text-emerald-900 border border-emerald-300 hover:border-emerald-400 px-3.5 py-2 rounded-lg font-medium text-xs shadow-sm transition-colors cursor-pointer"
+          >
+            <GraduationCap size={15} className="text-emerald-600" /> New Education Type
+          </button>
+          <button
             onClick={openCreateModal}
             className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-lg font-medium text-sm shadow-sm transition-colors cursor-pointer"
           >
@@ -809,11 +1039,11 @@ export default function CourseManagement() {
         </div>
       </div>
 
-      {/* ── View Switcher: Courses vs Applications ── */}
-      <div className="flex border-b border-gray-200 gap-2">
+      {/* ── View Switcher: Courses vs Applications vs Education Types ── */}
+      <div className="flex border-b border-gray-200 gap-2 overflow-x-auto">
         <button
           onClick={() => setViewMode('courses')}
-          className={`flex items-center gap-2 pb-3.5 px-4 text-sm font-bold border-b-2 transition-all cursor-pointer ${
+          className={`flex items-center gap-2 pb-3.5 px-4 text-sm font-bold border-b-2 transition-all cursor-pointer shrink-0 ${
             viewMode === 'courses'
               ? 'border-emerald-600 text-emerald-700'
               : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
@@ -831,7 +1061,7 @@ export default function CourseManagement() {
             setViewMode('applications');
             fetchApplications(1);
           }}
-          className={`flex items-center gap-2 pb-3.5 px-4 text-sm font-bold border-b-2 transition-all cursor-pointer relative ${
+          className={`flex items-center gap-2 pb-3.5 px-4 text-sm font-bold border-b-2 transition-all cursor-pointer relative shrink-0 ${
             viewMode === 'applications'
               ? 'border-emerald-600 text-emerald-700'
               : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
@@ -847,6 +1077,21 @@ export default function CourseManagement() {
               {appKpis.pending} New
             </span>
           )}
+        </button>
+
+        <button
+          onClick={() => setViewMode('types')}
+          className={`flex items-center gap-2 pb-3.5 px-4 text-sm font-bold border-b-2 transition-all cursor-pointer shrink-0 ${
+            viewMode === 'types'
+              ? 'border-emerald-600 text-emerald-700'
+              : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
+          }`}
+        >
+          <Layers size={17} />
+          <span>Education Types (අධ්‍යාපන අංශ)</span>
+          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${viewMode === 'types' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'}`}>
+            {educationTypes.length}
+          </span>
         </button>
       </div>
 
@@ -918,8 +1163,8 @@ export default function CourseManagement() {
 
           {/* ── Course Filters Bar ── */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3.5">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <div className="relative md:col-span-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+              <div className="relative">
                 <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
@@ -928,6 +1173,19 @@ export default function CourseManagement() {
                   onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
                   className="w-full pl-9 pr-3.5 py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600"
                 />
+              </div>
+
+              <div>
+                <select
+                  value={filterEducationType}
+                  onChange={e => { setFilterEducationType(e.target.value); setCurrentPage(1); }}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-600 font-medium text-emerald-800"
+                >
+                  <option value="all">All Education Types (සියලු අංශ)</option>
+                  {educationTypes.map(t => (
+                    <option key={t.id} value={t.id}>{t.nameSi} ({t.nameEn})</option>
+                  ))}
+                </select>
               </div>
 
               <div>
@@ -1039,7 +1297,13 @@ export default function CourseManagement() {
 
                         <td className="px-5 py-3.5">
                           <p className="font-medium text-gray-800 text-xs">{course.category?.categoryNameEn || '-'}</p>
-                          <p className="text-[11px] text-gray-500 truncate max-w-[180px]">{course.courseLevel}</p>
+                          {course.educationType && (
+                            <span className="inline-flex items-center gap-1 mt-0.5 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                              {renderTypeIcon(course.educationType.iconClass, 11, 'text-emerald-700 shrink-0')}
+                              <span>{course.educationType.nameSi}</span>
+                            </span>
+                          )}
+                          <p className="text-[11px] text-gray-500 truncate max-w-[180px] mt-0.5">{course.courseLevel}</p>
                           {course.relatedJobs && course.relatedJobs.length > 0 && (
                             <div className="flex items-center gap-1 mt-1 text-[10px] text-emerald-700 font-semibold">
                               <Briefcase size={11} /> {course.relatedJobs.length} Related Job{course.relatedJobs.length > 1 ? 's' : ''}
@@ -1413,6 +1677,201 @@ export default function CourseManagement() {
       )}
 
       {/* ==================================================================== */}
+      {/* ── VIEW 3: EDUCATION TYPES MANAGEMENT ── */}
+      {/* ==================================================================== */}
+      {viewMode === 'types' && (
+        <div className="space-y-6">
+          {/* Top Bar: Title, Subtitle, Search, Add Type Button */}
+          <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <span className="p-2.5 bg-emerald-100 text-emerald-700 rounded-xl">
+                  <GraduationCap size={22} />
+                </span>
+                <div>
+                  <h3 className="text-lg font-bold text-gray-900">
+                    කෘෂි අධ්‍යාපන අංශ කළමනාකරණය (Education Types & Programs)
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    පාඨමාලා සහ අධ්‍යාපනික සම්පත් වර්ගීකරණය වන ප්‍රධාන අංශ 6 (Academic Courses, Short Courses, Research Papers ආදිය)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search education types..."
+                  value={typesSearch}
+                  onChange={e => setTypesSearch(e.target.value)}
+                  className="pl-9 pr-3.5 py-2 bg-white border border-gray-200 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 w-52 sm:w-64"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={openCreateTypeModal}
+                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition-colors cursor-pointer shadow-sm shrink-0"
+              >
+                <Plus size={16} />
+                <span>Add Type</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Cards Grid: 6 Education Types */}
+          {educationTypes.length === 0 ? (
+            <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center shadow-sm">
+              <div className="w-12 h-12 rounded-xl bg-gray-100 text-gray-400 flex items-center justify-center mx-auto mb-3">
+                <Layers size={24} />
+              </div>
+              <h4 className="font-bold text-gray-800 text-base">No Education Types Found</h4>
+              <p className="text-xs text-gray-500 mt-1 mb-4">No education types are registered in the system.</p>
+              <button
+                onClick={openCreateTypeModal}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700"
+              >
+                <Plus size={14} /> Add First Type
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {educationTypes
+                .filter(t => {
+                  if (!typesSearch.trim()) return true;
+                  const q = typesSearch.toLowerCase();
+                  return (
+                    t.nameSi.toLowerCase().includes(q) ||
+                    t.nameEn.toLowerCase().includes(q) ||
+                    t.slug.toLowerCase().includes(q)
+                  );
+                })
+                .map(type => {
+                  const linkedCount = type._count?.courses || type.coursesCount || 0;
+                  return (
+                    <div
+                      key={type.id}
+                      className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden hover:shadow-md transition-all flex flex-col group"
+                    >
+                      {/* Image Banner with Badges */}
+                      <div className="relative h-44 w-full bg-slate-900 overflow-hidden shrink-0">
+                        {type.image ? (
+                          <img
+                            src={type.image}
+                            alt={type.nameEn}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-emerald-800 to-teal-950 text-white/50">
+                            {renderTypeIcon(type.iconClass, 48)}
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/25 to-transparent" />
+
+                        {/* Top Badges */}
+                        <div className="absolute top-3 inset-x-3 flex items-center justify-between">
+                          <span className="font-mono text-[10px] font-bold px-2.5 py-1 bg-black/60 backdrop-blur-md text-white rounded-lg border border-white/20">
+                            Order #{type.order}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleTypeActive(type)}
+                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold backdrop-blur-md border transition-all cursor-pointer ${
+                              type.isActive
+                                ? 'bg-emerald-500/80 text-white border-emerald-400/50 hover:bg-emerald-600/90'
+                                : 'bg-gray-700/80 text-gray-200 border-gray-600/50 hover:bg-gray-600/90'
+                            }`}
+                            title="Click to toggle status"
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full ${type.isActive ? 'bg-white animate-pulse' : 'bg-gray-400'}`} />
+                            <span>{type.isActive ? 'Active' : 'Inactive'}</span>
+                          </button>
+                        </div>
+
+                        {/* Icon & Title at bottom of banner */}
+                        <div className="absolute bottom-3 inset-x-3.5 flex items-end gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shrink-0 border border-white/20">
+                            {renderTypeIcon(type.iconClass, 20)}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-bold text-white text-base truncate leading-snug drop-shadow-sm">
+                              {type.nameSi}
+                            </h4>
+                            <p className="text-xs text-emerald-200 font-medium truncate drop-shadow-sm">
+                              {type.nameEn}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="p-4 flex-1 flex flex-col justify-between">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-mono text-[11px] text-gray-500 bg-gray-100 px-2 py-0.5 rounded-md truncate max-w-[180px]">
+                              slug: {type.slug}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFilterEducationType(type.id);
+                                setViewMode('courses');
+                              }}
+                              className="text-[11px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline flex items-center gap-1 cursor-pointer shrink-0"
+                              title="Filter courses by this type"
+                            >
+                              <BookOpen size={12} />
+                              <span>{linkedCount} Courses</span>
+                            </button>
+                          </div>
+
+                          <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">
+                            {type.description || <span className="italic text-gray-400">No description provided.</span>}
+                          </p>
+                        </div>
+
+                        {/* Card Action Buttons */}
+                        <div className="flex items-center gap-2 pt-3 mt-3 border-t border-gray-100">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFilterEducationType(type.id);
+                              setViewMode('courses');
+                            }}
+                            className="flex-1 py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                          >
+                            <Eye size={13} />
+                            <span>View Courses</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => openEditTypeModal(type)}
+                            className="p-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors cursor-pointer"
+                            title="Edit"
+                          >
+                            <Edit size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteType(type)}
+                            className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-colors cursor-pointer"
+                            title="Delete"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ==================================================================== */}
       {/* ── EXTRA LARGE, ULTRA-WIDE POPUP MODAL (w-[96vw] max-w-7xl h-[94vh]) ── */}
       {/* ==================================================================== */}
       {isModalOpen && (
@@ -1574,6 +2033,34 @@ export default function CourseManagement() {
                         <option value="Published">Published (Visible on website)</option>
                         <option value="Archived">Archived</option>
                       </select>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider">
+                          Education Type (අධ්‍යාපන අංශය) *
+                        </label>
+                        <button
+                          type="button"
+                          onClick={openCreateTypeModal}
+                          className="text-xs text-emerald-700 hover:underline font-semibold"
+                        >
+                          + New Type
+                        </button>
+                      </div>
+                      <select
+                        value={form.educationTypeId || ''}
+                        onChange={e => setForm({ ...form, educationTypeId: e.target.value })}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none bg-white font-medium text-gray-800"
+                      >
+                        <option value="">-- Select Education Type (Optional) --</option>
+                        {educationTypes.map(t => (
+                          <option key={t.id} value={t.id}>{t.nameSi} ({t.nameEn})</option>
+                        ))}
+                      </select>
+                      <p className="text-[11px] text-gray-400 mt-1">
+                        මෙම පාඨමාලාව අයත් වන අධ්‍යාපනික ප්‍රවර්ගය (Academic Courses, Short Courses, Research Papers ආදිය)
+                      </p>
                     </div>
 
                     <div>
@@ -2313,7 +2800,12 @@ export default function CourseManagement() {
                   />
                 )}
                 <div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {previewCourse.educationType && (
+                      <span className="text-xs font-bold text-amber-300 uppercase tracking-wider bg-white/10 px-2.5 py-0.5 rounded-full border border-amber-300/30">
+                        {previewCourse.educationType.nameSi}
+                      </span>
+                    )}
                     <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider bg-white/10 px-2.5 py-0.5 rounded-full">
                       {previewCourse.category?.categoryNameEn || 'Course'}
                     </span>
@@ -2684,6 +3176,219 @@ export default function CourseManagement() {
                 </button>
                 <button type="submit" className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold">
                   Save Category
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================================== */}
+      {/* ── ADD / EDIT EDUCATION TYPE MODAL ── */}
+      {/* ==================================================================== */}
+      {isTypeModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" onClick={() => !isSubmittingType && setIsTypeModalOpen(false)} />
+          <div className="bg-white rounded-2xl w-full max-w-lg relative z-10 shadow-2xl p-6 border border-gray-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                  <GraduationCap size={18} />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-gray-900">
+                    {editingType ? 'Edit Education Type' : 'Add Education Type'}
+                  </h3>
+                  <p className="text-[11px] text-gray-500">
+                    කෘෂි අධ්‍යාපන වර්ගීකරණ අංශය (Academic, Short Course, Research ආදිය)
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsTypeModalOpen(false)}
+                className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveType} className="space-y-3.5">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Type Name (Sinhala) *
+                </label>
+                <input
+                  required
+                  placeholder="e.g. අධ්‍යයන පාඨමාලා"
+                  value={typeForm.nameSi}
+                  onChange={e => setTypeForm({ ...typeForm, nameSi: e.target.value })}
+                  className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Type Name (English) *
+                </label>
+                <input
+                  required
+                  placeholder="e.g. Academic Courses"
+                  value={typeForm.nameEn}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setTypeForm(prev => ({
+                      ...prev,
+                      nameEn: val,
+                      slug: isTypeSlugCustomized ? prev.slug : val.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-')
+                    }));
+                  }}
+                  className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Slug (URL Identifier) *
+                </label>
+                <input
+                  required
+                  placeholder="academic-courses"
+                  value={typeForm.slug}
+                  onChange={e => {
+                    setIsTypeSlugCustomized(true);
+                    setTypeForm({ ...typeForm, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') });
+                  }}
+                  className="w-full px-3.5 py-2.5 border border-gray-300 rounded-lg text-sm font-mono text-gray-700 focus:ring-1 focus:ring-emerald-600 outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    Display Icon
+                  </label>
+                  <select
+                    value={typeForm.iconClass}
+                    onChange={e => setTypeForm({ ...typeForm, iconClass: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-medium focus:ring-1 focus:ring-emerald-600 outline-none bg-white"
+                  >
+                    {TYPE_ICON_OPTIONS.map(opt => (
+                      <option key={opt.value} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    Display Order
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={typeForm.order}
+                    onChange={e => setTypeForm({ ...typeForm, order: parseInt(e.target.value) || 1 })}
+                    className="w-full px-3.5 py-2 border border-gray-300 rounded-lg text-xs focus:ring-1 focus:ring-emerald-600 outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Short description of this education category..."
+                  value={typeForm.description}
+                  onChange={e => setTypeForm({ ...typeForm, description: e.target.value })}
+                  className="w-full px-3.5 py-2 border border-gray-300 rounded-lg text-xs focus:ring-1 focus:ring-emerald-600 outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Banner Image
+                </label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2.5 px-3.5 py-2.5 border border-dashed border-gray-300 hover:border-gray-400 rounded-xl cursor-pointer bg-gray-50/60 hover:bg-gray-100 transition-colors text-xs text-gray-600">
+                    <Upload size={15} className="text-gray-400 shrink-0" />
+                    <span className="truncate">{typeImageFile ? typeImageFile.name : 'Upload banner photo...'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setTypeImageFile(file);
+                          setTypeImagePreview(URL.createObjectURL(file));
+                        }
+                      }}
+                    />
+                  </label>
+                  {typeImagePreview && (
+                    <div className="relative w-full h-28 rounded-xl overflow-hidden border border-gray-200">
+                      <img src={typeImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setTypeImageFile(null);
+                          setTypeImagePreview(null);
+                          setTypeForm({ ...typeForm, image: '' });
+                        }}
+                        className="absolute top-1.5 right-1.5 p-1 bg-black/60 hover:bg-black/80 text-white rounded-full cursor-pointer"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  )}
+                  {!typeImagePreview && (
+                    <input
+                      type="url"
+                      placeholder="Or enter Image URL (https://...)"
+                      value={typeForm.image}
+                      onChange={e => {
+                        setTypeForm({ ...typeForm, image: e.target.value });
+                        setTypeImagePreview(e.target.value || null);
+                      }}
+                      className="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-600 focus:ring-1 focus:ring-emerald-600 outline-none"
+                    />
+                  )}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="checkbox"
+                  id="typeIsActive"
+                  checked={typeForm.isActive}
+                  onChange={e => setTypeForm({ ...typeForm, isActive: e.target.checked })}
+                  className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
+                />
+                <label htmlFor="typeIsActive" className="text-xs font-semibold text-gray-700 cursor-pointer select-none">
+                  Active (ප්‍රදර්ශනය සක්‍රියයි)
+                </label>
+              </div>
+
+              <div className="flex gap-2.5 pt-3 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setIsTypeModalOpen(false)}
+                  className="flex-1 py-2.5 border border-gray-300 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingType}
+                  className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-sm"
+                >
+                  {isSubmittingType ? (
+                    <span>Saving...</span>
+                  ) : (
+                    <span>{editingType ? 'Update Type' : 'Save Education Type'}</span>
+                  )}
                 </button>
               </div>
             </form>

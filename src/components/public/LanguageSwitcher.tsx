@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown, Check } from 'lucide-react';
+import { ChevronDown, Check, Globe } from 'lucide-react';
 
 /**
  * High-definition SVG UK Flag for crisp cross-platform rendering
@@ -81,7 +81,7 @@ const LANGUAGES: LanguageOption[] = [
 interface LanguageSwitcherProps {
   className?: string;
   dropUp?: boolean;
-  variant?: 'glass' | 'white' | 'transparent';
+  variant?: 'glass' | 'white' | 'transparent' | 'globe';
 }
 
 export default function LanguageSwitcher({ 
@@ -115,8 +115,12 @@ export default function LanguageSwitcher({
 
   const isGlass = variant === 'glass';
   const isTransparent = variant === 'transparent';
+  const isGlobe = variant === 'globe';
 
   const getButtonClass = () => {
+    if (isGlobe) {
+      return "w-9 h-9 sm:w-10 sm:h-10 rounded-full flex items-center justify-center bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all duration-200 cursor-pointer select-none";
+    }
     if (isGlass) {
       return "glass-btn h-[38px] flex items-center justify-between gap-2 px-3 sm:px-3.5 rounded-full !text-white cursor-pointer select-none";
     }
@@ -126,35 +130,48 @@ export default function LanguageSwitcher({
     return "h-[34px] flex items-center justify-between gap-1.5 px-2.5 rounded-full bg-white hover:bg-gray-50 text-gray-800 shadow-xs border border-gray-200/90 transition-all duration-200 cursor-pointer select-none";
   };
 
-  const isDarkMenu = isGlass || isTransparent;
+  const isDarkMenu = isGlass || isTransparent || isGlobe;
 
   return (
     <div className={`relative inline-block text-left ${className}`} ref={dropdownRef}>
-      {/* Pill Trigger */}
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        aria-expanded={isOpen}
-        aria-haspopup="true"
-        title={`Change language (Current: ${currentLang.nativeName})`}
-        className={getButtonClass()}
-      >
-        <div className="flex items-center">
-          <CurrentFlag className="w-5 h-3.5 sm:w-5.5 sm:h-4" />
-        </div>
-        <ChevronDown 
-          className={`w-3.5 h-3.5 transition-transform duration-200 ${
-            isDarkMenu ? 'text-white/80 group-hover:text-white' : 'text-gray-600 group-hover:text-gray-900'
-          } ${isOpen ? 'rotate-180' : ''}`} 
-        />
-      </button>
+      {/* Pill or Globe Trigger */}
+      {isGlobe ? (
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-expanded={isOpen}
+          aria-haspopup="true"
+          title={`Change language (Current: ${currentLang.nativeName})`}
+          className={getButtonClass()}
+        >
+          <Globe className="w-5 h-5 text-white" />
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          aria-expanded={isOpen}
+          aria-haspopup="true"
+          title={`Change language (Current: ${currentLang.nativeName})`}
+          className={getButtonClass()}
+        >
+          <div className="flex items-center">
+            <CurrentFlag className="w-5 h-3.5 sm:w-5.5 sm:h-4" />
+          </div>
+          <ChevronDown 
+            className={`w-3.5 h-3.5 transition-transform duration-200 ${
+              isDarkMenu ? 'text-white/80 group-hover:text-white' : 'text-gray-600 group-hover:text-gray-900'
+            } ${isOpen ? 'rotate-180' : ''}`} 
+          />
+        </button>
+      )}
 
       {/* Floating Dropdown Menu */}
       {isOpen && (
         <div
           className={`absolute ${
             dropUp ? 'bottom-full mb-2' : 'top-full mt-2'
-          } right-0 min-w-[140px] rounded-2xl p-1.5 z-50 animate-card-pop ${
+          } right-0 min-w-[130px] rounded-2xl p-1.5 z-50 animate-card-pop ${
             isDarkMenu
               ? "bg-[#0c291b]/95 backdrop-blur-2xl border border-white/20 shadow-[0_12px_32px_rgba(0,0,0,0.4)]"
               : "bg-white/95 backdrop-blur-xl border border-gray-100 shadow-[0_10px_25px_rgba(0,0,0,0.12)]"
@@ -182,7 +199,7 @@ export default function LanguageSwitcher({
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <Flag className="w-5 h-3.5" />
+                  {!isGlobe && <Flag className="w-5 h-3.5" />}
                   <span>{lang.nativeName}</span>
                 </div>
                 {isSelected && (

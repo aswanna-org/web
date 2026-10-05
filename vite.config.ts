@@ -5,6 +5,9 @@ import { defineConfig } from 'vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [tailwindcss(), react()],
+  optimizeDeps: {
+    include: ['sl-gnd-dsd-districts']
+  },
   build: {
     chunkSizeWarningLimit: 800,
     rollupOptions: {
