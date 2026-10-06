@@ -10,6 +10,16 @@ import News from './pages/public/News';
 import Blog from './pages/public/Blog';
 import Education from './pages/public/Education';
 import EducationDetail from './pages/public/EducationDetail';
+import ShortCourses from './pages/public/ShortCourses';
+import ShortCourseDetail from './pages/public/ShortCourseDetail';
+import ResearchPapers from './pages/public/ResearchPapers';
+import ResearchPaperDetail from './pages/public/ResearchPaperDetail';
+import PublicationsManuals from './pages/public/PublicationsManuals';
+import PublicationDetail from './pages/public/PublicationDetail';
+import AgriExtensionMaterials from './pages/public/AgriExtensionMaterials';
+import AgriExtensionMaterialDetail from './pages/public/AgriExtensionMaterialDetail';
+import AgriculturalEducationalInstitutes from './pages/public/AgriculturalEducationalInstitutes';
+import AgriculturalEducationalInstituteDetail from './pages/public/AgriculturalEducationalInstituteDetail';
 import Gallery from './pages/public/Gallery';
 import AgroCategories from './pages/public/AgroCategories';
 import AgroMainCategoryDetail from './pages/public/AgroMainCategoryDetail';
@@ -101,6 +111,20 @@ function App() {
               <Route path="blog" element={<Blog />} />
               <Route path="education" element={<Education />} />
               <Route path="education/:slug" element={<EducationDetail />} />
+              <Route path="short-courses" element={<ShortCourses />} />
+              <Route path="short-courses-workshops" element={<ShortCourses />} />
+              <Route path="short-courses/:slug" element={<ShortCourseDetail />} />
+              <Route path="short-courses-workshops/:slug" element={<ShortCourseDetail />} />
+              <Route path="research-papers" element={<ResearchPapers />} />
+              <Route path="research-papers/:slug" element={<ResearchPaperDetail />} />
+              <Route path="publications-manuals" element={<PublicationsManuals />} />
+              <Route path="publications-manuals/:slug" element={<PublicationDetail />} />
+              <Route path="agri-extension-materials" element={<AgriExtensionMaterials />} />
+              <Route path="agri-extension-learning-materials" element={<AgriExtensionMaterials />} />
+              <Route path="agri-extension-materials/:slug" element={<AgriExtensionMaterialDetail />} />
+              <Route path="agri-extension-learning-materials/:slug" element={<AgriExtensionMaterialDetail />} />
+              <Route path="agricultural-educational-institutes" element={<AgriculturalEducationalInstitutes />} />
+              <Route path="agricultural-educational-institutes/:slug" element={<AgriculturalEducationalInstituteDetail />} />
               <Route path="gallery" element={<Gallery />} />
               <Route path="gallery/:slug" element={<Gallery />} />
               <Route path="govijana-sewa" element={<GovijanaSewa />} />

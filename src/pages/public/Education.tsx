@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Clock, BookOpen, DollarSign, Search, X, Sparkles, GraduationCap,
@@ -74,6 +74,7 @@ const getEducationIcon = (iconClass?: string | null, slug?: string) => {
 
 export default function Education() {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const typeParam = searchParams.get('type');
 
@@ -194,12 +195,33 @@ export default function Education() {
     return defaultTypes;
   }, [educationTypes, defaultTypes]);
 
-  // Synchronize URL param with state
+  // Synchronize URL param with state and redirect to dedicated pages
   useEffect(() => {
     if (typeParam) {
+      const lower = typeParam.toLowerCase();
+      if (lower.includes('short')) {
+        navigate('/short-courses', { replace: true });
+        return;
+      }
+      if (lower.includes('learning') || lower.includes('extension') || lower.includes('material')) {
+        navigate('/agri-extension-materials', { replace: true });
+        return;
+      }
+      if (lower.includes('research')) {
+        navigate('/research-papers', { replace: true });
+        return;
+      }
+      if (lower.includes('publication') || lower.includes('manual')) {
+        navigate('/publications-manuals', { replace: true });
+        return;
+      }
+      if (lower.includes('institute') || lower.includes('educational')) {
+        navigate('/agricultural-educational-institutes', { replace: true });
+        return;
+      }
       setActiveTypeView(typeParam);
     }
-  }, [typeParam]);
+  }, [typeParam, navigate]);
 
   const qualificationOptions = useMemo(() => {
     if (dbLevels.length > 0) {
@@ -256,7 +278,27 @@ export default function Education() {
   }, [API_BASE_URL, activeTypeView, selectedLevel, debouncedSearch, currentPage]);
 
   const handleSelectTypeCard = (typeItem: EducationTypeData) => {
-    const selectedKey = typeItem.slug || typeItem.id;
+    const selectedKey = (typeItem.slug || typeItem.id || '').toLowerCase();
+    if (selectedKey.includes('short')) {
+      navigate('/short-courses');
+      return;
+    }
+    if (selectedKey.includes('research')) {
+      navigate('/research-papers');
+      return;
+    }
+    if (selectedKey.includes('publication') || selectedKey.includes('manual')) {
+      navigate('/publications-manuals');
+      return;
+    }
+    if (selectedKey.includes('learning') || selectedKey.includes('extension') || selectedKey.includes('material')) {
+      navigate('/agri-extension-materials');
+      return;
+    }
+    if (selectedKey.includes('institute') || selectedKey.includes('educational')) {
+      navigate('/agricultural-educational-institutes');
+      return;
+    }
     setActiveTypeView(selectedKey);
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);

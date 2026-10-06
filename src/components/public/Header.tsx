@@ -1,4 +1,4 @@
-import { ShoppingCart, Menu, X, ChevronDown, ChevronRight, Sprout, Store, Map, Building, LogOut } from 'lucide-react';
+import { ShoppingCart, Menu, X, ChevronDown, ChevronRight, Sprout, Store, Map, Building, LogOut, PhoneCall } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useMemo } from 'react';
@@ -153,12 +153,14 @@ export default function Header() {
             {/* Language Switcher Pill */}
             <LanguageSwitcher />
 
-            {/* Contact Us Glass Pill */}
+            {/* Contact Us Glass Icon Pill */}
             <Link
               to="/pages/contact"
-              className="glass-btn h-[38px] px-5 text-xs sm:text-sm tracking-wide font-bold"
+              className="glass-btn h-[38px] w-[38px] px-0 flex items-center justify-center rounded-full hover:scale-105 transition-all"
+              title={t('header.contact', 'Contact Us')}
+              aria-label={t('header.contact', 'Contact Us')}
             >
-              {t('header.contact', 'Contact Us')}
+              <PhoneCall className="w-4 h-4 text-white" />
             </Link>
 
             {/* Login / Logout Button */}
