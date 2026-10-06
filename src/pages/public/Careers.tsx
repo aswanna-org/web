@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
   Search, X, Briefcase, CheckCircle2, Building2,
   Phone, LogIn, ArrowUpRight, ArrowLeft, Landmark, Users,
-  Tractor, Plane, MapPin, RotateCcw
+  Tractor, Plane,  RotateCcw
 } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import Pagination from '../../components/admin/Pagination';
