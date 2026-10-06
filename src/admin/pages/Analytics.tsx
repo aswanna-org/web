@@ -563,7 +563,7 @@ export default function Analytics() {
                               style={{ width: `${source.percentage}%` }}
                             />
                           </div>
-                          <span className="font-bold text-gray-900 w-12 text-right">
+                          <span className="font-bold text-gray-900 min-w-[5.5rem] text-right whitespace-nowrap">
                             {source.count} ({source.percentage}%)
                           </span>
                         </div>
