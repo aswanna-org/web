@@ -4,14 +4,14 @@ import { useTranslation } from 'react-i18next';
 import {
   Search, X, Briefcase, CheckCircle2, Building2,
   Phone, LogIn, ArrowUpRight, ArrowLeft, Landmark, Users,
-  Tractor, Plane
+  Tractor, Plane, MapPin, RotateCcw
 } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import Pagination from '../../components/admin/Pagination';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
 import { useAuth } from '../../context/AuthContext';
-import { SRI_LANKA_PROVINCES, getDistrictsForProvince, getDSDsForDistrict, getGNDsForDSD } from '../../data/sriLankaLocations';
+import { SRI_LANKA_PROVINCES, getDistricts, getDistrictsForProvince, getDSDsForDistrict, getGNDsForDSD } from '../../data/sriLankaLocations';
 
 interface Job {
   id: string;
@@ -141,11 +141,11 @@ interface CategoryCardItem {
 // Reusable SVG for wavy card divider matching reference UI
 const CardWaveDivider = () => (
   <svg
-    className="absolute -bottom-1 left-0 right-0 w-full h-8 text-white fill-current pointer-events-none z-10 translate-y-0.5"
-    viewBox="0 0 500 62"
+    className="absolute -bottom-1 left-0 right-0 w-full h-8 sm:h-9 text-white fill-white pointer-events-none z-10 translate-y-1"
+    viewBox="0 0 500 70"
     preserveAspectRatio="none"
   >
-    <path d="M0,25 C150,55 350,0 500,25 L500,62 L0,62 Z" />
+    <path d="M0,25 C150,55 350,0 500,25 L500,70 L0,70 Z" />
   </svg>
 );
 
@@ -175,7 +175,7 @@ export default function Careers() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const pageSize = 9;
+  const pageSize = 12;
 
   const [jobsData, setJobsData] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -187,6 +187,12 @@ export default function Careers() {
   const [dailyWorkers, setDailyWorkers] = useState<DailyWageWorker[]>([]);
   const [isLoadingWorkers, setIsLoadingWorkers] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+
+  // Daily Wage Location Filter State (Optional - non-compulsory)
+  const [filterProvince, setFilterProvince] = useState<string>('');
+  const [filterDistrict, setFilterDistrict] = useState<string>('');
+  const [filterDSD, setFilterDSD] = useState<string>('');
+  const [filterGND, setFilterGND] = useState<string>('');
 
   const [dailyWorkerForm, setDailyWorkerForm] = useState({
     fullName: '',
@@ -342,7 +348,7 @@ export default function Careers() {
     try {
       const params = new URLSearchParams({
         page: '1',
-        limit: '50',
+        limit: '100',
         isActive: 'true',
         status: 'APPROVED'
       });
@@ -409,6 +415,199 @@ export default function Careers() {
       return nameA.localeCompare(nameB, isSi ? 'si' : 'en');
     });
   }, [dailyWorkerForm.dsDivision, dailyWorkerForm.district, isSi]);
+
+  // --- Location Search Filtering for Daily Wage Workers (sl-gnd-dsd-districts) ---
+  const allDistrictsList = useMemo(() => {
+    try {
+      const dList = getDistricts();
+      return dList.map(d => ({
+        id: d.id,
+        en: d.nameEn,
+        si: d.nameSi,
+        provinceEn: d.provinceEn
+      })).sort((a, b) => {
+        const nameA = isSi ? a.si : a.en;
+        const nameB = isSi ? b.si : b.en;
+        return nameA.localeCompare(nameB, isSi ? 'si' : 'en');
+      });
+    } catch {
+      return [];
+    }
+  }, [isSi]);
+
+  const availableFilterDistricts = useMemo(() => {
+    if (!filterProvince) return allDistrictsList;
+    const list = getDistrictsForProvince(filterProvince);
+    return list.slice().sort((a, b) => {
+      const nameA = isSi ? a.si : a.en;
+      const nameB = isSi ? b.si : b.en;
+      return nameA.localeCompare(nameB, isSi ? 'si' : 'en');
+    });
+  }, [filterProvince, allDistrictsList, isSi]);
+
+  const availableFilterDSDs = useMemo(() => {
+    if (!filterDistrict) return [];
+    const list = getDSDsForDistrict(filterDistrict);
+    return list.slice().sort((a, b) => {
+      const nameA = isSi ? (a.nameSi || a.nameEn) : a.nameEn;
+      const nameB = isSi ? (b.nameSi || b.nameEn) : b.nameEn;
+      return nameA.localeCompare(nameB, isSi ? 'si' : 'en');
+    });
+  }, [filterDistrict, isSi]);
+
+  const availableFilterGNDs = useMemo(() => {
+    if (!filterDSD) return [];
+    const list = getGNDsForDSD(filterDSD, filterDistrict);
+    return list.slice().sort((a, b) => {
+      if (a.gnCode && b.gnCode) {
+        const numA = parseInt(a.gnCode, 10);
+        const numB = parseInt(b.gnCode, 10);
+        if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
+          return numA - numB;
+        }
+        return a.gnCode.localeCompare(b.gnCode);
+      }
+      const nameA = isSi ? (a.nameSi || a.nameEn) : a.nameEn;
+      const nameB = isSi ? (b.nameSi || b.nameEn) : b.nameEn;
+      return nameA.localeCompare(nameB, isSi ? 'si' : 'en');
+    });
+  }, [filterDSD, filterDistrict, isSi]);
+
+  const handleProvinceChange = (selectedProv: string) => {
+    setFilterProvince(selectedProv);
+    if (selectedProv && filterDistrict) {
+      const districtsForNewProv = getDistrictsForProvince(selectedProv);
+      const stillValid = districtsForNewProv.some(d => d.en === filterDistrict || d.si === filterDistrict);
+      if (!stillValid) {
+        setFilterDistrict('');
+        setFilterDSD('');
+        setFilterGND('');
+      }
+    }
+  };
+
+  const handleDistrictChange = (selectedDist: string) => {
+    setFilterDistrict(selectedDist);
+    setFilterDSD('');
+    setFilterGND('');
+    if (!filterProvince && selectedDist) {
+      const found = allDistrictsList.find(d => d.en === selectedDist || d.si === selectedDist);
+      if (found && found.provinceEn) {
+        const provObj = SRI_LANKA_PROVINCES.find(p => p.en.toLowerCase().includes(found.provinceEn.toLowerCase()));
+        if (provObj) {
+          setFilterProvince(isSi ? provObj.si : provObj.en);
+        }
+      }
+    }
+  };
+
+  const handleDSDChange = (selectedDSD: string) => {
+    setFilterDSD(selectedDSD);
+    setFilterGND('');
+  };
+
+  const handleClearLocationFilters = () => {
+    setFilterProvince('');
+    setFilterDistrict('');
+    setFilterDSD('');
+    setFilterGND('');
+  };
+
+  const hasActiveLocationFilter = Boolean(filterProvince || filterDistrict || filterDSD || filterGND);
+  const activeLocationFilterCount = [filterProvince, filterDistrict, filterDSD, filterGND].filter(Boolean).length;
+
+  const filteredDailyWorkers = useMemo(() => {
+    return dailyWorkers.filter((worker) => {
+      // 1. Province filter (optional)
+      if (filterProvince) {
+        const targetClean = filterProvince.toLowerCase().replace(/ province| පළාත|-/g, '').trim();
+        const workerProv = (worker.province || '').toLowerCase().replace(/ province| පළාත|-/g, '').trim();
+
+        const pObj = SRI_LANKA_PROVINCES.find(p =>
+          p.en.toLowerCase().includes(targetClean) ||
+          p.si.includes(filterProvince) ||
+          targetClean.includes(p.en.toLowerCase().replace(/ province|-/g, '').trim())
+        );
+
+        let match = workerProv.includes(targetClean) || targetClean.includes(workerProv);
+        if (!match && pObj) {
+          const pEn = pObj.en.toLowerCase().replace(/ province|-/g, '').trim();
+          const pSi = pObj.si.replace(/ පළාත/g, '').trim();
+          if (
+            workerProv.includes(pEn) ||
+            (worker.province || '').includes(pSi) ||
+            pEn.includes(workerProv)
+          ) {
+            match = true;
+          }
+        }
+        if (!match) return false;
+      }
+
+      // 2. District filter (optional)
+      if (filterDistrict) {
+        const cleanFilterDist = filterDistrict.toLowerCase().trim();
+        const workerDist = (worker.district || '').toLowerCase().trim();
+
+        let match = workerDist.includes(cleanFilterDist) || cleanFilterDist.includes(workerDist);
+        if (!match) {
+          const dObj = allDistrictsList.find(d =>
+            d.en.toLowerCase() === cleanFilterDist ||
+            d.si === filterDistrict ||
+            cleanFilterDist.includes(d.en.toLowerCase()) ||
+            filterDistrict.includes(d.si)
+          );
+          if (dObj) {
+            if (
+              workerDist.includes(dObj.en.toLowerCase()) ||
+              (worker.district || '').includes(dObj.si)
+            ) {
+              match = true;
+            }
+          }
+        }
+        if (!match) return false;
+      }
+
+      // 3. DS Division filter (optional)
+      if (filterDSD) {
+        const cleanFilterDSD = filterDSD.toLowerCase().trim();
+        const workerDSD = (worker.dsDivision || '').toLowerCase().trim();
+        let match = workerDSD.includes(cleanFilterDSD) || cleanFilterDSD.includes(workerDSD);
+        if (!match) {
+          const dsdObj = availableFilterDSDs.find(d =>
+            (d.nameEn && d.nameEn.toLowerCase() === cleanFilterDSD) ||
+            (d.nameSi && d.nameSi === filterDSD)
+          );
+          if (dsdObj) {
+            if (
+              (dsdObj.nameEn && workerDSD.includes(dsdObj.nameEn.toLowerCase())) ||
+              (dsdObj.nameSi && workerDSD.includes(dsdObj.nameSi.toLowerCase()))
+            ) {
+              match = true;
+            }
+          }
+        }
+        if (!match) return false;
+      }
+
+      // 4. GN Division filter (optional)
+      if (filterGND) {
+        const cleanFilterGND = filterGND.toLowerCase().trim();
+        const workerGND = (worker.gnDivision || '').toLowerCase().trim();
+        const codeMatch = filterGND.match(/^([0-9A-Za-z/]+)/);
+        const code = codeMatch ? codeMatch[1].toLowerCase() : null;
+
+        let match = workerGND.includes(cleanFilterGND) || cleanFilterGND.includes(workerGND);
+        if (!match && code && workerGND.includes(code)) {
+          match = true;
+        }
+        if (!match) return false;
+      }
+
+      return true;
+    });
+  }, [dailyWorkers, filterProvince, filterDistrict, filterDSD, filterGND, allDistrictsList, availableFilterDSDs]);
 
   const handleRegisterWorker = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -615,7 +814,7 @@ export default function Careers() {
                     {/* Top Media Wrapper */}
                     <div className="relative">
                       {/* Image & Gradient (constrained to rounded top of card) */}
-                      <div className="h-32 sm:h-48 lg:h-52 w-full relative overflow-hidden bg-gray-100">
+                      <div className="h-32 sm:h-48 lg:h-52 w-full relative overflow-hidden bg-white">
                         <img
                           src={cat.image}
                           alt={cat.title}
@@ -667,85 +866,173 @@ export default function Careers() {
 
           /* VIEW 2: Inside Category View (Jobs / Daily Workers) */
           <div>
-            {/* Top Navigation: Back Button and Category Title */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-gray-200">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => {
-                    setActiveCategoryView(null);
-                    setSelectedCategoryId('ALL');
-                    setSearchQuery('');
-                  }}
-                  className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-800 hover:text-emerald-950 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-4 py-2 rounded-full transition-all cursor-pointer shadow-xs"
-                >
-                  <ArrowLeft className="w-4 h-4" />
-                  <span>{isSi ? 'සියලු කාණ්ඩ වෙත' : 'All Categories'}</span>
-                </button>
-                <h2 className="text-xl sm:text-2xl font-bold text-[#143d4d]">
-                  {activeCategoryTitle}
-                </h2>
-              </div>
-
-              {/* Category Filter Pills */}
-              <div className="flex flex-wrap items-center gap-1.5">
-                <button
-                  onClick={() => {
-                    setActiveCategoryView('ALL');
-                    setSelectedCategoryId('ALL');
-                  }}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                    activeCategoryView === 'ALL'
-                      ? 'bg-[#006837] text-white'
-                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                  }`}
-                >
-                  {isSi ? 'සියල්ල' : 'All'}
-                </button>
-                {categoryCards.map(cat => (
-                  <button
-                    key={cat.id}
-                    onClick={() => handleSelectCategoryCard(cat)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                      activeCategoryView === cat.id
-                        ? 'bg-[#006837] text-white'
-                        : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
-                    }`}
-                  >
-                    {cat.title}
-                  </button>
-                ))}
-              </div>
+            {/* Category Title Header */}
+            <div className="mb-6 pb-4 border-b border-gray-200">
+              <h2 className="text-xl sm:text-2xl font-bold text-[#143d4d]">
+                {activeCategoryTitle}
+              </h2>
             </div>
 
             {/* Content: Daily Wage Workers vs Regular Jobs */}
             {selectedCategoryId === 'DAILY_WAGE' || activeCategoryView === 'DAILY_WAGE' ? (
               <div>
+                {/* Location Filter Card for Daily Wage Workers (sl-gnd-dsd-districts) */}
+                <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-200/80 shadow-xs p-4 sm:p-6 mb-7">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-gray-100">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-sm sm:text-base font-bold text-gray-900 leading-none">
+                          {isSi ? 'ප්‍රදේශය අනුව පෙරහන් කරන්න' : 'Filter by Location'}
+                        </h3>
+                        {hasActiveLocationFilter && (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                            {activeLocationFilterCount} {isSi ? 'තෝරා ඇත' : 'selected'}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] sm:text-xs text-gray-500 font-normal mt-1">
+                        {isSi
+                          ? 'පළාත, දිස්ත්‍රික්කය, ප්‍රාදේශීය ලේකම් හෝ ග්‍රාම නිලධාරී වසම තෝරන්න (අනිවාර්ය නැත).'
+                          : 'Filter workers by province, district, DS division or GN division (optional).'}
+                      </p>
+                    </div>
+
+                    {hasActiveLocationFilter && (
+                      <button
+                        type="button"
+                        onClick={handleClearLocationFilters}
+                        className="inline-flex items-center gap-1.5 text-xs text-rose-600 hover:text-rose-700 font-bold bg-rose-50 hover:bg-rose-100/80 px-3.5 py-1.5 rounded-full border border-rose-200/60 transition-all cursor-pointer self-start sm:self-auto"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        <span>{isSi ? 'පෙරහන් ඉවත් කරන්න' : 'Clear Filters'}</span>
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+                    {/* 1. පළාත (Province) */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs sm:text-sm font-bold text-gray-700">
+                        {isSi ? 'පළාත' : 'Province'}
+                      </label>
+                      <select
+                        value={filterProvince}
+                        onChange={(e) => handleProvinceChange(e.target.value)}
+                        className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border border-gray-200 bg-gray-50/60 hover:bg-white focus:bg-white focus:border-[#006837] focus:ring-2 focus:ring-[#006837]/15 outline-none text-xs sm:text-sm text-gray-800 transition-all cursor-pointer"
+                      >
+                        <option value="">{isSi ? 'පළාත තෝරන්න...' : 'Select Province...'}</option>
+                        {SRI_LANKA_PROVINCES.map((p) => (
+                          <option key={p.en} value={isSi ? p.si : p.en}>
+                            {isSi ? p.si : p.en}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* 2. දිස්ත්‍රික්කය (District) */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs sm:text-sm font-bold text-gray-700">
+                        {isSi ? 'දිස්ත්‍රික්කය' : 'District'}
+                      </label>
+                      <select
+                        value={filterDistrict}
+                        onChange={(e) => handleDistrictChange(e.target.value)}
+                        className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border border-gray-200 bg-gray-50/60 hover:bg-white focus:bg-white focus:border-[#006837] focus:ring-2 focus:ring-[#006837]/15 outline-none text-xs sm:text-sm text-gray-800 transition-all cursor-pointer"
+                      >
+                        <option value="">{isSi ? 'දිස්ත්‍රික්කය තෝරන්න...' : 'Select District...'}</option>
+                        {availableFilterDistricts.map((d) => (
+                          <option key={d.en} value={isSi ? d.si : d.en}>
+                            {isSi ? d.si : d.en}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* 3. ප්‍රාදේශීය ලේකම් කොට්ඨාසය (DS Division) */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs sm:text-sm font-bold text-gray-700">
+                        {isSi ? 'ප්‍රාදේශීය ලේකම් කොට්ඨාසය' : 'DS Division'}
+                      </label>
+                      <select
+                        value={filterDSD}
+                        onChange={(e) => handleDSDChange(e.target.value)}
+                        disabled={!filterDistrict}
+                        className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border border-gray-200 bg-gray-50/60 hover:bg-white focus:bg-white focus:border-[#006837] focus:ring-2 focus:ring-[#006837]/15 outline-none text-xs sm:text-sm text-gray-800 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <option value="">
+                          {!filterDistrict
+                            ? (isSi ? 'ප්‍රථමයෙන් දිස්ත්‍රික්කය තෝරන්න...' : 'Select District first...')
+                            : (isSi ? 'ප්‍රාදේශීය ලේකම් කොට්ඨාසය තෝරන්න...' : 'Select DS Division...')}
+                        </option>
+                        {availableFilterDSDs.map((dsd) => {
+                          const val = isSi ? (dsd.nameSi || dsd.nameEn) : dsd.nameEn;
+                          return (
+                            <option key={dsd.id || dsd.nameEn} value={val}>
+                              {val}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+
+                    {/* 4. ග්‍රාම නිලධාරී වසම (GN Division) */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-xs sm:text-sm font-bold text-gray-700">
+                        {isSi ? 'ග්‍රාම නිලධාරී වසම' : 'GN Division'}
+                      </label>
+                      <select
+                        value={filterGND}
+                        onChange={(e) => setFilterGND(e.target.value)}
+                        disabled={!filterDSD}
+                        className="w-full px-3.5 py-2.5 sm:py-3 rounded-xl border border-gray-200 bg-gray-50/60 hover:bg-white focus:bg-white focus:border-[#006837] focus:ring-2 focus:ring-[#006837]/15 outline-none text-xs sm:text-sm text-gray-800 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <option value="">
+                          {!filterDSD
+                            ? (isSi ? 'ප්‍රථමයෙන් ප්‍රා.ලේ. තෝරන්න...' : 'Select DSD first...')
+                            : (isSi ? 'ග්‍රාම නිලධාරී වසම තෝරන්න...' : 'Select GN Division...')}
+                        </option>
+                        {availableFilterGNDs.map((gnd) => {
+                          const name = isSi ? (gnd.nameSi || gnd.nameEn) : gnd.nameEn;
+                          const label = gnd.gnCode ? `${gnd.gnCode} - ${name}` : name;
+                          return (
+                            <option key={gnd.id || gnd.lifeCode || label} value={label}>
+                              {label}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
                 {isLoadingWorkers ? (
                   <div className="py-20 flex justify-center">
                     <AgroLoader message={isSi ? 'දෛනික ශ්‍රමිකයන් පූරණය වෙමින් පවතී...' : 'Loading daily workers...'} />
                   </div>
-                ) : dailyWorkers.length > 0 ? (
-                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-7">
-                    {dailyWorkers.map((worker) => (
+                ) : filteredDailyWorkers.length > 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
+                    {filteredDailyWorkers.map((worker) => (
                       <div
                         key={worker.id}
                         className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 shadow-[0_4px_16px_rgba(0,0,0,0.05)] sm:shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_16px_36px_rgba(0,0,0,0.12)] overflow-hidden transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1.5"
                       >
                         {/* Top Media Wrapper */}
                         <div className="relative">
-                          <div className="h-32 sm:h-44 lg:h-48 w-full relative overflow-hidden bg-gray-100">
+                          <div className="h-32 sm:h-44 lg:h-48 w-full relative overflow-hidden bg-white">
                             <img
                               src="https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800&q=80"
                               alt={worker.fullName}
                               onError={(e) => {
-                                (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80';
+                                (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800&q=80';
                               }}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                               loading="lazy"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-                            <CardWaveDivider />
                           </div>
+
+                          {/* Smooth Wave Divider */}
+                          <CardWaveDivider />
 
                           <div className="absolute -bottom-4 sm:-bottom-5 left-3 sm:left-6 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#006837] text-white flex items-center justify-center border-[2.5px] sm:border-[3.5px] border-white shadow-md sm:shadow-lg">
                             <Users className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -759,25 +1046,23 @@ export default function Careers() {
                               {worker.fullName}
                             </h3>
                             <p className="text-[10px] sm:text-xs text-gray-500 font-medium mb-2 sm:mb-3 line-clamp-1">
-                              {worker.dsDivision}, {worker.district} ({worker.province})
+                              {worker.dsDivision}, {worker.district} ({worker.gnDivision || worker.province})
                             </p>
 
-                            {/* Skills Pills */}
-                            <div className="flex flex-wrap gap-1 mb-2.5 sm:mb-4">
-                              {worker.skills?.slice(0, 2).map((item) => (
-                                <span
+                            {/* Skills List with Dots - No green background, No checkmark */}
+                            <ul className="space-y-1 sm:space-y-1.5 mb-3 sm:mb-4 pt-1">
+                              {worker.skills?.map((item) => (
+                                <li
                                   key={item.skill.id}
-                                  className="bg-emerald-50 text-emerald-800 text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-md border border-emerald-100 font-medium line-clamp-1"
+                                  className="flex items-center gap-1.5 text-[11px] sm:text-xs text-gray-700 font-medium"
                                 >
-                                  ✓ {isSi && item.skill.nameSi ? item.skill.nameSi : item.skill.name}
-                                </span>
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0" />
+                                  <span className="line-clamp-1">
+                                    {isSi && item.skill.nameSi ? item.skill.nameSi : item.skill.name}
+                                  </span>
+                                </li>
                               ))}
-                              {worker.skills && worker.skills.length > 2 && (
-                                <span className="text-[9px] sm:text-[10px] text-gray-400 bg-gray-100 px-1 py-0.5 rounded-md">
-                                  +{worker.skills.length - 2}
-                                </span>
-                              )}
-                            </div>
+                            </ul>
                           </div>
 
                           {/* Footer with Call Button & Leaf Watermark */}
@@ -800,7 +1085,26 @@ export default function Careers() {
                 ) : (
                   <div className="w-full py-16 bg-white rounded-3xl border border-gray-100 flex flex-col items-center justify-center text-center p-6 shadow-xs">
                     <Search className="w-12 h-12 text-gray-300 mb-3" />
-                    <h3 className="text-lg font-bold text-[#143d4d] mb-1">{isSi ? 'දෛනික ශ්‍රමිකයන් කිසිවෙකු හමු නොවීය' : 'No workers found'}</h3>
+                    <h3 className="text-lg font-bold text-[#143d4d] mb-1">
+                      {isSi ? 'දෛනික ශ්‍රමිකයන් කිසිවෙකු හමු නොවීය' : 'No workers found'}
+                    </h3>
+                    {hasActiveLocationFilter ? (
+                      <div className="mt-2 text-center">
+                        <p className="text-xs sm:text-sm text-gray-500 mb-4">
+                          {isSi
+                            ? 'තෝරාගත් ප්‍රදේශය සඳහා ශ්‍රමිකයන් හමු නොවීය. කරුණාකර පෙරහන් වෙනස් කරන්න.'
+                            : 'No workers match the selected location filters. Please try adjusting your filters.'}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={handleClearLocationFilters}
+                          className="px-4 py-2 rounded-full text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-all cursor-pointer inline-flex items-center gap-1.5"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          <span>{isSi ? 'සියලු පෙරහන් ඉවත් කරන්න' : 'Clear All Filters'}</span>
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 )}
               </div>
@@ -814,7 +1118,7 @@ export default function Careers() {
                   </div>
                 ) : jobsData.length > 0 ? (
                   <div>
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6 lg:gap-7">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
                       {jobsData.map((job, idx) => {
                         const displayTitle = isSi && job.designationSi ? job.designationSi : (job.designation || job.title);
                         const companyOrInstitution = job.companyNameSi || job.companyName
@@ -832,7 +1136,7 @@ export default function Careers() {
                           >
                             {/* Top Media Wrapper */}
                             <div className="relative">
-                              <div className="h-32 sm:h-44 lg:h-48 w-full relative overflow-hidden bg-gray-100">
+                              <div className="h-32 sm:h-44 lg:h-48 w-full relative overflow-hidden bg-white">
                                 <img
                                   src={getJobCardImage(job)}
                                   alt={displayTitle}
@@ -843,10 +1147,10 @@ export default function Careers() {
                                   loading="lazy"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-
-                                {/* Wavy Divider */}
-                                <CardWaveDivider />
                               </div>
+
+                              {/* Wavy Divider */}
+                              <CardWaveDivider />
 
                               {/* Round Icon Badge */}
                               <div className="absolute -bottom-4 sm:-bottom-5 left-3 sm:left-6 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#006837] text-white flex items-center justify-center border-[2.5px] sm:border-[3.5px] border-white shadow-md sm:shadow-lg group-hover:scale-110 transition-transform">
