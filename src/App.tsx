@@ -53,7 +53,7 @@ import CareerManagement from './admin/pages/CareerManagement';
 import GalleryManagement from './admin/pages/GalleryManagement';
 import ProductManagement from './admin/pages/ProductManagement';
 import PlantManagement from './admin/pages/PlantManagement';
-import AgroLandManagement from './admin/pages/AgroLandManagement';
+import AgriLandManagement from './admin/pages/AgriLandManagement';
 import AscManagement from './admin/pages/AscManagement';
 import OrderManagement from './admin/pages/OrderManagement';
 import CourseManagement from './admin/pages/CourseManagement';
@@ -169,7 +169,9 @@ function App() {
               <Route path="gallery" element={<GalleryManagement />} />
               <Route path="products" element={<ProductManagement />} />
               <Route path="plants" element={<PlantManagement />} />
-              <Route path="agrolands" element={<AgroLandManagement />} />
+              <Route path="agrolands" element={<AgriLandManagement />} />
+              <Route path="agri-lands" element={<AgriLandManagement />} />
+              <Route path="agrilands" element={<AgriLandManagement />} />
               <Route path="asc" element={<AscManagement />} />
               <Route path="orders" element={<OrderManagement />} />
               <Route path="courses" element={<CourseManagement />} />

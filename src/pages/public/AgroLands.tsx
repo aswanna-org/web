@@ -1,11 +1,30 @@
 import { useState, useEffect, useMemo } from 'react';
 import PageHero from '../../components/public/PageHero';
 import { useTranslation } from 'react-i18next';
-import { Search, MapPin, Maximize, Phone, Tag, X } from 'lucide-react';
+import { Search, MapPin, Maximize, Phone, Tag, X, Plus, CheckCircle2, Clock } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import CustomDropdown from '../../components/ui/CustomDropdown';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
+import { useAuth } from '../../context/AuthContext';
+import { AgriLandFormModal } from '../../admin/components/agriLand/AgriLandFormModal';
+import type {
+  AgriLandDealType,
+  AgriLandLocation,
+  AgriLandDeedType,
+  AgriLandCategory,
+  AgriLandTerrain,
+  AgriLandElephantFence,
+  AgriLandWildlifeThreat,
+  AgriLandBoundaryFencing,
+  AgriLandFarmBuilding,
+  AgriLandIrrigationTech,
+  AgriLandMachineryAccess,
+  AgriLandCrop,
+  AgriLandAccessRoad,
+  AgriLandElectricity,
+  AgriLandWaterSource
+} from '../../admin/components/agriLand/types';
 
 interface Lookup {
   id: string;
@@ -25,6 +44,7 @@ interface AgroLand {
   size: string;
   sizeSi: string | null;
   price: number;
+  priceFormatted?: string | null;
   typeId: string;
   type?: Lookup;
   contactNumber: string;
@@ -40,6 +60,7 @@ interface Filters {
 export default function AgroLands() {
   const { t, i18n } = useTranslation();
   const isSinhala = i18n.language === 'si';
+  const { isAuthenticated, token, openLoginModal } = useAuth();
   
   const [lands, setLands] = useState<AgroLand[]>([]);
   const [filters, setFilters] = useState<Filters>({ locations: [], types: [] });
@@ -53,7 +74,90 @@ export default function AgroLands() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  // User Submission Modal State
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  // Lookups for user submission
+  const [dealTypes, setDealTypes] = useState<AgriLandDealType[]>([]);
+  const [locations, setLocations] = useState<AgriLandLocation[]>([]);
+  const [deedTypes, setDeedTypes] = useState<AgriLandDeedType[]>([]);
+  const [categories, setCategories] = useState<AgriLandCategory[]>([]);
+  const [terrains, setTerrains] = useState<AgriLandTerrain[]>([]);
+  const [elephantFences, setElephantFences] = useState<AgriLandElephantFence[]>([]);
+  const [wildlifeThreats, setWildlifeThreats] = useState<AgriLandWildlifeThreat[]>([]);
+  const [boundaryFencings, setBoundaryFencings] = useState<AgriLandBoundaryFencing[]>([]);
+  const [farmBuildings, setFarmBuildings] = useState<AgriLandFarmBuilding[]>([]);
+  const [irrigationTechs, setIrrigationTechs] = useState<AgriLandIrrigationTech[]>([]);
+  const [machineryAccesses, setMachineryAccesses] = useState<AgriLandMachineryAccess[]>([]);
+  const [crops, setCrops] = useState<AgriLandCrop[]>([]);
+  const [accessRoads, setAccessRoads] = useState<AgriLandAccessRoad[]>([]);
+  const [electricities, setElectricities] = useState<AgriLandElectricity[]>([]);
+  const [waterSources, setWaterSources] = useState<AgriLandWaterSource[]>([]);
+  const [lookupsLoaded, setLookupsLoaded] = useState(false);
+
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+  const fetchMasterLookups = async () => {
+    if (lookupsLoaded) return;
+    try {
+      const [
+        dtRes, locRes, deedRes, catRes, terrRes,
+        efRes, wtRes, bfRes, fbRes, itRes,
+        maRes, crRes, arRes, elRes, wsRes
+      ] = await Promise.all([
+        fetch(`${API_BASE_URL}/agri-land-deal-types`),
+        fetch(`${API_BASE_URL}/agri-land-locations`),
+        fetch(`${API_BASE_URL}/agri-land-deed-types`),
+        fetch(`${API_BASE_URL}/agri-land-categories`),
+        fetch(`${API_BASE_URL}/agri-land-terrains`),
+        fetch(`${API_BASE_URL}/agri-land-elephant-fences`),
+        fetch(`${API_BASE_URL}/agri-land-wildlife-threats`),
+        fetch(`${API_BASE_URL}/agri-land-boundary-fencings`),
+        fetch(`${API_BASE_URL}/agri-land-farm-buildings`),
+        fetch(`${API_BASE_URL}/agri-land-irrigation-techs`),
+        fetch(`${API_BASE_URL}/agri-land-machinery-accesses`),
+        fetch(`${API_BASE_URL}/agri-land-crops`),
+        fetch(`${API_BASE_URL}/agri-land-access-roads`),
+        fetch(`${API_BASE_URL}/agri-land-electricities`),
+        fetch(`${API_BASE_URL}/agri-land-water-sources`)
+      ]);
+
+      if (dtRes.ok) setDealTypes((await dtRes.json()).data || []);
+      if (locRes.ok) setLocations((await locRes.json()).data || []);
+      if (deedRes.ok) setDeedTypes((await deedRes.json()).data || []);
+      if (catRes.ok) setCategories((await catRes.json()).data || []);
+      if (terrRes.ok) setTerrains((await terrRes.json()).data || []);
+      if (efRes.ok) setElephantFences((await efRes.json()).data || []);
+      if (wtRes.ok) setWildlifeThreats((await wtRes.json()).data || []);
+      if (bfRes.ok) setBoundaryFencings((await bfRes.json()).data || []);
+      if (fbRes.ok) setFarmBuildings((await fbRes.json()).data || []);
+      if (itRes.ok) setIrrigationTechs((await itRes.json()).data || []);
+      if (maRes.ok) setMachineryAccesses((await maRes.json()).data || []);
+      if (crRes.ok) setCrops((await crRes.json()).data || []);
+      if (arRes.ok) setAccessRoads((await arRes.json()).data || []);
+      if (elRes.ok) setElectricities((await elRes.json()).data || []);
+      if (wsRes.ok) setWaterSources((await wsRes.json()).data || []);
+      setLookupsLoaded(true);
+    } catch (err) {
+      console.error('Error fetching lookups for submit modal:', err);
+    }
+  };
+
+  const handleOpenAddLand = async () => {
+    if (!isAuthenticated) {
+      openLoginModal();
+      return;
+    }
+    await fetchMasterLookups();
+    setIsSubmitModalOpen(true);
+  };
+
+  const handleSubmissionSuccess = () => {
+    setIsSubmitModalOpen(false);
+    setShowSuccessModal(true);
+    fetchLands(currentPage);
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -76,17 +180,60 @@ export default function AgroLands() {
       if (selectedType) params.append('type', selectedType);
       if (selectedLocation) params.append('location', selectedLocation);
 
-      const response = await fetch(`${API_BASE_URL}/agrolands?${params.toString()}`);
-      if (!response.ok) throw new Error('Failed to fetch agro lands');
-      
-      const data = await response.json();
-      setLands(data.data?.lands || data.lands || []);
-      setFilters(data.data?.filters || data.filters || { locations: [], types: [] });
-      if (data.meta) {
-        setTotalPages(data.meta.totalPages);
+      // Public call to /api/agri-lands strictly returns only active & APPROVED lands!
+      const [agriRes, agroRes] = await Promise.allSettled([
+        fetch(`${API_BASE_URL}/agri-lands?${params.toString()}`),
+        fetch(`${API_BASE_URL}/agrolands?${params.toString()}`)
+      ]);
+
+      const combinedLands: AgroLand[] = [];
+
+      // 1. Process new AgriLands
+      if (agriRes.status === 'fulfilled' && agriRes.value.ok) {
+        const agriData = await agriRes.value.json();
+        const rawAgriList = agriData.data || [];
+        rawAgriList.forEach((l: any) => {
+          const cover = l.images?.find((img: any) => img.isPrimary) || l.images?.[0];
+          combinedLands.push({
+            id: l.id,
+            title: l.titleEn,
+            titleSi: l.titleSi || null,
+            slug: l.slug,
+            description: l.additionalDetailsEn || null,
+            descriptionSi: l.additionalDetailsSi || null,
+            location: l.location?.districtEn ? `${l.location.districtEn}, ${l.location.provinceEn}` : 'Sri Lanka',
+            locationSi: l.location?.districtSi ? `${l.location.districtSi}` : null,
+            size: l.acres ? `${l.acres} A ${l.perches ? l.perches + ' P' : ''}` : (l.totalPerches ? `${l.totalPerches} Perches` : ''),
+            sizeSi: l.acres ? `අක්කර ${l.acres}` : (l.totalPerches ? `පර්චස් ${l.totalPerches}` : null),
+            price: Number(l.priceEn) || 0,
+            priceFormatted: l.priceEn || l.priceSi,
+            typeId: l.dealTypeId,
+            type: l.dealType ? { id: l.dealType.id, name: l.dealType.nameEn, nameSi: l.dealType.nameSi } : undefined,
+            contactNumber: l.whatsappNumber || '',
+            image: cover?.imageUrl || null,
+            status: l.activeState ? 'Available' : 'Unavailable'
+          });
+        });
+        if (agriData.meta && combinedLands.length > 0) {
+          setTotalPages(agriData.meta.totalPages || 1);
+        }
       }
+
+      // 2. Process legacy AgroLands
+      if (agroRes.status === 'fulfilled' && agroRes.value.ok) {
+        const agroData = await agroRes.value.json();
+        const rawAgroList = agroData.data?.lands || agroData.data || agroData.lands || [];
+        rawAgroList.forEach((l: any) => {
+          if (!combinedLands.some((existing) => existing.id === l.id)) {
+            combinedLands.push(l);
+          }
+        });
+        setFilters(agroData.data?.filters || agroData.filters || { locations: [], types: [] });
+      }
+
+      setLands(combinedLands);
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error fetching agro lands:', error);
     } finally {
       setIsLoading(false);
     }
@@ -206,6 +353,28 @@ export default function AgroLands() {
         {/* Main Content Area */}
         <div className="w-full lg:w-3/4">
           
+          {/* Post Land Action Banner */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6 bg-gradient-to-r from-emerald-800 to-teal-900 text-white p-5 rounded-2xl shadow-sm">
+            <div>
+              <h3 className="text-base sm:text-lg font-bold">
+                {isSinhala ? 'ඔබේ කෘෂිකාර්මික ඉඩම Aswanna හි පළ කරන්න' : 'List Your Agricultural Land on Aswanna'}
+              </h3>
+              <p className="text-xs text-emerald-200 mt-0.5">
+                {isSinhala 
+                  ? 'ලොග් වී තොරතුරු ඇතුළත් කරන්න. Admin අනුමැතියෙන් පසු එය ප්‍රසිද්ධියේ පළ වේ.' 
+                  : 'Submit your land details. Once approved by our admin, it will go live!'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleOpenAddLand}
+              className="flex items-center gap-2 px-5 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-md hover:shadow-lg shrink-0 cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>{isSinhala ? 'ඉඩමක් ලැයිස්තුගත කරන්න' : 'Post Agri Land'}</span>
+            </button>
+          </div>
+
           {/* Search Bar */}
           <div className="relative mb-6 group">
             <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-emerald-700">
@@ -301,7 +470,9 @@ export default function AgroLands() {
                           </div>
                           <div>
                             <span className="block text-xs text-gray-500 font-medium">Price</span>
-                            <span className="font-bold text-gray-800">Rs. {land.price.toLocaleString()}</span>
+                            <span className="font-bold text-gray-800">
+                              {land.priceFormatted ? land.priceFormatted : (land.price > 0 ? `Rs. ${land.price.toLocaleString()}` : 'Price on request')}
+                            </span>
                           </div>
                         </div>
 
@@ -319,10 +490,22 @@ export default function AgroLands() {
                       </div>
 
                       <div className="flex justify-between items-center bg-gray-50 p-3 rounded-lg border border-gray-100">
-                        <div className="flex items-center gap-2 text-gray-700">
-                          <Phone size={16} className="text-green-600" />
-                          <span className="font-semibold">{land.contactNumber}</span>
-                        </div>
+                        {land.contactNumber ? (
+                          <a
+                            href={`https://wa.me/${land.contactNumber.replace(/[^0-9]/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2 text-gray-700 hover:text-emerald-700 transition"
+                          >
+                            <Phone size={16} className="text-green-600" />
+                            <span className="font-semibold">{land.contactNumber}</span>
+                          </a>
+                        ) : (
+                          <div className="flex items-center gap-2 text-gray-400">
+                            <Phone size={16} />
+                            <span>Contact on request</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -343,6 +526,62 @@ export default function AgroLands() {
           )}
         </div>
       </div>
+
+      {/* User Submission Form Modal */}
+      {isSubmitModalOpen && (
+        <AgriLandFormModal
+          isOpen={isSubmitModalOpen}
+          onClose={() => setIsSubmitModalOpen(false)}
+          onSuccess={handleSubmissionSuccess}
+          dealTypes={dealTypes}
+          locations={locations}
+          deedTypes={deedTypes}
+          categories={categories}
+          terrains={terrains}
+          elephantFences={elephantFences}
+          wildlifeThreats={wildlifeThreats}
+          boundaryFencings={boundaryFencings}
+          farmBuildings={farmBuildings}
+          irrigationTechs={irrigationTechs}
+          machineryAccesses={machineryAccesses}
+          crops={crops}
+          accessRoads={accessRoads}
+          electricities={electricities}
+          waterSources={waterSources}
+          apiBaseUrl={API_BASE_URL}
+          token={token}
+        />
+      )}
+
+      {/* Success Notification Modal */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl text-center space-y-4 border border-emerald-100">
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-800">
+              {isSinhala ? 'ඉඩම් ලැයිස්තුගත කිරීම සාර්ථකයි!' : 'Land Listing Submitted!'}
+            </h3>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              {isSinhala
+                ? 'ඔබගේ ඉඩම් තොරතුරු සාර්ථකව පද්ධතියට එක් විය. අපගේ පරිපාලක (Admin) කණ්ඩායම විසින් එය පරීක්ෂා කර අනුමත (Approve) කළ පසු එය වෙබ් අඩවියේ ප්‍රසිද්ධියේ දිස්වනු ඇත.'
+                : 'Your agricultural land listing has been submitted successfully for review. Once verified and approved by our administrator, it will be published on the public site.'}
+            </p>
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-center justify-center gap-2">
+              <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>{isSinhala ? 'තත්ත්වය: අනුමැතිය අපේක්ෂිතයි (Pending Review)' : 'Status: Pending Administrator Approval'}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowSuccessModal(false)}
+              className="w-full py-3 bg-[#006837] hover:bg-[#00522c] text-white font-bold rounded-xl transition shadow-md cursor-pointer"
+            >
+              {isSinhala ? 'තේරුම් ගත්තා' : 'Got it'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
