@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, X, Search, ShoppingBag, Upload } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Search, ShoppingBag, Upload, Eye, ExternalLink } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import RichTextEditor from '../components/RichTextEditor';
 import AgroLoader from '../../components/common/AgroLoader';
+import { useConfirm } from '../components/ConfirmDialog';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -15,10 +16,12 @@ const PREDEFINED_CATEGORIES = ['Pohora', 'Upakarana', 'Bija', 'Prakashana'];
 const defaultForm = { name: '', sinhalaName: '', slug: '', description: '', sinhalaDescription: '', price: '', quantity: '', image: '', category: '', categorySinhala: '' };
 
 export default function ProductManagement() {
+  const { confirm } = useConfirm();
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
   const [form, setForm] = useState({ ...defaultForm });
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -80,7 +83,12 @@ export default function ProductManagement() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this product?')) return;
+    if (!await confirm({
+      title: 'Delete Product',
+      subtitle: 'භාණ්ඩය ස්ථිරවම ඉවත් කිරීම',
+      message: 'Are you sure you want to delete this product? This action cannot be undone.',
+      confirmText: 'Delete Product'
+    })) return;
     await fetch(`${API_BASE_URL}/products/${id}`, { method: 'DELETE', headers: authHeaders });
     fetchProducts(currentPage);
   };
@@ -109,34 +117,35 @@ export default function ProductManagement() {
         {isLoading ? (
           <div className="flex justify-center items-center py-20"><AgroLoader message="Loading products..." /></div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
+          <table className="w-full text-left text-xs text-gray-700">
+            <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
               <tr>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Product</th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Price</th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Qty</th>
-                <th className="px-6 py-3" />
+                <th className="px-3 py-2">Product</th>
+                <th className="px-3 py-2">Category</th>
+                <th className="px-3 py-2">Price</th>
+                <th className="px-3 py-2">Qty</th>
+                <th className="px-3 py-2 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-gray-100">
               {products.length === 0 ? (
                 <tr><td colSpan={5} className="text-center py-12 text-gray-400"><ShoppingBag className="mx-auto mb-2" size={32} /><p>No products found</p></td></tr>
               ) : products.map(p => (
-                <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      {p.image && <img src={p.image} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />}
-                      <span className="font-medium text-gray-800">{p.name}</span>
+                <tr key={p.id} className="hover:bg-gray-50/70 transition-colors">
+                  <td className="px-3 py-1.5 whitespace-nowrap">
+                    <div className="flex items-center gap-2 max-w-xs">
+                      {p.image && <img src={p.image} alt="" className="w-6 h-6 rounded object-cover shrink-0 border border-gray-200" />}
+                      <span className="font-semibold text-gray-900 truncate" title={p.name}>{p.name}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-gray-600">{p.category || '-'}</td>
-                  <td className="px-6 py-4 text-gray-600">Rs. {p.price?.toLocaleString() || '-'}</td>
-                  <td className="px-6 py-4 text-gray-600">{p.quantity ?? '-'}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 justify-end">
-                      <button onClick={() => openEdit(p)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit size={16} /></button>
-                      <button onClick={() => handleDelete(p.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                  <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">{p.category || '-'}</td>
+                  <td className="px-3 py-1.5 whitespace-nowrap font-bold text-emerald-700">Rs. {p.price?.toLocaleString() || '-'}</td>
+                  <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">{p.quantity ?? '-'}</td>
+                  <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-1">
+                      <button onClick={() => setViewingProduct(p)} title="View Product Details" className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"><Eye size={15} /></button>
+                      <button onClick={() => openEdit(p)} title="Edit Product" className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"><Edit size={15} /></button>
+                      <button onClick={() => handleDelete(p.id)} title="Delete Product" className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"><Trash2 size={15} /></button>
                     </div>
                   </td>
                 </tr>
@@ -209,6 +218,113 @@ export default function ProductManagement() {
                 <button type="submit" className="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">{editingId ? 'Update' : 'Add'}</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Product Details Preview Modal */}
+      {viewingProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setViewingProduct(null)} />
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl relative z-10 overflow-hidden border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100 bg-gray-50/70 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center border border-emerald-200 shrink-0">
+                  <ShoppingBag size={16} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm sm:text-base leading-tight">Product Details</h3>
+                  <p className="text-[11px] text-gray-500">නිෂ්පාදනයේ සම්පූර්ණ තොරතුරු</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {viewingProduct.slug && (
+                  <a
+                    href={`/products/${viewingProduct.slug}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <ExternalLink size={13} />
+                    <span className="hidden sm:inline">Public Page</span>
+                  </a>
+                )}
+                <button
+                  onClick={() => setViewingProduct(null)}
+                  className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4">
+              {viewingProduct.image && (
+                <div className="w-full h-48 rounded-xl overflow-hidden border border-gray-200 bg-gray-100 flex items-center justify-center">
+                  <img src={viewingProduct.image} alt={viewingProduct.name} className="w-full h-full object-contain" />
+                </div>
+              )}
+
+              <div>
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  {viewingProduct.category && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                      {viewingProduct.category} {viewingProduct.categorySinhala ? `(${viewingProduct.categorySinhala})` : ''}
+                    </span>
+                  )}
+                  {viewingProduct.slug && (
+                    <span className="text-xs text-gray-400 font-mono">/{viewingProduct.slug}</span>
+                  )}
+                </div>
+                <h2 className="text-lg font-bold text-gray-900">{viewingProduct.name}</h2>
+                {viewingProduct.sinhalaName && <h3 className="text-sm font-semibold text-emerald-800 mt-0.5">{viewingProduct.sinhalaName}</h3>}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100 text-xs">
+                <div>
+                  <span className="text-gray-400 block mb-0.5">Price</span>
+                  <span className="font-bold text-emerald-700 text-sm">Rs. {viewingProduct.price?.toLocaleString() || '-'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block mb-0.5">Available Quantity / Stock</span>
+                  <span className="font-semibold text-gray-800 text-sm">{viewingProduct.quantity ?? '-'}</span>
+                </div>
+              </div>
+
+              {viewingProduct.description && (
+                <div>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Description (English)</h4>
+                  <div className="text-xs text-gray-700 leading-relaxed bg-white p-3.5 rounded-xl border border-gray-100 rich-content" dangerouslySetInnerHTML={{ __html: viewingProduct.description }} />
+                </div>
+              )}
+
+              {viewingProduct.sinhalaDescription && (
+                <div>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">විස්තරය (Sinhala)</h4>
+                  <div className="text-xs text-gray-700 leading-relaxed bg-white p-3.5 rounded-xl border border-gray-100 rich-content" dangerouslySetInnerHTML={{ __html: viewingProduct.sinhalaDescription }} />
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-gray-100 bg-gray-50/70 flex justify-end gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewingProduct(null)}
+                className="px-4 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const p = viewingProduct;
+                  setViewingProduct(null);
+                  openEdit(p);
+                }}
+                className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Edit Product
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -7,6 +7,7 @@ import {
   UserCheck, 
   Search, 
   Trash2, 
+  Edit,
   Edit3, 
   RefreshCw, 
   Eye, 
@@ -70,6 +71,7 @@ export default function UserManagement() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<ManagedUser | null>(null);
+  const [viewingUser, setViewingUser] = useState<ManagedUser | null>(null);
 
   // Form states
   const [addForm, setAddForm] = useState({
@@ -327,23 +329,20 @@ export default function UserManagement() {
     switch (role?.toUpperCase()) {
       case 'ADMIN':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-rose-50 text-rose-700 border border-rose-200">
-            <Shield className="w-3.5 h-3.5 text-rose-600" />
-            ADMIN (පරිපාලක)
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">
+            ADMIN
           </span>
         );
       case 'MODERATOR':
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-            <ShieldAlert className="w-3.5 h-3.5 text-indigo-600" />
-            MODERATOR (කළමනාකරු)
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+            MODERATOR
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
-            USER (පරිශීලක)
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            USER
           </span>
         );
     }
@@ -509,17 +508,17 @@ export default function UserManagement() {
       {/* Users Table Card */}
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                <th className="py-3.5 px-6">User / Profile</th>
-                <th className="py-3.5 px-6">Email Address</th>
-                <th className="py-3.5 px-6">User Role</th>
-                <th className="py-3.5 px-6">Created Date</th>
-                <th className="py-3.5 px-6 text-right">Actions</th>
+          <table className="w-full text-left text-xs text-slate-700">
+            <thead className="bg-slate-50/90 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500 whitespace-nowrap">
+              <tr>
+                <th className="px-3 py-2">User / Profile</th>
+                <th className="px-3 py-2">Email Address</th>
+                <th className="px-3 py-2">User Role</th>
+                <th className="px-3 py-2">Created Date</th>
+                <th className="px-3 py-2 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
+            <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
                   <td colSpan={5} className="py-16 text-center text-slate-400">
@@ -546,70 +545,65 @@ export default function UserManagement() {
                   return (
                     <tr key={user.id} className="hover:bg-slate-50/70 transition-colors">
                       {/* Name & Avatar */}
-                      <td className="py-4 px-6">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 text-white flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
+                      <td className="px-3 py-1.5 whitespace-nowrap">
+                        <div className="flex items-center gap-2 max-w-xs">
+                          <div className="w-6 h-6 rounded bg-emerald-600 text-white flex items-center justify-center font-bold text-xs shadow-2xs shrink-0">
                             {initial}
                           </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-slate-800">{user.name}</span>
-                              {isCurrent && (
-                                <span className="px-1.5 py-0.5 text-[10px] font-bold bg-amber-100 text-amber-800 rounded border border-amber-200">
-                                  YOU (ඔබ)
-                                </span>
-                              )}
-                            </div>
-                            <span className="text-xs text-slate-400 font-mono">ID: {user.id.slice(0, 8)}...</span>
-                          </div>
+                          <span className="font-semibold text-slate-800 truncate" title={user.name}>{user.name}</span>
+                          {isCurrent && (
+                            <span className="px-1 py-0.2 text-[9px] font-bold bg-amber-100 text-amber-800 rounded">
+                              YOU
+                            </span>
+                          )}
                         </div>
                       </td>
 
                       {/* Email */}
-                      <td className="py-4 px-6 font-medium text-slate-600">
-                        <div className="flex items-center gap-1.5">
-                          <Mail className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{user.email}</span>
-                        </div>
+                      <td className="px-3 py-1.5 whitespace-nowrap text-slate-600">
+                        <span className="truncate max-w-[200px] inline-block" title={user.email}>{user.email}</span>
                       </td>
 
                       {/* Role */}
-                      <td className="py-4 px-6">
+                      <td className="px-3 py-1.5 whitespace-nowrap">
                         {renderRoleBadge(user.role)}
                       </td>
 
                       {/* Created Date */}
-                      <td className="py-4 px-6 text-xs text-slate-500">
-                        {new Date(user.createdAt).toLocaleDateString('en-GB', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
+                      <td className="px-3 py-1.5 whitespace-nowrap text-slate-500">
+                        {new Date(user.createdAt).toLocaleDateString()}
                       </td>
 
                       {/* Actions */}
-                      <td className="py-4 px-6 text-right">
-                        <div className="flex items-center justify-end gap-2">
+                      <td className="px-3 py-1.5 whitespace-nowrap text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => setViewingUser(user)}
+                            className="p-1 text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
+                            title="View User Details"
+                          >
+                            <Eye size={15} />
+                          </button>
+
                           <button
                             onClick={() => openEditUser(user)}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+                            className="p-1 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"
                             title="Edit User & Role"
                           >
-                            <Edit3 className="w-3.5 h-3.5 text-slate-500" />
-                            <span>Edit Role</span>
+                            <Edit size={15} />
                           </button>
 
                           <button
                             onClick={() => openDeleteModal(user)}
                             disabled={isCurrent}
-                            className={`inline-flex items-center justify-center p-1.5 rounded-lg transition ${
+                            className={`p-1 rounded transition-colors cursor-pointer ${
                               isCurrent
-                                ? 'text-slate-300 bg-slate-50 cursor-not-allowed'
-                                : 'text-rose-600 bg-rose-50 hover:bg-rose-100 border border-rose-200'
+                                ? 'text-slate-300 cursor-not-allowed'
+                                : 'text-slate-500 hover:text-rose-600 hover:bg-rose-50'
                             }`}
                             title={isCurrent ? "You cannot delete your own logged-in account" : "Delete User"}
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 size={15} />
                           </button>
                         </div>
                       </td>
@@ -972,6 +966,84 @@ export default function UserManagement() {
                     <span>Confirm Delete</span>
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================= MODAL: VIEW USER DETAILS ================= */}
+      {viewingUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setViewingUser(null)} />
+          <div className="bg-white rounded-2xl w-full max-w-lg relative z-10 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between p-5 border-b border-gray-100 bg-gray-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-emerald-600 text-white flex items-center justify-center font-bold text-base shadow-sm">
+                  {viewingUser.name ? viewingUser.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-base">{viewingUser.name}</h3>
+                  <p className="text-xs text-gray-500">{viewingUser.email}</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setViewingUser(null)} 
+                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-4">
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <span className="text-xs font-semibold text-gray-500">User Role</span>
+                <div>{renderRoleBadge(viewingUser.role)}</div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <span className="text-slate-400 block mb-0.5">Account ID</span>
+                  <span className="font-mono text-slate-700 select-all break-all">{viewingUser.id}</span>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <span className="text-slate-400 block mb-0.5">Session Status</span>
+                  <span className="font-semibold text-slate-800">
+                    {currentUser && (currentUser.id === viewingUser.id || currentUser.email === viewingUser.email) ? (
+                      <span className="text-amber-600 font-bold">Current Active Session</span>
+                    ) : (
+                      <span className="text-emerald-600">Active</span>
+                    )}
+                  </span>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <span className="text-slate-400 block mb-0.5">Created Date</span>
+                  <span className="font-medium text-slate-800">{new Date(viewingUser.createdAt).toLocaleString()}</span>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <span className="text-slate-400 block mb-0.5">Last Updated</span>
+                  <span className="font-medium text-slate-800">{new Date(viewingUser.updatedAt).toLocaleString()}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-100 bg-gray-50 flex items-center justify-end gap-2">
+              <button 
+                onClick={() => {
+                  const u = viewingUser;
+                  setViewingUser(null);
+                  openEditUser(u);
+                }} 
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-1.5"
+              >
+                <Edit size={13} />
+                Edit User
+              </button>
+              <button 
+                onClick={() => setViewingUser(null)} 
+                className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-100 text-xs font-medium transition cursor-pointer"
+              >
+                Close
               </button>
             </div>
           </div>

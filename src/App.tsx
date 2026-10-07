@@ -57,6 +57,7 @@ import AgroLandManagement from './admin/pages/AgroLandManagement';
 import AscManagement from './admin/pages/AscManagement';
 import OrderManagement from './admin/pages/OrderManagement';
 import CourseManagement from './admin/pages/CourseManagement';
+import ShortCourseManagement from './admin/pages/ShortCourseManagement';
 import UserManagement from './admin/pages/UserManagement';
 import ContactManagement from './admin/pages/ContactManagement';
 import InstitutionManagement from './admin/pages/InstitutionManagement';
@@ -171,6 +172,8 @@ function App() {
               <Route path="asc" element={<AscManagement />} />
               <Route path="orders" element={<OrderManagement />} />
               <Route path="courses" element={<CourseManagement />} />
+              <Route path="short-courses" element={<ShortCourseManagement />} />
+              <Route path="shortcourses" element={<ShortCourseManagement />} />
               <Route path="users" element={<UserManagement />} />
               <Route path="contacts" element={<ContactManagement />} />
             </Route>

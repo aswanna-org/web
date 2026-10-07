@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Fragment } from 'react';
 import {
-  Plus, Edit, Trash2, X, Search, Building2, Phone, Mail,
-  MapPin, StickyNote, Users, ExternalLink, CheckCircle2, ChevronRight,
-  Star, Briefcase, AlertCircle, Loader2, Upload, User, ChevronDown, ChevronUp, Hash
+  Plus, Edit, Trash2, X, Search, Building2, Phone,
+  StickyNote, Users, ExternalLink, CheckCircle2, ChevronRight,
+  Star, Briefcase, AlertCircle, Loader2, Upload, User, ChevronDown, ChevronUp, Hash, Eye
 } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import { compressImageFile } from '../../utils/imageCompressor';
 import AgroLoader from '../../components/common/AgroLoader';
+import { useConfirm } from '../components/ConfirmDialog';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -130,10 +131,12 @@ const defaultForm = {
 };
 
 export default function AscManagement() {
+  const { confirm } = useConfirm();
   const [ascs, setAscs] = useState<ASC[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [viewingAsc, setViewingAsc] = useState<ASC | null>(null);
   const [form, setForm] = useState({ ...defaultForm });
   const [search, setSearch] = useState('');
   const [filterProvince, setFilterProvince] = useState('');
@@ -278,7 +281,12 @@ export default function AscManagement() {
   };
 
   const handleDeletePosition = async (id: string, title: string) => {
-    if (!window.confirm(`Are you sure you want to delete position "${title}"?`)) return;
+    if (!await confirm({
+      title: 'Delete Position',
+      subtitle: 'තනතුර ස්ථිරවම ඉවත් කිරීම',
+      message: `Are you sure you want to delete position "${title}"?`,
+      confirmText: 'Delete Position'
+    })) return;
     try {
       const res = await fetch(`${API_BASE_URL}/asc-positions/${id}`, {
         method: 'DELETE',
@@ -358,7 +366,12 @@ export default function AscManagement() {
   };
 
   const handleDeleteDepartment = async (id: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete department "${name}"?`)) return;
+    if (!await confirm({
+      title: 'Delete Department',
+      subtitle: 'දෙපාර්තමේන්තුව ස්ථිරවම ඉවත් කිරීම',
+      message: `Are you sure you want to delete department "${name}"?`,
+      confirmText: 'Delete Department'
+    })) return;
     try {
       const res = await fetch(`${API_BASE_URL}/asc-departments/${id}`, {
         method: 'DELETE',
@@ -711,7 +724,12 @@ export default function AscManagement() {
   };
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Are you sure you want to delete the Govijana Sewa Center "${name}"?`)) return;
+    if (!await confirm({
+      title: 'Delete Govijana Sewa Center',
+      subtitle: 'ගොවිජන සේවා මධ්‍යස්ථානය ස්ථිරවම ඉවත් කිරීම',
+      message: `Are you sure you want to delete the Govijana Sewa Center "${name}"? This action cannot be undone.`,
+      confirmText: 'Delete Center'
+    })) return;
     try {
       const res = await fetch(`${API_BASE_URL}/asc/${id}`, { method: 'DELETE', headers });
       if (res.ok) {
@@ -855,183 +873,97 @@ export default function AscManagement() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs sm:text-sm">
-              <thead className="bg-gray-50/80 border-b border-gray-200 text-gray-600 text-[11px] uppercase font-semibold tracking-wider">
+            <table className="w-full text-left text-xs text-gray-700">
+              <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
                 <tr>
-                  <th className="px-5 py-3.5">Center Name & ID</th>
-                  <th className="px-5 py-3.5">Location</th>
-                  <th className="px-5 py-3.5">Officers & Staff</th>
-                  <th className="px-5 py-3.5">Contact</th>
-                  <th className="px-5 py-3.5">Special Note</th>
-                  <th className="px-5 py-3.5 text-right">Actions</th>
+                  <th className="px-3 py-2">Center</th>
+                  <th className="px-3 py-2">Location</th>
+                  <th className="px-3 py-2">Officer</th>
+                  <th className="px-3 py-2">Contact</th>
+                  <th className="px-3 py-2 text-center">GN Divisions</th>
+                  <th className="px-3 py-2 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {ascs.map(asc => {
                   const officersList = extractOfficersList(asc);
                   const primaryOfficer = officersList.find(o => o.isPrimary) || officersList[0];
-                  const additionalCount = officersList.filter(o => !o.isPrimary).length;
-                  const isOfficerFemale =
-                    primaryOfficer?.gender === 'FEMALE' ||
-                    /මිය|මෙනවිය|Mrs\.?|Ms\.?|Miss/i.test(
-                      `${primaryOfficer?.name || ''} ${primaryOfficer?.nameSi || ''}`
-                    );
                   const gnDivs = asc.gnDivisions || [];
                   const isExpanded = expandedAscId === asc.id;
 
                   return (
-                    <>
-                    <tr key={asc.id} className="hover:bg-gray-50/80 transition-colors">
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-start gap-2.5">
-                          <div className="p-2 rounded-lg bg-emerald-50 text-emerald-700 shrink-0 mt-0.5">
-                            <Building2 size={16} />
+                    <Fragment key={asc.id}>
+                    <tr className="hover:bg-gray-50/70 transition-colors">
+                      <td className="px-3 py-1.5 whitespace-nowrap">
+                        <div className="flex items-center gap-2 max-w-xs">
+                          <div className="w-6 h-6 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center shrink-0">
+                            <Building2 size={12} />
                           </div>
-                          <div>
-                            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 uppercase tracking-wider">
-                              {asc.ascId}
-                            </span>
-                            <p className="font-semibold text-gray-800 text-sm mt-0.5">{asc.name}</p>
-                            {asc.nameSi && <p className="text-xs text-gray-400">{asc.nameSi}</p>}
-                          </div>
+                          <span className="font-semibold text-gray-900 truncate" title={asc.name}>
+                            {asc.name}
+                          </span>
                         </div>
                       </td>
 
-                      <td className="px-5 py-3.5 text-gray-600">
-                        <div className="flex items-center gap-1.5 text-gray-800 font-medium">
-                          <MapPin size={13} className="text-gray-400 shrink-0" />
-                          <span>{asc.district}</span>
-                        </div>
-                        <p className="text-xs text-gray-400 pl-4">{asc.province} Province</p>
+                      <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">
+                        {asc.district}{asc.province ? `, ${asc.province}` : ''}
                       </td>
 
-                      <td className="px-5 py-3.5 text-gray-700">
-                        {primaryOfficer ? (
-                          <div className="flex items-start gap-3">
-                            {/* Avatar or Gender Icon (replaces the star) */}
-                            {primaryOfficer.avatar ? (
-                              <img
-                                src={primaryOfficer.avatar}
-                                alt={primaryOfficer.name}
-                                className="w-10 h-10 rounded-full object-cover shrink-0 shadow-2xs border-2 border-emerald-500/40 bg-gray-100 mt-0.5"
-                              />
-                            ) : (
-                              <div
-                                className={`w-10 h-10 rounded-full flex flex-col items-center justify-center text-white shrink-0 shadow-2xs border-2 border-white ring-2 mt-0.5 ${
-                                  isOfficerFemale
-                                    ? 'ring-pink-300 bg-gradient-to-tr from-pink-500 via-rose-500 to-amber-300'
-                                    : 'ring-emerald-300 bg-gradient-to-tr from-emerald-600 via-teal-600 to-sky-400'
-                                }`}
-                                title={isOfficerFemale ? 'Female Officer (කාන්තා නිලධාරී)' : 'Male Officer (පුරුෂ නිලධාරී)'}
-                              >
-                                <User size={18} />
-                                <span className="text-[8px] font-black leading-none mt-0.5">
-                                  {isOfficerFemale ? '♀' : '♂'}
-                                </span>
-                              </div>
-                            )}
-
-                            {/* Officer Details */}
-                            <div className="min-w-0 flex-1">
-                              <p className="font-semibold text-gray-900 text-sm leading-snug">
-                                {primaryOfficer.name}
-                              </p>
-                              {primaryOfficer.nameSi && primaryOfficer.nameSi !== primaryOfficer.name && (
-                                <p className="text-xs text-gray-400 leading-none mt-0.5">
-                                  {primaryOfficer.nameSi}
-                                </p>
-                              )}
-                              <p className="text-[11px] text-emerald-700 font-medium leading-tight mt-1">
-                                {primaryOfficer.position}
-                              </p>
-                              {primaryOfficer.departmentName && (
-                                <p className="text-[10px] text-gray-400 truncate max-w-[200px] leading-tight mt-0.5">
-                                  {primaryOfficer.departmentName}
-                                </p>
-                              )}
-                              {additionalCount > 0 && (
-                                <div className="pt-1.5">
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                                    <Users size={10} /> +{additionalCount} more {additionalCount === 1 ? 'officer' : 'officers'}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-xs text-gray-400 italic">No Officers Assigned</span>
-                        )}
+                      <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                        <span className="truncate max-w-[180px] inline-block" title={primaryOfficer ? `${primaryOfficer.name} (${primaryOfficer.position})` : '-'}>
+                          {primaryOfficer ? primaryOfficer.name : '-'}
+                        </span>
                       </td>
 
-                      <td className="px-5 py-3.5 text-gray-600">
-                        {asc.officePhone || asc.mobilePhone || asc.email ? (
-                          <div className="space-y-0.5">
-                            {(asc.officePhone || asc.mobilePhone) && (
-                              <p className="flex items-center gap-1 text-xs text-gray-700">
-                                <Phone size={11} className="text-gray-400" /> {asc.officePhone || asc.mobilePhone}
-                              </p>
-                            )}
-                            {asc.email && (
-                              <p className="flex items-center gap-1 text-[11px] text-gray-500 truncate max-w-[140px]">
-                                <Mail size={11} className="text-gray-400" /> {asc.email}
-                              </p>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-xs text-gray-400">-</span>
-                        )}
+                      <td className="px-3 py-1.5 whitespace-nowrap font-mono text-gray-600">
+                        {asc.officePhone || asc.mobilePhone || asc.email || '-'}
                       </td>
 
-                      <td className="px-5 py-3.5">
-                        <div className="space-y-1.5">
-                          {asc.specialNote || asc.specialNoteSi ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200" title={asc.specialNote || asc.specialNoteSi}>
-                              <StickyNote size={11} /> Note Added
-                            </span>
-                          ) : (
-                            <span className="text-xs text-gray-400">-</span>
-                          )}
-                          {/* GN Divisions expand button */}
-                          <div>
-                            <button
-                              type="button"
-                              onClick={() => setExpandedAscId(isExpanded ? null : asc.id)}
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold transition-colors cursor-pointer ${
-                                gnDivs.length > 0
-                                  ? 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100'
-                                  : 'bg-gray-50 text-gray-400 border border-gray-200 hover:bg-gray-100'
-                              }`}
-                              title="GN Divisions"
-                            >
-                              <Hash size={10} />
-                              {gnDivs.length > 0 ? `${gnDivs.length} GN Div.` : 'No GN Div.'}
-                              {isExpanded ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
-                            </button>
-                          </div>
-                        </div>
+                      <td className="px-3 py-1.5 text-center whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => setExpandedAscId(isExpanded ? null : asc.id)}
+                          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold border transition-colors cursor-pointer ${
+                            gnDivs.length > 0
+                              ? 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
+                              : 'bg-gray-50 text-gray-400 border border-gray-200 hover:bg-gray-100'
+                          }`}
+                          title="Toggle GN Divisions"
+                        >
+                          <Hash size={10} />
+                          <span>{gnDivs.length} GN Div.</span>
+                          {isExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+                        </button>
                       </td>
 
-                      <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-1.5 justify-end">
+                      <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => setViewingAsc(asc)}
+                            className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
+                            title="View Center Details"
+                          >
+                            <Eye size={15} />
+                          </button>
                           <a
                             href="/govijana-sewa"
                             target="_blank"
                             rel="noreferrer"
-                            className="p-1.5 text-gray-400 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
-                            title="View on Public Page"
+                            className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
+                            title="View Public Page"
                           >
                             <ExternalLink size={15} />
                           </a>
                           <button
                             onClick={() => openEdit(asc)}
-                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"
                             title="Edit Center"
                           >
                             <Edit size={15} />
                           </button>
                           <button
                             onClick={() => handleDelete(asc.id, asc.name)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
                             title="Delete Center"
                           >
                             <Trash2 size={15} />
@@ -1092,7 +1024,7 @@ export default function AscManagement() {
                         </td>
                       </tr>
                     )}
-                    </>
+                    </Fragment>
                   );
                 })}
               </tbody>
@@ -2479,6 +2411,189 @@ export default function AscManagement() {
                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
               >
                 Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* ASC Center Details Preview Modal */}
+      {viewingAsc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setViewingAsc(null)} />
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl relative z-10 overflow-hidden border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100 bg-gray-50/70 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center border border-emerald-200 shrink-0">
+                  <Building2 size={16} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm sm:text-base leading-tight">Agrarian Service Center Details</h3>
+                  <p className="text-[11px] text-gray-500">ගොවිජන සේවා මධ්‍යස්ථානයේ සම්පූර්ණ තොරතුරු</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href="/govijana-sewa"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer"
+                >
+                  <ExternalLink size={13} />
+                  <span className="hidden sm:inline">Public Page</span>
+                </a>
+                <button
+                  onClick={() => setViewingAsc(null)}
+                  className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-5">
+              {/* Center Title and Location badges */}
+              <div>
+                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                    {viewingAsc.district} District
+                  </span>
+                  {viewingAsc.province && (
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                      {viewingAsc.province} Province
+                    </span>
+                  )}
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">{viewingAsc.name}</h2>
+                {viewingAsc.nameSi && <h3 className="text-base font-semibold text-emerald-800 mt-0.5">{viewingAsc.nameSi}</h3>}
+              </div>
+
+              {/* Contact info grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100 text-xs">
+                <div>
+                  <span className="text-gray-400 block mb-0.5">Office Phone</span>
+                  {viewingAsc.officePhone ? (
+                    <a href={`tel:${viewingAsc.officePhone}`} className="font-semibold text-emerald-700 hover:underline flex items-center gap-1 font-mono">
+                      <Phone size={12} /> {viewingAsc.officePhone}
+                    </a>
+                  ) : <span className="text-gray-400">-</span>}
+                </div>
+                <div>
+                  <span className="text-gray-400 block mb-0.5">Mobile Phone</span>
+                  {viewingAsc.mobilePhone ? (
+                    <a href={`tel:${viewingAsc.mobilePhone}`} className="font-semibold text-emerald-700 hover:underline flex items-center gap-1 font-mono">
+                      <Phone size={12} /> {viewingAsc.mobilePhone}
+                    </a>
+                  ) : <span className="text-gray-400">-</span>}
+                </div>
+                <div>
+                  <span className="text-gray-400 block mb-0.5">Email</span>
+                  {viewingAsc.email ? (
+                    <a href={`mailto:${viewingAsc.email}`} className="font-semibold text-gray-800 hover:underline truncate block">
+                      {viewingAsc.email}
+                    </a>
+                  ) : <span className="text-gray-400">-</span>}
+                </div>
+                {(viewingAsc.address || viewingAsc.addressSi) && (
+                  <div className="sm:col-span-3 pt-2 border-t border-gray-200/50">
+                    <span className="text-gray-400 block mb-0.5">Physical Address</span>
+                    <p className="text-gray-700 font-medium">
+                      {viewingAsc.address} {viewingAsc.addressSi ? `(${viewingAsc.addressSi})` : ''}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Officers List */}
+              <div>
+                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                  <Users size={14} className="text-emerald-700" />
+                  <span>Center Officers ({viewingAsc.officers?.length || 0})</span>
+                </h4>
+                {(!viewingAsc.officers || viewingAsc.officers.length === 0) ? (
+                  <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 text-center text-xs text-gray-400">
+                    No officer details recorded yet.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {viewingAsc.officers.map((officer, idx) => (
+                      <div key={idx} className={`p-3.5 rounded-xl border text-xs ${officer.isPrimary ? 'bg-emerald-50/50 border-emerald-200' : 'bg-white border-gray-200'}`}>
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-bold text-gray-900 text-sm">{officer.name}</span>
+                              {officer.isPrimary && (
+                                <span className="px-1.5 py-0.2 bg-emerald-600 text-white text-[9px] font-bold rounded">PRIMARY</span>
+                              )}
+                            </div>
+                            {officer.nameSi && <p className="text-[11px] text-emerald-800 font-medium">{officer.nameSi}</p>}
+                            <p className="text-gray-600 font-semibold mt-1">{officer.position} {officer.positionSi ? `(${officer.positionSi})` : ''}</p>
+                            {officer.departmentName && <p className="text-gray-400 text-[11px]">{officer.departmentName}</p>}
+                          </div>
+                        </div>
+                        {(officer.phone || officer.email) && (
+                          <div className="mt-2 pt-2 border-t border-gray-100 flex items-center gap-3 text-[11px] text-gray-600">
+                            {officer.phone && <a href={`tel:${officer.phone}`} className="hover:text-emerald-700 font-mono flex items-center gap-1"><Phone size={10} />{officer.phone}</a>}
+                            {officer.email && <span className="truncate">{officer.email}</span>}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* GN Divisions List */}
+              {viewingAsc.gnDivisions && viewingAsc.gnDivisions.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                    <Hash size={14} className="text-blue-700" />
+                    <span>Grama Niladhari Divisions ({viewingAsc.gnDivisions.length})</span>
+                  </h4>
+                  <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-xl divide-y divide-gray-100 text-xs">
+                    {viewingAsc.gnDivisions.map((gn, i) => (
+                      <div key={i} className="px-3.5 py-2 flex items-center justify-between bg-white hover:bg-gray-50/70">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-blue-800 bg-blue-50 px-1.5 py-0.5 rounded text-[10px]">
+                            {gn.divisionCode || `#${gn.serialNo}`}
+                          </span>
+                          <span className="font-medium text-gray-900">{gn.divisionName || `GN Div ${gn.serialNo}`}</span>
+                        </div>
+                        {gn.arpaOfficerName && (
+                          <span className="text-gray-500 text-[11px] truncate max-w-[150px]">{gn.arpaOfficerName}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Special Notes */}
+              {(viewingAsc.specialNote || viewingAsc.specialNoteSi) && (
+                <div className="p-3.5 bg-amber-50/70 border border-amber-200/80 rounded-xl text-xs text-amber-900">
+                  <span className="font-bold block mb-1">විශේෂ සටහන / Special Note:</span>
+                  <p className="whitespace-pre-wrap">{viewingAsc.specialNoteSi || viewingAsc.specialNote}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-gray-100 bg-gray-50/70 flex justify-end gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewingAsc(null)}
+                className="px-4 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const ascToEdit = viewingAsc;
+                  setViewingAsc(null);
+                  openEdit(ascToEdit);
+                }}
+                className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Edit Center
               </button>
             </div>
           </div>

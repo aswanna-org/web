@@ -30,6 +30,7 @@ import Pagination from '../../components/admin/Pagination';
 import CountryMultiSelect from '../components/CountryMultiSelect';
 import RichTextEditor from '../components/RichTextEditor';
 import AgroLoader from '../../components/common/AgroLoader';
+import { useConfirm } from '../components/ConfirmDialog';
 import type { InstitutionDocument, RegionalCenter } from '../../data/agriInstitutionsData';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -146,7 +147,7 @@ interface BaseInstitution {
   reportsAndBriefs?: InstitutionDocument[];
 }
 
-export const GOV_INSTITUTION_TYPES = [
+const GOV_INSTITUTION_TYPES = [
   { si: 'අමාත්‍යාංශ', en: 'Ministries' },
   { si: 'දෙපාර්තමේන්තු', en: 'Departments' },
   { si: 'සංස්ථා', en: 'Corporations' },
@@ -251,7 +252,7 @@ const defaultFormData = {
   documents: [] as FormDocument[]
 };
 
-export const generateSlug = (text: string): string => {
+const generateSlug = (text: string): string => {
   return (text || '')
     .toLowerCase()
     .trim()
@@ -260,7 +261,7 @@ export const generateSlug = (text: string): string => {
     .replace(/^-+|-+$/g, '');
 };
 
-export const formatTimeTo12Hour = (timeStr?: string | null): string => {
+const formatTimeTo12Hour = (timeStr?: string | null): string => {
   if (!timeStr) return '';
   const parts = timeStr.trim().split(':');
   if (parts.length < 2) return timeStr;
@@ -274,7 +275,7 @@ export const formatTimeTo12Hour = (timeStr?: string | null): string => {
   return `${formattedHours}:${minutes} ${period}`;
 };
 
-export const formatTimeRange = (start?: string | null, end?: string | null): string => {
+const formatTimeRange = (start?: string | null, end?: string | null): string => {
   if (!start && !end) return '';
   if (start && end) {
     return `${formatTimeTo12Hour(start)} - ${formatTimeTo12Hour(end)}`;
@@ -335,6 +336,7 @@ const clearDraft = (sector: SectorType) => {
 };
 
 export default function InstitutionManagement() {
+  const { confirm } = useConfirm();
   const [activeTab, setActiveTab] = useState<SectorType>('gov');
   const [institutions, setInstitutions] = useState<BaseInstitution[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -346,6 +348,7 @@ export default function InstitutionManagement() {
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [viewingInstitution, setViewingInstitution] = useState<BaseInstitution | null>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [form, setForm] = useState(defaultFormData);
   const [restoredDraftTime, setRestoredDraftTime] = useState<number | null>(null);
@@ -791,7 +794,12 @@ export default function InstitutionManagement() {
 
   const handleDelete = async (id: string, name?: string | null) => {
     const displayName = name || 'this institution';
-    if (!window.confirm(`Are you sure you want to delete "${displayName}"?`)) return;
+    if (!await confirm({
+      title: 'Delete Institution',
+      subtitle: 'ආයතනය ස්ථිරවම ඉවත් කිරීම',
+      message: `Are you sure you want to delete "${displayName}"? This action cannot be undone.`,
+      confirmText: 'Delete Institution'
+    })) return;
 
     try {
       const res = await fetch(`${API_BASE_URL}/institutions/${activeTab}/${id}`, {
@@ -1000,115 +1008,99 @@ export default function InstitutionManagement() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-gray-600">
-              <thead className="bg-gray-50/80 text-gray-600 font-semibold border-b border-gray-200 text-[11px] uppercase tracking-wider">
+            <table className="w-full text-left text-xs text-gray-700">
+              <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
                 <tr>
-                  <th className="py-3 px-5">Institution</th>
-                  <th className="py-3 px-5">Classification</th>
-                  <th className="py-3 px-5">Contact</th>
-                  <th className="py-3 px-5">Data Summary</th>
-                  <th className="py-3 px-5 text-center">Order</th>
-                  <th className="py-3 px-5 text-right">Actions</th>
+                  <th className="px-3 py-2">Institution</th>
+                  <th className="px-3 py-2">Classification</th>
+                  <th className="px-3 py-2">Contact</th>
+                  <th className="px-3 py-2">Summary</th>
+                  <th className="px-3 py-2 text-center">Order</th>
+                  <th className="px-3 py-2 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {institutions.map((inst) => {
-                  const docCount = (inst.documents || inst.catalogues || inst.reportsAndBriefs || []).length;
                   const serviceCount = (inst.services || inst.productsAndServices || inst.interventions || []).length;
-                  const centerCount = (inst.regionalCenters || inst.dealersAndShowrooms || inst.projectStations || []).length;
 
                   return (
-                    <tr key={inst.id} className="hover:bg-gray-50/60 transition-colors">
-                      <td className="py-3.5 px-5">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0 overflow-hidden">
-                            {inst.logoUrl ? (
-                              <img src={inst.logoUrl} alt="" className="w-full h-full object-contain p-0.5" />
-                            ) : (
-                              <Landmark className="w-4 h-4 text-gray-400" />
-                            )}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-semibold text-gray-900 truncate">{inst.nameSi || inst.nameEn || 'Untitled'}</p>
-                            <p className="text-[11px] text-gray-400 truncate">{inst.nameEn || inst.nameSi || '-'}</p>
-                          </div>
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-5 text-gray-700">
-                        {activeTab === 'gov' ? (
-                          <div>
-                            <p className="font-medium text-gray-900 truncate max-w-xs">{inst.ministrySi || inst.ministry || inst.ministryEn || '-'}</p>
-                            <p className="text-[11px] text-gray-400">{inst.institutionTypeSi || inst.institutionType || inst.institutionTypeEn || '-'}</p>
-                          </div>
-                        ) : activeTab === 'pvt' ? (
-                          <div>
-                            <p className="font-medium text-gray-900 truncate max-w-xs">{inst.parentConglomerateSi || inst.parentConglomerate || inst.parentConglomerateEn || '-'}</p>
-                            <p className="text-[11px] text-gray-400">{inst.legalEntityTypeSi || inst.legalEntityType || inst.legalEntityTypeEn || '-'}</p>
-                          </div>
-                        ) : (
-                          <div>
-                            <p className="font-medium text-gray-900 truncate max-w-xs">{inst.agencyCategorySi || inst.agencyCategory || inst.agencyCategoryEn || '-'}</p>
-                            <p className="text-[11px] text-gray-400">{inst.globalHQSi || inst.globalHQ || inst.globalHQEn || '-'}</p>
-                          </div>
-                        )}
-                      </td>
-
-                      <td className="py-3.5 px-5 text-gray-600">
-                        <p className="font-medium text-gray-900">{inst.phone || '-'}</p>
-                        <p className="text-[11px] text-gray-400 truncate max-w-[180px]">{inst.email || '-'}</p>
-                        {inst.officeTime && (
-                          <div className="flex items-center gap-1 text-[10.5px] text-emerald-700 font-medium mt-0.5" title={inst.officeTime}>
-                            <Clock className="w-3 h-3 text-emerald-600 shrink-0" />
-                            <span className="truncate max-w-[170px]">{inst.officeTime}</span>
-                          </div>
-                        )}
-                      </td>
-
-                      <td className="py-3.5 px-5">
-                        <div className="flex items-center gap-2 text-[11px] text-gray-500 font-mono">
-                          <span>{serviceCount} Services</span>
-                          <span>•</span>
-                          <span>{docCount} Docs</span>
-                          {centerCount > 0 && (
-                            <>
-                              <span>•</span>
-                              <span>{centerCount} Centers</span>
-                            </>
+                    <tr key={inst.id} className="hover:bg-gray-50/70 transition-colors">
+                      <td className="px-3 py-1.5 whitespace-nowrap">
+                        <div className="flex items-center gap-2 max-w-xs">
+                          {inst.logoUrl ? (
+                            <img src={inst.logoUrl} alt="" className="w-6 h-6 rounded object-contain shrink-0 border border-gray-200 p-0.5" />
+                          ) : (
+                            <div className="w-6 h-6 rounded bg-gray-100 text-gray-500 border border-gray-200 flex items-center justify-center shrink-0">
+                              <Landmark size={12} />
+                            </div>
                           )}
+                          <span className="font-semibold text-gray-900 truncate" title={inst.nameEn || inst.nameSi || 'Untitled'}>
+                            {inst.nameEn || inst.nameSi || 'Untitled'}
+                          </span>
                         </div>
                       </td>
 
-                      <td className="py-3.5 px-5 text-center font-mono text-gray-400 text-xs">
+                      <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                        <span className="truncate max-w-[160px] inline-block" title={
+                          activeTab === 'gov'
+                            ? (inst.ministryEn || inst.ministrySi || inst.ministry || '-')
+                            : activeTab === 'pvt'
+                            ? (inst.parentConglomerateEn || inst.parentConglomerateSi || inst.parentConglomerate || '-')
+                            : (inst.agencyCategoryEn || inst.agencyCategorySi || inst.agencyCategory || '-')
+                        }>
+                          {activeTab === 'gov'
+                            ? (inst.ministryEn || inst.ministrySi || inst.ministry || '-')
+                            : activeTab === 'pvt'
+                            ? (inst.parentConglomerateEn || inst.parentConglomerateSi || inst.parentConglomerate || '-')
+                            : (inst.agencyCategoryEn || inst.agencyCategorySi || inst.agencyCategory || '-')}
+                        </span>
+                      </td>
+
+                      <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">
+                        {inst.phone || inst.email || '-'}
+                      </td>
+
+                      <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">
+                        {serviceCount} Services
+                      </td>
+
+                      <td className="px-3 py-1.5 text-center font-mono text-gray-400 text-xs whitespace-nowrap">
                         {inst.order ?? 99}
                       </td>
 
-                      <td className="py-3.5 px-5 text-right">
-                        <div className="inline-flex items-center gap-1">
+                      <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => setViewingInstitution(inst)}
+                            className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
+                            title="View Institution Details"
+                          >
+                            <Eye size={15} />
+                          </button>
                           {inst.slug && (
                             <a
                               href={`/institutions/${inst.slug}`}
                               target="_blank"
                               rel="noreferrer"
-                              className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
-                              title="View"
+                              className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
+                              title="View Institution"
                             >
-                              <ExternalLink className="w-3.5 h-3.5" />
+                              <ExternalLink size={15} />
                             </a>
                           )}
                           <button
                             onClick={() => openEdit(inst)}
-                            className="p-1.5 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors cursor-pointer"
-                            title="Edit"
+                            className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"
+                            title="Edit Institution"
                           >
-                            <Edit className="w-3.5 h-3.5" />
+                            <Edit size={15} />
                           </button>
                           <button
-                            onClick={() => handleDelete(inst.id, inst.nameSi || inst.nameEn)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
-                            title="Delete"
+                            onClick={() => handleDelete(inst.id, inst.nameEn || inst.nameSi)}
+                            className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                            title="Delete Institution"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 size={15} />
                           </button>
                         </div>
                       </td>
@@ -1219,8 +1211,14 @@ export default function InstitutionManagement() {
                     </p>
                     <button
                       type="button"
-                      onClick={() => {
-                        if (window.confirm('Are you sure you want to discard the saved draft?')) {
+                      onClick={async () => {
+                        if (await confirm({
+                          title: 'Discard Draft',
+                          subtitle: 'කෙටුම්පත ඉවත් කිරීම',
+                          message: 'Are you sure you want to discard the saved draft?',
+                          confirmText: 'Discard Draft',
+                          type: 'warning'
+                        })) {
                           clearDraft(form.sector);
                           setForm({ ...defaultFormData, sector: activeTab });
                           setRestoredDraftTime(null);
@@ -2600,6 +2598,177 @@ export default function InstitutionManagement() {
               </div>
             </div>
 
+          </div>
+        </div>
+      )}
+      {/* Institution Details Preview Modal */}
+      {viewingInstitution && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setViewingInstitution(null)} />
+          <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl relative z-10 overflow-hidden border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100 bg-gray-50/70 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center border border-emerald-200 shrink-0">
+                  <Landmark size={16} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm sm:text-base leading-tight">Institution Details</h3>
+                  <p className="text-[11px] text-gray-500">ආයතනයේ සම්පූර්ණ තොරතුරු</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {viewingInstitution.slug && (
+                  <a
+                    href={`/institutions/${viewingInstitution.slug}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <ExternalLink size={13} />
+                    <span className="hidden sm:inline">Public Page</span>
+                  </a>
+                )}
+                <button
+                  onClick={() => setViewingInstitution(null)}
+                  className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4">
+              <div className="flex items-start gap-4">
+                {viewingInstitution.logoUrl ? (
+                  <img src={viewingInstitution.logoUrl} alt="" className="w-16 h-16 rounded-xl object-contain border border-gray-200 p-1 bg-white shrink-0" />
+                ) : (
+                  <div className="w-16 h-16 rounded-xl bg-gray-100 text-gray-400 flex items-center justify-center border border-gray-200 shrink-0">
+                    <Landmark size={28} />
+                  </div>
+                )}
+                <div>
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 uppercase">
+                      {viewingInstitution.sector === 'gov' ? 'Government' : viewingInstitution.sector === 'pvt' ? 'Private Sector' : 'International'}
+                    </span>
+                    {viewingInstitution.badgeText && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                        {viewingInstitution.badgeText}
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-900 leading-tight">
+                    {viewingInstitution.nameEn || viewingInstitution.nameSi}
+                  </h2>
+                  {viewingInstitution.nameSi && viewingInstitution.nameEn && (
+                    <h3 className="text-sm font-semibold text-emerald-800 mt-0.5">{viewingInstitution.nameSi}</h3>
+                  )}
+                  {viewingInstitution.slug && (
+                    <p className="text-xs font-mono text-gray-400 mt-0.5">/{viewingInstitution.slug}</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100 text-xs">
+                <div>
+                  <span className="text-gray-400 block mb-0.5">
+                    {viewingInstitution.sector === 'gov' ? 'Ministry' : viewingInstitution.sector === 'pvt' ? 'Parent Company' : 'Agency Category'}
+                  </span>
+                  <span className="font-semibold text-gray-800">
+                    {viewingInstitution.ministryEn || viewingInstitution.ministrySi || viewingInstitution.ministry ||
+                     viewingInstitution.parentConglomerateEn || viewingInstitution.parentConglomerateSi || viewingInstitution.parentConglomerate ||
+                     viewingInstitution.agencyCategoryEn || viewingInstitution.agencyCategorySi || viewingInstitution.agencyCategory || '-'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block mb-0.5">Contact Phone</span>
+                  {viewingInstitution.phone ? (
+                    <a href={`tel:${viewingInstitution.phone}`} className="font-bold text-emerald-700 hover:underline flex items-center gap-1 font-mono">
+                      <Phone size={12} /> {viewingInstitution.phone}
+                    </a>
+                  ) : <span className="text-gray-400">-</span>}
+                </div>
+                <div>
+                  <span className="text-gray-400 block mb-0.5">Email</span>
+                  {viewingInstitution.email ? (
+                    <a href={`mailto:${viewingInstitution.email}`} className="font-medium text-gray-800 hover:underline">
+                      {viewingInstitution.email}
+                    </a>
+                  ) : <span className="text-gray-400">-</span>}
+                </div>
+                <div>
+                  <span className="text-gray-400 block mb-0.5">Office Hours</span>
+                  <span className="font-medium text-gray-700">
+                    {viewingInstitution.officeTime || formatTimeRange(viewingInstitution.officeTimeStart, viewingInstitution.officeTimeEnd) || 'Regular Office Hours'}
+                  </span>
+                </div>
+                {(viewingInstitution.address || viewingInstitution.addressSi) && (
+                  <div className="sm:col-span-2 pt-1 border-t border-gray-200/50">
+                    <span className="text-gray-400 block mb-0.5">Address</span>
+                    <span className="font-medium text-gray-700">
+                      {viewingInstitution.address || viewingInstitution.addressEn} {viewingInstitution.addressSi ? `(${viewingInstitution.addressSi})` : ''}
+                    </span>
+                  </div>
+                )}
+                {viewingInstitution.website && (
+                  <div className="sm:col-span-2 pt-1 border-t border-gray-200/50">
+                    <span className="text-gray-400 block mb-0.5">Official Website</span>
+                    <a href={viewingInstitution.website} target="_blank" rel="noreferrer" className="text-emerald-700 hover:underline font-mono text-xs flex items-center gap-1">
+                      <ExternalLink size={12} /> {viewingInstitution.website}
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {/* Descriptions */}
+              {viewingInstitution.descriptionEn && (
+                <div>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Description (English)</h4>
+                  <p className="text-xs text-gray-700 leading-relaxed bg-white p-3 rounded-lg border border-gray-100 whitespace-pre-wrap">{viewingInstitution.descriptionEn}</p>
+                </div>
+              )}
+              {viewingInstitution.descriptionSi && (
+                <div>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">විස්තරය (Sinhala)</h4>
+                  <p className="text-xs text-gray-700 leading-relaxed bg-white p-3 rounded-lg border border-gray-100 whitespace-pre-wrap">{viewingInstitution.descriptionSi}</p>
+                </div>
+              )}
+
+              {/* Services / Interventions */}
+              {((viewingInstitution.services || viewingInstitution.productsAndServices || viewingInstitution.interventions || []).length > 0) && (
+                <div>
+                  <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Key Services & Solutions</h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {(viewingInstitution.services || viewingInstitution.productsAndServices || viewingInstitution.interventions || []).map((s: any, idx: number) => (
+                      <span key={idx} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-100">
+                        {typeof s === 'string' ? s : (s.serviceSi || s.serviceEn || s.name || s.title || JSON.stringify(s))}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-gray-100 bg-gray-50/70 flex justify-end gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewingInstitution(null)}
+                className="px-4 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const inst = viewingInstitution;
+                  setViewingInstitution(null);
+                  openEdit(inst);
+                }}
+                className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Edit Institution
+              </button>
+            </div>
           </div>
         </div>
       )}

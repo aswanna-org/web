@@ -1,13 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   Plus, Edit, Trash2, X, Search, Briefcase, ToggleLeft, ToggleRight,
-  CheckCircle2, XCircle, Clock, Building2, Layers, DollarSign,
+  CheckCircle2, Building2, Layers, DollarSign,
   GraduationCap, FileText, Download, ExternalLink,
-  Landmark, Filter, Check, Eye, Phone, UserCheck, Wrench
+  Landmark, Filter, Eye, UserCheck, Wrench
 } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import AgroLoader from '../../components/common/AgroLoader';
 import RichTextEditor from '../components/RichTextEditor';
+import { useConfirm } from '../components/ConfirmDialog';
 import { SRI_LANKA_PROVINCES, getDistrictsForProvince, getDSDsForDistrict, getGNDsForDSD } from '../../data/sriLankaLocations';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -256,6 +257,7 @@ const defaultJobForm = {
 };
 
 export default function CareerManagement() {
+  const { confirm } = useConfirm();
   // Navigation Tabs
   const [activeTab, setActiveTab] = useState<'jobs' | 'dailyWage' | 'skills' | 'categories' | 'ministries' | 'institutions'>('jobs');
 
@@ -305,6 +307,7 @@ export default function CareerManagement() {
   // Daily Wage Worker Modal State
   const [isWorkerModalOpen, setIsWorkerModalOpen] = useState(false);
   const [editingWorkerId, setEditingWorkerId] = useState<string | null>(null);
+  const [viewingWorker, setViewingWorker] = useState<DailyWageWorker | null>(null);
   const [isSavingWorker, setIsSavingWorker] = useState(false);
   const [workerForm, setWorkerForm] = useState({
     fullName: '',
@@ -681,20 +684,6 @@ export default function CareerManagement() {
     }
   };
 
-  const handleWorkerStatusChange = async (workerId: string, status: 'APPROVED' | 'REJECTED') => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/careers/daily-wage-workers/${workerId}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', ...authHeaders },
-        body: JSON.stringify({ status })
-      });
-      if (res.ok) {
-        fetchWorkers(workersPage);
-      }
-    } catch (err) {
-      console.error('Error updating worker status:', err);
-    }
-  };
 
   const handleToggleWorkerActive = async (worker: DailyWageWorker) => {
     try {
@@ -712,7 +701,12 @@ export default function CareerManagement() {
   };
 
   const handleDeleteWorker = async (worker: DailyWageWorker) => {
-    if (!confirm(`Are you sure you want to delete worker "${worker.fullName}"?`)) return;
+    if (!await confirm({
+      title: 'Delete Daily Wage Worker',
+      subtitle: 'දෛනික වැටුප් ශ්‍රමිකයා ස්ථිරවම ඉවත් කිරීම',
+      message: `Are you sure you want to delete worker "${worker.fullName}"?`,
+      confirmText: 'Delete Worker'
+    })) return;
     try {
       const res = await fetch(`${API_BASE_URL}/careers/daily-wage-workers/${worker.id}`, {
         method: 'DELETE',
@@ -780,7 +774,12 @@ export default function CareerManagement() {
   };
 
   const handleDeleteSkill = async (skill: DailyWageSkill) => {
-    if (!confirm(`Are you sure you want to delete skill "${skill.name}"?`)) return;
+    if (!await confirm({
+      title: 'Delete Skill',
+      subtitle: 'දක්ෂතාවය/ශ්‍රම කුසලතාවය ස්ථිරවම ඉවත් කිරීම',
+      message: `Are you sure you want to delete skill "${skill.name}"?`,
+      confirmText: 'Delete Skill'
+    })) return;
     try {
       const res = await fetch(`${API_BASE_URL}/careers/daily-wage-skills/${skill.id}`, {
         method: 'DELETE',
@@ -1060,36 +1059,14 @@ export default function CareerManagement() {
     }
   };
 
-  const handleApproveJob = async (jobId: string) => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/careers/jobs/${jobId}/approve`, {
-        method: 'PATCH',
-        headers: authHeaders
-      });
-      if (res.ok) {
-        setJobs(jobs.map(j => (j.id === jobId ? { ...j, approvalStatus: 'APPROVED', isActive: true } : j)));
-      }
-    } catch (err) {
-      console.error('Failed to approve job:', err);
-    }
-  };
-
-  const handleRejectJob = async (jobId: string) => {
-    try {
-      const res = await fetch(`${API_BASE_URL}/careers/jobs/${jobId}/reject`, {
-        method: 'PATCH',
-        headers: authHeaders
-      });
-      if (res.ok) {
-        setJobs(jobs.map(j => (j.id === jobId ? { ...j, approvalStatus: 'REJECTED', isActive: false } : j)));
-      }
-    } catch (err) {
-      console.error('Failed to reject job:', err);
-    }
-  };
 
   const handleDeleteJob = async (jobId: string) => {
-    if (!confirm('Are you sure you want to delete this job post? This will delete all attached salary, eligibility, and application files.')) return;
+    if (!await confirm({
+      title: 'Delete Job Post',
+      subtitle: 'රැකියා දැන්වීම ස්ථිරවම ඉවත් කිරීම',
+      message: 'Are you sure you want to delete this job post? This will delete all attached salary, eligibility, and application files.',
+      confirmText: 'Delete Job'
+    })) return;
     try {
       const res = await fetch(`${API_BASE_URL}/careers/jobs/${jobId}`, {
         method: 'DELETE',
@@ -1159,7 +1136,12 @@ export default function CareerManagement() {
   };
 
   const handleDeleteCategory = async (cat: JobCategory) => {
-    if (!confirm(`Delete category "${cat.name}"?`)) return;
+    if (!await confirm({
+      title: 'Delete Job Category',
+      subtitle: 'රැකියා කාණ්ඩය ස්ථිරවම ඉවත් කිරීම',
+      message: `Delete category "${cat.name}"?`,
+      confirmText: 'Delete Category'
+    })) return;
     try {
       const res = await fetch(`${API_BASE_URL}/careers/categories/${cat.id}`, {
         method: 'DELETE',
@@ -1204,7 +1186,12 @@ export default function CareerManagement() {
   };
 
   const handleDeleteMinistry = async (min: Ministry) => {
-    if (!confirm(`Delete ministry "${min.name}"?`)) return;
+    if (!await confirm({
+      title: 'Delete Ministry',
+      subtitle: 'අමාත්‍යාංශය ස්ථිරවම ඉවත් කිරීම',
+      message: `Delete ministry "${min.name}"?`,
+      confirmText: 'Delete Ministry'
+    })) return;
     try {
       const res = await fetch(`${API_BASE_URL}/careers/ministries/${min.id}`, {
         method: 'DELETE',
@@ -1251,7 +1238,12 @@ export default function CareerManagement() {
   };
 
   const handleDeleteInstitution = async (inst: Institution) => {
-    if (!confirm(`Delete institution "${inst.name}"?`)) return;
+    if (!await confirm({
+      title: 'Delete Institution',
+      subtitle: 'ආයතනය ස්ථිරවම ඉවත් කිරීම',
+      message: `Delete institution "${inst.name}"?`,
+      confirmText: 'Delete Institution'
+    })) return;
     try {
       const res = await fetch(`${API_BASE_URL}/careers/institutions/${inst.id}`, {
         method: 'DELETE',
@@ -1482,224 +1474,128 @@ export default function CareerManagement() {
                 <p className="text-xs text-gray-400 mt-1">Try changing filters or add a new job post.</p>
               </div>
             ) : (
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Designation</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Institution & Ministry</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Closing Date</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Approval Status</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Active</th>
-                    <th className="px-6 py-3" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {jobs.map(job => {
-                    const isExpired = new Date(job.expiryDate) < new Date();
-                    return (
-                      <tr key={job.id} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="flex items-start gap-3">
-                            {job.bannerImage ? (
-                              <img
-                                src={job.bannerImage.startsWith('http') || job.bannerImage.startsWith('/api') ? job.bannerImage : `${API_BASE_URL.replace('/api', '')}${job.bannerImage}`}
-                                alt={job.designation}
-                                className="w-12 h-12 rounded-xl object-cover border border-gray-200 shrink-0 shadow-2xs"
-                              />
-                            ) : (
-                              <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
-                                <Briefcase className="w-5 h-5" />
-                              </div>
-                            )}
-                            <div>
-                              <div className="font-medium text-gray-800 leading-snug">{job.designation}</div>
-                              {job.designationSi && (
-                                <div className="text-xs text-gray-500 font-normal mt-0.5">{job.designationSi}</div>
-                              )}
-                              {job.slug && (
-                                <div className="text-[11px] font-mono text-emerald-700 mt-1">
-                                  /{job.slug}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-gray-700">
+                  <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
+                    <tr>
+                      <th className="px-3 py-2">Designation</th>
+                      <th className="px-3 py-2">Category</th>
+                      <th className="px-3 py-2">Institution</th>
+                      <th className="px-3 py-2">Closing Date</th>
+                      <th className="px-3 py-2 text-center">Status</th>
+                      <th className="px-3 py-2 text-center">Active</th>
+                      <th className="px-3 py-2 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {jobs.map(job => {
+                      const isExpired = new Date(job.expiryDate) < new Date();
+                      return (
+                        <tr key={job.id} className="hover:bg-gray-50/70 transition-colors">
+                          <td className="px-3 py-1.5 whitespace-nowrap">
+                            <div className="flex items-center gap-2 max-w-xs">
+                              {job.bannerImage ? (
+                                <img
+                                  src={job.bannerImage.startsWith('http') || job.bannerImage.startsWith('/api') ? job.bannerImage : `${API_BASE_URL.replace('/api', '')}${job.bannerImage}`}
+                                  alt=""
+                                  className="w-6 h-6 rounded object-cover border border-gray-200 shrink-0"
+                                />
+                              ) : (
+                                <div className="w-6 h-6 rounded bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                                  <Briefcase size={12} />
                                 </div>
                               )}
+                              <span className="font-semibold text-gray-900 truncate" title={job.designation}>
+                                {job.designation}
+                              </span>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-2 mt-1 text-xs text-gray-500 flex-wrap">
-                            {job.jobNature && (
-                              <span className="bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-medium">
-                                {JOB_NATURE_OPTIONS.find(o => o.en === job.jobNature || o.si === job.jobNatureSi)?.label || job.jobNature}
-                              </span>
-                            )}
-                            {job.serviceConditions && (
-                              <span className="bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded font-medium">
-                                {SERVICE_CONDITIONS_OPTIONS.find(o => o.en === job.serviceConditions || o.si === job.serviceConditionsSi)?.label || job.serviceConditions}
-                              </span>
-                            )}
-                            {job.recruitmentType && (
-                              <span className="bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-medium">
-                                {RECRUITMENT_TYPE_OPTIONS.find(o => o.en === job.recruitmentType || o.si === job.recruitmentTypeSi)?.label || job.recruitmentType}
-                              </span>
-                            )}
-                            {job.user && <span className="text-gray-400">By: {job.user.name}</span>}
-                          </div>
-                        </td>
+                          </td>
 
-                        <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
-                          <span className="bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-full text-xs font-medium">
-                            {job.jobCategory?.name || 'Unassigned'}
-                          </span>
-                          {job.jobCategory?.nameSi && (
-                            <div className="text-[11px] text-gray-400 mt-0.5">{job.jobCategory.nameSi}</div>
-                          )}
-                        </td>
+                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                            <span className="truncate max-w-[140px] inline-block" title={job.jobCategory?.name || 'Unassigned'}>
+                              {job.jobCategory?.name || 'Unassigned'}
+                            </span>
+                          </td>
 
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {job.companyName ? (
-                            <div>
-                              <div className="font-semibold text-emerald-800">{job.companyName}</div>
-                              {job.governingMinistry && (
-                                <div className="text-xs text-gray-500">{job.governingMinistry}</div>
+                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                            <span className="truncate max-w-[150px] inline-block" title={job.companyName || job.agency || job.institution?.name || '—'}>
+                              {job.companyName || job.agency || job.institution?.name || '—'}
+                            </span>
+                          </td>
+
+                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">
+                            <span className={isExpired ? 'text-rose-600 font-semibold' : ''}>
+                              {new Date(job.expiryDate).toLocaleDateString()}
+                            </span>
+                          </td>
+
+                          <td className="px-3 py-1.5 whitespace-nowrap text-center">
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                              job.approvalStatus === 'APPROVED'
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                : job.approvalStatus === 'PENDING'
+                                ? 'bg-amber-50 text-amber-800 border-amber-200'
+                                : 'bg-rose-50 text-rose-800 border-rose-200'
+                            }`}>
+                              {job.approvalStatus}
+                            </span>
+                          </td>
+
+                          <td className="px-3 py-1.5 whitespace-nowrap text-center">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleActive(job)}
+                              className="cursor-pointer transition-transform active:scale-95 inline-flex items-center"
+                              title={job.isActive ? 'Active (Click to disable)' : 'Inactive (Click to enable)'}
+                            >
+                              {job.isActive ? (
+                                <ToggleRight size={20} className="text-emerald-600" />
+                              ) : (
+                                <ToggleLeft size={20} className="text-gray-300 hover:text-gray-400" />
                               )}
-                              <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-semibold border border-emerald-200">Private</span>
-                            </div>
-                          ) : (job.agency || job.country) ? (
-                            <div>
-                              <div className="font-semibold text-blue-800">{job.agency || 'Foreign Agency'}</div>
-                              {job.country && (
-                                <div className="text-xs text-gray-600 font-medium">📍 {job.country}</div>
-                              )}
-                              <span className="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-semibold border border-blue-200">Foreign</span>
-                            </div>
-                          ) : (
-                            <div>
-                              <div className="font-medium text-gray-800">{job.institution?.name || '—'}</div>
-                              {job.institution?.nameSi && (
-                                <div className="text-xs text-gray-500">{job.institution.nameSi}</div>
-                              )}
-                              {job.institution?.ministry && (
-                                <div className="text-xs text-gray-400">{job.institution.ministry.name}</div>
-                              )}
-                            </div>
-                          )}
-                        </td>
+                            </button>
+                          </td>
 
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded ${
-                            isExpired ? 'bg-red-50 text-red-600' : 'text-gray-600'
-                          }`}>
-                            {new Date(job.expiryDate).toLocaleDateString()}
-                            {isExpired && ' (Expired)'}
-                          </span>
-                        </td>
-
-                        {/* Approval Status & Quick Action Buttons */}
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            {job.approvalStatus === 'APPROVED' && (
-                              <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs px-2.5 py-1 rounded-full font-medium border border-green-200">
-                                <CheckCircle2 size={12} /> Approved
-                              </span>
-                            )}
-                            {job.approvalStatus === 'PENDING' && (
-                              <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 text-xs px-2.5 py-1 rounded-full font-medium border border-amber-200">
-                                <Clock size={12} /> Pending Review
-                              </span>
-                            )}
-                            {job.approvalStatus === 'REJECTED' && (
-                              <span className="inline-flex items-center gap-1 bg-red-50 text-red-700 text-xs px-2.5 py-1 rounded-full font-medium border border-red-200">
-                                <XCircle size={12} /> Rejected
-                              </span>
-                            )}
-
-                            {/* Quick Approve / Reject buttons for PENDING jobs */}
-                            {job.approvalStatus === 'PENDING' && (
-                              <div className="flex items-center gap-1 ml-1">
-                                <button
-                                  onClick={() => handleApproveJob(job.id)}
-                                  title="Approve Job Post"
-                                  className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors cursor-pointer"
-                                >
-                                  <Check size={16} />
-                                </button>
-                                <button
-                                  onClick={() => handleRejectJob(job.id)}
-                                  title="Reject Job Post"
-                                  className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer"
-                                >
-                                  <X size={16} />
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                        </td>
-
-                        {/* Active Toggle Switch */}
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <button
-                            type="button"
-                            onClick={() => handleToggleActive(job)}
-                            className="cursor-pointer transition-transform active:scale-95"
-                            title={job.isActive ? 'Active (Click to disable)' : 'Inactive (Click to enable)'}
-                          >
-                            {job.isActive ? (
-                              <ToggleRight size={26} className="text-green-600" />
-                            ) : (
-                              <ToggleLeft size={26} className="text-gray-300 hover:text-gray-400" />
-                            )}
-                          </button>
-                        </td>
-
-                        {/* Action Buttons */}
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-2 justify-end">
-                            {job.applyLink && (
+                          <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1">
                               <a
-                                href={job.applyLink}
+                                href={`/careers/${job.slug || job.id}`}
                                 target="_blank"
                                 rel="noreferrer"
-                                title="Open Apply Link"
-                                className="p-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                                title="View Public Page"
+                                className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
                               >
-                                <ExternalLink size={16} />
+                                <ExternalLink size={15} />
                               </a>
-                            )}
-                            <a
-                              href={`/careers/${job.slug || job.id}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              title="View Public Page"
-                              className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
-                            >
-                              <ExternalLink size={16} />
-                            </a>
-                            <button
-                              onClick={() => setViewingJob(job)}
-                              title="View Details"
-                              className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
-                            >
-                              <Eye size={16} />
-                            </button>
-                            <button
-                              onClick={() => openEditJob(job)}
-                              title="Edit Job"
-                              className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                            >
-                              <Edit size={16} />
-                            </button>
-                            <button
-                              onClick={() => handleDeleteJob(job.id)}
-                              title="Delete Job"
-                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+                              <button
+                                onClick={() => setViewingJob(job)}
+                                title="View Details"
+                                className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
+                              >
+                                <Eye size={15} />
+                              </button>
+                              <button
+                                onClick={() => openEditJob(job)}
+                                title="Edit Job"
+                                className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"
+                              >
+                                <Edit size={15} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteJob(job.id)}
+                                title="Delete Job"
+                                className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
 
             {totalPages >= 1 && (
@@ -1757,85 +1653,85 @@ export default function CareerManagement() {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Image</th>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category Name</th>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Slug</th>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Linked Jobs</th>
-                  <th className="px-6 py-3" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {paginatedCategories.length === 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-gray-700">
+                <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
                   <tr>
-                    <td colSpan={5} className="text-center py-12 text-gray-400">
-                      <Layers className="mx-auto mb-2 opacity-50" size={32} />
-                      <p>No job categories found</p>
-                    </td>
+                    <th className="px-3 py-2">Category</th>
+                    <th className="px-3 py-2">Slug</th>
+                    <th className="px-3 py-2">Linked Jobs</th>
+                    <th className="px-3 py-2 text-right">Actions</th>
                   </tr>
-                ) : paginatedCategories.map(cat => (
-                  <tr key={cat.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-3">
-                      {cat.image ? (
-                        <img
-                          src={cat.image.startsWith('http') || cat.image.startsWith('/api') ? cat.image : `${API_BASE_URL.replace('/api', '')}${cat.image}`}
-                          alt={cat.name}
-                          className="w-12 h-10 object-cover rounded-lg border border-gray-200 shadow-xs"
-                          onError={(e) => {
-                            (e.target as HTMLElement).style.display = 'none';
-                          }}
-                        />
-                      ) : (
-                        <div className="w-12 h-10 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 text-[10px] font-semibold">
-                          No img
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {paginatedCategories.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="text-center py-12 text-gray-400">
+                        <Layers className="mx-auto mb-2 opacity-50" size={32} />
+                        <p>No job categories found</p>
+                      </td>
+                    </tr>
+                  ) : paginatedCategories.map(cat => (
+                    <tr key={cat.id} className="hover:bg-gray-50/70 transition-colors">
+                      <td className="px-3 py-1.5 whitespace-nowrap">
+                        <div className="flex items-center gap-2 max-w-xs">
+                          {cat.image ? (
+                            <img
+                              src={cat.image.startsWith('http') || cat.image.startsWith('/api') ? cat.image : `${API_BASE_URL.replace('/api', '')}${cat.image}`}
+                              alt=""
+                              className="w-6 h-6 object-cover rounded border border-gray-200 shrink-0"
+                              onError={(e) => {
+                                (e.target as HTMLElement).style.display = 'none';
+                              }}
+                            />
+                          ) : (
+                            <div className="w-6 h-6 rounded bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                              <Layers size={12} />
+                            </div>
+                          )}
+                          <span className="font-semibold text-gray-900 truncate" title={cat.name}>
+                            {cat.name}
+                          </span>
                         </div>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 font-medium text-gray-800">
-                      <div>{cat.name}</div>
-                      {cat.nameSi && <div className="text-xs text-gray-400 font-normal">{cat.nameSi}</div>}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-mono text-xs text-emerald-700 bg-emerald-50 border border-emerald-200/60 px-2 py-0.5 rounded-md">
+                      </td>
+                      <td className="px-3 py-1.5 whitespace-nowrap font-mono text-[11px] text-gray-500">
                         {cat.slug || '—'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-gray-500">
-                      <span className="bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                      </td>
+                      <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">
                         {cat._count?.jobs ?? 0} jobs
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 justify-end">
-                        <button
-                          onClick={() => {
-                            setCategoryName(cat.name);
-                            setCategoryNameSi(cat.nameSi || '');
-                            setCategorySlug(cat.slug || generateSlug(cat.name));
-                            setIsCategorySlugCustomized(true);
-                            setCategoryImage(cat.image || '');
-                            setCategoryImageFile(null);
-                            setEditingCategoryId(cat.id);
-                            setIsCategoryModalOpen(true);
-                          }}
-                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteCategory(cat)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                      <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => {
+                              setCategoryName(cat.name);
+                              setCategoryNameSi(cat.nameSi || '');
+                              setCategorySlug(cat.slug || generateSlug(cat.name));
+                              setIsCategorySlugCustomized(true);
+                              setCategoryImage(cat.image || '');
+                              setCategoryImageFile(null);
+                              setEditingCategoryId(cat.id);
+                              setIsCategoryModalOpen(true);
+                            }}
+                            className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"
+                            title="Edit Category"
+                          >
+                            <Edit size={15} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCategory(cat)}
+                            className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                            title="Delete Category"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             {categoriesTotalPages > 1 && (
               <div className="border-t border-gray-100">
@@ -1883,55 +1779,58 @@ export default function CareerManagement() {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Ministry Name</th>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Institutions</th>
-                  <th className="px-6 py-3" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {paginatedMinistries.length === 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-gray-700">
+                <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
                   <tr>
-                    <td colSpan={4} className="text-center py-12 text-gray-400">
-                      <Landmark className="mx-auto mb-2 opacity-50" size={32} />
-                      <p>No ministries found</p>
-                    </td>
+                    <th className="px-3 py-2">ID</th>
+                    <th className="px-3 py-2">Ministry Name</th>
+                    <th className="px-3 py-2">Institutions</th>
+                    <th className="px-3 py-2 text-right">Actions</th>
                   </tr>
-                ) : paginatedMinistries.map(min => (
-                  <tr key={min.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 text-gray-400 font-mono text-xs">#{min.id}</td>
-                    <td className="px-6 py-4 font-medium text-gray-800">
-                      <div>{min.name}</div>
-                      {min.nameSi && <div className="text-xs text-gray-400 font-normal">{min.nameSi}</div>}
-                    </td>
-                    <td className="px-6 py-4 text-gray-500">
-                      <span className="bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {paginatedMinistries.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="text-center py-12 text-gray-400">
+                        <Landmark className="mx-auto mb-2 opacity-50" size={32} />
+                        <p>No ministries found</p>
+                      </td>
+                    </tr>
+                  ) : paginatedMinistries.map(min => (
+                    <tr key={min.id} className="hover:bg-gray-50/70 transition-colors">
+                      <td className="px-3 py-1.5 whitespace-nowrap text-gray-400 font-mono text-[11px]">#{min.id}</td>
+                      <td className="px-3 py-1.5 whitespace-nowrap font-medium text-gray-900">
+                        <span className="truncate max-w-[240px] inline-block" title={min.name}>
+                          {min.name}
+                        </span>
+                      </td>
+                      <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">
                         {min._count?.institutions ?? min.institutions?.length ?? 0} institutions
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 justify-end">
-                        <button
-                          onClick={() => { setMinistryName(min.name); setMinistryNameSi(min.nameSi || ''); setEditingMinistryId(min.id); setIsMinistryModalOpen(true); }}
-                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteMinistry(min)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                      <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => { setMinistryName(min.name); setMinistryNameSi(min.nameSi || ''); setEditingMinistryId(min.id); setIsMinistryModalOpen(true); }}
+                            className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"
+                            title="Edit Ministry"
+                          >
+                            <Edit size={15} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteMinistry(min)}
+                            className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                            title="Delete Ministry"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             {ministriesTotalPages > 1 && (
               <div className="border-t border-gray-100">
@@ -1985,63 +1884,70 @@ export default function CareerManagement() {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Institution Name</th>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Ministry</th>
-                  <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Linked Jobs</th>
-                  <th className="px-6 py-3" />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {paginatedInstitutions.length === 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs text-gray-700">
+                <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
                   <tr>
-                    <td colSpan={5} className="text-center py-12 text-gray-400">
-                      <Building2 className="mx-auto mb-2 opacity-50" size={32} />
-                      <p>No institutions found</p>
-                    </td>
+                    <th className="px-3 py-2">ID</th>
+                    <th className="px-3 py-2">Institution Name</th>
+                    <th className="px-3 py-2">Ministry</th>
+                    <th className="px-3 py-2">Linked Jobs</th>
+                    <th className="px-3 py-2 text-right">Actions</th>
                   </tr>
-                ) : paginatedInstitutions.map(inst => (
-                  <tr key={inst.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 text-gray-400 font-mono text-xs">#{inst.id}</td>
-                    <td className="px-6 py-4 font-medium text-gray-800">
-                      <div>{inst.name}</div>
-                      {inst.nameSi && <div className="text-xs text-gray-400 font-normal">{inst.nameSi}</div>}
-                    </td>
-                    <td className="px-6 py-4 text-gray-600">{inst.ministry?.name || '—'}</td>
-                    <td className="px-6 py-4 text-gray-500">
-                      <span className="bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-full text-xs font-medium">
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {paginatedInstitutions.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="text-center py-12 text-gray-400">
+                        <Building2 className="mx-auto mb-2 opacity-50" size={32} />
+                        <p>No institutions found</p>
+                      </td>
+                    </tr>
+                  ) : paginatedInstitutions.map(inst => (
+                    <tr key={inst.id} className="hover:bg-gray-50/70 transition-colors">
+                      <td className="px-3 py-1.5 whitespace-nowrap text-gray-400 font-mono text-[11px]">#{inst.id}</td>
+                      <td className="px-3 py-1.5 whitespace-nowrap font-medium text-gray-900">
+                        <span className="truncate max-w-[220px] inline-block" title={inst.name}>
+                          {inst.name}
+                        </span>
+                      </td>
+                      <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">
+                        <span className="truncate max-w-[180px] inline-block" title={inst.ministry?.name || '—'}>
+                          {inst.ministry?.name || '—'}
+                        </span>
+                      </td>
+                      <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">
                         {inst._count?.jobs ?? 0} jobs
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2 justify-end">
-                        <button
-                          onClick={() => {
-                            setInstitutionName(inst.name);
-                            setInstitutionNameSi(inst.nameSi || '');
-                            setInstitutionMinistryId(inst.ministryId ? String(inst.ministryId) : '');
-                            setEditingInstitutionId(inst.id);
-                            setIsInstitutionModalOpen(true);
-                          }}
-                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteInstitution(inst)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                      </td>
+                      <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => {
+                              setInstitutionName(inst.name);
+                              setInstitutionNameSi(inst.nameSi || '');
+                              setInstitutionMinistryId(inst.ministryId ? String(inst.ministryId) : '');
+                              setEditingInstitutionId(inst.id);
+                              setIsInstitutionModalOpen(true);
+                            }}
+                            className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"
+                            title="Edit Institution"
+                          >
+                            <Edit size={15} />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteInstitution(inst)}
+                            className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                            title="Delete Institution"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
             {institutionsTotalPages > 1 && (
               <div className="border-t border-gray-100">
@@ -2114,126 +2020,103 @@ export default function CareerManagement() {
                 <p className="text-xs text-gray-400 mt-1">Try changing filters or register a new worker.</p>
               </div>
             ) : (
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Worker Details</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Skills / Capabilities</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Wage & Exp</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Verification</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Active</th>
-                    <th className="px-6 py-3 text-right" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {workers.map(worker => (
-                    <tr key={worker.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="font-semibold text-gray-800">{worker.fullName}</div>
-                        <a href={`tel:${worker.phone}`} className="inline-flex items-center gap-1 text-xs text-emerald-700 hover:underline mt-0.5">
-                          <Phone size={11} /> {worker.phone}
-                        </a>
-                      </td>
-
-                      <td className="px-6 py-4 text-xs text-gray-600">
-                        <div className="font-medium text-gray-800">{worker.district} ({worker.province})</div>
-                        <div className="text-gray-400 mt-0.5">{worker.dsDivision}, {worker.gnDivision}</div>
-                      </td>
-
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-1 max-w-xs">
-                          {worker.skills?.map(s => (
-                            <span key={s.skill.id} className="bg-emerald-50 text-emerald-800 text-[11px] px-2 py-0.5 rounded border border-emerald-100 font-medium">
-                              {s.skill.nameSi || s.skill.name}
-                            </span>
-                          ))}
-                          {(!worker.skills || worker.skills.length === 0) && <span className="text-xs text-gray-400">None</span>}
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-4 whitespace-nowrap text-xs">
-                        <div className="font-semibold text-gray-800">
-                          {worker.expectedWage ? `Rs. ${worker.expectedWage}` : 'Negotiable'}
-                        </div>
-                        <div className="text-gray-400 mt-0.5">
-                          {worker.experience ? `${worker.experience} yrs exp` : 'No exp stated'}
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {worker.status === 'APPROVED' && (
-                            <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs px-2.5 py-1 rounded-full font-medium border border-green-200">
-                              <CheckCircle2 size={12} /> Approved
-                            </span>
-                          )}
-                          {worker.status === 'PENDING' && (
-                            <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-700 text-xs px-2.5 py-1 rounded-full font-medium border border-amber-200">
-                              <Clock size={12} /> Pending Review
-                            </span>
-                          )}
-                          {worker.status === 'REJECTED' && (
-                            <span className="inline-flex items-center gap-1 bg-red-50 text-red-700 text-xs px-2.5 py-1 rounded-full font-medium border border-red-200">
-                              <XCircle size={12} /> Rejected
-                            </span>
-                          )}
-
-                          {worker.status === 'PENDING' && (
-                            <div className="flex items-center gap-1 ml-1">
-                              <button
-                                onClick={() => handleWorkerStatusChange(worker.id, 'APPROVED')}
-                                title="Approve Worker"
-                                className="p-1 text-green-600 hover:bg-green-50 rounded transition-colors cursor-pointer"
-                              >
-                                <Check size={16} />
-                              </button>
-                              <button
-                                onClick={() => handleWorkerStatusChange(worker.id, 'REJECTED')}
-                                title="Reject Worker"
-                                className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer"
-                              >
-                                <X size={16} />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => handleToggleWorkerActive(worker)}
-                          className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold cursor-pointer transition-colors ${
-                            worker.isActive
-                              ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                          }`}
-                        >
-                          {worker.isActive ? <ToggleRight size={16} className="text-green-600" /> : <ToggleLeft size={16} />}
-                          <span>{worker.isActive ? 'Active' : 'Hidden'}</span>
-                        </button>
-                      </td>
-
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center gap-2 justify-end">
-                          <button
-                            onClick={() => openEditWorker(worker)}
-                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteWorker(worker)}
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-gray-700">
+                  <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
+                    <tr>
+                      <th className="px-3 py-2">Worker</th>
+                      <th className="px-3 py-2">Phone</th>
+                      <th className="px-3 py-2">Location</th>
+                      <th className="px-3 py-2">Skills</th>
+                      <th className="px-3 py-2">Wage</th>
+                      <th className="px-3 py-2 text-center">Status</th>
+                      <th className="px-3 py-2 text-center">Active</th>
+                      <th className="px-3 py-2 text-right">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {workers.map(worker => (
+                      <tr key={worker.id} className="hover:bg-gray-50/70 transition-colors">
+                        <td className="px-3 py-1.5 whitespace-nowrap font-medium text-gray-900">
+                          {worker.fullName}
+                        </td>
+
+                        <td className="px-3 py-1.5 whitespace-nowrap font-mono text-gray-700">
+                          <a href={`tel:${worker.phone}`} className="hover:underline">
+                            {worker.phone}
+                          </a>
+                        </td>
+
+                        <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">
+                          {worker.district}{worker.province ? `, ${worker.province}` : ''}
+                        </td>
+
+                        <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">
+                          <span className="truncate max-w-[150px] inline-block" title={worker.skills?.map(s => s.skill.name).join(', ') || 'None'}>
+                            {worker.skills?.map(s => s.skill.name).join(', ') || 'None'}
+                          </span>
+                        </td>
+
+                        <td className="px-3 py-1.5 whitespace-nowrap font-semibold text-gray-800">
+                          {worker.expectedWage ? `Rs. ${worker.expectedWage}` : 'Negotiable'}
+                        </td>
+
+                        <td className="px-3 py-1.5 whitespace-nowrap text-center">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                            worker.status === 'APPROVED'
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                              : worker.status === 'PENDING'
+                              ? 'bg-amber-50 text-amber-800 border-amber-200'
+                              : 'bg-rose-50 text-rose-800 border-rose-200'
+                          }`}>
+                            {worker.status}
+                          </span>
+                        </td>
+
+                        <td className="px-3 py-1.5 whitespace-nowrap text-center">
+                          <button
+                            onClick={() => handleToggleWorkerActive(worker)}
+                            className="cursor-pointer transition-transform active:scale-95 inline-flex items-center"
+                            title={worker.isActive ? 'Active (Click to hide)' : 'Hidden (Click to show)'}
+                          >
+                            {worker.isActive ? (
+                              <ToggleRight size={20} className="text-emerald-600" />
+                            ) : (
+                              <ToggleLeft size={20} className="text-gray-300 hover:text-gray-400" />
+                            )}
+                          </button>
+                        </td>
+
+                        <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => setViewingWorker(worker)}
+                              className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
+                              title="View Worker Details"
+                            >
+                              <Eye size={15} />
+                            </button>
+                            <button
+                              onClick={() => openEditWorker(worker)}
+                              className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"
+                              title="Edit Worker"
+                            >
+                              <Edit size={15} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteWorker(worker)}
+                              className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                              title="Delete Worker"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
 
             {workersTotalPages >= 1 && (
@@ -2292,55 +2175,57 @@ export default function CareerManagement() {
                 <p>No skills found. Click "Add Skill" to create one.</p>
               </div>
             ) : (
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-100">
-                  <tr>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Skill (English)</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">කුසලතාවය (Sinhala)</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Display Order</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Workers Count</th>
-                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Active</th>
-                    <th className="px-6 py-3 text-right" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-50">
-                  {paginatedSkills.map(skill => (
-                    <tr key={skill.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4 font-semibold text-gray-800">{skill.name}</td>
-                      <td className="px-6 py-4 font-medium text-emerald-800">{skill.nameSi}</td>
-                      <td className="px-6 py-4 text-gray-600 font-mono text-xs">{skill.order}</td>
-                      <td className="px-6 py-4 text-gray-500">
-                        <span className="bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full text-xs font-medium">
-                          {skill._count?.workers ?? 0} workers
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                          skill.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'
-                        }`}>
-                          {skill.isActive ? 'Active' : 'Disabled'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <div className="flex items-center gap-2 justify-end">
-                          <button
-                            onClick={() => openEditSkill(skill)}
-                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
-                          >
-                            <Edit size={16} />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteSkill(skill)}
-                            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        </div>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-gray-700">
+                  <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
+                    <tr>
+                      <th className="px-3 py-2">Skill (English)</th>
+                      <th className="px-3 py-2">කුසලතාවය (Sinhala)</th>
+                      <th className="px-3 py-2 text-center">Display Order</th>
+                      <th className="px-3 py-2">Workers</th>
+                      <th className="px-3 py-2 text-center">Status</th>
+                      <th className="px-3 py-2 text-right">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {paginatedSkills.map(skill => (
+                      <tr key={skill.id} className="hover:bg-gray-50/70 transition-colors">
+                        <td className="px-3 py-1.5 whitespace-nowrap font-medium text-gray-900">{skill.name}</td>
+                        <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">{skill.nameSi || '-'}</td>
+                        <td className="px-3 py-1.5 whitespace-nowrap text-center font-mono text-gray-400 text-xs">{skill.order}</td>
+                        <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">
+                          {skill._count?.workers ?? 0} workers
+                        </td>
+                        <td className="px-3 py-1.5 whitespace-nowrap text-center">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                            skill.isActive ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-gray-100 text-gray-500 border-gray-200'
+                          }`}>
+                            {skill.isActive ? 'Active' : 'Disabled'}
+                          </span>
+                        </td>
+                        <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => openEditSkill(skill)}
+                              className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"
+                              title="Edit Skill"
+                            >
+                              <Edit size={15} />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteSkill(skill)}
+                              className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                              title="Delete Skill"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
 
             {skillsTotalPages > 1 && (
@@ -3792,6 +3677,122 @@ export default function CareerManagement() {
                 className="px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors cursor-pointer"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* DAILY WAGE WORKER VIEW DETAILS MODAL */}
+      {/* ======================================================== */}
+      {viewingWorker && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setViewingWorker(null)} />
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl relative z-10 overflow-hidden border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100 bg-gray-50/70 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center border border-emerald-200 shrink-0">
+                  <UserCheck size={16} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm sm:text-base leading-tight">Daily Wage Worker Details</h3>
+                  <p className="text-[11px] text-gray-500">දෛනික ශ්‍රමිකයාගේ සම්පූර්ණ තොරතුරු</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setViewingWorker(null)}
+                className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                    viewingWorker.status === 'APPROVED'
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                      : viewingWorker.status === 'PENDING'
+                      ? 'bg-amber-50 text-amber-800 border-amber-200'
+                      : 'bg-rose-50 text-rose-800 border-rose-200'
+                  }`}>
+                    {viewingWorker.status}
+                  </span>
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${viewingWorker.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                    {viewingWorker.isActive ? 'Visible in Directory' : 'Hidden from Directory'}
+                  </span>
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">{viewingWorker.fullName}</h2>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100 text-xs">
+                <div>
+                  <span className="text-gray-400 block mb-0.5">Phone Number</span>
+                  <a href={`tel:${viewingWorker.phone}`} className="font-bold text-emerald-700 hover:underline flex items-center gap-1.5 font-mono text-sm">
+                    <span className="text-gray-500">📞</span> {viewingWorker.phone}
+                  </a>
+                </div>
+                <div>
+                  <span className="text-gray-400 block mb-0.5">Expected Daily Wage</span>
+                  <span className="font-bold text-emerald-800 text-sm">
+                    {viewingWorker.expectedWage ? `Rs. ${viewingWorker.expectedWage}` : 'Negotiable'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block mb-0.5">Experience</span>
+                  <span className="font-medium text-gray-800">{viewingWorker.experience || 'Not specified'}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block mb-0.5">Location / District</span>
+                  <span className="font-medium text-gray-800">
+                    {viewingWorker.district}{viewingWorker.province ? `, ${viewingWorker.province}` : ''}
+                  </span>
+                </div>
+                {(viewingWorker.dsDivision || viewingWorker.gnDivision) && (
+                  <div className="sm:col-span-2 pt-1 border-t border-gray-200/60 flex items-center gap-4 text-[11px] text-gray-600">
+                    {viewingWorker.dsDivision && <span><strong>DSD:</strong> {viewingWorker.dsDivision}</span>}
+                    {viewingWorker.gnDivision && <span><strong>GND:</strong> {viewingWorker.gnDivision}</span>}
+                  </div>
+                )}
+              </div>
+
+              {/* Skills */}
+              <div>
+                <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Registered Skills & Expertise</h4>
+                {(!viewingWorker.skills || viewingWorker.skills.length === 0) ? (
+                  <p className="text-xs text-gray-400 italic">No specific skills tagged.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {viewingWorker.skills.map((s, idx) => (
+                      <span key={idx} className="px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        {s.skill?.nameSi || s.skill?.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-gray-100 bg-gray-50/70 flex justify-end gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewingWorker(null)}
+                className="px-4 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const w = viewingWorker;
+                  setViewingWorker(null);
+                  openEditWorker(w);
+                }}
+                className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Edit Worker
               </button>
             </div>
           </div>

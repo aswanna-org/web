@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Edit, Trash2, X, FolderOpen, Upload, Sprout } from 'lucide-react';
+import { Plus, Edit, Trash2, X, FolderOpen, Upload, Sprout, Eye } from 'lucide-react';
 import AgroLoader from '../../components/common/AgroLoader';
+import { useConfirm } from '../components/ConfirmDialog';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -19,10 +20,12 @@ interface Category {
 const defaultForm = { name: '', sinhalaName: '', slug: '', parentId: '', order: '0' };
 
 export default function CategoryManagement() {
+  const { confirm } = useConfirm();
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [viewingCategory, setViewingCategory] = useState<Category | null>(null);
   const [form, setForm] = useState({ ...defaultForm });
   
   // Card / Icon Image states
@@ -170,7 +173,12 @@ export default function CategoryManagement() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this category and all its sub-categories?')) return;
+    if (!await confirm({
+      title: 'Delete Category',
+      subtitle: 'කාණ්ඩය සහ උප-කාණ්ඩ ස්ථිරවම ඉවත් කිරීම',
+      message: 'Are you sure you want to delete this category and all its sub-categories? This action cannot be undone.',
+      confirmText: 'Delete Category'
+    })) return;
     try {
       const res = await fetch(`${API_BASE_URL}/categories/${id}`, { method: 'DELETE', headers: authHeaders });
       if (res.ok) {
@@ -251,8 +259,9 @@ export default function CategoryManagement() {
                     <button onClick={() => openCreate(mainCat.id)} className="px-3 py-1.5 text-sm bg-green-50 text-green-600 hover:bg-green-100 rounded-lg font-medium transition-colors">
                       + Sub Category
                     </button>
-                    <button onClick={() => openEdit(mainCat)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit size={16} /></button>
-                    <button onClick={() => handleDelete(mainCat.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                    <button onClick={() => setViewingCategory(mainCat)} title="View Category Details" className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"><Eye size={16} /></button>
+                    <button onClick={() => openEdit(mainCat)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"><Edit size={16} /></button>
+                    <button onClick={() => handleDelete(mainCat.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"><Trash2 size={16} /></button>
                   </div>
                 </div>
 
@@ -286,8 +295,9 @@ export default function CategoryManagement() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <button onClick={() => openEdit(subCat)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"><Edit size={14} /></button>
-                          <button onClick={() => handleDelete(subCat.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"><Trash2 size={14} /></button>
+                          <button onClick={() => setViewingCategory(subCat)} title="View Subcategory Details" className="p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"><Eye size={14} /></button>
+                          <button onClick={() => openEdit(subCat)} className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"><Edit size={14} /></button>
+                          <button onClick={() => handleDelete(subCat.id)} className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer"><Trash2 size={14} /></button>
                         </div>
                       </div>
                     ))}
@@ -479,6 +489,108 @@ export default function CategoryManagement() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Category Preview Details Modal */}
+      {viewingCategory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setViewingCategory(null)} />
+          <div className="bg-white rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl relative z-10 overflow-hidden border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100 bg-gray-50/70 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center border border-emerald-200 shrink-0">
+                  <FolderOpen size={16} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm sm:text-base leading-tight">Category Details</h3>
+                  <p className="text-[11px] text-gray-500">කාණ්ඩයේ සම්පූර්ණ තොරතුරු</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setViewingCategory(null)}
+                className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4">
+              {viewingCategory.headerImage && (
+                <div className="w-full h-36 rounded-xl overflow-hidden border border-gray-200 bg-gray-100">
+                  <img src={viewingCategory.headerImage} alt="Header" className="w-full h-full object-cover" />
+                </div>
+              )}
+
+              <div className="flex items-center gap-3">
+                {viewingCategory.image ? (
+                  <div className="w-14 h-14 rounded-xl bg-gray-50 border border-gray-200 p-2 shrink-0 flex items-center justify-center">
+                    <img src={viewingCategory.image} alt="" className="w-full h-full object-contain" />
+                  </div>
+                ) : (
+                  <div className="w-14 h-14 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-100 shrink-0 flex items-center justify-center">
+                    <FolderOpen size={24} />
+                  </div>
+                )}
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">{viewingCategory.name}</h2>
+                  {viewingCategory.sinhalaName && (
+                    <h3 className="text-sm font-semibold text-emerald-800">{viewingCategory.sinhalaName}</h3>
+                  )}
+                  <p className="text-xs font-mono text-gray-400 mt-0.5">/{viewingCategory.slug}</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100 text-xs">
+                <div>
+                  <span className="text-gray-400 block mb-0.5">Display Order</span>
+                  <span className="font-mono font-bold text-gray-800">{viewingCategory.order ?? 0}</span>
+                </div>
+                <div>
+                  <span className="text-gray-400 block mb-0.5">Category Type</span>
+                  <span className="font-semibold text-gray-800">
+                    {viewingCategory.parentId ? 'Sub Category' : 'Main Category'}
+                  </span>
+                </div>
+              </div>
+
+              {viewingCategory.children && viewingCategory.children.length > 0 && (
+                <div>
+                  <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">
+                    Sub Categories ({viewingCategory.children.length})
+                  </h4>
+                  <div className="space-y-1.5">
+                    {viewingCategory.children.map(c => (
+                      <div key={c.id} className="p-2.5 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-between text-xs">
+                        <span className="font-medium text-gray-800">{c.name} {c.sinhalaName ? `(${c.sinhalaName})` : ''}</span>
+                        <span className="font-mono text-gray-400 text-[11px]">{c.slug}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-gray-100 bg-gray-50/70 flex justify-end gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewingCategory(null)}
+                className="px-4 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const cat = viewingCategory;
+                  setViewingCategory(null);
+                  openEdit(cat);
+                }}
+                className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Edit Category
+              </button>
+            </div>
           </div>
         </div>
       )}

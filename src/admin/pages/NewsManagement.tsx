@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, Edit, Trash2, Upload, X, Newspaper, MessageSquare, Calendar, Clock } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, Upload, X, Newspaper, MessageSquare, Calendar, Clock, Eye, ExternalLink, User } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import RichTextEditor from '../components/RichTextEditor';
 import AgroLoader from '../../components/common/AgroLoader';
+import { useConfirm } from '../components/ConfirmDialog';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -27,10 +28,13 @@ const NEWS_CATEGORIES = [
 const defaultForm = { title: '', sinhalaTitle: '', slug: '', content: '', sinhalaContent: '', category: '', image: '', authorName: '', authorEmail: '', authorAvatar: '' };
 
 export default function NewsManagement() {
+  const { confirm } = useConfirm();
   const [items, setItems] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [viewingItem, setViewingItem] = useState<NewsItem | null>(null);
+  const [activePreviewLang, setActivePreviewLang] = useState<'en' | 'si'>('en');
   const [form, setForm] = useState({ ...defaultForm });
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -108,7 +112,12 @@ export default function NewsManagement() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this news article?')) return;
+    if (!await confirm({
+      title: 'Delete News Article',
+      subtitle: 'පුවත් ලිපිය ස්ථිරවම ඉවත් කිරීම',
+      message: 'Are you sure you want to delete this news article? This action cannot be undone.',
+      confirmText: 'Delete News'
+    })) return;
     await fetch(`${API_BASE_URL}/news/${id}`, { method: 'DELETE', headers: authHeaders });
     fetchItems(currentPage);
   };
@@ -130,7 +139,12 @@ export default function NewsManagement() {
   };
 
   const handleDeleteComment = async (commentId: string) => {
-    if (!confirm('Are you sure you want to delete this comment as Administrator?')) return;
+    if (!await confirm({
+      title: 'Delete Comment',
+      subtitle: 'ප්‍රතිචාරය ස්ථිරවම ඉවත් කිරීම',
+      message: 'Are you sure you want to delete this comment as Administrator? This action cannot be undone.',
+      confirmText: 'Delete Comment'
+    })) return;
     try {
       const res = await fetch(`${API_BASE_URL}/news/comments/${commentId}`, {
         method: 'DELETE',
@@ -173,35 +187,47 @@ export default function NewsManagement() {
         {isLoading ? (
           <div className="flex justify-center items-center py-20"><AgroLoader message="Loading news..." /></div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
+          <table className="w-full text-left text-xs text-gray-700">
+            <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
               <tr>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Title</th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Author</th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Slug</th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3" />
+                <th className="px-3 py-2">Title</th>
+                <th className="px-3 py-2">Author</th>
+                <th className="px-3 py-2">Slug</th>
+                <th className="px-3 py-2">Date</th>
+                <th className="px-3 py-2 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-gray-100">
               {filteredItems.length === 0 ? (
                 <tr><td colSpan={5} className="text-center py-12 text-gray-400"><Newspaper className="mx-auto mb-2" size={32} /><p>No news articles found</p></td></tr>
               ) : filteredItems.map(item => (
-                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      {item.image && <img src={item.image} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />}
-                      <span className="font-medium text-gray-800 line-clamp-1">{item.title || item.sinhalaTitle || 'Untitled'}</span>
+                <tr key={item.id} className="hover:bg-gray-50/70 transition-colors">
+                  <td className="px-3 py-1.5 whitespace-nowrap">
+                    <div className="flex items-center gap-2 max-w-md">
+                      {item.image && <img src={item.image} alt="" className="w-6 h-6 rounded object-cover shrink-0 border border-gray-200" />}
+                      <span className="font-semibold text-gray-900 truncate" title={item.title || item.sinhalaTitle || 'Untitled'}>
+                        {item.title || item.sinhalaTitle || 'Untitled'}
+                      </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-gray-600">{item.authorName || '-'}</td>
-                  <td className="px-6 py-4 text-gray-500 font-mono text-xs">{item.slug || '-'}</td>
-                  <td className="px-6 py-4 text-gray-500">{new Date(item.createdAt).toLocaleDateString()}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2 justify-end">
-                      <button onClick={() => openComments(item)} title="Manage Comments" className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"><MessageSquare size={16} /></button>
-                      <button onClick={() => openEdit(item)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit size={16} /></button>
-                      <button onClick={() => handleDelete(item.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button>
+                  <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">{item.authorName || '-'}</td>
+                  <td className="px-3 py-1.5 whitespace-nowrap text-gray-400 font-mono text-[11px]">{item.slug || '-'}</td>
+                  <td className="px-3 py-1.5 whitespace-nowrap text-gray-500">{new Date(item.createdAt).toLocaleDateString()}</td>
+                  <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => {
+                          setViewingItem(item);
+                          setActivePreviewLang(item.sinhalaContent && !item.content ? 'si' : 'en');
+                        }}
+                        title="View News Details"
+                        className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
+                      >
+                        <Eye size={15} />
+                      </button>
+                      <button onClick={() => openComments(item)} title="Manage Comments" className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"><MessageSquare size={15} /></button>
+                      <button onClick={() => openEdit(item)} title="Edit Article" className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"><Edit size={15} /></button>
+                      <button onClick={() => handleDelete(item.id)} title="Delete Article" className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"><Trash2 size={15} /></button>
                     </div>
                   </td>
                 </tr>
@@ -324,6 +350,212 @@ export default function NewsManagement() {
                   </div>
                 ))
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* News Details Preview Modal */}
+      {viewingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setViewingItem(null)} />
+          <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl relative z-10 overflow-hidden border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100 bg-gray-50/70 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center border border-emerald-200 shrink-0">
+                  <Newspaper size={16} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm sm:text-base leading-tight">News Article Details</h3>
+                  <p className="text-[11px] text-gray-500">පුවත් ලිපියේ සම්පූර්ණ විස්තරය</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {viewingItem.slug && (
+                  <a
+                    href={`/news/${viewingItem.slug}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer"
+                    title="View on Public Page"
+                  >
+                    <ExternalLink size={13} />
+                    <span className="hidden sm:inline">Public Page</span>
+                  </a>
+                )}
+                <button
+                  onClick={() => setViewingItem(null)}
+                  className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-200/60 rounded-lg transition-colors cursor-pointer"
+                  title="Close"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable Body */}
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1">
+              {/* Featured Image */}
+              {viewingItem.image && (
+                <div className="w-full max-h-72 overflow-hidden rounded-xl border border-gray-200 bg-gray-50 shadow-2xs relative">
+                  <img
+                    src={viewingItem.image}
+                    alt={viewingItem.title || 'News banner'}
+                    className="w-full h-full object-cover max-h-72"
+                  />
+                  {viewingItem.category && (
+                    <span className="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold bg-white/95 text-emerald-800 shadow-sm border border-emerald-100 backdrop-blur-xs">
+                      {viewingItem.category}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Titles */}
+              <div className="space-y-1">
+                {viewingItem.title && (
+                  <h2 className="text-xl sm:text-2xl font-black text-gray-900 leading-snug">
+                    {viewingItem.title}
+                  </h2>
+                )}
+                {viewingItem.sinhalaTitle && (
+                  <h3 className="text-lg sm:text-xl font-bold text-emerald-800 leading-snug">
+                    {viewingItem.sinhalaTitle}
+                  </h3>
+                )}
+              </div>
+
+              {/* Metadata Bar */}
+              <div className="flex flex-wrap items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-150 text-xs text-gray-600">
+                {/* Author */}
+                <div className="flex items-center gap-1.5 font-medium text-gray-800 bg-white px-2.5 py-1 rounded-lg border border-gray-200/60 shadow-2xs">
+                  {viewingItem.authorAvatar ? (
+                    <img src={viewingItem.authorAvatar} alt="" className="w-5 h-5 rounded-full object-cover" />
+                  ) : (
+                    <User size={13} className="text-emerald-600" />
+                  )}
+                  <span>{viewingItem.authorName || 'Official Reporter'}</span>
+                  {viewingItem.authorEmail && (
+                    <span className="text-gray-400 font-normal">({viewingItem.authorEmail})</span>
+                  )}
+                </div>
+
+                {/* Published Date */}
+                <div className="flex items-center gap-1.5 bg-white px-2.5 py-1 rounded-lg border border-gray-200/60 shadow-2xs">
+                  <Calendar size={13} className="text-gray-400" />
+                  <span>{new Date(viewingItem.createdAt).toLocaleDateString()}</span>
+                  <span className="text-gray-300">•</span>
+                  <Clock size={13} className="text-gray-400" />
+                  <span>{new Date(viewingItem.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+
+                {/* Category if not on image */}
+                {!viewingItem.image && viewingItem.category && (
+                  <span className="px-2.5 py-1 rounded-lg font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    {viewingItem.category}
+                  </span>
+                )}
+
+                {/* Slug */}
+                {viewingItem.slug && (
+                  <span className="font-mono text-[11px] bg-white px-2 py-1 rounded-lg border border-gray-200/60 text-gray-500">
+                    /{viewingItem.slug}
+                  </span>
+                )}
+              </div>
+
+              {/* Language Selection Tabs */}
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between border-b border-gray-100 pb-2.5">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-500">
+                    Article Content
+                  </span>
+                  <div className="flex items-center gap-1.5 bg-gray-100 p-0.5 rounded-lg border border-gray-200/60">
+                    <button
+                      type="button"
+                      onClick={() => setActivePreviewLang('en')}
+                      className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                        activePreviewLang === 'en'
+                          ? 'bg-white text-emerald-800 shadow-2xs'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      English
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActivePreviewLang('si')}
+                      className={`px-3 py-1 rounded-md text-xs font-bold transition-all cursor-pointer ${
+                        activePreviewLang === 'si'
+                          ? 'bg-white text-emerald-800 shadow-2xs'
+                          : 'text-gray-600 hover:text-gray-900'
+                      }`}
+                    >
+                      සිංහල
+                    </button>
+                  </div>
+                </div>
+
+                {/* Render Content */}
+                <div className="bg-gray-50/60 p-4 sm:p-5 rounded-xl border border-gray-200 min-h-[160px]">
+                  {activePreviewLang === 'si' ? (
+                    viewingItem.sinhalaContent ? (
+                      <div
+                        className="prose prose-sm max-w-none text-gray-800 leading-relaxed font-sans"
+                        dangerouslySetInnerHTML={{ __html: viewingItem.sinhalaContent }}
+                      />
+                    ) : (
+                      <p className="text-gray-400 italic text-sm">සිංහල අන්තර්ගතයක් ඇතුළත් කර නොමැත.</p>
+                    )
+                  ) : (
+                    viewingItem.content ? (
+                      <div
+                        className="prose prose-sm max-w-none text-gray-800 leading-relaxed font-sans"
+                        dangerouslySetInnerHTML={{ __html: viewingItem.content }}
+                      />
+                    ) : (
+                      <p className="text-gray-400 italic text-sm">No English content provided.</p>
+                    )
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between p-4 sm:p-5 border-t border-gray-100 bg-gray-50/70 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  const it = viewingItem;
+                  setViewingItem(null);
+                  openComments(it);
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer"
+              >
+                <MessageSquare size={14} /> Manage Comments
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const it = viewingItem;
+                    setViewingItem(null);
+                    openEdit(it);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors cursor-pointer shadow-xs"
+                >
+                  <Edit size={14} /> Edit News
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewingItem(null)}
+                  className="px-3.5 py-1.5 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-100 border border-gray-200 rounded-lg transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -1,4 +1,5 @@
-import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { NavLink, Link } from 'react-router-dom';
 import {
   LayoutDashboard,
   BarChart3,
@@ -17,11 +18,8 @@ import {
   Briefcase,
   Users,
   Mail,
-  ExternalLink,
-  LogOut,
   X
 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
 
 interface NavGroup {
   title: string;
@@ -37,55 +35,50 @@ const navGroups: NavGroup[] = [
   {
     title: 'MAIN',
     items: [
-      { name: 'Dashboard', path: '/admin', icon: LayoutDashboard },
-      { name: 'Analytics & Traffic', path: '/admin/analytics', icon: BarChart3 }
+      { name: 'Dashboard Management', path: '/admin', icon: LayoutDashboard },
+      { name: 'Analytics Management', path: '/admin/analytics', icon: BarChart3 }
     ]
   },
   {
     title: 'AGRO & SERVICES',
     items: [
-      { name: 'Agro Categories', path: '/admin/categories', icon: Layers },
-      { name: 'Agro Items', path: '/admin/items', icon: Leaf },
-      { name: 'Institutions Hub', path: '/admin/institutions', icon: Landmark },
-      { name: 'Govijana Sewa', path: '/admin/asc', icon: Building2 },
-      { name: 'Plant Finder', path: '/admin/plants', icon: Sprout },
-      { name: 'Agro Lands', path: '/admin/agrolands', icon: MapPin }
+      { name: 'Category Management', path: '/admin/categories', icon: Layers },
+      { name: 'Item Management', path: '/admin/items', icon: Leaf },
+      { name: 'Institution Management', path: '/admin/institutions', icon: Landmark },
+      { name: 'Govijana Sewa Management', path: '/admin/asc', icon: Building2 },
+      { name: 'Plant Management', path: '/admin/plants', icon: Sprout },
+      { name: 'Agro Land Management', path: '/admin/agrolands', icon: MapPin }
     ]
   },
   {
     title: 'MARKET & COURSES',
     items: [
-      { name: 'Products', path: '/admin/products', icon: Package },
-      { name: 'Orders', path: '/admin/orders', icon: ShoppingCart },
-      { name: 'Courses', path: '/admin/courses', icon: GraduationCap }
+      { name: 'Product Management', path: '/admin/products', icon: Package },
+      { name: 'Order Management', path: '/admin/orders', icon: ShoppingCart },
+      { name: 'Course Management', path: '/admin/courses', icon: GraduationCap },
+      { name: 'Short Course Management', path: '/admin/short-courses', icon: BookOpen }
     ]
   },
   {
     title: 'CONTENT & MEDIA',
     items: [
-      { name: 'News', path: '/admin/news', icon: Newspaper },
-      { name: 'Blogs', path: '/admin/blogs', icon: BookOpen },
-      { name: 'Careers', path: '/admin/careers', icon: Briefcase },
-      { name: 'Gallery', path: '/admin/gallery', icon: ImageIcon }
+      { name: 'News Management', path: '/admin/news', icon: Newspaper },
+      { name: 'Blog Management', path: '/admin/blogs', icon: BookOpen },
+      { name: 'Career Management', path: '/admin/careers', icon: Briefcase },
+      { name: 'Gallery Management', path: '/admin/gallery', icon: ImageIcon }
     ]
   },
   {
     title: 'MANAGEMENT',
     items: [
       { name: 'User Management', path: '/admin/users', icon: Users },
-      { name: 'Contact Inquiries', path: '/admin/contacts', icon: Mail }
+      { name: 'Contact Management', path: '/admin/contacts', icon: Mail }
     ]
   }
 ];
 
 const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (val: boolean) => void }) => {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/admin/login');
-  };
+  const [isHovered, setIsHovered] = useState(false);
 
   return (
     <>
@@ -97,43 +90,69 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (val: bool
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar Container (In-flow on desktop so it smoothly pushes main content; drawer on mobile) */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 sm:w-72 bg-[#0b1324] text-slate-200 flex flex-col border-r border-slate-800/80 transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`fixed inset-y-0 left-0 z-40 bg-[#0b1324] text-slate-200 flex flex-col border-r border-slate-800/80 transition-[width,transform] duration-300 ease-in-out lg:static lg:z-auto lg:shrink-0 lg:translate-x-0 overflow-hidden ${
+          isHovered ? 'w-72 lg:w-72' : 'w-72 lg:w-[72px]'
+        } ${
+          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
         {/* Brand Header */}
-        <div className="flex h-16 items-center justify-between px-5 border-b border-slate-800 shrink-0 bg-[#090f1d]">
-          <Link to="/admin" className="flex items-center gap-2.5 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-900/30 group-hover:scale-105 transition-transform">
-              <Leaf className="w-5 h-5 fill-white/20" />
+        <div className="flex h-16 items-center border-b border-slate-800 shrink-0 bg-[#090f1d] overflow-hidden">
+          {isHovered ? (
+            <div className="w-full flex items-center justify-between px-4 transition-all duration-300">
+              <Link to="/admin" className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-900/30 shrink-0 hover:scale-105 transition-transform">
+                  <Leaf className="w-5 h-5 fill-white/20" />
+                </div>
+                <div className="overflow-hidden whitespace-nowrap">
+                  <span className="font-extrabold text-base tracking-wide text-white block leading-none">
+                    Aswanna<span className="text-emerald-400">Admin</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium tracking-wider uppercase">
+                    Control Panel
+                  </span>
+                </div>
+              </Link>
+              <button
+                className="lg:hidden p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer shrink-0"
+                onClick={() => setIsOpen(false)}
+              >
+                <X size={18} />
+              </button>
             </div>
-            <div>
-              <span className="font-extrabold text-base tracking-wide text-white block leading-none">
-                Aswanna<span className="text-emerald-400">Admin</span>
-              </span>
-              <span className="text-[10px] text-slate-400 font-medium tracking-wider uppercase">
-                Control Panel
-              </span>
+          ) : (
+            <div className="w-full flex items-center justify-center">
+              <Link to="/admin" className="flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-900/30 hover:scale-105 transition-transform">
+                  <Leaf className="w-5 h-5 fill-white/20" />
+                </div>
+              </Link>
             </div>
-          </Link>
-          <button
-            className="lg:hidden p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-            onClick={() => setIsOpen(false)}
-          >
-            <X size={18} />
-          </button>
+          )}
         </div>
 
         {/* Navigation Area */}
-        <nav className="flex-1 overflow-y-auto px-3.5 py-4 space-y-6 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
+        <nav
+          className={`flex-1 overflow-y-auto overflow-x-hidden py-3 space-y-3.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden ${
+            isHovered ? 'px-3' : 'px-0'
+          }`}
+        >
           {navGroups.map((group) => (
-            <div key={group.title} className="space-y-1">
-              <div className="px-3 pb-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                {group.title}
-              </div>
-              <div className="space-y-0.5">
+            <div key={group.title} className="space-y-1 w-full">
+              {/* Group Title or subtle divider */}
+              {isHovered ? (
+                <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider whitespace-nowrap overflow-hidden">
+                  {group.title}
+                </div>
+              ) : (
+                <div className="w-8 mx-auto h-px bg-slate-800/80 my-2" />
+              )}
+
+              <div className="space-y-1 w-full">
                 {group.items.map((item) => {
                   const Icon = item.icon;
                   return (
@@ -141,8 +160,13 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (val: bool
                       key={item.name}
                       to={item.path}
                       end={item.path === '/admin'}
+                      title={item.name}
                       className={({ isActive }) =>
-                        `flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 group ${
+                        `flex items-center transition-all duration-200 group ${
+                          isHovered
+                            ? 'w-full gap-3 px-3.5 py-2.5 rounded-xl justify-start'
+                            : 'w-11 h-11 mx-auto justify-center rounded-xl p-0 gap-0'
+                        } ${
                           isActive
                             ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/40 font-bold'
                             : 'text-slate-300 hover:bg-slate-800/80 hover:text-white'
@@ -150,14 +174,18 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (val: bool
                       }
                       onClick={() => setIsOpen(false)}
                     >
-                      <div className="flex items-center gap-2.5">
-                        <Icon size={16} className="shrink-0 transition-transform group-hover:scale-110" />
-                        <span>{item.name}</span>
-                      </div>
-                      {item.badge && (
-                        <span className="px-1.5 py-0.5 text-[9px] font-bold rounded-md bg-emerald-500/20 text-emerald-300">
-                          {item.badge}
-                        </span>
+                      <Icon size={19} className="shrink-0 transition-transform group-hover:scale-110" />
+                      {isHovered && (
+                        <>
+                          <span className="text-xs font-semibold whitespace-nowrap overflow-hidden transition-all duration-200">
+                            {item.name}
+                          </span>
+                          {item.badge && (
+                            <span className="ml-auto px-1.5 py-0.5 text-[9px] font-bold rounded-md bg-emerald-500/20 text-emerald-300 whitespace-nowrap">
+                              {item.badge}
+                            </span>
+                          )}
+                        </>
                       )}
                     </NavLink>
                   );
@@ -166,40 +194,6 @@ const Sidebar = ({ isOpen, setIsOpen }: { isOpen: boolean; setIsOpen: (val: bool
             </div>
           ))}
         </nav>
-
-        {/* Sidebar Footer */}
-        <div className="p-3 border-t border-slate-800/80 bg-[#090f1d] shrink-0 space-y-2">
-          {/* View Live Website Button */}
-          <a
-            href="/"
-            target="_blank"
-            rel="noreferrer"
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-slate-300 hover:text-white bg-slate-800/60 hover:bg-slate-800 transition-colors border border-slate-700/50"
-          >
-            <ExternalLink size={14} className="text-emerald-400" />
-            <span>View Live Website</span>
-          </a>
-
-          {/* User Account / Logout */}
-          <div className="flex items-center justify-between px-2 pt-1">
-            <div className="flex items-center gap-2 overflow-hidden">
-              <div className="w-7 h-7 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 text-xs font-bold shrink-0">
-                {(user?.name || 'A')[0].toUpperCase()}
-              </div>
-              <div className="overflow-hidden text-left">
-                <p className="text-xs font-semibold text-slate-200 truncate">{user?.name || 'Admin User'}</p>
-                <p className="text-[10px] text-slate-400 truncate">{user?.email || 'admin@aswanna.lk'}</p>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
-              title="Sign Out"
-            >
-              <LogOut size={15} />
-            </button>
-          </div>
-        </div>
       </aside>
     </>
   );

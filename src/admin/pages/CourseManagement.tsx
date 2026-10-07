@@ -11,6 +11,7 @@ import {
 import Pagination from '../../components/admin/Pagination';
 import RichTextEditor from '../components/RichTextEditor';
 import AgroLoader from '../../components/common/AgroLoader';
+import { useConfirm } from '../components/ConfirmDialog';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -256,6 +257,7 @@ const defaultFormData = {
 };
 
 export default function CourseManagement() {
+  const { confirm } = useConfirm();
   // Top View Mode
   const [viewMode, setViewMode] = useState<'courses' | 'applications' | 'types'>('courses');
 
@@ -452,7 +454,12 @@ export default function CourseManagement() {
   };
 
   const handleDeleteApp = async (appId: string, applicantName: string) => {
-    if (!confirm(`Are you sure you want to delete the application from "${applicantName}"?`)) return;
+    if (!await confirm({
+      title: 'Delete Application',
+      subtitle: 'අයදුම්පත ස්ථිරවම ඉවත් කිරීම',
+      message: `Are you sure you want to delete the application from "${applicantName}"?`,
+      confirmText: 'Delete Application'
+    })) return;
     try {
       const res = await fetch(`${API_BASE_URL}/courses/admin/applications/${appId}`, {
         method: 'DELETE',
@@ -574,7 +581,12 @@ export default function CourseManagement() {
     const confirmMsg = coursesCount > 0
       ? `"${name}" රැකියාව දැනට පාඨමාලා ${coursesCount} කට සම්බන්ධ කර ඇත. මෙය පද්ධතියෙන්ම ස්ථිරවම මකා දැමීමට අවශ්‍ය බව තහවුරු කරන්නද? (Warning: This job is linked to ${coursesCount} courses. Are you sure you want to permanently delete it from the system?)`
       : `Are you sure you want to permanently delete job "${name}" from the system?`;
-    if (!confirm(confirmMsg)) return;
+    if (!await confirm({
+      title: 'Delete Related Job',
+      subtitle: 'සම්බන්ධිත රැකියාව ස්ථිරවම ඉවත් කිරීම',
+      message: confirmMsg,
+      confirmText: 'Delete Job'
+    })) return;
     try {
       const res = await fetch(`${API_BASE_URL}/courses/related-jobs/${id}`, {
         method: 'DELETE',
@@ -610,7 +622,7 @@ export default function CourseManagement() {
     setForm({
       ...defaultFormData,
       categoryId: categories.length > 0 ? categories[0].id : '',
-      educationTypeId: educationTypes.length > 0 ? educationTypes[0].id : '',
+      educationTypeId: '',
       instructorId: instructors.length > 0 ? instructors[0].id : '',
       applicationCalled: false,
       relatedJobIds: [],
@@ -798,7 +810,12 @@ export default function CourseManagement() {
   };
 
   const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Are you sure you want to delete "${title}"?`)) return;
+    if (!await confirm({
+      title: 'Delete Course',
+      subtitle: 'පාඨමාලාව ස්ථිරවම ඉවත් කිරීම',
+      message: `Are you sure you want to delete "${title}"? This action cannot be undone.`,
+      confirmText: 'Delete Course'
+    })) return;
     try {
       const res = await fetch(`${API_BASE_URL}/courses/${id}`, {
         method: 'DELETE',
@@ -973,7 +990,12 @@ export default function CourseManagement() {
 
   const handleDeleteType = async (type: EducationType) => {
     const count = type._count?.courses || type.coursesCount || 0;
-    if (!confirm(`Are you sure you want to delete "${type.nameSi} (${type.nameEn})"?${count > 0 ? `\nWarning: ${count} course(s) are linked to this type. Their education type will be reset to None.` : ''}`)) {
+    if (!await confirm({
+      title: 'Delete Education Type',
+      subtitle: 'අධ්‍යාපනික වර්ගය ස්ථිරවම ඉවත් කිරීම',
+      message: `Are you sure you want to delete "${type.nameSi} (${type.nameEn})"?${count > 0 ? `\nWarning: ${count} course(s) are linked to this type. Their education type will be reset to None.` : ''}`,
+      confirmText: 'Delete Type'
+    })) {
       return;
     }
     try {
@@ -1237,151 +1259,100 @@ export default function CourseManagement() {
               </div>
             ) : courses.length === 0 ? (
               <div className="text-center py-16 px-4">
-                <div className="w-12 h-12 bg-gray-100 text-gray-400 rounded-xl flex items-center justify-center mx-auto mb-2">
-                  <BookOpen size={24} />
+                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 text-gray-400">
+                  <GraduationCap size={24} />
                 </div>
-                <h3 className="text-base font-bold text-gray-800">No Courses Found</h3>
-                <p className="text-xs text-gray-500 mt-1 mb-4">No courses matched the criteria.</p>
-                <button
-                  onClick={openCreateModal}
-                  className="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium text-xs hover:bg-emerald-700"
-                >
-                  <Plus size={14} /> Add First Course
-                </button>
+                <h3 className="text-sm font-semibold text-gray-800">No courses found</h3>
+                <p className="text-xs text-gray-500 mt-1 max-w-sm mx-auto">
+                  Try adjusting your search or filters, or add a new course.
+                </p>
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs sm:text-sm">
-                  <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 text-[11px] uppercase font-semibold tracking-wider">
+                <table className="w-full text-left text-xs text-gray-700">
+                  <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
                     <tr>
-                      <th className="px-5 py-3.5">Course</th>
-                      <th className="px-5 py-3.5">Category & Level</th>
-                      <th className="px-5 py-3.5">Duration & Mode</th>
-                      <th className="px-5 py-3.5">Fee</th>
-                      <th className="px-5 py-3.5">Instructor</th>
-                      <th className="px-5 py-3.5">Status</th>
-                      <th className="px-5 py-3.5 text-right">Actions</th>
+                      <th className="px-3 py-2">Course</th>
+                      <th className="px-3 py-2">Code</th>
+                      <th className="px-3 py-2">Category</th>
+                      <th className="px-3 py-2">Duration</th>
+                      <th className="px-3 py-2">Fee</th>
+                      <th className="px-3 py-2 text-center">Status</th>
+                      <th className="px-3 py-2 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {courses.map(course => (
-                      <tr key={course.id} className="hover:bg-gray-50/80 transition-colors">
-                        <td className="px-5 py-3.5">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 shrink-0">
-                              {course.bannerImageUrl ? (
-                                <img src={course.bannerImageUrl} alt="" className="w-full h-full object-cover" />
-                              ) : (
-                                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                  <BookOpen size={16} />
-                                </div>
-                              )}
-                            </div>
-                            <div className="min-w-0 max-w-xs">
-                              <p className="font-semibold text-gray-900 truncate text-xs sm:text-sm">
-                                {course.title}
-                              </p>
-                              <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
-                                <span className="font-mono text-[11px] text-gray-500 font-medium">
-                                  {course.courseCode}
-                                </span>
-                                {course.applicationCalled && (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs">
-                                    <Sparkles size={10} className="text-blue-600" /> App Called
-                                  </span>
-                                )}
+                      <tr key={course.id} className="hover:bg-gray-50/70 transition-colors">
+                        <td className="px-3 py-1.5 whitespace-nowrap">
+                          <div className="flex items-center gap-2 max-w-xs">
+                            {course.bannerImageUrl ? (
+                              <img src={course.bannerImageUrl} alt="" className="w-6 h-6 rounded object-cover shrink-0 border border-gray-200" />
+                            ) : (
+                              <div className="w-6 h-6 rounded bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center shrink-0">
+                                <BookOpen size={12} />
                               </div>
-                            </div>
-                          </div>
-                        </td>
-
-                        <td className="px-5 py-3.5">
-                          <p className="font-medium text-gray-800 text-xs">{course.category?.categoryNameEn || '-'}</p>
-                          {course.educationType && (
-                            <span className="inline-flex items-center gap-1 mt-0.5 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                              {renderTypeIcon(course.educationType.iconClass, 11, 'text-emerald-700 shrink-0')}
-                              <span>{course.educationType.nameSi}</span>
+                            )}
+                            <span className="font-semibold text-gray-900 truncate" title={course.title}>
+                              {course.title}
                             </span>
-                          )}
-                          <p className="text-[11px] text-gray-500 truncate max-w-[180px] mt-0.5">{course.courseLevel}</p>
-                          {course.relatedJobs && course.relatedJobs.length > 0 && (
-                            <div className="flex items-center gap-1 mt-1 text-[10px] text-emerald-700 font-semibold">
-                              <Briefcase size={11} /> {course.relatedJobs.length} Related Job{course.relatedJobs.length > 1 ? 's' : ''}
-                            </div>
-                          )}
-                        </td>
-
-                        <td className="px-5 py-3.5 text-xs text-gray-600">
-                          <p className="font-medium text-gray-800">{course.durationValue} {course.durationUnit}</p>
-                          <p className="text-[11px] text-gray-500">{course.deliveryMode.replace('_', ' ')}</p>
-                        </td>
-
-                        <td className="px-5 py-3.5 text-xs">
-                          {course.courseFee === 0 ? (
-                            <span className="font-bold text-emerald-700">Free</span>
-                          ) : (
-                            <span className="font-bold text-gray-900">Rs. {course.courseFee.toLocaleString()}</span>
-                          )}
-                        </td>
-
-                        <td className="px-5 py-3.5 text-xs text-gray-600">
-                          {course.instructor?.fullName || <span className="text-gray-400 italic">None</span>}
-                        </td>
-
-                        <td className="px-5 py-3.5">
-                          <div className="flex flex-col gap-1.5 items-start">
-                            <button
-                              type="button"
-                              onClick={() => handleToggleCourseStatus(course.id, course.status)}
-                              title={course.status === 'Published' ? "Click to set as Draft (Hide from public website)" : "Click to Publish (Show on public website)"}
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border transition-all cursor-pointer shadow-xs hover:scale-105 active:scale-95 ${
-                                course.status === 'Published'
-                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
-                                  : course.status === 'Draft'
-                                  ? 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
-                                  : 'bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200'
-                              }`}
-                            >
-                              <span className={`w-1.5 h-1.5 rounded-full ${course.status === 'Published' ? 'bg-emerald-600' : 'bg-amber-600'}`} />
-                              <span>{course.status === 'Published' ? 'Published' : 'Draft'}</span>
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => handleToggleApplicationCalled(course.id, Boolean(course.applicationCalled))}
-                              title="Click to toggle Application Called status"
-                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold border transition-all cursor-pointer ${
-                                course.applicationCalled
-                                  ? 'bg-blue-50 text-blue-800 border-blue-300 hover:bg-blue-100'
-                                  : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
-                              }`}
-                            >
-                              <Sparkles size={10} className={course.applicationCalled ? "text-blue-600" : "text-gray-400"} />
-                              <span>{course.applicationCalled ? 'Calling Open' : 'Calling Closed'}</span>
-                            </button>
                           </div>
                         </td>
 
-                        <td className="px-5 py-3.5 text-right">
+                        <td className="px-3 py-1.5 whitespace-nowrap font-mono text-[11px] text-gray-500">
+                          {course.courseCode || '-'}
+                        </td>
+
+                        <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                          <span className="truncate max-w-[140px] inline-block" title={course.category?.categoryNameEn || '-'}>
+                            {course.category?.categoryNameEn || '-'}
+                          </span>
+                        </td>
+
+                        <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                          {course.durationValue} {course.durationUnit}
+                        </td>
+
+                        <td className="px-3 py-1.5 whitespace-nowrap font-bold text-emerald-700">
+                          {course.courseFee === 0 ? 'Free' : `Rs. ${course.courseFee.toLocaleString()}`}
+                        </td>
+
+                        <td className="px-3 py-1.5 text-center whitespace-nowrap">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleCourseStatus(course.id, course.status)}
+                            title={course.status === 'Published' ? "Click to set as Draft" : "Click to Publish"}
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border transition-all cursor-pointer ${
+                              course.status === 'Published'
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                                : 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
+                            }`}
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full ${course.status === 'Published' ? 'bg-emerald-600' : 'bg-amber-600'}`} />
+                            <span>{course.status}</span>
+                          </button>
+                        </td>
+
+                        <td className="px-3 py-1.5 text-right whitespace-nowrap">
                           <div className="flex items-center justify-end gap-1">
                             <button
                               onClick={() => setPreviewCourse(course)}
-                              className="p-1.5 text-gray-400 hover:text-emerald-700 hover:bg-gray-100 rounded-lg transition-colors"
-                              title="Preview"
+                              className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
+                              title="Preview Course"
                             >
                               <Eye size={15} />
                             </button>
                             <button
                               onClick={() => openEditModal(course)}
-                              className="p-1.5 text-gray-400 hover:text-blue-700 hover:bg-gray-100 rounded-lg transition-colors"
-                              title="Edit"
+                              className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"
+                              title="Edit Course"
                             >
                               <Edit size={15} />
                             </button>
                             <button
                               onClick={() => handleDelete(course.id, course.title)}
-                              className="p-1.5 text-gray-400 hover:text-red-700 hover:bg-gray-100 rounded-lg transition-colors"
-                              title="Delete"
+                              className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
+                              title="Delete Course"
                             >
                               <Trash2 size={15} />
                             </button>
@@ -1526,99 +1497,56 @@ export default function CourseManagement() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs sm:text-sm">
-                  <thead className="bg-gray-50 border-b border-gray-200 text-gray-600 text-[11px] uppercase font-semibold tracking-wider">
+                <table className="w-full text-left text-xs text-gray-700">
+                  <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
                     <tr>
-                      <th className="px-5 py-3.5">Applicant Info</th>
-                      <th className="px-5 py-3.5">Contact Details</th>
-                      <th className="px-5 py-3.5">Applied Course</th>
-                      <th className="px-5 py-3.5">District</th>
-                      <th className="px-5 py-3.5">Applied Date</th>
-                      <th className="px-5 py-3.5">Status</th>
-                      <th className="px-5 py-3.5 text-right">Actions</th>
+                      <th className="px-3 py-2">Applicant</th>
+                      <th className="px-3 py-2">Phone</th>
+                      <th className="px-3 py-2">Applied Course</th>
+                      <th className="px-3 py-2">District</th>
+                      <th className="px-3 py-2">Applied Date</th>
+                      <th className="px-3 py-2 text-center">Status</th>
+                      <th className="px-3 py-2 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {applications.map(app => (
-                      <tr key={app.id} className="hover:bg-gray-50/80 transition-colors">
-                        {/* Applicant Name & NIC */}
-                        <td className="px-5 py-3.5">
-                          <div>
-                            <p className="font-bold text-gray-900 text-xs sm:text-sm">{app.applicantName}</p>
-                            {app.applicantNic && (
-                              <span className="text-[11px] font-mono text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
-                                NIC: {app.applicantNic}
-                              </span>
-                            )}
-                          </div>
+                      <tr key={app.id} className="hover:bg-gray-50/70 transition-colors">
+                        {/* Applicant Name */}
+                        <td className="px-3 py-1.5 whitespace-nowrap font-medium text-gray-900">
+                          {app.applicantName}
                         </td>
 
                         {/* Contact details */}
-                        <td className="px-5 py-3.5 text-xs">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-1.5 font-medium text-gray-800">
-                              <Phone size={13} className="text-emerald-700 shrink-0" />
-                              <a href={`tel:${app.applicantPhone}`} className="hover:underline text-emerald-800 font-mono">
-                                {app.applicantPhone}
-                              </a>
-                              <a
-                                href={`https://wa.me/${app.applicantPhone.replace(/[^0-9]/g, '')}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-green-600 hover:text-green-700 ml-1"
-                                title="Chat on WhatsApp"
-                              >
-                                <MessageSquare size={13} />
-                              </a>
-                            </div>
-                            {app.applicantEmail && (
-                              <div className="flex items-center gap-1.5 text-gray-500 text-[11px]">
-                                <Mail size={12} className="text-gray-400 shrink-0" />
-                                <a href={`mailto:${app.applicantEmail}`} className="hover:underline truncate max-w-[170px]">
-                                  {app.applicantEmail}
-                                </a>
-                              </div>
-                            )}
-                          </div>
+                        <td className="px-3 py-1.5 whitespace-nowrap font-mono text-gray-700">
+                          <a href={`tel:${app.applicantPhone}`} className="hover:underline">
+                            {app.applicantPhone}
+                          </a>
                         </td>
 
                         {/* Course */}
-                        <td className="px-5 py-3.5">
-                          {app.course ? (
-                            <div>
-                              <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded">
-                                {app.course.courseCode}
-                              </span>
-                              <p className="font-semibold text-gray-900 text-xs mt-0.5 max-w-xs truncate">
-                                {app.course.title}
-                              </p>
-                            </div>
-                          ) : (
-                            <span className="text-gray-400 italic">Course #{app.courseId.slice(0, 8)}</span>
-                          )}
+                        <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                          <span className="truncate max-w-[200px] inline-block" title={app.course?.title || '-'}>
+                            {app.course?.title || '-'}
+                          </span>
                         </td>
 
                         {/* District */}
-                        <td className="px-5 py-3.5 text-xs text-gray-600">
-                          {app.applicantDistrict || <span className="text-gray-400 italic">-</span>}
+                        <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">
+                          {app.applicantDistrict || '-'}
                         </td>
 
                         {/* Applied Date */}
-                        <td className="px-5 py-3.5 text-xs text-gray-500">
-                          <div className="font-medium text-gray-700">
-                            {new Date(app.appliedAt).toLocaleDateString()}
-                          </div>
-                          <div className="text-[11px] text-gray-400">
-                            {new Date(app.appliedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </div>
+                        <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">
+                          {new Date(app.appliedAt).toLocaleDateString()}
                         </td>
 
-                        {/* Status dropdown with inline instant update */}
-                        <td className="px-5 py-3.5">
+                        {/* Status dropdown */}
+                        <td className="px-3 py-1.5 text-center whitespace-nowrap">
                           <select
                             value={app.status}
                             onChange={e => handleUpdateAppStatus(app.id, e.target.value)}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold border transition-all cursor-pointer outline-none ${
+                            className={`px-2 py-0.5 rounded text-[10px] font-semibold border transition-all cursor-pointer outline-none ${
                               app.status === 'Approved'
                                 ? 'bg-emerald-50 text-emerald-800 border-emerald-300 focus:ring-1 focus:ring-emerald-500'
                                 : app.status === 'Pending'
@@ -1636,18 +1564,18 @@ export default function CourseManagement() {
                         </td>
 
                         {/* Actions */}
-                        <td className="px-5 py-3.5 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
+                        <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1">
                             <button
                               onClick={() => { setSelectedApp(app); setIsAppDetailModalOpen(true); }}
-                              className="p-1.5 text-gray-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                              className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
                               title="View Application Details"
                             >
                               <Eye size={15} />
                             </button>
                             <button
                               onClick={() => handleDeleteApp(app.id, app.applicantName)}
-                              className="p-1.5 text-gray-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+                              className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
                               title="Delete Application"
                             >
                               <Trash2 size={15} />
@@ -2033,34 +1961,6 @@ export default function CourseManagement() {
                         <option value="Published">Published (Visible on website)</option>
                         <option value="Archived">Archived</option>
                       </select>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider">
-                          Education Type (අධ්‍යාපන අංශය) *
-                        </label>
-                        <button
-                          type="button"
-                          onClick={openCreateTypeModal}
-                          className="text-xs text-emerald-700 hover:underline font-semibold"
-                        >
-                          + New Type
-                        </button>
-                      </div>
-                      <select
-                        value={form.educationTypeId || ''}
-                        onChange={e => setForm({ ...form, educationTypeId: e.target.value })}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:ring-1 focus:ring-emerald-600 focus:border-emerald-600 outline-none bg-white font-medium text-gray-800"
-                      >
-                        <option value="">-- Select Education Type (Optional) --</option>
-                        {educationTypes.map(t => (
-                          <option key={t.id} value={t.id}>{t.nameSi} ({t.nameEn})</option>
-                        ))}
-                      </select>
-                      <p className="text-[11px] text-gray-400 mt-1">
-                        මෙම පාඨමාලාව අයත් වන අධ්‍යාපනික ප්‍රවර්ගය (Academic Courses, Short Courses, Research Papers ආදිය)
-                      </p>
                     </div>
 
                     <div>

@@ -4,7 +4,6 @@ import {
   Trash2, 
   Mail, 
   Phone, 
-  Calendar, 
   Eye, 
   X, 
   CheckCircle, 
@@ -16,6 +15,7 @@ import {
 } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import AgroLoader from '../../components/common/AgroLoader';
+import { useConfirm } from '../components/ConfirmDialog';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -64,6 +64,7 @@ const STATUS_CONFIG: Record<string, { label: string; badge: string; dot: string 
 };
 
 export default function ContactManagement() {
+  const { confirm } = useConfirm();
   const [inquiries, setInquiries] = useState<ContactInquiry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -142,7 +143,12 @@ export default function ContactManagement() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this inquiry? This cannot be undone.')) return;
+    if (!await confirm({
+      title: 'Delete Inquiry',
+      subtitle: 'විමසීම ස්ථිරවම ඉවත් කිරීම',
+      message: 'Are you sure you want to delete this inquiry? This cannot be undone.',
+      confirmText: 'Delete Inquiry'
+    })) return;
     try {
       const res = await fetch(`${API_BASE_URL}/contacts/${id}`, {
         method: 'DELETE',
@@ -284,18 +290,18 @@ export default function ContactManagement() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50/80 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <table className="w-full text-left text-xs text-gray-700">
+              <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
                 <tr>
-                  <th className="px-6 py-3.5">Sender</th>
-                  <th className="px-6 py-3.5">Service / Subject</th>
-                  <th className="px-6 py-3.5">Message Preview</th>
-                  <th className="px-6 py-3.5">Status</th>
-                  <th className="px-6 py-3.5">Received Date</th>
-                  <th className="px-6 py-3.5 text-right">Actions</th>
+                  <th className="px-3 py-2">Sender</th>
+                  <th className="px-3 py-2">Contact</th>
+                  <th className="px-3 py-2">Service</th>
+                  <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2">Date</th>
+                  <th className="px-3 py-2 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100 text-gray-700">
+              <tbody className="divide-y divide-gray-100">
                 {inquiries.map((inquiry) => {
                   const statusConf = STATUS_CONFIG[inquiry.status] || STATUS_CONFIG.PENDING;
                   const isUnread = inquiry.status === 'PENDING';
@@ -303,68 +309,36 @@ export default function ContactManagement() {
                   return (
                     <tr 
                       key={inquiry.id} 
-                      className={`hover:bg-gray-50/70 transition-colors ${isUnread ? 'bg-amber-50/20 font-medium' : ''}`}
+                      className={`hover:bg-gray-50/70 transition-colors ${isUnread ? 'bg-amber-50/30 font-medium' : ''}`}
                     >
-                      {/* Sender Column */}
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                            isUnread 
-                              ? 'bg-amber-100 text-amber-800 ring-2 ring-amber-300' 
-                              : 'bg-emerald-50 text-emerald-800 border border-emerald-100'
-                          }`}>
-                            {inquiry.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-semibold text-gray-900 truncate flex items-center gap-1.5">
-                              {inquiry.name}
-                              {isUnread && (
-                                <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0" title="New / Unread" />
-                              )}
-                            </p>
-                            <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
-                              <a 
-                                href={`mailto:${inquiry.email}`} 
-                                className="hover:text-emerald-700 hover:underline flex items-center gap-1 truncate"
-                              >
-                                <Mail size={12} className="shrink-0" />
-                                <span className="truncate">{inquiry.email}</span>
-                              </a>
-                            </div>
-                            {inquiry.phone && (
-                              <div className="flex items-center gap-1 text-xs text-gray-500 mt-0.5">
-                                <Phone size={12} className="shrink-0 text-gray-400" />
-                                <span>{inquiry.phone}</span>
-                              </div>
-                            )}
-                          </div>
+                      {/* Sender */}
+                      <td className="px-3 py-1.5 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5 max-w-[180px]">
+                          {isUnread && <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" title="New" />}
+                          <span className="font-semibold text-gray-900 truncate" title={inquiry.name}>{inquiry.name}</span>
                         </div>
                       </td>
 
+                      {/* Contact */}
+                      <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">
+                        <span className="truncate max-w-[160px] inline-block" title={inquiry.email || inquiry.phone || '-'}>
+                          {inquiry.email || inquiry.phone || '-'}
+                        </span>
+                      </td>
+
                       {/* Service */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {inquiry.service ? (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-100">
-                            {SERVICE_LABELS[inquiry.service] || inquiry.service}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-gray-400 italic">Not specified</span>
-                        )}
+                      <td className="px-3 py-1.5 whitespace-nowrap">
+                        <span className="text-gray-700 font-medium truncate max-w-[140px] inline-block">
+                          {inquiry.service ? (SERVICE_LABELS[inquiry.service] || inquiry.service) : '-'}
+                        </span>
                       </td>
 
-                      {/* Message Preview */}
-                      <td className="px-6 py-4 max-w-xs">
-                        <p className="text-xs text-gray-600 line-clamp-2 leading-relaxed">
-                          {inquiry.message}
-                        </p>
-                      </td>
-
-                      {/* Status Dropdown */}
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      {/* Status */}
+                      <td className="px-3 py-1.5 whitespace-nowrap">
                         <select
                           value={inquiry.status}
                           onChange={(e) => handleStatusChange(inquiry.id, e.target.value)}
-                          className={`text-xs font-semibold px-2.5 py-1 rounded-full cursor-pointer outline-none transition-all ${statusConf.badge}`}
+                          className={`text-[10px] font-semibold px-2 py-0.5 rounded-full cursor-pointer outline-none transition-all ${statusConf.badge}`}
                         >
                           <option value="PENDING">Pending</option>
                           <option value="READ">Read</option>
@@ -373,33 +347,27 @@ export default function ContactManagement() {
                         </select>
                       </td>
 
-                      {/* Received Date */}
-                      <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar size={13} className="text-gray-400" />
-                          <span>{new Date(inquiry.createdAt).toLocaleDateString()}</span>
-                        </div>
-                        <span className="text-[11px] text-gray-400 block mt-0.5">
-                          {new Date(inquiry.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
+                      {/* Date */}
+                      <td className="px-3 py-1.5 whitespace-nowrap text-gray-500">
+                        {new Date(inquiry.createdAt).toLocaleDateString()}
                       </td>
 
                       {/* Actions */}
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-xs">
-                        <div className="flex items-center justify-end gap-1.5">
+                      <td className="px-3 py-1.5 whitespace-nowrap text-right">
+                        <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={() => handleOpenDetails(inquiry)}
                             title="View Full Message"
-                            className="p-1.5 text-gray-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                            className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
                           >
-                            <Eye size={17} />
+                            <Eye size={15} />
                           </button>
                           <button
                             onClick={() => handleDelete(inquiry.id)}
                             title="Delete Inquiry"
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
                           >
-                            <Trash2 size={17} />
+                            <Trash2 size={15} />
                           </button>
                         </div>
                       </td>

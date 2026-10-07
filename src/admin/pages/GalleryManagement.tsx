@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { 
   Plus, Edit, Trash2, X, Search, Image as ImageIcon, Video, Upload, 
-  Layers, ExternalLink, RefreshCw, CheckCircle2, AlertCircle 
+  Layers, ExternalLink, RefreshCw, CheckCircle2, AlertCircle, Eye
 } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import AgroLoader from '../../components/common/AgroLoader';
+import { useConfirm } from '../components/ConfirmDialog';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -32,11 +33,13 @@ const defaultForm = {
 };
 
 export default function GalleryManagement() {
+  const { confirm } = useConfirm();
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [viewingItem, setViewingItem] = useState<GalleryItem | null>(null);
   const [form, setForm] = useState<typeof defaultForm>({ ...defaultForm });
   const [search, setSearch] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -201,7 +204,12 @@ export default function GalleryManagement() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this gallery item? All associated images will be permanently deleted.')) return;
+    if (!await confirm({
+      title: 'Delete Gallery Item',
+      subtitle: 'ගැලරි අයිතමය ස්ථිරවම ඉවත් කිරීම',
+      message: 'Are you sure you want to delete this gallery item? All associated images will be permanently deleted.',
+      confirmText: 'Delete Item'
+    })) return;
     try {
       const res = await fetch(`${API_BASE_URL}/gallery/${id}`, { method: 'DELETE', headers: authHeaders });
       if (res.ok) {
@@ -255,21 +263,21 @@ export default function GalleryManagement() {
         {isLoading ? (
           <div className="flex justify-center items-center py-20"><AgroLoader message="Loading gallery..." /></div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
+          <table className="w-full text-left text-xs text-gray-700">
+            <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
               <tr>
-                <th className="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Preview</th>
-                <th className="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Title & Slug</th>
-                <th className="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Type</th>
-                <th className="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Media Count</th>
-                <th className="text-right px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-3 py-2">Media Item</th>
+                <th className="px-3 py-2">Slug</th>
+                <th className="px-3 py-2">Type</th>
+                <th className="px-3 py-2">Media Count</th>
+                <th className="px-3 py-2 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-gray-100">
               {filteredItems.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="text-center py-16 text-gray-400">
-                    <ImageIcon className="mx-auto mb-2 text-gray-300" size={36} />
+                    <ImageIcon className="mx-auto mb-2 text-gray-300" size={32} />
                     <p className="font-medium">No gallery items found</p>
                   </td>
                 </tr>
@@ -279,88 +287,76 @@ export default function GalleryManagement() {
                   : 1;
 
                 return (
-                  <tr key={item.id} className="hover:bg-gray-50/80 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="relative w-16 h-12 rounded-lg overflow-hidden bg-gray-100 border border-gray-200 shadow-sm flex items-center justify-center">
-                        {item.type === 'IMAGE' ? (
-                          item.url ? (
-                            <>
-                              <img src={item.url} alt={item.title} className="w-full h-full object-cover" />
-                              {imgCount > 1 && (
-                                <span className="absolute bottom-1 right-1 bg-black/75 text-white text-[10px] px-1.5 py-0.5 rounded font-bold backdrop-blur-xs">
-                                  +{imgCount - 1}
-                                </span>
-                              )}
-                            </>
+                  <tr key={item.id} className="hover:bg-gray-50/70 transition-colors">
+                    <td className="px-3 py-1.5 whitespace-nowrap">
+                      <div className="flex items-center gap-2 max-w-xs">
+                        <div className="w-6 h-6 rounded bg-gray-100 border border-gray-200 shrink-0 overflow-hidden flex items-center justify-center">
+                          {item.type === 'IMAGE' && item.url ? (
+                            <img src={item.url} alt="" className="w-full h-full object-cover" />
+                          ) : item.type === 'VIDEO' ? (
+                            <Video size={12} className="text-purple-600" />
                           ) : (
-                            <ImageIcon size={20} className="text-gray-400" />
-                          )
-                        ) : (
-                          <div className="bg-purple-100 w-full h-full flex items-center justify-center text-purple-600">
-                            <Video size={20} />
-                          </div>
-                        )}
+                            <ImageIcon size={12} className="text-gray-400" />
+                          )}
+                        </div>
+                        <span className="font-semibold text-gray-900 truncate" title={item.title}>
+                          {item.title}
+                        </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-gray-900 leading-snug">{item.title}</div>
-                      {item.sinhalaTitle && (
-                        <div className="text-xs text-gray-500 font-normal mt-0.5">{item.sinhalaTitle}</div>
-                      )}
-                      {item.slug && (
-                        <div className="mt-1 flex items-center gap-1 text-[11px] text-gray-400 font-mono">
-                          <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
-                            slug: {item.slug}
-                          </span>
-                        </div>
-                      )}
+
+                    <td className="px-3 py-1.5 whitespace-nowrap font-mono text-[11px] text-gray-400">
+                      {item.slug || '-'}
                     </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
+
+                    <td className="px-3 py-1.5 whitespace-nowrap">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
                         item.type === 'IMAGE' 
                           ? 'bg-blue-50 text-blue-700 border border-blue-200' 
                           : 'bg-purple-50 text-purple-700 border border-purple-200'
                       }`}>
-                        {item.type === 'IMAGE' ? <ImageIcon size={12} /> : <Video size={12} />}
+                        {item.type === 'IMAGE' ? <ImageIcon size={11} /> : <Video size={11} />}
                         {item.type === 'IMAGE' ? (imgCount > 1 ? 'ALBUM' : 'PHOTO') : 'VIDEO'}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
-                      {item.type === 'IMAGE' ? (
-                        <div className="flex items-center gap-1.5 text-xs font-medium text-gray-700">
-                          <Layers size={14} className="text-blue-500" />
-                          <span>{imgCount} {imgCount === 1 ? 'Photo' : 'Photos'}</span>
-                        </div>
-                      ) : (
-                        <span className="text-xs text-gray-500">1 Video</span>
-                      )}
+
+                    <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">
+                      {item.type === 'IMAGE' ? `${imgCount} Photo${imgCount === 1 ? '' : 's'}` : '1 Video'}
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center gap-1.5 justify-end">
+
+                    <td className="px-3 py-1.5 whitespace-nowrap text-right">
+                      <div className="flex items-center gap-1 justify-end">
+                        <button
+                          onClick={() => setViewingItem(item)}
+                          title="View Media Details"
+                          className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
+                        >
+                          <Eye size={15} />
+                        </button>
                         {item.slug && (
                           <a
                             href={`/gallery/${item.slug}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            title="View on website"
-                            className="p-2 text-gray-500 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                            title="View Public Page"
+                            className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
                           >
-                            <ExternalLink size={16} />
+                            <ExternalLink size={15} />
                           </a>
                         )}
                         <button
                           onClick={() => openEdit(item)}
-                          title="Edit"
-                          className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Edit Media"
+                          className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"
                         >
-                          <Edit size={16} />
+                          <Edit size={15} />
                         </button>
                         <button
                           onClick={() => handleDelete(item.id)}
-                          title="Delete"
-                          className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete Media"
+                          className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"
                         >
-                          <Trash2 size={16} />
+                          <Trash2 size={15} />
                         </button>
                       </div>
                     </td>
@@ -661,6 +657,124 @@ export default function GalleryManagement() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Gallery Item Details Preview Modal */}
+      {viewingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setViewingItem(null)} />
+          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl relative z-10 overflow-hidden border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100 bg-gray-50/70 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center border border-emerald-200 shrink-0">
+                  <ImageIcon size={16} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm sm:text-base leading-tight">Gallery Media Details</h3>
+                  <p className="text-[11px] text-gray-500">ඡායාරූප / වීඩියෝ මාධ්‍ය විස්තරය</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {viewingItem.slug && (
+                  <a
+                    href={`/gallery/${viewingItem.slug}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <ExternalLink size={13} />
+                    <span className="hidden sm:inline">Public Page</span>
+                  </a>
+                )}
+                <button
+                  onClick={() => setViewingItem(null)}
+                  className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4">
+              {/* Media Preview */}
+              {viewingItem.type === 'VIDEO' ? (
+                <div className="w-full aspect-video rounded-xl overflow-hidden bg-black flex items-center justify-center">
+                  {viewingItem.url.includes('youtube.com') || viewingItem.url.includes('youtu.be') ? (
+                    <iframe
+                      src={viewingItem.url.replace('watch?v=', 'embed/')}
+                      title={viewingItem.title}
+                      className="w-full h-full"
+                      allowFullScreen
+                    />
+                  ) : (
+                    <video src={viewingItem.url} controls className="w-full h-full object-contain" />
+                  )}
+                </div>
+              ) : viewingItem.images && viewingItem.images.length > 1 ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {viewingItem.images.map((img, i) => (
+                    <div key={i} className="aspect-square rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+                      <img src={img} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                viewingItem.url && (
+                  <div className="w-full h-56 rounded-xl overflow-hidden border border-gray-200 bg-gray-100">
+                    <img src={viewingItem.url} alt={viewingItem.title} className="w-full h-full object-cover" />
+                  </div>
+                )
+              )}
+
+              <div>
+                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                    viewingItem.type === 'IMAGE' ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-purple-50 text-purple-700 border border-purple-200'
+                  }`}>
+                    {viewingItem.type}
+                  </span>
+                  <span className="text-xs text-gray-400 font-mono">/{viewingItem.slug}</span>
+                </div>
+                <h2 className="text-lg font-bold text-gray-900">{viewingItem.title}</h2>
+                {viewingItem.sinhalaTitle && <h3 className="text-sm font-semibold text-emerald-800 mt-0.5">{viewingItem.sinhalaTitle}</h3>}
+              </div>
+
+              {viewingItem.description && (
+                <div>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Description (English)</h4>
+                  <p className="text-xs text-gray-700 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100 whitespace-pre-wrap">{viewingItem.description}</p>
+                </div>
+              )}
+
+              {viewingItem.sinhalaDescription && (
+                <div>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">විස්තරය (Sinhala)</h4>
+                  <p className="text-xs text-gray-700 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100 whitespace-pre-wrap">{viewingItem.sinhalaDescription}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-gray-100 bg-gray-50/70 flex justify-end gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewingItem(null)}
+                className="px-4 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const itm = viewingItem;
+                  setViewingItem(null);
+                  openEdit(itm);
+                }}
+                className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Edit Media
+              </button>
+            </div>
           </div>
         </div>
       )}

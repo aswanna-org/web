@@ -653,16 +653,16 @@ export default function Analytics() {
 
             {/* Table Content */}
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs sm:text-sm">
+              <table className="w-full text-left border-collapse text-xs text-gray-700">
                 <thead>
-                  <tr className="bg-gray-50/70 border-b border-gray-100 text-gray-500 font-bold uppercase text-[11px] tracking-wider">
-                    <th className="py-3 px-5 w-16 text-center">Rank</th>
-                    <th className="py-3 px-4">Page / Crop Title & Path</th>
-                    <th className="py-3 px-4 text-center">Unique Visitors</th>
-                    <th className="py-3 px-4 text-center">Total Views</th>
-                    <th className="py-3 px-4 text-center">Share</th>
-                    <th className="py-3 px-4 text-right">Last Visit</th>
-                    <th className="py-3 px-4 text-center w-14">View</th>
+                  <tr className="bg-gray-50/90 border-b border-gray-200 text-gray-500 font-bold uppercase text-[11px] whitespace-nowrap">
+                    <th className="px-3 py-2 text-center w-12">Rank</th>
+                    <th className="px-3 py-2">Page / Crop Title</th>
+                    <th className="px-3 py-2 text-center">Unique Visitors</th>
+                    <th className="px-3 py-2 text-center">Total Views</th>
+                    <th className="px-3 py-2 text-center">Share</th>
+                    <th className="px-3 py-2 text-right">Last Visit</th>
+                    <th className="px-3 py-2 text-center w-12">View</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -685,41 +685,38 @@ export default function Analytics() {
                       const percent = totalViews > 0 ? ((row.views / totalViews) * 100).toFixed(1) : '0';
 
                       return (
-                        <tr key={row.path} className="hover:bg-gray-50/80 transition-colors">
-                          <td className="py-3.5 px-5 text-center font-bold text-gray-400">
+                        <tr key={row.path} className="hover:bg-gray-50/70 transition-colors">
+                          <td className="px-3 py-1.5 text-center font-bold text-gray-400 whitespace-nowrap">
                             #{rank}
                           </td>
-                          <td className="py-3.5 px-4 min-w-[200px]">
-                            <p className="font-bold text-gray-900 line-clamp-1">
+                          <td className="px-3 py-1.5 whitespace-nowrap">
+                            <span className="font-semibold text-gray-900 truncate max-w-xs inline-block" title={row.title || row.path}>
                               {row.title || row.path}
-                            </p>
-                            <p className="text-[11px] font-mono text-gray-400 line-clamp-1">
-                              {row.path}
-                            </p>
+                            </span>
                           </td>
-                          <td className="py-3.5 px-4 text-center font-semibold text-gray-700">
+                          <td className="px-3 py-1.5 text-center font-semibold text-gray-700 whitespace-nowrap">
                             {row.visitors.toLocaleString()}
                           </td>
-                          <td className="py-3.5 px-4 text-center font-extrabold text-emerald-800">
+                          <td className="px-3 py-1.5 text-center font-extrabold text-emerald-800 whitespace-nowrap">
                             {row.views.toLocaleString()}
                           </td>
-                          <td className="py-3.5 px-4 text-center">
-                            <span className="inline-block bg-gray-100 text-gray-700 px-2 py-0.5 rounded-md text-[11px] font-bold">
+                          <td className="px-3 py-1.5 text-center whitespace-nowrap">
+                            <span className="inline-block bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-[10px] font-bold">
                               {percent}%
                             </span>
                           </td>
-                          <td className="py-3.5 px-4 text-right text-gray-500 font-medium text-xs whitespace-nowrap">
+                          <td className="px-3 py-1.5 text-right text-gray-500 font-medium whitespace-nowrap">
                             {formatRelativeTime(row.lastVisited)}
                           </td>
-                          <td className="py-3.5 px-4 text-center">
+                          <td className="px-3 py-1.5 text-center whitespace-nowrap">
                             <a
                               href={`${publicOrigin}${row.path}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="text-gray-400 hover:text-emerald-700 p-1 inline-block rounded-md transition-colors"
+                              className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer inline-flex items-center"
                               title={`Open ${row.path} in new tab`}
                             >
-                              <ExternalLink size={14} />
+                              <ExternalLink size={15} />
                             </a>
                           </td>
                         </tr>

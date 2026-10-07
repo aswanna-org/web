@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, X, Search, Package, Upload, Sparkles, Clock, RotateCcw } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Search, Package, Upload, Sparkles, Clock, RotateCcw, Eye, ExternalLink } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import RichTextEditor from '../components/RichTextEditor';
 import AgroLoader from '../../components/common/AgroLoader';
+import { useConfirm } from '../components/ConfirmDialog';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -74,11 +75,13 @@ const clearItemDraft = () => {
 };
 
 export default function ItemManagement() {
+  const { confirm } = useConfirm();
   const [items, setItems] = useState<Item[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [viewingItem, setViewingItem] = useState<Item | null>(null);
   const [form, setForm] = useState({ ...defaultForm });
   const [restoredDraftTime, setRestoredDraftTime] = useState<number | null>(null);
   const [search, setSearch] = useState('');
@@ -219,7 +222,12 @@ export default function ItemManagement() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Delete this item?')) return;
+    if (!await confirm({
+      title: 'Delete Item',
+      subtitle: 'අයිතමය ස්ථිරවම ඉවත් කිරීම',
+      message: 'Are you sure you want to delete this item? This action cannot be undone.',
+      confirmText: 'Delete Item'
+    })) return;
     await fetch(`${API_BASE_URL}/items/${id}`, { method: 'DELETE', headers: authHeaders });
     fetchItems(currentPage);
   };
@@ -242,15 +250,37 @@ export default function ItemManagement() {
         {isLoading ? (
           <div className="flex justify-center items-center py-20"><AgroLoader message="Loading items..." /></div>
         ) : (
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100"><tr><th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Item</th><th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Category</th><th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Slug</th><th className="px-6 py-3" /></tr></thead>
-            <tbody className="divide-y divide-gray-50">
-              {filteredItems.length === 0 ? (<tr><td colSpan={4} className="text-center py-12 text-gray-400"><Package className="mx-auto mb-2" size={32} /><p>No items found</p></td></tr>) : filteredItems.map(item => (
-                <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4"><div className="flex items-center gap-3">{item.images && (Array.isArray(item.images) ? item.images[0] : item.images) && <img src={Array.isArray(item.images) ? item.images[0] : (item.images as string)} alt="" className="w-10 h-10 rounded-lg object-cover shrink-0" />}<div><p className="font-medium text-gray-800">{item.name}</p>{item.sinhalaName && <p className="text-xs text-gray-500">{item.sinhalaName}</p>}</div></div></td>
-                  <td className="px-6 py-4 text-gray-600">{item.category?.name || '-'}</td>
-                  <td className="px-6 py-4 text-gray-500 font-mono text-xs">{item.slug}</td>
-                  <td className="px-6 py-4"><div className="flex items-center gap-2 justify-end"><button onClick={() => openEdit(item)} className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"><Edit size={16} /></button><button onClick={() => handleDelete(item.id)} className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={16} /></button></div></td>
+          <table className="w-full text-left text-xs text-gray-700">
+            <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
+              <tr>
+                <th className="px-3 py-2">Item</th>
+                <th className="px-3 py-2">Category</th>
+                <th className="px-3 py-2">Slug</th>
+                <th className="px-3 py-2 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filteredItems.length === 0 ? (
+                <tr><td colSpan={4} className="text-center py-12 text-gray-400"><Package className="mx-auto mb-2" size={32} /><p>No items found</p></td></tr>
+              ) : filteredItems.map(item => (
+                <tr key={item.id} className="hover:bg-gray-50/70 transition-colors">
+                  <td className="px-3 py-1.5 whitespace-nowrap">
+                    <div className="flex items-center gap-2 max-w-xs">
+                      {item.images && (Array.isArray(item.images) ? item.images[0] : item.images) && (
+                        <img src={Array.isArray(item.images) ? item.images[0] : (item.images as string)} alt="" className="w-6 h-6 rounded object-cover shrink-0 border border-gray-200" />
+                      )}
+                      <span className="font-semibold text-gray-900 truncate" title={item.name}>{item.name}</span>
+                    </div>
+                  </td>
+                  <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">{item.category?.name || '-'}</td>
+                  <td className="px-3 py-1.5 whitespace-nowrap text-gray-400 font-mono text-[11px]">{item.slug}</td>
+                  <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                    <div className="flex items-center justify-end gap-1">
+                      <button onClick={() => setViewingItem(item)} title="View Item Details" className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"><Eye size={15} /></button>
+                      <button onClick={() => openEdit(item)} title="Edit Item" className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"><Edit size={15} /></button>
+                      <button onClick={() => handleDelete(item.id)} title="Delete Item" className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"><Trash2 size={15} /></button>
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -305,8 +335,14 @@ export default function ItemManagement() {
                       {restoredDraftTime && (
                         <button
                           type="button"
-                          onClick={() => {
-                            if (window.confirm('Clear saved draft and start with an empty form?')) {
+                          onClick={async () => {
+                            if (await confirm({
+                              title: 'Clear Draft',
+                              subtitle: 'කෙටුම්පත ඉවත් කිරීම',
+                              message: 'Clear saved draft and start with an empty form?',
+                              confirmText: 'Clear Draft',
+                              type: 'warning'
+                            })) {
                               clearItemDraft();
                               setForm({ ...defaultForm });
                               setRestoredDraftTime(null);
@@ -624,6 +660,147 @@ export default function ItemManagement() {
                 </div>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Item Details Preview Modal */}
+      {viewingItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setViewingItem(null)} />
+          <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl relative z-10 overflow-hidden border border-gray-100 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100 bg-gray-50/70 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center border border-emerald-200 shrink-0">
+                  <Package size={16} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-sm sm:text-base leading-tight">Crop Item Details</h3>
+                  <p className="text-[11px] text-gray-500">බෝගයේ සම්පූර්ණ දත්ත සහ තොරතුරු</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {viewingItem.slug && (
+                  <a
+                    href={`/items/${viewingItem.slug}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <ExternalLink size={13} />
+                    <span className="hidden sm:inline">Public Page</span>
+                  </a>
+                )}
+                <button
+                  onClick={() => setViewingItem(null)}
+                  className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-5 sm:p-6 overflow-y-auto space-y-4">
+              {/* Image Preview */}
+              {viewingItem.images && (Array.isArray(viewingItem.images) ? viewingItem.images.length > 0 : Boolean(viewingItem.images)) && (
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {(Array.isArray(viewingItem.images) ? viewingItem.images : [viewingItem.images as string]).map((img, i) => (
+                    <div key={i} className="w-40 h-28 rounded-xl overflow-hidden border border-gray-200 bg-gray-100 shrink-0">
+                      <img src={img} alt="" className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <div>
+                <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  {viewingItem.category?.name && (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                      {viewingItem.category.name}
+                    </span>
+                  )}
+                  {viewingItem.scientificName && (
+                    <span className="text-xs text-gray-500 italic font-serif">
+                      ({viewingItem.scientificName})
+                    </span>
+                  )}
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">{viewingItem.name}</h2>
+                {viewingItem.sinhalaName && <h3 className="text-base font-semibold text-emerald-800 mt-0.5">{viewingItem.sinhalaName}</h3>}
+                <p className="text-xs font-mono text-gray-400 mt-0.5">/{viewingItem.slug}</p>
+              </div>
+
+              {(viewingItem.location || viewingItem.sinhalaLocation) && (
+                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs">
+                  <span className="text-gray-400 block mb-0.5">Primary Cultivation Regions</span>
+                  <span className="font-semibold text-gray-800">
+                    {viewingItem.location} {viewingItem.sinhalaLocation ? `(${viewingItem.sinhalaLocation})` : ''}
+                  </span>
+                </div>
+              )}
+
+              {/* Sri Lanka Agri Data if present */}
+              {viewingItem.slAgriData && (viewingItem.slAgriData.cultivationArea || viewingItem.slAgriData.annualProduction) && (
+                <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-200/60 space-y-2 text-xs">
+                  <span className="font-bold text-emerald-900 block">Sri Lanka National Statistics</span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {viewingItem.slAgriData.cultivationArea && (
+                      <div className="bg-white p-2.5 rounded-lg border border-emerald-100">
+                        <span className="text-gray-400 block text-[10px]">Cultivation Area</span>
+                        <span className="font-bold text-gray-800">{viewingItem.slAgriData.cultivationArea}</span>
+                      </div>
+                    )}
+                    {viewingItem.slAgriData.annualProduction && (
+                      <div className="bg-white p-2.5 rounded-lg border border-emerald-100">
+                        <span className="text-gray-400 block text-[10px]">Annual Production</span>
+                        <span className="font-bold text-gray-800">{viewingItem.slAgriData.annualProduction}</span>
+                      </div>
+                    )}
+                    {viewingItem.slAgriData.averageYield && (
+                      <div className="bg-white p-2.5 rounded-lg border border-emerald-100">
+                        <span className="text-gray-400 block text-[10px]">Average Yield</span>
+                        <span className="font-bold text-gray-800">{viewingItem.slAgriData.averageYield}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Descriptions */}
+              {viewingItem.description && (
+                <div>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Description (English)</h4>
+                  <div className="text-xs text-gray-700 leading-relaxed bg-white p-3.5 rounded-xl border border-gray-100 rich-content" dangerouslySetInnerHTML={{ __html: viewingItem.description }} />
+                </div>
+              )}
+
+              {viewingItem.sinhalaDescription && (
+                <div>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">විස්තරය (Sinhala)</h4>
+                  <div className="text-xs text-gray-700 leading-relaxed bg-white p-3.5 rounded-xl border border-gray-100 rich-content" dangerouslySetInnerHTML={{ __html: viewingItem.sinhalaDescription }} />
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-gray-100 bg-gray-50/70 flex justify-end gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewingItem(null)}
+                className="px-4 py-1.5 border border-gray-200 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const itm = viewingItem;
+                  setViewingItem(null);
+                  openEdit(itm);
+                }}
+                className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Edit Item
+              </button>
+            </div>
           </div>
         </div>
       )}
