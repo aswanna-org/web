@@ -18,7 +18,8 @@ import {
   Briefcase,
   Users,
   Mail,
-  X
+  X,
+  BookMarked
 } from 'lucide-react';
 
 interface NavGroup {
@@ -64,6 +65,7 @@ const navGroups: NavGroup[] = [
     items: [
       { name: 'News Management', path: '/admin/news', icon: Newspaper },
       { name: 'Blog Management', path: '/admin/blogs', icon: BookOpen },
+      { name: 'Publication & Handbook Management', path: '/admin/publications-handbooks', icon: BookMarked },
       { name: 'Career Management', path: '/admin/careers', icon: Briefcase },
       { name: 'Gallery Management', path: '/admin/gallery', icon: ImageIcon }
     ]

@@ -33,6 +33,7 @@
     "embla-carousel-react": "^8.6.0",
     "i18next": "^26.4.0",
     "lucide-react": "^1.34.0",
+    "pdfjs-dist": "^3.11.174",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-ga4": "^3.0.1",
