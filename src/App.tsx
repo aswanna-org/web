@@ -67,6 +67,7 @@ import InstitutionManagement from './admin/pages/InstitutionManagement';
 import Analytics from './admin/pages/Analytics';
 import Login from './admin/pages/Login';
 import MarketplaceController from './admin/pages/MarketplaceController';
+import ImportantEventManagement from './admin/pages/ImportantEventManagement';
 import { ProtectedRoute } from './admin/components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 
@@ -196,6 +197,7 @@ function App() {
               <Route path="publications" element={<AgriPublicationAndHandbookManagement />} />
               <Route path="users" element={<UserManagement />} />
               <Route path="contacts" element={<ContactManagement />} />
+              <Route path="important-events" element={<ImportantEventManagement />} />
             </Route>
           </Routes>
           <CartModal />

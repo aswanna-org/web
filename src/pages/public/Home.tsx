@@ -5,6 +5,7 @@ import AboutSection from '../../components/public/AboutSection';
 import MarketPricesSection from '../../components/public/MarketPricesSection';
 import PromoBanner from '../../components/public/PromoBanner';
 import GovijanaSewaPromo from '../../components/public/GovijanaSewaPromo';
+import ImportantEventsSection from '../../components/public/ImportantEventsSection';
 import NewsSection from '../../components/public/NewsSection';
 import BlogsSection from '../../components/public/BlogsSection';
 import SmarterGrowthSection from '../../components/public/SmarterGrowthSection';
@@ -28,6 +29,7 @@ export default function Home() {
         <HeroCarousel />
         <FeaturesSection />
         <GovijanaSewaPromo />
+        <ImportantEventsSection />
         <ProductsSection />
         <AboutSection />
         <MarketPricesSection />

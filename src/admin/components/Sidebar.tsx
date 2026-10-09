@@ -20,7 +20,8 @@ import {
   Mail,
   X,
   BookMarked,
-  Store
+  Store,
+  Calendar
 } from 'lucide-react';
 
 interface NavGroup {
@@ -68,6 +69,7 @@ const navGroups: NavGroup[] = [
       { name: 'News Management', path: '/admin/news', icon: Newspaper },
       { name: 'Blog Management', path: '/admin/blogs', icon: BookOpen },
       { name: 'Publication & Handbook Management', path: '/admin/publications-handbooks', icon: BookMarked },
+      { name: 'Important Events', path: '/admin/important-events', icon: Calendar },
       { name: 'Career Management', path: '/admin/careers', icon: Briefcase },
       { name: 'Gallery Management', path: '/admin/gallery', icon: ImageIcon }
     ]

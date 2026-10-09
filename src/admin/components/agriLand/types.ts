@@ -212,7 +212,7 @@ export interface AgriLand {
   dealTypeId: string;
   dealType?: AgriLandDealType;
 
-  locationId: string;
+  locationId?: string | null;
   location?: AgriLandLocation;
 
   acres?: number | null;

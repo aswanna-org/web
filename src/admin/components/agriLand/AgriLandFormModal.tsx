@@ -12,10 +12,11 @@ import {
   Upload,
   Star,
   Trash2,
-  Plus,
   CheckCircle2,
   Check,
-  Compass
+  Compass,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import type {
   AgriLand,
@@ -74,6 +75,25 @@ interface AgriLandFormModalProps {
   onRefreshLookups?: () => void;
 }
 
+export type FormTab = 'basic' | 'location' | 'images' | 'area' | 'facilities' | 'crops';
+
+export interface StepDef {
+  id: FormTab;
+  stepNum: number;
+  titleEn: string;
+  titleSi: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+export const FORM_STEPS: StepDef[] = [
+  { id: 'basic', stepNum: 1, titleEn: '1. Basic & Pricing', titleSi: 'මූලික තොරතුරු සහ මිල', icon: Info },
+  { id: 'location', stepNum: 2, titleEn: '2. Location', titleSi: 'ඉඩම පිහිටි ස්ථානය', icon: MapPin },
+  { id: 'images', stepNum: 3, titleEn: '3. Photos', titleSi: 'ඡායාරූප (Photos)', icon: ImageIcon },
+  { id: 'area', stepNum: 4, titleEn: '4. Area & Deed', titleSi: 'ප්‍රමාණය සහ ඔප්පු', icon: Layers },
+  { id: 'facilities', stepNum: 5, titleEn: '5. Facilities & Nature', titleSi: 'පහසුකම් සහ පරිසරය', icon: Home },
+  { id: 'crops', stepNum: 6, titleEn: '6. Crops & Owner', titleSi: 'වගාවන් සහ හිමිකරු', icon: TreePine }
+];
+
 export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
   isOpen,
   onClose,
@@ -98,9 +118,33 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
   token,
   onRefreshLookups
 }) => {
-  const [activeTab, setActiveTab] = useState<'basic' | 'location' | 'images' | 'area' | 'facilities' | 'crops'>('basic');
+  const [activeTab, setActiveTab] = useState<FormTab>('basic');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // ── Step Navigation ──
+  const currentStepIndex = FORM_STEPS.findIndex((s) => s.id === activeTab);
+  const currentStep = FORM_STEPS[currentStepIndex] || FORM_STEPS[0];
+
+  const handleNextStep = () => {
+    if (activeTab === 'basic') {
+      if (!titleSi.trim() || !titleEn.trim() || !dealTypeId) {
+        setError('කරුණාකර ඉඩමේ නම (English සහ Sinhala) සහ Deal Type තෝරන්න (Please fill Title and select Deal Type)');
+        return;
+      }
+    }
+    setError(null);
+    if (currentStepIndex < FORM_STEPS.length - 1) {
+      setActiveTab(FORM_STEPS[currentStepIndex + 1].id);
+    }
+  };
+
+  const handlePrevStep = () => {
+    setError(null);
+    if (currentStepIndex > 0) {
+      setActiveTab(FORM_STEPS[currentStepIndex - 1].id);
+    }
+  };
 
   // ── Basic Info & Pricing ──
   const [titleEn, setTitleEn] = useState('');
@@ -112,14 +156,12 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
   const [activeState, setActiveState] = useState(true);
 
   // ── Location State & sl-gnd ──
-  const [locationId, setLocationId] = useState('');
+  const [locationId, setLocationId] = useState<string | null>(null);
   const [locationUrl, setLocationUrl] = useState('');
   const [slProvince, setSlProvince] = useState('Western');
   const [slDistrict, setSlDistrict] = useState('Colombo');
   const [slDsd, setSlDsd] = useState('');
   const [slGnd, setSlGnd] = useState('');
-  const [isCreatingLoc, setIsCreatingLoc] = useState(false);
-  const [locCreateMsg, setLocCreateMsg] = useState<string | null>(null);
 
   // ── Images State (Up to 6 images, 1 Primary) ──
   const [imagesList, setImagesList] = useState<FormImageSlot[]>([]);
@@ -178,7 +220,7 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
       setTitleSi(landToEdit.titleSi || '');
       setDealTypeId(landToEdit.dealTypeId || (dealTypes[0]?.id ?? ''));
       setLandCategoryId(landToEdit.landCategoryId || '');
-      setLocationId(landToEdit.locationId || (locations[0]?.id ?? ''));
+      setLocationId(landToEdit.locationId || null);
       setLocationUrl(landToEdit.locationUrl || '');
 
       setPriceEn(landToEdit.priceEn || '');
@@ -236,7 +278,7 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
       setTitleSi('');
       setDealTypeId(dealTypes[0]?.id ?? '');
       setLandCategoryId(categories[0]?.id ?? '');
-      setLocationId(locations[0]?.id ?? '');
+      setLocationId(null);
       setLocationUrl('');
 
       setPriceEn('');
@@ -276,7 +318,6 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
       setSlGnd('');
     }
     setError(null);
-    setLocCreateMsg(null);
   }, [landToEdit, isOpen, dealTypes, categories, locations, deedTypes]);
 
   if (!isOpen) return null;
@@ -379,11 +420,10 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
     });
   };
 
-  // ── sl-gnd Quick Location Creation / Match ──
-  const handleCreateLocationFromSlGnd = async () => {
-    setIsCreatingLoc(true);
-    setLocCreateMsg(null);
-    setError(null);
+  // ── Auto-register / Match sl-gnd Location Silently ──
+  const autoRegisterLocationIfPossible = async (): Promise<string | null> => {
+    if (locationId) return locationId;
+    if (!slProvince || !slDistrict) return null;
 
     const prov = SRI_LANKA_PROVINCES.find(
       (p) => p.en.toLowerCase().replace(' province', '').trim() === slProvince.toLowerCase().replace(' province', '').trim()
@@ -397,7 +437,7 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
         },
         body: JSON.stringify({
           provinceEn: slProvince,
@@ -412,21 +452,17 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
         })
       });
 
-      const resData = await res.json();
-      if (!res.ok) {
-        throw new Error(resData.error || 'Failed to register location');
+      if (res.ok) {
+        const resData = await res.json();
+        if (resData.data?.id) {
+          if (onRefreshLookups) onRefreshLookups();
+          return resData.data.id;
+        }
       }
-
-      if (resData.data?.id) {
-        setLocationId(resData.data.id);
-        setLocCreateMsg(`Location "${slDistrict} (${dist?.si || ''})" registered and selected successfully!`);
-        if (onRefreshLookups) onRefreshLookups();
-      }
-    } catch (err: any) {
-      setError(err.message || 'Error creating location with sl-gnd');
-    } finally {
-      setIsCreatingLoc(false);
+    } catch {
+      // Non-blocking fallback
     }
+    return null;
   };
 
   // Toggle Crop Selection
@@ -439,8 +475,8 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
   // ── Submit Complete Form ──
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!titleSi.trim() || !titleEn.trim() || !dealTypeId || !locationId) {
-      setError('Please fill required fields: English Title, Sinhala Title, Deal Type, and Location.');
+    if (!titleSi.trim() || !titleEn.trim() || !dealTypeId) {
+      setError('Please fill required fields: English Title, Sinhala Title, and Deal Type.');
       return;
     }
 
@@ -448,6 +484,11 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
     setError(null);
 
     try {
+      let resolvedLocId = locationId;
+      if (!resolvedLocId && slProvince && slDistrict) {
+        resolvedLocId = await autoRegisterLocationIfPossible();
+      }
+
       // Ensure primary image flag is properly assigned if images exist
       const finalImages = imagesList.map((img, idx) => ({
         id: img.id,
@@ -460,7 +501,7 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
         titleSi: titleSi.trim(),
         dealTypeId,
         landCategoryId: landCategoryId || null,
-        locationId,
+        locationId: resolvedLocId || null,
         locationUrl: locationUrl.trim() || null,
         priceEn: priceEn.trim() || null,
         priceSi: priceSi.trim() || null,
@@ -548,96 +589,55 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
           </button>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="flex border-b border-slate-200 bg-slate-50 px-6 gap-2 overflow-x-auto shrink-0 py-1">
-          <button
-            type="button"
-            onClick={() => setActiveTab('basic')}
-            className={`flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-bold border-b-2 transition whitespace-nowrap rounded-t-xl ${
-              activeTab === 'basic'
-                ? 'border-emerald-600 text-emerald-700 bg-white shadow-2xs'
-                : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-100/60'
-            }`}
-          >
-            <Info className="w-4 h-4" />
-            <span>1. Basic & Pricing</span>
-            <span className="text-xs text-slate-400 font-normal">(මූලික තොරතුරු)</span>
-          </button>
+        {/* Desktop Tab Navigation */}
+        <div className="hidden md:flex border-b border-slate-200 bg-slate-50 px-6 gap-2 overflow-x-auto shrink-0 py-1">
+          {FORM_STEPS.map((s) => {
+            const Icon = s.icon;
+            const isActive = activeTab === s.id;
+            return (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setActiveTab(s.id)}
+                className={`flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-bold border-b-2 transition whitespace-nowrap rounded-t-xl cursor-pointer ${
+                  isActive
+                    ? 'border-emerald-600 text-emerald-700 bg-white shadow-2xs'
+                    : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-100/60'
+                }`}
+              >
+                <Icon className="w-4 h-4 shrink-0" />
+                <span>{s.titleEn}</span>
+                <span className="text-xs text-slate-400 font-normal">({s.titleSi})</span>
+                {s.id === 'images' && imagesList.length > 0 && (
+                  <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 ml-1">
+                    {imagesList.length}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('location')}
-            className={`flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-bold border-b-2 transition whitespace-nowrap rounded-t-xl ${
-              activeTab === 'location'
-                ? 'border-emerald-600 text-emerald-700 bg-white shadow-2xs'
-                : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-100/60'
-            }`}
-          >
-            <MapPin className="w-4 h-4" />
-            <span>2. Location & sl-gnd</span>
-            <span className="text-xs text-slate-400 font-normal">(ස්ථානය)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('images')}
-            className={`flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-bold border-b-2 transition whitespace-nowrap rounded-t-xl ${
-              activeTab === 'images'
-                ? 'border-emerald-600 text-emerald-700 bg-white shadow-2xs'
-                : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-100/60'
-            }`}
-          >
-            <ImageIcon className="w-4 h-4" />
-            <span>3. Photos ({imagesList.length}/6)</span>
-            <span className="text-xs text-slate-400 font-normal">(ප්‍රධාන හා අමතර ඡායාරූප)</span>
-            {imagesList.length > 0 && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 ml-1">
-                {imagesList.length}
+        {/* Mobile Step Header (No crowded tabs, clear progress bar) */}
+        <div className="md:hidden border-b border-slate-200 bg-white px-4 py-3 shrink-0">
+          <div className="flex items-center justify-between text-xs font-bold text-slate-700 mb-1.5">
+            <span className="flex items-center gap-1.5 text-emerald-800">
+              <span className="w-5 h-5 rounded-full bg-emerald-700 text-white flex items-center justify-center text-[10px] font-bold">
+                {currentStep.stepNum}
               </span>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('area')}
-            className={`flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-bold border-b-2 transition whitespace-nowrap rounded-t-xl ${
-              activeTab === 'area'
-                ? 'border-emerald-600 text-emerald-700 bg-white shadow-2xs'
-                : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-100/60'
-            }`}
-          >
-            <Layers className="w-4 h-4" />
-            <span>4. Area & Deed</span>
-            <span className="text-xs text-slate-400 font-normal">(ප්‍රමාණය සහ ඔප්පු)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('facilities')}
-            className={`flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-bold border-b-2 transition whitespace-nowrap rounded-t-xl ${
-              activeTab === 'facilities'
-                ? 'border-emerald-600 text-emerald-700 bg-white shadow-2xs'
-                : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-100/60'
-            }`}
-          >
-            <Home className="w-4 h-4" />
-            <span>5. Facilities & Nature</span>
-            <span className="text-xs text-slate-400 font-normal">(පහසුකම්)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('crops')}
-            className={`flex items-center gap-2 py-3 px-4 text-xs sm:text-sm font-bold border-b-2 transition whitespace-nowrap rounded-t-xl ${
-              activeTab === 'crops'
-                ? 'border-emerald-600 text-emerald-700 bg-white shadow-2xs'
-                : 'border-transparent text-slate-500 hover:text-slate-900 hover:bg-slate-100/60'
-            }`}
-          >
-            <TreePine className="w-4 h-4" />
-            <span>6. Crops & Owner</span>
-            <span className="text-xs text-slate-400 font-normal">(වගාවන් සහ හිමිකරු)</span>
-          </button>
+              <span>පියවර {currentStep.stepNum} / {FORM_STEPS.length}</span>
+            </span>
+            <span className="text-emerald-900 font-bold truncate max-w-[190px]">
+              {currentStep.titleSi}
+            </span>
+          </div>
+          {/* Progress Bar */}
+          <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+            <div
+              className="bg-emerald-600 h-full rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${(currentStep.stepNum / FORM_STEPS.length) * 100}%` }}
+            />
+          </div>
         </div>
 
         {/* Form Body */}
@@ -751,6 +751,30 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
                 </div>
               </div>
 
+              {/* Quick Select Price Unit Buttons */}
+              <div className="flex flex-wrap items-center gap-1.5 p-3 bg-slate-50/80 border border-slate-200/80 rounded-2xl">
+                <span className="text-[11px] font-bold text-slate-500 mr-1">මිල වර්ගය තෝරන්න (Quick Units):</span>
+                {[
+                  { en: '/ Per Acre', si: '/ අක්කරයකට' },
+                  { en: '/ Per Perch', si: '/ පර්චසයකට' },
+                  { en: 'Total Price', si: 'මුළු මුදල' },
+                  { en: '/ Per Month', si: '/ මසකට' },
+                  { en: '(Negotiable)', si: '(සාකච්ඡා කරගත හැක)' }
+                ].map((unit) => (
+                  <button
+                    key={unit.en}
+                    type="button"
+                    onClick={() => {
+                      setPriceEn((prev) => (prev ? `${prev.trim()} ${unit.en}` : `LKR ${unit.en}`));
+                      setPriceSi((prev) => (prev ? `${prev.trim()} ${unit.si}` : `රු. ${unit.si}`));
+                    }}
+                    className="px-2.5 py-1 bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-lg text-[11px] font-medium transition cursor-pointer shadow-2xs"
+                  >
+                    + {unit.si}
+                  </button>
+                ))}
+              </div>
+
               <div className="flex items-center justify-between p-4 bg-slate-50 border border-slate-200 rounded-2xl">
                 <div>
                   <span className="text-sm font-bold text-slate-800">Listing Status Active (ප්‍රසිද්ධ කර තබන්න)</span>
@@ -774,43 +798,22 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
           ══════════════════════════════════════════════════════ */}
           {activeTab === 'location' && (
             <div className="space-y-6 animate-fadeIn">
-              {/* Primary Location Selection */}
-              <div className="p-5 bg-white border border-slate-200 rounded-3xl space-y-3">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Select Registered Master Location (ප්‍රධාන ස්ථානය තෝරන්න) <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={locationId}
-                  onChange={(e) => setLocationId(e.target.value)}
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium"
-                >
-                  <option value="">-- Select Location --</option>
-                  {locations.map((loc) => (
-                    <option key={loc.id} value={loc.id}>
-                      {loc.districtEn} ({loc.districtSi}) - {loc.provinceEn} Province
-                      {loc.divisionalSecretariatEn ? ` [DS: ${loc.divisionalSecretariatEn}]` : ''}
-                      {loc.gramaNiladhariDivisionEn ? ` [GN: ${loc.gramaNiladhariDivisionEn}]` : ''}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               {/* sl-gnd Administrative Units Picker Card */}
               <div className="p-6 bg-gradient-to-br from-emerald-50/50 to-teal-50/30 border border-emerald-200/80 rounded-3xl space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-5 h-5 text-emerald-600" />
                     <h4 className="text-sm font-bold text-emerald-950">
-                      sl-gnd Administrative Units Explorer (ශ්‍රී ලංකා පළාත්, දිස්ත්‍රික්ක සහ ප්‍රාදේශීය ලේකම් කොට්ඨාස)
+                      ඉඩම පිහිටි ස්ථානය තෝරන්න (Select Land Location)
                     </h4>
                   </div>
                   <span className="text-xs bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full font-bold">
-                    Powered by sl-gnd-dsd-districts
+                    Sri Lanka Administrative Units
                   </span>
                 </div>
 
                 <p className="text-xs text-slate-600">
-                  පහතින් නිවැරදි පළාත, දිස්ත්‍රික්කය සහ ප්‍රාදේශීය ලේකම් කොට්ඨාසය තෝරා ක්ෂණිකව ස්ථානය ලියාපදිංචි කර තෝරාගන්න:
+                  පහතින් අදාළ පළාත, දිස්ත්‍රික්කය සහ ප්‍රාදේශීය ලේකම් කොට්ඨාසය තෝරන්න:
                 </p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -829,7 +832,7 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
                         setSlDsd('');
                         setSlGnd('');
                       }}
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium cursor-pointer"
                     >
                       {SRI_LANKA_PROVINCES.map((p) => {
                         const clean = p.en.replace(' Province', '');
@@ -854,7 +857,7 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
                         setSlDsd('');
                         setSlGnd('');
                       }}
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium cursor-pointer"
                     >
                       {availableDistricts.map((d) => (
                         <option key={d.en} value={d.en}>
@@ -875,7 +878,7 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
                         setSlDsd(e.target.value);
                         setSlGnd('');
                       }}
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium cursor-pointer"
                     >
                       <option value="">-- Select DSD --</option>
                       {availableDsds.map((d) => (
@@ -895,7 +898,7 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
                       value={slGnd}
                       onChange={(e) => setSlGnd(e.target.value)}
                       disabled={availableGnds.length === 0}
-                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium disabled:opacity-50"
+                      className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium disabled:opacity-50 cursor-pointer"
                     >
                       <option value="">-- Select GND (Optional) --</option>
                       {availableGnds.map((g) => (
@@ -907,23 +910,17 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
                   </div>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={handleCreateLocationFromSlGnd}
-                    disabled={isCreatingLoc}
-                    className="flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2.5 rounded-xl font-bold text-xs shadow-xs transition cursor-pointer disabled:opacity-50"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>{isCreatingLoc ? 'Registering...' : '+ Register & Select this Location from sl-gnd'}</span>
-                  </button>
-
-                  {locCreateMsg && (
-                    <span className="text-xs font-bold text-emerald-700 flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4" />
-                      {locCreateMsg}
-                    </span>
-                  )}
+                {/* Selected Location Summary Pill */}
+                <div className="flex items-center gap-2 p-3 bg-white/95 border border-emerald-200 rounded-2xl text-xs font-semibold text-emerald-950 shadow-2xs">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>
+                    තෝරාගත් ස්ථානය (Selected):{' '}
+                    <strong className="text-emerald-900">
+                      {slProvince} පළාත &gt; {slDistrict} දිස්ත්‍රික්කය
+                      {slDsd ? ` > ${slDsd}` : ''}
+                      {slGnd ? ` > ${slGnd}` : ''}
+                    </strong>
+                  </span>
                 </div>
               </div>
 
@@ -1136,6 +1133,33 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
                     </option>
                   ))}
                 </select>
+              </div>
+
+              {/* Quick Preset Size Buttons */}
+              <div className="flex flex-wrap items-center gap-1.5 p-3 bg-slate-50/80 border border-slate-200/80 rounded-2xl">
+                <span className="text-[11px] font-bold text-slate-500 mr-1">ඉඩම් ප්‍රමාණය තෝරන්න (Quick Size):</span>
+                {[
+                  { label: 'පර්චස් 10 (10 P)', acres: '', roods: '', perches: '10' },
+                  { label: 'පර්චස් 20 (20 P)', acres: '', roods: '', perches: '20' },
+                  { label: 'පර්චස් 40 / රූඩ් 1', acres: '', roods: '1', perches: '' },
+                  { label: 'අක්කර 1 (1 Acre)', acres: '1', roods: '', perches: '' },
+                  { label: 'අක්කර 2 (2 Acres)', acres: '2', roods: '', perches: '' },
+                  { label: 'අක්කර 5 (5 Acres)', acres: '5', roods: '', perches: '' },
+                  { label: 'අක්කර 10 (10 Acres)', acres: '10', roods: '', perches: '' }
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={() => {
+                      setAcres(preset.acres);
+                      setRoods(preset.roods);
+                      setPerches(preset.perches);
+                    }}
+                    className="px-2.5 py-1 bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 hover:border-emerald-300 rounded-lg text-[11px] font-medium transition cursor-pointer shadow-2xs"
+                  >
+                    + {preset.label}
+                  </button>
+                ))}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-5 bg-slate-50 border border-slate-200 rounded-3xl">
@@ -1511,35 +1535,70 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
             </div>
           )}
 
-          {/* Footer Actions */}
-          <div className="flex items-center justify-between pt-6 border-t border-slate-200 shrink-0">
-            <span className="text-xs text-slate-400">
-              * අනිවාර්ය ක්ෂේත්‍ර පුරවා අවසන් වූ පසු සුරකින්න
-            </span>
+          {/* Footer Navigation Actions */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-5 pb-1 border-t border-slate-200 shrink-0">
+            {/* Left: Previous / Cancel */}
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+              {currentStepIndex > 0 ? (
+                <button
+                  type="button"
+                  onClick={handlePrevStep}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs sm:text-sm transition cursor-pointer shadow-2xs"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>ආපසු (Previous)</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  disabled={loading}
+                  className="px-4 py-2.5 text-xs sm:text-sm font-bold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+              )}
 
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={onClose}
-                disabled={loading}
-                className="px-5 py-2.5 text-sm font-bold text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-2xl transition"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex items-center gap-2 px-6 py-2.5 text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-2xl shadow-xs hover:shadow transition disabled:opacity-50 cursor-pointer"
-              >
-                <Save className="w-4 h-4" />
-                <span>
-                  {loading
-                    ? 'Saving...'
-                    : landToEdit
-                    ? 'Update Agri Land Listing'
-                    : 'Create Agri Land Listing'}
-                </span>
-              </button>
+              {/* On mobile, also allow Cancel if not on step 0 */}
+              {currentStepIndex > 0 && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  disabled={loading}
+                  className="sm:hidden px-3 py-2 text-xs font-semibold text-slate-400 hover:text-slate-700"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+
+            {/* Right: Next / Save Button */}
+            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+              {currentStepIndex < FORM_STEPS.length - 1 ? (
+                <button
+                  type="button"
+                  onClick={handleNextStep}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 text-xs sm:text-sm font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-xl shadow-xs hover:shadow transition cursor-pointer"
+                >
+                  <span>ඊළඟට (Next)</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 text-xs sm:text-sm font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-xs hover:shadow transition disabled:opacity-50 cursor-pointer"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>
+                    {loading
+                      ? 'Saving...'
+                      : landToEdit
+                      ? 'Update Agri Land Listing'
+                      : 'Publish Listing (සුරකින්න)'}
+                  </span>
+                </button>
+              )}
             </div>
           </div>
         </form>

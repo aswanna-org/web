@@ -646,3 +646,23 @@ a:hover .btn-circle-icon {
 .animate-arrow-nudge {
   animation: arrowNudge 1.8s ease-in-out infinite;
 }
+
+/* ── Knight Rider Scanning Border Beam Animation ── */
+@keyframes knightRiderSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-knight-rider {
+  animation: knightRiderSpin 3.8s linear infinite;
+  will-change: transform;
+}
+
+.animate-knight-rider-fast {
+  animation: knightRiderSpin 2.8s linear infinite;
+  will-change: transform;
+}

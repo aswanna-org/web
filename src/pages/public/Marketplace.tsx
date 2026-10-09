@@ -13,7 +13,6 @@ import {
   Tag,
   Layers,
   ChevronRight,
-  Plus,
   CheckCircle2,
   Clock
 } from 'lucide-react';
@@ -364,41 +363,19 @@ export default function Marketplace() {
       {/* ── VIEW 1: CATEGORIES OVERVIEW (When no category is selected) ── */}
       {!categorySlug && (
         <>
-          {/* Sleek, Modern, Search & Action Bar */}
-          <section className="w-full py-4 sm:py-6 bg-white border-b border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.03)] relative z-20">
-            <div className="container mx-auto px-4 lg:px-12 flex flex-col sm:flex-row items-center justify-between gap-3">
-              {/* Post Item Action Button */}
+          {/* Action Bar (Right-Aligned Button matching site style, No Search Bar) */}
+          <section className="w-full py-4 sm:py-5 bg-white border-b border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.02)] relative z-20">
+            <div className="container mx-auto px-4 lg:px-12 flex justify-end">
               <button
                 type="button"
                 onClick={handleOpenPostModal}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#006837] hover:bg-[#00532c] text-white font-bold text-xs sm:text-sm shadow-md hover:shadow-lg transition cursor-pointer shrink-0"
+                className="inline-flex items-center gap-3.5 pl-6 sm:pl-7 pr-2.5 sm:pr-3 py-2 sm:py-2.5 rounded-full bg-white/80 hover:bg-white backdrop-blur-xl border border-gray-200/80 hover:border-emerald-300 text-emerald-950 font-bold text-xs sm:text-sm shadow-[0_4px_20px_rgba(0,0,0,0.05),inset_0_1.5px_2px_rgba(255,255,255,1)] hover:shadow-[0_8px_25px_rgba(0,0,0,0.1)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
               >
-                <Plus size={16} />
                 <span>{isSi ? 'දැන්වීමක් පළ කරන්න' : 'Post an Ad'}</span>
-              </button>
-
-              {/* Search Bar */}
-              <div className="relative w-full sm:w-80 md:w-96 group">
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-emerald-700">
-                  <Search className="w-4 h-4" />
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white border border-gray-100 shadow-xs flex items-center justify-center text-emerald-900 group-hover:rotate-45 transition-transform duration-300 shrink-0">
+                  <ArrowUpRight className="w-4 h-4 stroke-[2.5]" />
                 </div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={isSi ? 'ප්‍රවර්ග සොයන්න...' : 'Search categories...'}
-                  className="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-full border border-gray-200/90 bg-gray-50/70 hover:bg-white focus:bg-white hover:border-emerald-500/60 focus:border-[#006837] focus:ring-3 focus:ring-[#006837]/15 outline-none transition-all duration-200 text-xs sm:text-sm text-gray-800 shadow-xs"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-200/80 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all cursor-pointer hover:scale-105"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
+              </button>
             </div>
           </section>
 
@@ -488,10 +465,12 @@ export default function Marketplace() {
               <button
                 type="button"
                 onClick={handleOpenPostModal}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#006837] hover:bg-[#00532c] text-white font-bold text-xs sm:text-sm shadow-sm transition cursor-pointer"
+                className="inline-flex items-center gap-3 pl-5 sm:pl-6 pr-2 sm:pr-2.5 py-1.5 sm:py-2 rounded-full bg-white/80 hover:bg-white backdrop-blur-xl border border-gray-200/80 hover:border-emerald-300 text-emerald-950 font-bold text-xs sm:text-sm shadow-xs hover:shadow-md hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
               >
-                <Plus size={15} />
                 <span>{isSi ? 'දැන්වීමක් පළ කරන්න' : 'Post in this Category'}</span>
+                <div className="w-7 h-7 rounded-full bg-white border border-gray-100 shadow-xs flex items-center justify-center text-emerald-900 group-hover:rotate-45 transition-transform duration-300 shrink-0">
+                  <ArrowUpRight className="w-3.5 h-3.5 stroke-[2.5]" />
+                </div>
               </button>
             </div>
 
