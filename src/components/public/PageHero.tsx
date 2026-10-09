@@ -2,9 +2,11 @@ import React from 'react';
 
 export interface PageHeroProps {
   title: string;
+  titleClassName?: string;
   subtitle?: string; // Small uppercase text above title
+  subtitleClassName?: string;
   description?: string; // Larger text below title
-  image: string;
+  image?: string;
   gradientColor?: string; // e.g., 'var(--color-primary)' or '#0f4d30'
   icon?: React.ElementType | React.ReactNode;
   iconUrl?: string | null;
@@ -14,11 +16,15 @@ export interface PageHeroProps {
   children?: React.ReactNode;
 }
 
+const DEFAULT_HERO_IMAGE = 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&q=80';
+
 export default function PageHero({ 
   title, 
+  titleClassName,
   subtitle, 
+  subtitleClassName,
   description, 
-  image, 
+  image = DEFAULT_HERO_IMAGE, 
   gradientColor = 'var(--color-primary)',
   icon,
   iconUrl,
@@ -27,6 +33,10 @@ export default function PageHero({
   showWave = true,
   children
 }: PageHeroProps) {
+  const activeImage = image || DEFAULT_HERO_IMAGE;
+  const resolvedImageUrl = activeImage.includes('unsplash.com') && !activeImage.includes('auto=format')
+    ? `${activeImage}&auto=format&fit=crop&q=80`
+    : activeImage;
   const hasBadge = Boolean(iconUrl || icon);
   const resolvedBadgeBg = badgeBg || gradientColor || 'var(--color-primary)';
   const isTailwindClass = typeof resolvedBadgeBg === 'string' && (resolvedBadgeBg.startsWith('bg-') || resolvedBadgeBg.startsWith('from-'));
@@ -56,7 +66,7 @@ export default function PageHero({
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0 overflow-hidden bg-emerald-950">
         <img
-          src={image.includes('unsplash.com') && !image.includes('auto=format') ? `${image}&auto=format&fit=crop&q=80` : image}
+          src={resolvedImageUrl}
           alt={title}
           loading="eager"
           decoding="async"
@@ -106,11 +116,11 @@ export default function PageHero({
       <div className="container mx-auto px-4 lg:px-12 relative z-10 flex flex-col justify-center h-full pt-10 sm:pt-16 md:pt-20 pb-6 sm:pb-12 lg:pb-16">
         <div className="max-w-4xl">
           {subtitle && (
-            <p className="text-white/80 text-[10px] sm:text-sm font-medium uppercase tracking-[0.2em] mb-1 sm:mb-2">
+            <p className={subtitleClassName || "text-white/80 text-[10px] sm:text-sm font-medium uppercase tracking-[0.2em] mb-1 sm:mb-2"}>
               {subtitle}
             </p>
           )}
-          <h1 className="text-white text-lg sm:text-2xl md:text-4xl lg:text-5xl font-bold uppercase mb-1.5 sm:mb-3 drop-shadow-md">
+          <h1 className={titleClassName || "text-white text-lg sm:text-2xl md:text-4xl lg:text-5xl font-bold uppercase mb-1.5 sm:mb-3 drop-shadow-md"}>
             {title}
           </h1>
           {description && (

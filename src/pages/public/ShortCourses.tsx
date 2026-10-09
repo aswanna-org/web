@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Clock, DollarSign, Search, X, Sparkles,
-  ArrowLeft, BookOpen, MapPin, Building2, UserCheck, Layers
+  ArrowLeft, MapPin, Calendar, RotateCcw
 } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import Card from '../../components/ui/Card';
@@ -50,6 +50,7 @@ interface ShortCourseListItem {
   duration?: string | null;
   fee?: string | null;
   district?: string | null;
+  schedule?: string | null;
   imageUrl?: string | null;
   closingDate?: string | null;
   expiryDate?: string | null;
@@ -73,6 +74,38 @@ export const formatFee = (fee?: string | null, isSinhala = false): string => {
 export const stripHtml = (html?: string | null): string => {
   if (!html) return '';
   return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim();
+};
+
+export const getDistrictLabel = (districtName?: string | null, isSinhala = false): string => {
+  if (!districtName || !districtName.trim()) return '';
+  try {
+    const dList = getDistricts();
+    const found = dList.find(
+      (d) =>
+        d.nameEn.toLowerCase() === districtName.trim().toLowerCase() ||
+        d.nameSi === districtName.trim()
+    );
+    if (found) {
+      return isSinhala ? found.nameSi : found.nameEn;
+    }
+  } catch {}
+  return districtName.trim();
+};
+
+export const formatSchedule = (schedule?: string | null): string => {
+  if (!schedule || !schedule.trim()) return '';
+  const trimmed = schedule.trim();
+  if (/^\d{4}-\d{2}-\d{2}(T[\d:.]*Z?)?$/.test(trimmed)) {
+    const d = new Date(trimmed);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleDateString('en-GB', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    }
+  }
+  return trimmed;
 };
 
 export default function ShortCourses() {
@@ -287,27 +320,6 @@ export default function ShortCourses() {
     selectedTrainer !== 'all' ||
     Boolean(searchQuery.trim());
 
-  // Finding active entities for filter chips
-  const selectedSubjectObj = useMemo(() => {
-    if (selectedSubject === 'all') return null;
-    return subjects.find((s) => s.slug === selectedSubject || s.id === selectedSubject);
-  }, [subjects, selectedSubject]);
-
-  const selectedCenterObj = useMemo(() => {
-    if (selectedCenter === 'all') return null;
-    return centers.find((c) => c.slug === selectedCenter || c.id === selectedCenter);
-  }, [centers, selectedCenter]);
-
-  const selectedTrainerObj = useMemo(() => {
-    if (selectedTrainer === 'all') return null;
-    return trainers.find((t) => t.slug === selectedTrainer || t.id === selectedTrainer);
-  }, [trainers, selectedTrainer]);
-
-  const selectedDistrictObj = useMemo(() => {
-    if (selectedDistrict === 'all') return null;
-    return districtOptions.find((d) => d.value === selectedDistrict);
-  }, [districtOptions, selectedDistrict]);
-
   return (
     <div className="w-full min-h-screen bg-gray-50/50 pb-16">
       <SEO
@@ -460,106 +472,6 @@ export default function ShortCourses() {
               />
             </div>
           </div>
-
-          {/* Active Filter Badges */}
-          {hasActiveFilters && (
-            <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
-              <span className="text-[11px] font-semibold text-gray-400">
-                {isSinhala ? 'තෝරාගත් පෙරහන්:' : 'Active filters:'}
-              </span>
-
-              {/* Subject Chip */}
-              {selectedSubjectObj && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
-                  <Layers size={12} className="text-emerald-700 shrink-0" />
-                  <span>
-                    {isSinhala ? 'විෂය:' : 'Subject:'} {isSinhala ? selectedSubjectObj.nameSi : selectedSubjectObj.nameEn}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedSubject('all')}
-                    className="text-emerald-700 hover:text-emerald-950 ml-0.5 cursor-pointer"
-                  >
-                    <X size={12} />
-                  </button>
-                </span>
-              )}
-
-              {/* District Chip */}
-              {selectedDistrictObj && selectedDistrict !== 'all' && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
-                  <MapPin size={12} className="text-emerald-700 shrink-0" />
-                  <span>
-                    {isSinhala ? 'දිස්ත්‍රික්කය:' : 'District:'} {selectedDistrictObj.label}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedDistrict('all')}
-                    className="text-emerald-700 hover:text-emerald-950 ml-0.5 cursor-pointer"
-                  >
-                    <X size={12} />
-                  </button>
-                </span>
-              )}
-
-              {/* Center Chip */}
-              {selectedCenterObj && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
-                  <Building2 size={12} className="text-emerald-700 shrink-0" />
-                  <span>
-                    {isSinhala ? 'මධ්‍යස්ථානය:' : 'Center:'} {isSinhala ? selectedCenterObj.nameSi : selectedCenterObj.nameEn}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedCenter('all')}
-                    className="text-emerald-700 hover:text-emerald-950 ml-0.5 cursor-pointer"
-                  >
-                    <X size={12} />
-                  </button>
-                </span>
-              )}
-
-              {/* Trainer Chip */}
-              {selectedTrainerObj && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shadow-2xs">
-                  <UserCheck size={12} className="text-emerald-700 shrink-0" />
-                  <span>
-                    {isSinhala ? 'පුහුණුකරු:' : 'Trainer:'} {isSinhala ? selectedTrainerObj.nameSi : selectedTrainerObj.nameEn}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTrainer('all')}
-                    className="text-emerald-700 hover:text-emerald-950 ml-0.5 cursor-pointer"
-                  >
-                    <X size={12} />
-                  </button>
-                </span>
-              )}
-
-              {/* Search Query Chip */}
-              {debouncedSearch.trim() && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-semibold bg-gray-100 text-gray-800 border border-gray-200 shadow-2xs">
-                  <Search size={12} className="text-gray-600 shrink-0" />
-                  <span>"{debouncedSearch.trim()}"</span>
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="text-gray-600 hover:text-gray-950 ml-0.5 cursor-pointer"
-                  >
-                    <X size={12} />
-                  </button>
-                </span>
-              )}
-
-              <button
-                type="button"
-                onClick={handleClearFilters}
-                className="text-[11px] font-bold text-red-600 hover:text-red-700 underline underline-offset-2 ml-1 cursor-pointer"
-              >
-                {isSinhala ? 'සියල්ල ඉවත් කරන්න' : 'Clear all'}
-              </button>
-            </div>
-          )}
         </div>
 
         {/* Content Section */}
@@ -574,23 +486,30 @@ export default function ShortCourses() {
             />
           </div>
         ) : courses.length === 0 ? (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center max-w-2xl mx-auto">
-            <BookOpen className="mx-auto text-gray-300 mb-4" size={48} />
-            <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">
-              {isSinhala ? 'පාඨමාලා හමු නොවීය' : 'No courses found'}
-            </h3>
-            <p className="text-gray-500 mb-6 text-xs sm:text-sm leading-relaxed">
-              {isSinhala
-                ? 'ඔබ සෙවූ නිර්ණායකවලට ගැළපෙන කෙටිකාලීන පාඨමාලා හෝ වැඩමුළු මේ වන විට නොමැත. පෙරහන් ඉවත් කර නැවත උත්සාහ කරන්න.'
-                : 'No short courses or practical workshops match your selected filters. Try clearing filters or using another search keyword.'}
-            </p>
+          <div className="py-12 sm:py-16 text-center max-w-lg mx-auto space-y-4">
+            {/* Signature animated AgroLoader */}
+            <AgroLoader message="" className="scale-90 sm:scale-100" />
+            <div className="space-y-1.5 pt-1">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                {isSinhala ? 'පාඨමාලා හමු නොවීය' : 'No courses found'}
+              </h3>
+              <p className="text-gray-500 text-xs sm:text-sm leading-relaxed max-w-md mx-auto">
+                {isSinhala
+                  ? 'ඔබ සෙවූ නිර්ණායකවලට ගැළපෙන කෙටිකාලීන පාඨමාලා හෝ වැඩමුළු මේ මොහොතේ නොමැත. පෙරහන් ඉවත් කර හෝ වෙනත් සෙවුම් වචනයක් යොදා නැවත උත්සාහ කරන්න.'
+                  : 'No short courses or practical workshops match your selected filters. Try clearing filters or using another keyword.'}
+              </p>
+            </div>
             {hasActiveFilters && (
-              <button
-                onClick={handleClearFilters}
-                className="px-6 py-2.5 bg-[#006837] hover:bg-[#00522c] text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm transition-all cursor-pointer"
-              >
-                {isSinhala ? 'සියලු පෙරහන් ඉවත් කරන්න' : 'Clear All Filters'}
-              </button>
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleClearFilters}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-full text-xs sm:text-sm font-bold shadow-sm hover:shadow transition-all cursor-pointer"
+                >
+                  <RotateCcw size={14} />
+                  <span>{isSinhala ? 'සියලු පෙරහන් ඉවත් කරන්න' : 'Clear All Filters'}</span>
+                </button>
+              </div>
             )}
           </div>
         ) : (
@@ -605,13 +524,16 @@ export default function ShortCourses() {
                 const centerName = course.shortCourseCenter
                   ? (isSinhala ? course.shortCourseCenter.nameSi : course.shortCourseCenter.nameEn)
                   : '';
+                const rawDistrict = course.district || course.shortCourseCenter?.district || '';
+                const districtName = getDistrictLabel(rawDistrict, isSinhala);
                 const subtitle =
                   centerName ||
-                  (course.district
-                    ? `${course.district} ${isSinhala ? 'දිස්ත්‍රික්කය' : 'District'}`
+                  (districtName
+                    ? (isSinhala ? `${districtName} දිස්ත්‍රික්කය` : `${districtName} District`)
                     : '');
                 const feeText = formatFee(course.fee, isSinhala);
                 const durationText = course.duration || '';
+                const scheduleText = formatSchedule(course.schedule);
 
                 // Status Badge logic
                 let topRightBadge = null;
@@ -645,7 +567,8 @@ export default function ShortCourses() {
                       meta={[
                         { icon: DollarSign, text: feeText },
                         ...(durationText ? [{ icon: Clock, text: durationText }] : []),
-                        ...(course.district && !centerName ? [{ icon: MapPin, text: course.district }] : [])
+                        ...(districtName ? [{ icon: MapPin, text: districtName }] : []),
+                        ...(scheduleText ? [{ icon: Calendar, text: scheduleText }] : []),
                       ]}
                       primaryAction={{
                         text: isSinhala ? 'විස්තර බලන්න' : 'View Details',

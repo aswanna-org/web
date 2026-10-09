@@ -21,7 +21,7 @@ interface Job {
   sinhalaDescription?: string;
   location?: string;
   sinhalaLocation?: string;
-  jobCategory?: { id: string; name: string; nameSi?: string };
+  jobCategory?: { id: string; slug?: string; name: string; nameSi?: string };
   institution?: { id: string; name: string; nameSi?: string; ministry?: { id: string; name: string; nameSi?: string } };
   serviceCategory?: string;
   serviceCategorySi?: string;
@@ -91,11 +91,27 @@ interface Job {
   createdAt: string;
 }
 
+// Helper to resolve absolute or relative image URLs safely
+const formatImageUrl = (url?: string | null): string | null => {
+  if (!url || typeof url !== 'string') return null;
+  const clean = url.trim();
+  if (!clean || clean === 'null' || clean === 'undefined' || clean.includes('/uploads/undefined')) {
+    return null;
+  }
+  if (clean.startsWith('http://') || clean.startsWith('https://')) {
+    return clean;
+  }
+  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const serverBase = apiBase.replace(/\/api\/?$/, '');
+  const path = clean.startsWith('/') ? clean : `/${clean}`;
+  return `${serverBase}${path}`;
+};
+
 export default function JobDetail() {
-  const { id, slug } = useParams<{ id?: string; slug?: string }>();
+  const { id, slug, categorySlug } = useParams<{ id?: string; slug?: string; categorySlug?: string }>();
   const jobIdentifier = slug || id;
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
   const isSi = i18n.language === 'si';
 
   const [job, setJob] = useState<Job | null>(null);
@@ -128,8 +144,11 @@ export default function JobDetail() {
   }, [jobIdentifier, API_BASE_URL]);
 
   const handleShare = () => {
+    const targetCat = job?.jobCategory?.slug || categorySlug;
     const jobUrl = job?.slug
-      ? `${window.location.origin}/careers/${job.slug}`
+      ? (targetCat
+          ? `${window.location.origin}/careers/jobs/${targetCat}/${job.slug}`
+          : `${window.location.origin}/careers/jobs/${job.slug}`)
       : window.location.href;
 
     if (navigator.share) {
@@ -141,6 +160,17 @@ export default function JobDetail() {
       navigator.clipboard.writeText(jobUrl);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2500);
+    }
+  };
+
+  const handleBack = () => {
+    const targetCategory = job?.jobCategory?.slug || categorySlug;
+    if (targetCategory) {
+      navigate(`/careers/category/${targetCategory}`);
+    } else if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/careers');
     }
   };
 
@@ -175,9 +205,15 @@ export default function JobDetail() {
     );
   }
 
-  const displayTitle = isSi && job.designationSi ? job.designationSi : (job.designation || job.title);
-  const secondaryTitle = isSi ? job.designation : job.designationSi;
-  const displayCategory = isSi && job.jobCategory?.nameSi ? job.jobCategory.nameSi : (job.jobCategory?.name || 'CAREERS');
+  const displayTitle = isSi
+    ? (job.designationSi || job.designation || job.title || '')
+    : (job.designation || job.title || job.designationSi || '');
+  const secondaryTitle = isSi
+    ? (job.designation && job.designation !== displayTitle ? job.designation : undefined)
+    : (job.designationSi && job.designationSi !== displayTitle ? job.designationSi : undefined);
+  const displayCategory = isSi && job.jobCategory?.nameSi
+    ? job.jobCategory.nameSi
+    : (job.jobCategory?.name || (isSi ? 'රැකියා අවස්ථා' : 'Careers'));
   const displayNature = isSi && job.jobNatureSi ? job.jobNatureSi : job.jobNature;
   const displayServiceCategory = isSi && job.serviceCategorySi ? job.serviceCategorySi : job.serviceCategory;
   const displayRecruitmentType = isSi && job.recruitmentTypeSi ? job.recruitmentTypeSi : job.recruitmentType;
@@ -205,7 +241,7 @@ export default function JobDetail() {
       <SEO 
         title={`${displayTitle} | Aswanna Careers`}
         description={job.description ? job.description.slice(0, 160) : `Agricultural career opportunity: ${displayTitle}`}
-        canonical={`/careers/${job.slug || job.id}`}
+        canonical={job.jobCategory?.slug ? `/careers/jobs/${job.jobCategory.slug}/${job.slug || job.id}` : `/careers/jobs/${job.slug || job.id}`}
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "JobPosting",
@@ -222,9 +258,10 @@ export default function JobDetail() {
 
       {/* Hero Header */}
       <PageHero 
-        title={t('careers.title', 'CAREERS')} 
+        title={displayTitle} 
+        titleClassName="text-white text-base sm:text-xl md:text-2xl lg:text-3xl font-bold leading-snug drop-shadow-md mb-1 sm:mb-2 max-w-3xl line-clamp-2"
         description=""
-        image={job.bannerImage || "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"}
+        image={formatImageUrl(job.bannerImage) || "https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"}
         gradientColor="#006837"
         icon={Briefcase}
         badgeBg="bg-[#006837]"
@@ -236,11 +273,15 @@ export default function JobDetail() {
         {/* Breadcrumb & Navigation */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <button
-            onClick={() => navigate('/careers')}
+            onClick={handleBack}
             className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-800 hover:text-emerald-950 bg-white hover:bg-emerald-50 border border-gray-200 px-4 py-2 rounded-full transition-all cursor-pointer shadow-xs w-fit"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>{isSi ? 'සියලු රැකියා වෙත' : 'Back to Careers'}</span>
+            <span>
+              {job?.jobCategory
+                ? (isSi ? `ආපසු ${displayCategory} වෙත` : `Back to ${displayCategory}`)
+                : (isSi ? 'සියලු රැකියා වෙත' : 'Back to Careers')}
+            </span>
           </button>
 
           <div className="flex items-center gap-2">
@@ -253,23 +294,6 @@ export default function JobDetail() {
             </button>
           </div>
         </div>
-
-        {/* Job Banner Showcase (When uploaded for this specific job) */}
-        {job.bannerImage && (
-          <div className="w-full h-56 sm:h-72 md:h-96 rounded-3xl overflow-hidden mb-8 border border-gray-100 shadow-[0_6px_24px_rgba(0,0,0,0.06)] relative group bg-gray-100">
-            <img
-              src={job.bannerImage}
-              alt={displayTitle}
-              className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
-            <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between text-white pointer-events-none">
-              <span className="text-xs sm:text-sm font-bold bg-[#006837]/90 backdrop-blur-md px-3.5 py-1.5 rounded-full shadow-sm">
-                {displayCategory}
-              </span>
-            </div>
-          </div>
-        )}
 
         {/* Job Header Card */}
         <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_6px_24px_rgba(0,0,0,0.05)] p-6 sm:p-10 mb-8 relative overflow-hidden">

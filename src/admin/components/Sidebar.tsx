@@ -19,7 +19,8 @@ import {
   Users,
   Mail,
   X,
-  BookMarked
+  BookMarked,
+  Store
 } from 'lucide-react';
 
 interface NavGroup {
@@ -56,6 +57,7 @@ const navGroups: NavGroup[] = [
     items: [
       { name: 'Product Management', path: '/admin/products', icon: Package },
       { name: 'Order Management', path: '/admin/orders', icon: ShoppingCart },
+      { name: 'Marketplace Management', path: '/admin/marketplace', icon: Store },
       { name: 'Course Management', path: '/admin/courses', icon: GraduationCap },
       { name: 'Short Course Management', path: '/admin/short-courses', icon: BookOpen }
     ]

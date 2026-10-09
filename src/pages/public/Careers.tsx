@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   Search, X, Briefcase, CheckCircle2, Building2,
@@ -24,7 +24,7 @@ interface Job {
   sinhalaDescription?: string;
   location?: string;
   sinhalaLocation?: string;
-  jobCategory?: { id: string; name: string; nameSi?: string };
+  jobCategory?: { id: string; slug?: string; name: string; nameSi?: string };
   institution?: { id: string; name: string; nameSi?: string; ministry?: { id: string; name: string; nameSi?: string } };
   serviceCategory?: string;
   serviceCategorySi?: string;
@@ -160,8 +160,26 @@ const AswannaLeafBadge = () => (
   </div>
 );
 
+// Helper to resolve absolute or relative image URLs safely
+const formatImageUrl = (url?: string | null): string | null => {
+  if (!url || typeof url !== 'string') return null;
+  const clean = url.trim();
+  if (!clean || clean === 'null' || clean === 'undefined' || clean.includes('/uploads/undefined')) {
+    return null;
+  }
+  if (clean.startsWith('http://') || clean.startsWith('https://')) {
+    return clean;
+  }
+  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const serverBase = apiBase.replace(/\/api\/?$/, '');
+  const path = clean.startsWith('/') ? clean : `/${clean}`;
+  return `${serverBase}${path}`;
+};
+
 export default function Careers() {
   const navigate = useNavigate();
+  const { categorySlug, slug } = useParams<{ categorySlug?: string; slug?: string }>();
+  const currentCategorySlug = categorySlug || slug;
   const { t, i18n } = useTranslation();
   const isSi = i18n.language === 'si';
 
@@ -283,7 +301,7 @@ export default function Careers() {
         id: cat.id,
         slug: cat.slug,
         title,
-        image: cat.image || fallbackImage,
+        image: formatImageUrl(cat.image) || fallbackImage,
         icon,
         filterId: isDailyWage ? 'DAILY_WAGE' : cat.id,
         jobCount: cat._count?.jobs ?? 0,
@@ -292,12 +310,48 @@ export default function Careers() {
     });
   }, [categories, isSi]);
 
+  // Match category from route parameter
+  const matchedCategory = useMemo(() => {
+    if (!currentCategorySlug) return null;
+    const target = currentCategorySlug.toLowerCase().trim();
+    return categoryCards.find(c => {
+      const cardSlug = (c.slug || '').toLowerCase().trim();
+      const cardId = (c.id || '').toLowerCase().trim();
+      if (cardSlug === target || cardId === target) return true;
+      if (target.includes('daily') && c.isDailyWage) return true;
+      if (target.includes('gov') && cardSlug.includes('gov')) return true;
+      if (target.includes('private') && cardSlug.includes('private')) return true;
+      if (target.includes('foreign') && cardSlug.includes('foreign')) return true;
+      return false;
+    });
+  }, [currentCategorySlug, categoryCards]);
+
+  // Synchronize route param with active category state
+  useEffect(() => {
+    if (matchedCategory) {
+      setActiveCategoryView(matchedCategory.id);
+      setSelectedCategoryId(matchedCategory.filterId);
+      setCurrentPage(1);
+    } else if (!currentCategorySlug && !searchQuery.trim()) {
+      setActiveCategoryView(null);
+      setSelectedCategoryId('ALL');
+      setCurrentPage(1);
+    }
+  }, [matchedCategory, currentCategorySlug, searchQuery]);
+
   // Handle clicking a category card to go inside
   const handleSelectCategoryCard = (cat: CategoryCardItem) => {
-    setActiveCategoryView(cat.id);
-    setSelectedCategoryId(cat.filterId);
-    setCurrentPage(1);
+    const slugToUse = cat.slug || cat.id;
+    navigate(`/careers/category/${slugToUse}`);
     window.scrollTo({ top: 350, behavior: 'smooth' });
+  };
+
+  const handleBackToCategories = () => {
+    setSearchQuery('');
+    setActiveCategoryView(null);
+    setSelectedCategoryId('ALL');
+    navigate('/careers');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Fetch jobs or workers based on category
@@ -666,8 +720,10 @@ export default function Careers() {
   };
 
   const getJobCardImage = (job: Job) => {
-    if (job.bannerImage && typeof job.bannerImage === 'string' && job.bannerImage.trim() !== '') {
-      return job.bannerImage;
+    const rawImage = job.bannerImage || (job as any).bannerImageUrl || (job as any).imageUrl || (job as any).image;
+    const formatted = formatImageUrl(rawImage);
+    if (formatted) {
+      return formatted;
     }
     if (job.country || job.agency) {
       return 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800&q=80';
@@ -687,11 +743,106 @@ export default function Careers() {
     return <Landmark className="w-4 h-4 sm:w-5 sm:h-5" />;
   };
 
+  const getJobDetailUrl = (job: Job) => {
+    const catSlug = job.jobCategory?.slug || currentCategorySlug || 'all';
+    const jobSlug = job.slug || job.id;
+    return `/careers/jobs/${catSlug}/${jobSlug}`;
+  };
+
+  const renderJobCard = (job: Job, idx: number) => {
+    const displayTitle = isSi && job.designationSi ? job.designationSi : (job.designation || job.title);
+    const companyOrInstitution = job.companyNameSi || job.companyName
+      ? (isSi && job.companyNameSi ? job.companyNameSi : (job.companyName || job.companyNameSi))
+      : (job.countrySi || job.country)
+      ? `${isSi && job.countrySi ? job.countrySi : job.country} ${job.agency ? `• ${job.agency}` : ''}`
+      : (isSi && job.institution?.nameSi ? job.institution.nameSi : (job.institution?.name || job.location || 'Sri Lanka'));
+    const cardImage = getJobCardImage(job);
+    const jobUrl = getJobDetailUrl(job);
+
+    return (
+      <div
+        key={job.id}
+        onClick={() => navigate(jobUrl)}
+        style={{ animationDelay: `${idx * 60}ms` }}
+        className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 shadow-[0_4px_16px_rgba(0,0,0,0.05)] sm:shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_16px_36px_rgba(0,0,0,0.12)] overflow-hidden transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1.5 cursor-pointer"
+      >
+        {/* Top Media Wrapper */}
+        <div className="relative">
+          <div className="h-32 sm:h-44 lg:h-48 w-full relative overflow-hidden bg-white">
+            <img
+              src={cardImage}
+              alt={displayTitle}
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80';
+              }}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+          </div>
+
+          {/* Wavy Divider */}
+          <CardWaveDivider />
+
+          {/* Round Icon Badge */}
+          <div className="absolute -bottom-4 sm:-bottom-5 left-3 sm:left-6 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#006837] text-white flex items-center justify-center border-[2.5px] sm:border-[3.5px] border-white shadow-md sm:shadow-lg group-hover:scale-110 transition-transform">
+            {getJobCategoryIcon(job)}
+          </div>
+        </div>
+
+        {/* Card Content Area: Job Title and Institution */}
+        <div className="pt-6 sm:pt-8 px-3 sm:px-6 pb-3.5 sm:pb-6 flex-1 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-1 sm:gap-2 mb-1.5 sm:mb-2 flex-wrap">
+              {(job.recruitmentType || job.recruitmentTypeSi) && (
+                <span className="text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  {isSi && job.recruitmentTypeSi ? job.recruitmentTypeSi : (job.recruitmentType || job.recruitmentTypeSi)}
+                </span>
+              )}
+              {job.jobNature && (
+                <span className="text-[10px] sm:text-[11px] font-medium text-gray-600 bg-gray-100 px-1.5 sm:px-2 py-0.5 rounded-full">
+                  {isSi && job.jobNatureSi ? job.jobNatureSi : job.jobNature}
+                </span>
+              )}
+            </div>
+            <h3 className="text-xs sm:text-xl font-bold text-[#143d4d] leading-snug group-hover:text-[#006837] transition-colors mb-1 min-h-[2rem] sm:min-h-[3rem] line-clamp-2">
+              {displayTitle}
+            </h3>
+            <p className="text-[10px] sm:text-sm text-gray-500 font-medium line-clamp-1 mb-2.5 sm:mb-4">
+              {companyOrInstitution}
+            </p>
+          </div>
+
+          {/* Card Footer: Button & Leaf Watermark */}
+          <div className="flex items-center justify-between pt-2.5 sm:pt-3 border-t border-gray-50 mt-auto">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(jobUrl);
+              }}
+              className="bg-[#006837] hover:bg-[#00532c] text-white text-[10px] sm:text-sm font-semibold px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full flex items-center gap-1 transition-all shadow-xs group-hover:shadow cursor-pointer"
+            >
+              <span>{isSi ? 'විස්තර බලන්න' : 'View Details'}</span>
+              <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            </button>
+
+            <div className="hidden xs:block sm:block">
+              <AswannaLeafBadge />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const activeCategoryTitle = useMemo(() => {
-    if (!activeCategoryView || activeCategoryView === 'ALL') return isSi ? 'සියලුම රැකියා අවස්ථා' : 'All Job Openings';
-    const found = categoryCards.find(c => c.id === activeCategoryView);
+    if ((!activeCategoryView && !currentCategorySlug) || activeCategoryView === 'ALL') {
+      return isSi ? 'සියලුම රැකියා අවස්ථා' : 'All Job Openings';
+    }
+    const found = matchedCategory || categoryCards.find(c => c.id === activeCategoryView || c.slug === activeCategoryView);
     return found ? found.title : (isSi ? 'රැකියා අවස්ථා' : 'Careers');
-  }, [activeCategoryView, categoryCards, isSi]);
+  }, [activeCategoryView, currentCategorySlug, matchedCategory, categoryCards, isSi]);
 
   return (
     <div className="w-full min-h-screen bg-[#fafbfc] font-roboto">
@@ -717,13 +868,9 @@ export default function Careers() {
 
         {/* Top Back Button & Breadcrumbs Navigation */}
         <div className="flex items-center justify-between gap-3 mb-6 pb-3 border-b border-gray-100">
-          {activeCategoryView !== null || searchQuery ? (
+          {activeCategoryView !== null || currentCategorySlug || searchQuery ? (
             <button
-              onClick={() => {
-                setActiveCategoryView(null);
-                setSelectedCategoryId('ALL');
-                setSearchQuery('');
-              }}
+              onClick={handleBackToCategories}
               className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-800 hover:text-emerald-950 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all cursor-pointer shadow-xs"
             >
               <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -742,15 +889,11 @@ export default function Careers() {
           <div className="text-xs text-gray-400 font-medium">
             <span
               className="cursor-pointer hover:underline"
-              onClick={() => {
-                setActiveCategoryView(null);
-                setSelectedCategoryId('ALL');
-                setSearchQuery('');
-              }}
+              onClick={handleBackToCategories}
             >
               {isSi ? 'රැකියා අවස්ථා' : 'Careers'}
             </span>
-            {activeCategoryView && (
+            {(activeCategoryView || currentCategorySlug) && (
               <>
                 <span className="mx-1.5">/</span>
                 <span className="text-emerald-800 font-bold">{activeCategoryTitle}</span>
@@ -1119,90 +1262,7 @@ export default function Careers() {
                 ) : jobsData.length > 0 ? (
                   <div>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
-                      {jobsData.map((job, idx) => {
-                        const displayTitle = isSi && job.designationSi ? job.designationSi : (job.designation || job.title);
-                        const companyOrInstitution = job.companyNameSi || job.companyName
-                          ? (isSi && job.companyNameSi ? job.companyNameSi : (job.companyName || job.companyNameSi))
-                          : (job.countrySi || job.country)
-                          ? `${isSi && job.countrySi ? job.countrySi : job.country} ${job.agency ? `• ${job.agency}` : ''}`
-                          : (isSi && job.institution?.nameSi ? job.institution.nameSi : (job.institution?.name || job.location || 'Sri Lanka'));
-
-                        return (
-                          <div
-                            key={job.id}
-                            onClick={() => navigate(`/careers/${job.slug || job.id}`)}
-                            style={{ animationDelay: `${idx * 60}ms` }}
-                            className="bg-white rounded-2xl sm:rounded-3xl border border-gray-100 shadow-[0_4px_16px_rgba(0,0,0,0.05)] sm:shadow-[0_4px_20px_rgba(0,0,0,0.06)] hover:shadow-[0_16px_36px_rgba(0,0,0,0.12)] overflow-hidden transition-all duration-300 flex flex-col justify-between group hover:-translate-y-1.5 cursor-pointer"
-                          >
-                            {/* Top Media Wrapper */}
-                            <div className="relative">
-                              <div className="h-32 sm:h-44 lg:h-48 w-full relative overflow-hidden bg-white">
-                                <img
-                                  src={getJobCardImage(job)}
-                                  alt={displayTitle}
-                                  onError={(e) => {
-                                    (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80';
-                                  }}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                                  loading="lazy"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-                              </div>
-
-                              {/* Wavy Divider */}
-                              <CardWaveDivider />
-
-                              {/* Round Icon Badge */}
-                              <div className="absolute -bottom-4 sm:-bottom-5 left-3 sm:left-6 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#006837] text-white flex items-center justify-center border-[2.5px] sm:border-[3.5px] border-white shadow-md sm:shadow-lg group-hover:scale-110 transition-transform">
-                                {getJobCategoryIcon(job)}
-                              </div>
-                            </div>
-
-                            {/* Card Content Area: Job Title and Institution ONLY */}
-                            <div className="pt-6 sm:pt-8 px-3 sm:px-6 pb-3.5 sm:pb-6 flex-1 flex flex-col justify-between">
-                              <div>
-                                <div className="flex items-center gap-1 sm:gap-2 mb-1.5 sm:mb-2 flex-wrap">
-                                  {(job.recruitmentType || job.recruitmentTypeSi) && (
-                                    <span className="text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-                                      {isSi && job.recruitmentTypeSi ? job.recruitmentTypeSi : (job.recruitmentType || job.recruitmentTypeSi)}
-                                    </span>
-                                  )}
-                                  {job.jobNature && (
-                                    <span className="text-[10px] sm:text-[11px] font-medium text-gray-600 bg-gray-100 px-1.5 sm:px-2 py-0.5 rounded-full">
-                                      {isSi && job.jobNatureSi ? job.jobNatureSi : job.jobNature}
-                                    </span>
-                                  )}
-                                </div>
-                                <h3 className="text-xs sm:text-xl font-bold text-[#143d4d] leading-snug group-hover:text-[#006837] transition-colors mb-1 min-h-[2rem] sm:min-h-[3rem] line-clamp-2">
-                                  {displayTitle}
-                                </h3>
-                                <p className="text-[10px] sm:text-sm text-gray-500 font-medium line-clamp-1 mb-2.5 sm:mb-4">
-                                  {companyOrInstitution}
-                                </p>
-                              </div>
-
-                              {/* Card Footer: Button & Leaf Watermark */}
-                              <div className="flex items-center justify-between pt-2.5 sm:pt-3 border-t border-gray-50 mt-auto">
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    navigate(`/careers/${job.slug || job.id}`);
-                                  }}
-                                  className="bg-[#006837] hover:bg-[#00532c] text-white text-[10px] sm:text-sm font-semibold px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full flex items-center gap-1 transition-all shadow-xs group-hover:shadow cursor-pointer"
-                                >
-                                  <span>{isSi ? 'විස්තර බලන්න' : 'View Details'}</span>
-                                  <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                                </button>
-
-                                <div className="hidden xs:block sm:block">
-                                  <AswannaLeafBadge />
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
+                      {jobsData.map(renderJobCard)}
                     </div>
 
                     {/* Pagination */}

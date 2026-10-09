@@ -9,8 +9,14 @@ export default defineConfig({
     include: ['sl-gnd-dsd-districts']
   },
   build: {
-    chunkSizeWarningLimit: 800,
+    chunkSizeWarningLimit: 8000,
     rollupOptions: {
+      onwarn(warning, warn) {
+        if (warning.code === 'EVAL' || (warning.message && warning.message.includes('eval'))) {
+          return;
+        }
+        warn(warning);
+      },
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {

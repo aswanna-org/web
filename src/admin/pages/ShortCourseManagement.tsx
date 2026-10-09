@@ -3052,9 +3052,9 @@ export default function ShortCourseManagement() {
                     <span className={`text-xs px-3 py-1 rounded-full font-bold ${previewCourse.activeState ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-600'}`}>
                       {previewCourse.activeState ? 'Active' : 'Inactive'}
                     </span>
-                    {previewCourse.district && (
+                    {(previewCourse.district || previewCourse.shortCourseCenter?.district) && (
                       <span className="bg-blue-50 text-blue-700 text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1">
-                        <MapPin size={12} /> {previewCourse.district}
+                        <MapPin size={12} /> {previewCourse.district || previewCourse.shortCourseCenter?.district}
                       </span>
                     )}
                   </div>

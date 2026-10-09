@@ -6,6 +6,7 @@ import SecondaryNav from './components/public/SecondaryNav';
 import Contact from './pages/public/Contact';
 import Careers from './pages/public/Careers';
 import JobDetail from './pages/public/JobDetail';
+import CareerDispatcher from './pages/public/CareerDispatcher';
 import News from './pages/public/News';
 import Blog from './pages/public/Blog';
 import Education from './pages/public/Education';
@@ -26,6 +27,7 @@ import AgroMainCategoryDetail from './pages/public/AgroMainCategoryDetail';
 import AgroCategoryDetail from './pages/public/AgroCategoryDetail';
 import AgroProductDetail from './pages/public/AgroProductDetail';
 import Marketplace from './pages/public/Marketplace';
+import MarketplaceDetail from './pages/public/MarketplaceDetail';
 import PlantFinder from './pages/public/PlantFinder';
 import AgroLands from './pages/public/AgroLands';
 import { CartProvider } from './context/CartContext';
@@ -64,6 +66,7 @@ import ContactManagement from './admin/pages/ContactManagement';
 import InstitutionManagement from './admin/pages/InstitutionManagement';
 import Analytics from './admin/pages/Analytics';
 import Login from './admin/pages/Login';
+import MarketplaceController from './admin/pages/MarketplaceController';
 import { ProtectedRoute } from './admin/components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 
@@ -102,9 +105,12 @@ function App() {
               <Route path="about" element={<About />} />
               <Route path="pages/team" element={<div className="p-20 text-center font-roboto">Team Page Placeholder <br /><a href="/" className="text-blue-500 underline">Back</a></div>} />
               <Route path="careers" element={<Careers />} />
-              <Route path="careers/:id" element={<JobDetail />} />
+              <Route path="careers/category/:categorySlug" element={<Careers />} />
+              <Route path="careers/categories/:categorySlug" element={<Careers />} />
+              <Route path="careers/jobs/:categorySlug/:slug" element={<JobDetail />} />
               <Route path="careers/jobs/:id" element={<JobDetail />} />
-              <Route path="careers/slug/:slug" element={<JobDetail />} />
+              <Route path="careers/jobs/slug/:slug" element={<JobDetail />} />
+              <Route path="careers/:slug" element={<CareerDispatcher />} />
               <Route path="pages/faq" element={<div className="p-20 text-center font-roboto">FAQ Page Placeholder <br /><a href="/" className="text-blue-500 underline">Back</a></div>} />
               <Route path="pages/contact" element={<Contact />} />
               <Route path="contact" element={<Contact />} />
@@ -136,6 +142,12 @@ function App() {
               <Route path="agro/:mainSlug/:subSlug" element={<AgroCategoryDetail />} />
               <Route path="agro/:mainSlug/:subSlug/:productId" element={<AgroProductDetail />} />
               <Route path="marketplace" element={<Marketplace />} />
+              <Route path="marketplace/category/:categorySlug" element={<Marketplace />} />
+              <Route path="marketplace/categories/:categorySlug" element={<Marketplace />} />
+              <Route path="marketplace/items/:categorySlug/:slug" element={<MarketplaceDetail />} />
+              <Route path="marketplace/items/:slug" element={<MarketplaceDetail />} />
+              <Route path="marketplace/item/:id" element={<MarketplaceDetail />} />
+              <Route path="marketplace/:categorySlug/:slug" element={<MarketplaceDetail />} />
               <Route path="plant-finder" element={<PlantFinder />} />
               <Route path="agro-lands" element={<AgroLands />} />
               <Route path="agri-info-hub" element={<AgriInfoHub />} />
@@ -173,7 +185,9 @@ function App() {
               <Route path="agri-lands" element={<AgriLandManagement />} />
               <Route path="agrilands" element={<AgriLandManagement />} />
               <Route path="asc" element={<AscManagement />} />
-              <Route path="orders" element={<OrderManagement />} />
+               <Route path="orders" element={<OrderManagement />} />
+              <Route path="marketplace" element={<MarketplaceController />} />
+              <Route path="marketplace-controller" element={<MarketplaceController />} />
               <Route path="courses" element={<CourseManagement />} />
               <Route path="short-courses" element={<ShortCourseManagement />} />
               <Route path="shortcourses" element={<ShortCourseManagement />} />

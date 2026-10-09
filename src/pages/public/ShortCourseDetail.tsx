@@ -10,7 +10,7 @@ import {
 import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
-import { formatFee, stripHtml } from './ShortCourses';
+import { formatFee, stripHtml, getDistrictLabel, formatSchedule } from './ShortCourses';
 
 interface ShortCourseSubject {
   id: string;
@@ -230,40 +230,103 @@ export default function ShortCourseDetail() {
     );
   }
 
-  const courseTitle = isSinhala ? course.titleSi : (course.titleEn || course.titleSi);
-  const overviewHtml = isSinhala ? (course.overviewSi || course.overviewEn) : (course.overviewEn || course.overviewSi);
-  const overviewClean = stripHtml(overviewHtml);
-  const detailedDescriptionHtml = isSinhala
-    ? (course.detailedDescriptionSi || course.detailedDescriptionEn)
-    : (course.detailedDescriptionEn || course.detailedDescriptionSi);
+  const isNonEmptyHtml = (content?: string | null): boolean => {
+    if (!content) return false;
+    const text = stripHtml(content).replace(/\u00a0/g, ' ').trim();
+    return text.length > 0;
+  };
+
+  const courseTitle = isSinhala
+    ? (course.titleSi || course.titleEn)
+    : (course.titleEn || course.titleSi);
+
+  // Strictly language-isolated description resolution to prevent cross-language mixing
+  const hasSinhalaOverview = isNonEmptyHtml(course.overviewSi);
+  const hasSinhalaDetailed = isNonEmptyHtml(course.detailedDescriptionSi);
+  const hasEnglishOverview = isNonEmptyHtml(course.overviewEn);
+  const hasEnglishDetailed = isNonEmptyHtml(course.detailedDescriptionEn);
+
+  const hasAnySinhalaDesc = hasSinhalaOverview || hasSinhalaDetailed;
+  const hasAnyEnglishDesc = hasEnglishOverview || hasEnglishDetailed;
+
+  let overviewHtml: string | null = null;
+  let detailedDescriptionHtml: string | null = null;
+
+  if (isSinhala) {
+    if (hasAnySinhalaDesc) {
+      overviewHtml = hasSinhalaOverview ? course.overviewSi! : null;
+      detailedDescriptionHtml = hasSinhalaDetailed ? course.detailedDescriptionSi! : null;
+    } else if (hasAnyEnglishDesc) {
+      // Complete fallback only if no Sinhala description exists at all
+      overviewHtml = hasEnglishOverview ? course.overviewEn! : null;
+      detailedDescriptionHtml = hasEnglishDetailed ? course.detailedDescriptionEn! : null;
+    }
+  } else {
+    if (hasAnyEnglishDesc) {
+      overviewHtml = hasEnglishOverview ? course.overviewEn! : null;
+      detailedDescriptionHtml = hasEnglishDetailed ? course.detailedDescriptionEn! : null;
+    } else if (hasAnySinhalaDesc) {
+      // Complete fallback only if no English description exists at all
+      overviewHtml = hasSinhalaOverview ? course.overviewSi! : null;
+      detailedDescriptionHtml = hasSinhalaDetailed ? course.detailedDescriptionSi! : null;
+    }
+  }
+
+  const overviewClean = stripHtml(overviewHtml || detailedDescriptionHtml);
 
   const subjectName = course.shortCourseSubject
-    ? (isSinhala ? course.shortCourseSubject.nameSi : course.shortCourseSubject.nameEn)
+    ? (isSinhala
+        ? (course.shortCourseSubject.nameSi || course.shortCourseSubject.nameEn)
+        : (course.shortCourseSubject.nameEn || course.shortCourseSubject.nameSi))
     : '';
 
   const centerName = course.shortCourseCenter
-    ? (isSinhala ? course.shortCourseCenter.nameSi : course.shortCourseCenter.nameEn)
+    ? (isSinhala
+        ? (course.shortCourseCenter.nameSi || course.shortCourseCenter.nameEn)
+        : (course.shortCourseCenter.nameEn || course.shortCourseCenter.nameSi))
     : '';
 
   const trainerName = course.shortCourseTrainer
-    ? (isSinhala ? course.shortCourseTrainer.nameSi : course.shortCourseTrainer.nameEn)
+    ? (isSinhala
+        ? (course.shortCourseTrainer.nameSi || course.shortCourseTrainer.nameEn)
+        : (course.shortCourseTrainer.nameEn || course.shortCourseTrainer.nameSi))
     : '';
 
   const trainerPosition = course.shortCourseTrainer
-    ? (isSinhala ? course.shortCourseTrainer.positionSi : course.shortCourseTrainer.positionEn)
+    ? (isSinhala
+        ? (course.shortCourseTrainer.positionSi || course.shortCourseTrainer.positionEn)
+        : (course.shortCourseTrainer.positionEn || course.shortCourseTrainer.positionSi))
     : '';
 
+  const hasEligibilitySi = Array.isArray(course.eligibilitySi) && course.eligibilitySi.some((i) => i && i.trim().length > 0);
+  const hasEligibilityEn = Array.isArray(course.eligibilityEn) && course.eligibilityEn.some((i) => i && i.trim().length > 0);
   const eligibilityList = isSinhala
-    ? (course.eligibilitySi && course.eligibilitySi.length > 0 ? course.eligibilitySi : course.eligibilityEn || [])
-    : (course.eligibilityEn && course.eligibilityEn.length > 0 ? course.eligibilityEn : course.eligibilitySi || []);
+    ? (hasEligibilitySi
+        ? course.eligibilitySi!.filter((i) => i && i.trim().length > 0)
+        : (hasEligibilityEn ? course.eligibilityEn!.filter((i) => i && i.trim().length > 0) : []))
+    : (hasEligibilityEn
+        ? course.eligibilityEn!.filter((i) => i && i.trim().length > 0)
+        : (hasEligibilitySi ? course.eligibilitySi!.filter((i) => i && i.trim().length > 0) : []));
 
+  const hasBenefitsSi = Array.isArray(course.benefitsSi) && course.benefitsSi.some((i) => i && i.trim().length > 0);
+  const hasBenefitsEn = Array.isArray(course.benefitsEn) && course.benefitsEn.some((i) => i && i.trim().length > 0);
   const benefitsList = isSinhala
-    ? (course.benefitsSi && course.benefitsSi.length > 0 ? course.benefitsSi : course.benefitsEn || [])
-    : (course.benefitsEn && course.benefitsEn.length > 0 ? course.benefitsEn : course.benefitsSi || []);
+    ? (hasBenefitsSi
+        ? course.benefitsSi!.filter((i) => i && i.trim().length > 0)
+        : (hasBenefitsEn ? course.benefitsEn!.filter((i) => i && i.trim().length > 0) : []))
+    : (hasBenefitsEn
+        ? course.benefitsEn!.filter((i) => i && i.trim().length > 0)
+        : (hasBenefitsSi ? course.benefitsSi!.filter((i) => i && i.trim().length > 0) : []));
 
+  const hasSyllabusSi = Array.isArray(course.syllabusModulesSi) && course.syllabusModulesSi.some((i) => i && i.trim().length > 0);
+  const hasSyllabusEn = Array.isArray(course.syllabusModulesEn) && course.syllabusModulesEn.some((i) => i && i.trim().length > 0);
   const syllabusModulesList = isSinhala
-    ? (course.syllabusModulesSi && course.syllabusModulesSi.length > 0 ? course.syllabusModulesSi : course.syllabusModulesEn || [])
-    : (course.syllabusModulesEn && course.syllabusModulesEn.length > 0 ? course.syllabusModulesEn : course.syllabusModulesSi || []);
+    ? (hasSyllabusSi
+        ? course.syllabusModulesSi!.filter((i) => i && i.trim().length > 0)
+        : (hasSyllabusEn ? course.syllabusModulesEn!.filter((i) => i && i.trim().length > 0) : []))
+    : (hasSyllabusEn
+        ? course.syllabusModulesEn!.filter((i) => i && i.trim().length > 0)
+        : (hasSyllabusSi ? course.syllabusModulesSi!.filter((i) => i && i.trim().length > 0) : []));
 
   const feeLabel = formatFee(course.fee, isSinhala);
   const whatsAppUrl = getWhatsAppLink(course.whatsappNumber, courseTitle);
@@ -413,7 +476,7 @@ export default function ShortCourseDetail() {
                     <p className="font-bold text-gray-900 flex items-center gap-1.5">
                       <Calendar size={16} className="text-emerald-700 shrink-0" />
                       <span className="truncate">
-                        {course.schedule || (isSinhala ? 'දැනුම් දී නොමැත' : 'Not Specified')}
+                        {formatSchedule(course.schedule) || (isSinhala ? 'දැනුම් දී නොමැත' : 'Not Specified')}
                       </span>
                     </p>
                   </div>
@@ -425,7 +488,7 @@ export default function ShortCourseDetail() {
                     </p>
                     <p className="font-bold text-gray-900 flex items-center gap-1.5">
                       <MapPin size={16} className="text-emerald-700 shrink-0" />
-                      <span>{course.district || course.shortCourseCenter?.district || (isSinhala ? 'දැනුම් දී නොමැත' : 'Not Specified')}</span>
+                      <span>{getDistrictLabel(course.district || course.shortCourseCenter?.district, isSinhala) || (isSinhala ? 'දැනුම් දී නොමැත' : 'Not Specified')}</span>
                     </p>
                   </div>
 
@@ -459,30 +522,32 @@ export default function ShortCourseDetail() {
             </div>
 
             {/* 2. COURSE DESCRIPTION & OBJECTIVES */}
-            <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs p-6 md:p-8 space-y-4">
-              <h3 className="text-sm sm:text-base font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
-                <BookOpen size={18} className="text-emerald-700" />
-                <span>{isSinhala ? 'පාඨමාලා හැඳින්වීම සහ අරමුණු' : 'Course Overview & Objectives'}</span>
-              </h3>
+            {(overviewHtml || detailedDescriptionHtml) && (
+              <div className="bg-white rounded-2xl border border-gray-200/90 shadow-xs p-6 md:p-8 space-y-4">
+                <h3 className="text-sm sm:text-base font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                  <BookOpen size={18} className="text-emerald-700" />
+                  <span>{isSinhala ? 'පාඨමාලා හැඳින්වීම සහ අරමුණු' : 'Course Overview & Objectives'}</span>
+                </h3>
 
-              {overviewHtml && (
-                <div
-                  className="p-4 sm:p-5 rounded-xl bg-emerald-50/40 border border-emerald-100 text-xs sm:text-sm text-gray-800 leading-relaxed font-medium prose max-w-none"
-                  dangerouslySetInnerHTML={{
-                    __html: overviewHtml.replace(/&nbsp;|\u00a0/g, ' '),
-                  }}
-                />
-              )}
+                {overviewHtml && (
+                  <div
+                    className="p-4 sm:p-5 rounded-xl bg-emerald-50/40 border border-emerald-100 text-xs sm:text-sm text-gray-800 leading-relaxed font-medium prose max-w-none"
+                    dangerouslySetInnerHTML={{
+                      __html: overviewHtml.replace(/&nbsp;|\u00a0/g, ' '),
+                    }}
+                  />
+                )}
 
-              {detailedDescriptionHtml && (
-                <div
-                  className="text-xs sm:text-sm text-gray-700 leading-relaxed p-4 sm:p-5 bg-gray-50/70 rounded-xl border border-gray-100 prose max-w-none prose-emerald rich-content"
-                  dangerouslySetInnerHTML={{
-                    __html: detailedDescriptionHtml.replace(/&nbsp;|\u00a0/g, ' '),
-                  }}
-                />
-              )}
-            </div>
+                {detailedDescriptionHtml && (
+                  <div
+                    className="text-xs sm:text-sm text-gray-700 leading-relaxed p-4 sm:p-5 bg-gray-50/70 rounded-xl border border-gray-100 prose max-w-none prose-emerald rich-content"
+                    dangerouslySetInnerHTML={{
+                      __html: detailedDescriptionHtml.replace(/&nbsp;|\u00a0/g, ' '),
+                    }}
+                  />
+                )}
+              </div>
+            )}
 
             {/* 3. SYLLABUS MODULES */}
             {syllabusModulesList.length > 0 && (
@@ -784,7 +849,7 @@ export default function ShortCourseDetail() {
                   className="inline-flex items-center gap-1 text-emerald-800 hover:text-emerald-950 font-bold cursor-pointer"
                 >
                   {copiedLink ? <Check size={14} className="text-emerald-600" /> : <Share2 size={14} />}
-                  <span>{copiedLink ? (isSinhala ? 'පිටපත් විය' : 'Copied!') : (isSinhala ? 'Copy Link' : 'Copy Link')}</span>
+                  <span>{copiedLink ? (isSinhala ? 'පිටපත් විය!' : 'Copied!') : (isSinhala ? 'සබැඳිය පිටපත් කරන්න' : 'Copy Link')}</span>
                 </button>
               </div>
             </div>
@@ -801,7 +866,9 @@ export default function ShortCourseDetail() {
                       {isSinhala ? 'පුහුණු මධ්‍යස්ථානය' : 'Training Center'}
                     </span>
                     <h4 className="text-sm font-bold text-gray-900 leading-snug">
-                      {isSinhala ? course.shortCourseCenter.nameSi : course.shortCourseCenter.nameEn}
+                      {isSinhala
+                        ? (course.shortCourseCenter.nameSi || course.shortCourseCenter.nameEn)
+                        : (course.shortCourseCenter.nameEn || course.shortCourseCenter.nameSi)}
                     </h4>
                   </div>
                 </div>

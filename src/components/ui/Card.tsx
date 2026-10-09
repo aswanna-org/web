@@ -109,8 +109,12 @@ export default function Card({
             {meta.map((item, index) => {
               const Icon = item.icon;
               return (
-                <div key={index} className="flex items-center gap-1 sm:gap-1.5 text-gray-600 font-medium text-[10px] sm:text-sm">
-                  {Icon && <Icon className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 stroke-[1.5]" />}
+                <div
+                  key={index}
+                  className="flex items-center gap-1 sm:gap-1.5 text-gray-600 font-medium text-[10px] sm:text-sm max-w-full min-w-0"
+                  title={item.text}
+                >
+                  {Icon && <Icon className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 stroke-[1.5] shrink-0" />}
                   <span className="truncate">{item.text}</span>
                 </div>
               );
