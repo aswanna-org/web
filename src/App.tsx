@@ -30,6 +30,7 @@ import Marketplace from './pages/public/Marketplace';
 import MarketplaceDetail from './pages/public/MarketplaceDetail';
 import PlantFinder from './pages/public/PlantFinder';
 import AgroLands from './pages/public/AgroLands';
+import AgroLandDetail from './pages/public/AgroLandDetail';
 import { CartProvider } from './context/CartContext';
 import { LoadingProvider } from './context/LoadingContext';
 import { FontSizeProvider } from './context/FontSizeContext';
@@ -119,6 +120,8 @@ function App() {
               <Route path="news" element={<News />} />
               <Route path="blog" element={<Blog />} />
               <Route path="education" element={<Education />} />
+              <Route path="education/category/:slug" element={<Education />} />
+              <Route path="education/type/:slug" element={<Education />} />
               <Route path="education/:slug" element={<EducationDetail />} />
               <Route path="short-courses" element={<ShortCourses />} />
               <Route path="short-courses-workshops" element={<ShortCourses />} />
@@ -128,6 +131,10 @@ function App() {
               <Route path="research-papers/:slug" element={<ResearchPaperDetail />} />
               <Route path="publications-manuals" element={<PublicationsManuals />} />
               <Route path="publications-manuals/:slug" element={<PublicationDetail />} />
+              <Route path="publications-handbooks" element={<PublicationsManuals />} />
+              <Route path="publications-handbooks/:slug" element={<PublicationDetail />} />
+              <Route path="publications" element={<PublicationsManuals />} />
+              <Route path="publications/:slug" element={<PublicationDetail />} />
               <Route path="agri-extension-materials" element={<AgriExtensionMaterials />} />
               <Route path="agri-extension-learning-materials" element={<AgriExtensionMaterials />} />
               <Route path="agri-extension-materials/:slug" element={<AgriExtensionMaterialDetail />} />
@@ -151,6 +158,11 @@ function App() {
               <Route path="marketplace/:categorySlug/:slug" element={<MarketplaceDetail />} />
               <Route path="plant-finder" element={<PlantFinder />} />
               <Route path="agro-lands" element={<AgroLands />} />
+              <Route path="agro-lands/:slug" element={<AgroLandDetail />} />
+              <Route path="agro-lands/id/:id" element={<AgroLandDetail />} />
+              <Route path="agri-lands" element={<AgroLands />} />
+              <Route path="agri-lands/:slug" element={<AgroLandDetail />} />
+              <Route path="agri-lands/id/:id" element={<AgroLandDetail />} />
               <Route path="agri-info-hub" element={<AgriInfoHub />} />
               <Route path="agri-info-hub/government-institutions" element={<GovernmentInstitutions />} />
               <Route path="agri-info-hub/private-institutions" element={<PrivateInstitutions />} />

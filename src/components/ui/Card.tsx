@@ -55,11 +55,24 @@ export default function Card({
             <img
               src={image}
               alt={title}
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (!target.dataset.fallbackTried) {
+                  target.dataset.fallbackTried = 'true';
+                  target.src = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80';
+                }
+              }}
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
           ) : FallbackIcon ? (
             <FallbackIcon className="w-12 h-12 sm:w-20 sm:h-20 transition-transform duration-700 group-hover:scale-110" style={{ color: color || '#111' }} />
-          ) : null}
+          ) : (
+            <img
+              src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80"
+              alt={title}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-90"
+            />
+          )}
           {(badge || topRightBadge) && (
             <div className="absolute top-2 sm:top-3.5 left-2 sm:left-3.5 right-2 sm:right-3.5 flex flex-col items-start gap-1 sm:gap-1.5 z-10 pointer-events-none">
               {/* Row 1: Primary Badge */}

@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   Clock, MapPin, Award, CheckCircle2,
   Calendar, BookOpen, Layers, Globe, Check,
   Send, DollarSign,
   GraduationCap, X, ExternalLink, FileText,
-  Briefcase, Sparkles, Copy, Download
+  Briefcase, Sparkles, Copy, Download, ArrowLeft
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PageHero from '../../components/public/PageHero';
@@ -129,9 +129,40 @@ export const formatMedium = (medium: string | undefined | null, isSinhala: boole
 
 export default function EducationDetail() {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const { i18n } = useTranslation();
   const isSinhala = i18n.language === 'si';
   const { isAuthenticated, user, openLoginModal } = useAuth();
+
+  // Redirect if slug is a known category slug
+  useEffect(() => {
+    if (!slug) return;
+    const lower = slug.toLowerCase();
+    if (lower === 'academic-courses') {
+      navigate('/education?type=academic-courses', { replace: true });
+      return;
+    }
+    if (lower.includes('short')) {
+      navigate('/short-courses', { replace: true });
+      return;
+    }
+    if (lower.includes('research')) {
+      navigate('/research-papers', { replace: true });
+      return;
+    }
+    if (lower.includes('publication') || lower.includes('manual') || lower.includes('handbook')) {
+      navigate('/publications-manuals', { replace: true });
+      return;
+    }
+    if (lower.includes('learning') || lower.includes('extension') || lower.includes('material')) {
+      navigate('/agri-extension-materials', { replace: true });
+      return;
+    }
+    if (lower.includes('institute') || lower.includes('educational')) {
+      navigate('/agricultural-educational-institutes', { replace: true });
+      return;
+    }
+  }, [slug, navigate]);
 
   const [course, setCourse] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -338,7 +369,27 @@ export default function EducationDetail() {
       />
 
       {/* ── MAIN CONTENT: FULL-WIDTH STRUCTURED SPECIFICATION FORM & BOTTOM ACTION BAR ── */}
-      <div className="container mx-auto px-4 lg:px-12 py-10 max-w-9xl space-y-8">
+      <div className="container mx-auto px-4 lg:px-12 py-8 max-w-9xl space-y-6">
+
+        {/* ── Top Navigation & Back Bar ── */}
+        <div className="flex items-center justify-between gap-3 pb-2">
+          <button
+            type="button"
+            onClick={() => {
+              if (window.history.state && window.history.state.idx > 0) {
+                navigate(-1);
+              } else {
+                navigate('/education');
+              }
+            }}
+            className="inline-flex items-center gap-2 pl-2.5 pr-4 py-1.5 rounded-full bg-white hover:bg-gray-50 border border-gray-200 text-gray-800 font-bold text-xs sm:text-sm shadow-xs transition-all cursor-pointer"
+          >
+            <div className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-100 flex items-center justify-center">
+              <ArrowLeft className="w-3.5 h-3.5 stroke-[2.5]" />
+            </div>
+            <span>{isSinhala ? 'සියලු පාඨමාලා වෙත' : 'Back to Courses'}</span>
+          </button>
+        </div>
 
         {/* ── 1. COURSE SPECIFICATION FORM ── */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">

@@ -8,14 +8,12 @@ import {
   Eye,
   Image as ImageIcon,
   CheckCircle2,
-  XCircle,
   RotateCcw,
   Layers,
   Compass,
   Check,
   X,
-  Clock,
-  User
+  Clock
 } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import AgroLoader from '../../components/common/AgroLoader';
@@ -612,233 +610,195 @@ export default function AgriLandManagement() {
               ) : (
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[11px] border-b border-slate-200">
-                      <th className="py-3.5 px-4 font-bold">Land Details</th>
-                      <th className="py-3.5 px-4 font-bold">Deal & Category</th>
-                      <th className="py-3.5 px-4 font-bold">Location</th>
-                      <th className="py-3.5 px-4 font-bold">Size & Price</th>
-                      <th className="py-3.5 px-4 font-bold text-center">Photos</th>
-                      <th className="py-3.5 px-4 font-bold text-center">Approval Status</th>
-                      <th className="py-3.5 px-4 font-bold text-center">Active</th>
-                      <th className="py-3.5 px-4 font-bold text-right">Actions</th>
+                    <tr className="bg-gray-50/90 text-gray-500 uppercase tracking-wider text-[11px] font-bold border-b border-gray-200">
+                      <th className="px-3 py-2 whitespace-nowrap">Land Details</th>
+                      <th className="px-3 py-2 whitespace-nowrap">Deal & Category</th>
+                      <th className="px-3 py-2 whitespace-nowrap">Location</th>
+                      <th className="px-3 py-2 whitespace-nowrap">Size & Price</th>
+                      <th className="px-3 py-2 whitespace-nowrap text-center">Photos</th>
+                      <th className="px-3 py-2 whitespace-nowrap text-center">Approval</th>
+                      <th className="px-3 py-2 whitespace-nowrap text-center">Active</th>
+                      <th className="px-3 py-2 whitespace-nowrap text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-gray-100">
                     {lands.map((land) => {
                       const cover = land.images?.find((img) => img.isPrimary) || land.images?.[0];
                       return (
-                        <tr key={land.id} className="hover:bg-slate-50/80 transition">
+                        <tr key={land.id} className="hover:bg-gray-50/70 transition-colors">
                           {/* Land details with photo */}
-                          <td className="py-3 px-4">
-                            <div className="flex items-center gap-3">
-                              <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 relative">
-                                {cover ? (
-                                  <img
-                                    src={cover.imageUrl}
-                                    alt={land.titleEn}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                    <ImageIcon className="w-6 h-6" />
-                                  </div>
-                                )}
-                              </div>
-                              <div className="max-w-xs">
-                                <h4 className="font-bold text-slate-800 text-sm line-clamp-1">
-                                  {land.titleEn}
-                                </h4>
-                                {land.titleSi && (
-                                  <p className="text-[11px] text-slate-500 line-clamp-1 font-sinhala">
-                                    {land.titleSi}
-                                  </p>
-                                )}
-                                <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                                  <span className="text-[10px] text-slate-400 font-mono">
-                                    {land.slug}
-                                  </span>
-                                  {land.user ? (
-                                    <span
-                                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200/60"
-                                      title={`Submitted by user: ${land.user.name || land.user.email}`}
-                                    >
-                                      <User className="w-2.5 h-2.5" />
-                                      <span>User: {land.user.name || land.user.email?.split('@')[0]}</span>
-                                    </span>
-                                  ) : (
-                                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-500">
-                                      Admin
-                                    </span>
-                                  )}
+                          <td className="px-3 py-1.5 whitespace-nowrap">
+                            <div className="flex items-center gap-2 max-w-xs">
+                              {cover ? (
+                                <img
+                                  src={cover.imageUrl}
+                                  alt={land.titleEn}
+                                  className="w-6 h-6 rounded object-cover border border-gray-200 shrink-0"
+                                />
+                              ) : (
+                                <div className="w-6 h-6 rounded bg-emerald-50 text-emerald-700 border border-emerald-100 flex items-center justify-center shrink-0">
+                                  <MapPin size={13} />
                                 </div>
-                              </div>
+                              )}
+                              <span className="font-semibold text-gray-900 truncate text-xs" title={land.titleEn}>
+                                {land.titleEn}
+                              </span>
+                              {land.user ? (
+                                <span
+                                  className="text-[9px] px-1 py-0.2 rounded font-medium bg-blue-50 text-blue-700 border border-blue-200 shrink-0"
+                                  title={`User: ${land.user.name || land.user.email}`}
+                                >
+                                  User
+                                </span>
+                              ) : null}
                             </div>
                           </td>
 
                           {/* Deal & Category */}
-                          <td className="py-3 px-4">
-                            <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                              {land.dealType?.nameEn || 'Deal'}
-                            </span>
-                            <span className="block text-slate-600 text-[11px] font-medium mt-1">
-                              {land.landCategory?.nameEn || 'Uncategorized'}
-                            </span>
+                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-emerald-100 text-emerald-800 shrink-0">
+                                {land.dealType?.nameEn || '-'}
+                              </span>
+                              <span className="text-[11px] text-gray-500 truncate max-w-[120px]" title={land.landCategory?.nameEn || ''}>
+                                {land.landCategory?.nameEn || '-'}
+                              </span>
+                            </div>
                           </td>
 
                           {/* Location */}
-                          <td className="py-3 px-4">
-                            <span className="font-semibold text-slate-800 text-xs block">
-                              {land.location?.districtEn || 'Unspecified'}
-                            </span>
-                            <span className="text-[11px] text-slate-400 block">
-                              {land.location?.provinceEn} Province
+                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                            <span className="truncate max-w-[130px] inline-block font-medium text-xs" title={`${land.location?.districtEn || '-'}${land.location?.provinceEn ? `, ${land.location.provinceEn}` : ''}`}>
+                              {land.location?.districtEn || '-'}{land.location?.provinceEn ? `, ${land.location.provinceEn}` : ''}
                             </span>
                           </td>
 
                           {/* Size & Price */}
-                          <td className="py-3 px-4">
-                            <span className="font-bold text-slate-800 block">
-                              {land.acres ? `${land.acres} A ` : ''}
-                              {land.roods ? `${land.roods} R ` : ''}
-                              {land.perches ? `${land.perches} P` : ''}
-                              {!land.acres && !land.roods && !land.perches && (land.totalPerches ? `${land.totalPerches} Perches` : 'N/A')}
-                            </span>
-                            <span className="text-emerald-700 font-semibold text-[11px] block mt-0.5">
-                              {land.priceEn || land.priceSi || 'Price on request'}
-                            </span>
+                          <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
+                            <div className="flex items-center gap-1.5">
+                              <span className="font-semibold text-gray-900 text-xs">
+                                {land.acres ? `${land.acres}A ` : ''}
+                                {land.perches ? `${land.perches}P` : ''}
+                                {!land.acres && !land.perches && (land.totalPerches ? `${land.totalPerches}P` : '-')}
+                              </span>
+                              <span className="text-[11px] text-emerald-700 font-medium truncate max-w-[120px]" title={land.priceEn || land.priceSi || ''}>
+                                {land.priceEn || land.priceSi ? `• ${land.priceEn || land.priceSi}` : ''}
+                              </span>
+                            </div>
                           </td>
 
-                          {/* Photos count & manage */}
-                          <td className="py-3 px-4 text-center">
+                          {/* Photos count */}
+                          <td className="px-3 py-1.5 text-center whitespace-nowrap">
                             <button
                               type="button"
                               onClick={() => handleOpenImages(land)}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 transition cursor-pointer"
+                              title="Manage Photos"
                             >
-                              <ImageIcon className="w-3.5 h-3.5 text-slate-500" />
+                              <ImageIcon size={12} className="text-gray-500" />
                               <span>{land.images?.length || 0}</span>
                             </button>
                           </td>
 
                           {/* Approval Status */}
-                          <td className="py-3 px-4 text-center">
+                          <td className="px-3 py-1.5 text-center whitespace-nowrap">
                             {land.approvalStatus === 'PENDING' ? (
-                              <div className="inline-flex flex-col items-center gap-1.5">
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">
-                                  <Clock className="w-3 h-3 text-amber-600" />
+                              <div className="inline-flex items-center gap-1">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                                   <span>Pending</span>
-                                </span>
-                                <div className="flex items-center gap-1">
-                                  <button
-                                    type="button"
-                                    onClick={() => handleUpdateApprovalStatus(land, 'APPROVED')}
-                                    title="Approve for public view"
-                                    className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-md transition shadow-2xs cursor-pointer"
-                                  >
-                                    <Check className="w-2.5 h-2.5" />
-                                    <span>Approve</span>
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleUpdateApprovalStatus(land, 'REJECTED')}
-                                    title="Reject listing"
-                                    className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold bg-rose-600 hover:bg-rose-700 text-white rounded-md transition shadow-2xs cursor-pointer"
-                                  >
-                                    <X className="w-2.5 h-2.5" />
-                                    <span>Reject</span>
-                                  </button>
-                                </div>
-                              </div>
-                            ) : land.approvalStatus === 'REJECTED' ? (
-                              <div className="inline-flex flex-col items-center gap-0.5">
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800 border border-rose-200">
-                                  <XCircle className="w-3 h-3 text-rose-600" />
-                                  <span>Rejected</span>
                                 </span>
                                 <button
                                   type="button"
                                   onClick={() => handleUpdateApprovalStatus(land, 'APPROVED')}
-                                  className="text-[10px] text-emerald-700 hover:underline font-semibold cursor-pointer"
+                                  title="Approve"
+                                  className="p-1 text-emerald-600 hover:bg-emerald-50 rounded transition cursor-pointer"
                                 >
-                                  Re-Approve
+                                  <Check size={14} className="stroke-[2.5]" />
                                 </button>
-                              </div>
-                            ) : (
-                              <div className="inline-flex flex-col items-center gap-0.5">
-                                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                  <span>Approved</span>
-                                </span>
                                 <button
                                   type="button"
                                   onClick={() => handleUpdateApprovalStatus(land, 'REJECTED')}
-                                  className="text-[10px] text-slate-400 hover:text-rose-600 hover:underline cursor-pointer"
+                                  title="Reject"
+                                  className="p-1 text-rose-600 hover:bg-rose-50 rounded transition cursor-pointer"
                                 >
-                                  Reject
+                                  <X size={14} className="stroke-[2.5]" />
                                 </button>
                               </div>
+                            ) : land.approvalStatus === 'REJECTED' ? (
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateApprovalStatus(land, 'APPROVED')}
+                                title="Click to Re-Approve"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-800 hover:bg-rose-200 transition cursor-pointer"
+                              >
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                <span>Rejected</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleUpdateApprovalStatus(land, 'REJECTED')}
+                                title="Click to Reject"
+                                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 transition cursor-pointer"
+                              >
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                                <span>Approved</span>
+                              </button>
                             )}
                           </td>
 
                           {/* Active Status toggle */}
-                          <td className="py-3 px-4 text-center">
+                          <td className="px-3 py-1.5 text-center whitespace-nowrap">
                             <button
                               type="button"
                               onClick={() => handleToggleStatus(land)}
-                              className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold transition cursor-pointer ${
+                              title="Toggle active status"
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold transition cursor-pointer ${
                                 land.activeState
                                   ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
-                                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                               }`}
                             >
-                              {land.activeState ? (
-                                <>
-                                  <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                  <span>Active</span>
-                                </>
-                              ) : (
-                                <>
-                                  <XCircle className="w-3 h-3 text-slate-400" />
-                                  <span>Inactive</span>
-                                </>
-                              )}
+                              <span className={`w-1.5 h-1.5 rounded-full ${land.activeState ? 'bg-emerald-600' : 'bg-gray-400'}`} />
+                              <span>{land.activeState ? 'Active' : 'Inactive'}</span>
                             </button>
                           </td>
 
                           {/* Actions */}
-                          <td className="py-3 px-4 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
+                          <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1">
                               <button
                                 type="button"
                                 onClick={() => handleOpenView(land)}
-                                className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition"
-                                title="View details"
+                                className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
+                                title="View Details"
                               >
-                                <Eye className="w-4 h-4" />
+                                <Eye size={15} />
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleOpenImages(land)}
-                                className="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition"
+                                className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
                                 title="Manage Photos"
                               >
-                                <ImageIcon className="w-4 h-4" />
+                                <ImageIcon size={15} />
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleOpenEdit(land)}
-                                className="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition"
+                                className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"
                                 title="Edit"
                               >
-                                <Edit className="w-4 h-4" />
+                                <Edit size={15} />
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleDelete(land)}
-                                className="p-1.5 text-slate-400 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
+                                className="p-1 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer"
                                 title="Delete"
                               >
-                                <Trash2 className="w-4 h-4" />
+                                <Trash2 size={15} />
                               </button>
                             </div>
                           </td>

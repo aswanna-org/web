@@ -220,6 +220,8 @@ export default function Education() {
         return;
       }
       setActiveTypeView(typeParam);
+    } else {
+      setActiveTypeView(null);
     }
   }, [typeParam, navigate]);
 
@@ -311,11 +313,7 @@ export default function Education() {
 
   const handleBackToOverview = () => {
     setActiveTypeView(null);
-    setSearchParams(prev => {
-      const next = new URLSearchParams(prev);
-      next.delete('type');
-      return next;
-    });
+    navigate('/education');
     setSearchQuery('');
     setSelectedLevel('All');
     setCurrentPage(1);

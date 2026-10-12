@@ -931,14 +931,6 @@ export default function Careers() {
               </button>
             )}
           </div>
-
-          <button
-            onClick={handleOpenRegistration}
-            className="glass-btn-green px-5 py-2.5 rounded-full text-xs sm:text-sm font-bold flex items-center gap-2 cursor-pointer shadow-xs w-full sm:w-auto justify-center"
-          >
-            <span>🚜</span>
-            <span>{isSi ? 'දෛනික ශ්‍රමිකයෙකු ලෙස ලියාපදිංචි වන්න' : 'Register as Daily Worker'}</span>
-          </button>
         </div>
 
         {/* VIEW 1: Categories Overview (The 4 Category Cards - Exact Match to UI Image, NO Extra Text!) */}
@@ -1010,10 +1002,23 @@ export default function Careers() {
           /* VIEW 2: Inside Category View (Jobs / Daily Workers) */
           <div>
             {/* Category Title Header */}
-            <div className="mb-6 pb-4 border-b border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-gray-200">
               <h2 className="text-xl sm:text-2xl font-bold text-[#143d4d]">
                 {activeCategoryTitle}
               </h2>
+
+              {(selectedCategoryId === 'DAILY_WAGE' || activeCategoryView === 'DAILY_WAGE') && (
+                <button
+                  type="button"
+                  onClick={handleOpenRegistration}
+                  className="inline-flex items-center justify-between gap-2 sm:gap-2.5 pl-3.5 sm:pl-5 pr-1 sm:pr-2 py-1 sm:py-2 rounded-full bg-white/70 hover:bg-white/95 backdrop-blur-xl border border-gray-200/80 hover:border-emerald-300 text-gray-900 font-bold text-xs sm:text-sm shadow-[0_4px_16px_rgba(0,0,0,0.05),inset_0_1px_1.5px_rgba(255,255,255,1)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer shrink-0"
+                >
+                  <span className="truncate">{isSi ? 'දෛනික ශ්‍රමිකයෙකු ලෙස ලියාපදිංචි වන්න' : 'Register as Daily Worker'}</span>
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-100/80 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-2xs shrink-0">
+                    <Tractor className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.2]" />
+                  </div>
+                </button>
+              )}
             </div>
 
             {/* Content: Daily Wage Workers vs Regular Jobs */}

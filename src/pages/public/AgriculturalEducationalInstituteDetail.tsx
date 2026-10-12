@@ -30,7 +30,13 @@ export default function AgriculturalEducationalInstituteDetail() {
 
       <div className="container mx-auto px-4 lg:px-12 py-10">
         <button
-          onClick={() => navigate('/agricultural-educational-institutes')}
+          onClick={() => {
+            if (window.history.state && window.history.state.idx > 0) {
+              navigate(-1);
+            } else {
+              navigate('/agricultural-educational-institutes');
+            }
+          }}
           className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-900 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-4 py-2 rounded-full mb-8 transition-all cursor-pointer shadow-2xs"
         >
           <ArrowLeft className="w-4 h-4" />

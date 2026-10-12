@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Eye, EyeOff, X, Lock, Mail, User, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, X, Lock, Mail, Phone, User, ShieldCheck, ArrowRight } from 'lucide-react';
 
 export default function RegisterModal() {
   const { isRegisterModalOpen, closeRegisterModal, openLoginModal, login } = useAuth();
   const [name, setName] = useState('');
+  const [registerMethod, setRegisterMethod] = useState<'email' | 'phone'>('email');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -42,6 +44,16 @@ export default function RegisterModal() {
     e.preventDefault();
     setError('');
 
+    if (registerMethod === 'email' && !email.trim()) {
+      setError('කරුණාකර වලංගු ඊමේල් ලිපිනයක් ඇතුළත් කරන්න (Please enter a valid email address).');
+      return;
+    }
+
+    if (registerMethod === 'phone' && !phone.trim()) {
+      setError('කරුණාකර වලංගු දුරකථන අංකයක් ඇතුළත් කරන්න (Please enter a valid phone number).');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('මුරපද නොගැලපේ (Passwords do not match). Please check and try again.');
       return;
@@ -60,10 +72,16 @@ export default function RegisterModal() {
     setIsLoading(true);
 
     try {
+      const payload: any = {
+        name: name.trim(),
+        password,
+        ...(registerMethod === 'email' ? { email: email.trim() } : { phone: phone.trim() })
+      };
+
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/users/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
@@ -79,6 +97,7 @@ export default function RegisterModal() {
       closeRegisterModal();
       setName('');
       setEmail('');
+      setPhone('');
       setPassword('');
       setConfirmPassword('');
 
@@ -151,25 +170,85 @@ export default function RegisterModal() {
               </div>
             </div>
 
-            {/* Email Field */}
+            {/* Selection: Register via Email or Phone */}
             <div>
               <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1 ml-1">
-                Email Address (විද්‍යුත් තැපෑල) *
+                ලියාපදිංචි වන ක්‍රමය (Register with) *
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                  <Mail size={16} />
-                </div>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@domain.com"
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50/80 hover:bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 text-xs sm:text-sm text-gray-800 transition-all placeholder:text-gray-400 outline-none"
-                />
+              <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl border border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRegisterMethod('email');
+                    setError('');
+                  }}
+                  className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    registerMethod === 'email'
+                      ? 'bg-white text-emerald-800 shadow-xs'
+                      : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                >
+                  <Mail size={14} />
+                  <span>විද්‍යුත් තැපෑල (Email)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRegisterMethod('phone');
+                    setError('');
+                  }}
+                  className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    registerMethod === 'phone'
+                      ? 'bg-white text-emerald-800 shadow-xs'
+                      : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                >
+                  <Phone size={14} />
+                  <span>දුරකථන අංකය (Phone)</span>
+                </button>
               </div>
             </div>
+
+            {/* Email Field or Phone Field */}
+            {registerMethod === 'email' ? (
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1 ml-1">
+                  Email Address (විද්‍යුත් තැපෑල) *
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                    <Mail size={16} />
+                  </div>
+                  <input
+                    type="email"
+                    required={registerMethod === 'email'}
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="name@domain.com"
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50/80 hover:bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 text-xs sm:text-sm text-gray-800 transition-all placeholder:text-gray-400 outline-none"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1 ml-1">
+                  Phone Number (දුරකථන අංකය) *
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                    <Phone size={16} />
+                  </div>
+                  <input
+                    type="tel"
+                    required={registerMethod === 'phone'}
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="07X XXXXXXX / +94 7X XXXXXXX"
+                    className="w-full pl-10 pr-4 py-2.5 bg-gray-50/80 hover:bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 text-xs sm:text-sm text-gray-800 transition-all placeholder:text-gray-400 outline-none"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Password Field */}
             <div>

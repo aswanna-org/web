@@ -165,7 +165,13 @@ export default function PublicationDetail() {
         {/* Navigation Bar */}
         <div className="flex items-center justify-between gap-3 mb-6">
           <button
-            onClick={() => navigate('/publications-manuals')}
+            onClick={() => {
+              if (window.history.state && window.history.state.idx > 0) {
+                navigate(-1);
+              } else {
+                navigate('/publications-manuals');
+              }
+            }}
             className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-4 py-2 rounded-full transition-all cursor-pointer shadow-2xs"
           >
             <ArrowLeft className="w-4 h-4" />

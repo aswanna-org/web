@@ -128,8 +128,8 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
 
   const handleNextStep = () => {
     if (activeTab === 'basic') {
-      if (!titleSi.trim() || !titleEn.trim() || !dealTypeId) {
-        setError('කරුණාකර ඉඩමේ නම (English සහ Sinhala) සහ Deal Type තෝරන්න (Please fill Title and select Deal Type)');
+      if ((!titleSi.trim() && !titleEn.trim()) || !dealTypeId) {
+        setError('කරුණාකර ඉඩමේ නම (English හෝ Sinhala) සහ Deal Type තෝරන්න (Please fill Title and select Deal Type)');
         return;
       }
     }
@@ -475,8 +475,8 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
   // ── Submit Complete Form ──
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!titleSi.trim() || !titleEn.trim() || !dealTypeId) {
-      setError('Please fill required fields: English Title, Sinhala Title, and Deal Type.');
+    if ((!titleSi.trim() && !titleEn.trim()) || !dealTypeId) {
+      setError('කරුණාකර ඉඩමේ නම සහ Deal Type තෝරන්න (Please fill Title and select Deal Type)');
       return;
     }
 
@@ -496,9 +496,12 @@ export const AgriLandFormModal: React.FC<AgriLandFormModalProps> = ({
         isPrimary: imagesList.some((m) => m.isPrimary) ? img.isPrimary : idx === 0
       }));
 
+      const finalTitleEn = (titleEn || titleSi).trim();
+      const finalTitleSi = (titleSi || titleEn).trim();
+
       const payload = {
-        titleEn: titleEn.trim(),
-        titleSi: titleSi.trim(),
+        titleEn: finalTitleEn,
+        titleSi: finalTitleSi,
         dealTypeId,
         landCategoryId: landCategoryId || null,
         locationId: resolvedLocId || null,

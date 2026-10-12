@@ -17,6 +17,7 @@ import {
   X, 
   Lock, 
   Mail, 
+  Phone,
   User as UserIcon,
   ShieldCheck,
   Filter
@@ -30,7 +31,8 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 interface ManagedUser {
   id: string;
   name: string;
-  email: string;
+  email?: string | null;
+  phone?: string | null;
   role: 'ADMIN' | 'MODERATOR' | 'USER' | string;
   avatar?: string | null;
   createdAt: string;
@@ -77,6 +79,7 @@ export default function UserManagement() {
   const [addForm, setAddForm] = useState({
     name: '',
     email: '',
+    phone: '',
     password: '',
     confirmPassword: '',
     role: 'USER',
@@ -84,6 +87,7 @@ export default function UserManagement() {
   const [editForm, setEditForm] = useState({
     name: '',
     email: '',
+    phone: '',
     role: 'USER',
     password: '',
   });
@@ -167,6 +171,7 @@ export default function UserManagement() {
     setAddForm({
       name: '',
       email: '',
+      phone: '',
       password: '',
       confirmPassword: '',
       role: 'USER',
@@ -178,8 +183,8 @@ export default function UserManagement() {
   // Create User Handler
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!addForm.name.trim() || !addForm.email.trim() || !addForm.password) {
-      showToast('error', 'Please fill in all mandatory fields.');
+    if (!addForm.name.trim() || (!addForm.email.trim() && !addForm.phone.trim()) || !addForm.password) {
+      showToast('error', 'Please provide a name, email or phone number, and password.');
       return;
     }
 
@@ -200,7 +205,8 @@ export default function UserManagement() {
         headers: getHeaders(),
         body: JSON.stringify({
           name: addForm.name.trim(),
-          email: addForm.email.trim(),
+          email: addForm.email.trim() || undefined,
+          phone: addForm.phone.trim() || undefined,
           password: addForm.password,
           role: addForm.role,
         }),
@@ -228,7 +234,8 @@ export default function UserManagement() {
     setSelectedUser(user);
     setEditForm({
       name: user.name,
-      email: user.email,
+      email: user.email || '',
+      phone: user.phone || '',
       role: user.role,
       password: '',
     });
@@ -241,8 +248,8 @@ export default function UserManagement() {
     e.preventDefault();
     if (!selectedUser) return;
 
-    if (!editForm.name.trim() || !editForm.email.trim()) {
-      showToast('error', 'Name and Email are required.');
+    if (!editForm.name.trim() || (!editForm.email.trim() && !editForm.phone.trim())) {
+      showToast('error', 'Name and either Email or Phone are required.');
       return;
     }
 
@@ -255,7 +262,8 @@ export default function UserManagement() {
     try {
       const payload: any = {
         name: editForm.name.trim(),
-        email: editForm.email.trim(),
+        email: editForm.email.trim() || null,
+        phone: editForm.phone.trim() || null,
         role: editForm.role,
       };
 
@@ -466,7 +474,7 @@ export default function UserManagement() {
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search by name or email address..."
+            placeholder="Search by name, email, or phone number..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-20 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
@@ -513,6 +521,7 @@ export default function UserManagement() {
               <tr>
                 <th className="px-3 py-2">User / Profile</th>
                 <th className="px-3 py-2">Email Address</th>
+                <th className="px-3 py-2">Phone Number</th>
                 <th className="px-3 py-2">User Role</th>
                 <th className="px-3 py-2">Created Date</th>
                 <th className="px-3 py-2 text-right">Actions</th>
@@ -521,7 +530,7 @@ export default function UserManagement() {
             <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="py-16 text-center text-slate-400">
+                  <td colSpan={6} className="py-16 text-center text-slate-400">
                     <div className="flex justify-center items-center">
                       <AgroLoader message="Loading users data..." />
                     </div>
@@ -529,7 +538,7 @@ export default function UserManagement() {
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="py-16 text-center text-slate-400">
+                  <td colSpan={6} className="py-16 text-center text-slate-400">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <Users className="w-12 h-12 text-slate-300" />
                       <p className="text-base font-semibold text-slate-700">No users found</p>
@@ -561,7 +570,23 @@ export default function UserManagement() {
 
                       {/* Email */}
                       <td className="px-3 py-1.5 whitespace-nowrap text-slate-600">
-                        <span className="truncate max-w-[200px] inline-block" title={user.email}>{user.email}</span>
+                        {user.email ? (
+                          <span className="truncate max-w-[200px] inline-block font-mono text-[11px]" title={user.email}>{user.email}</span>
+                        ) : (
+                          <span className="text-slate-300 italic text-[10px]">—</span>
+                        )}
+                      </td>
+
+                      {/* Phone Number */}
+                      <td className="px-3 py-1.5 whitespace-nowrap text-slate-700">
+                        {user.phone ? (
+                          <span className="inline-flex items-center gap-1.5 font-mono text-[11px]" title={user.phone}>
+                            <Phone size={12} className="text-slate-400 shrink-0" />
+                            <span>{user.phone}</span>
+                          </span>
+                        ) : (
+                          <span className="text-slate-300 italic text-[10px]">—</span>
+                        )}
                       </td>
 
                       {/* Role */}
@@ -570,7 +595,7 @@ export default function UserManagement() {
                       </td>
 
                       {/* Created Date */}
-                      <td className="px-3 py-1.5 whitespace-nowrap text-slate-500">
+                      <td className="px-3 py-1.5 whitespace-nowrap text-slate-500 font-mono text-[11px]">
                         {new Date(user.createdAt).toLocaleDateString()}
                       </td>
 
@@ -669,16 +694,32 @@ export default function UserManagement() {
               {/* Email */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Email Address (විද්‍යුත් තැපෑල) <span className="text-rose-500">*</span>
+                  Email Address (විද්‍යුත් තැපෑල)
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="email"
-                    required
                     placeholder="user@example.com"
                     value={addForm.email}
                     onChange={(e) => setAddForm({ ...addForm, email: e.target.value })}
+                    className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Phone Number (දුරකථන අංකය)
+                </label>
+                <div className="relative">
+                  <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="tel"
+                    placeholder="e.g. 0771234567"
+                    value={addForm.phone}
+                    onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })}
                     className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                   />
                 </div>
@@ -826,15 +867,31 @@ export default function UserManagement() {
               {/* Email */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
-                  Email Address (විද්‍යුත් තැපෑල) <span className="text-rose-500">*</span>
+                  Email Address (විද්‍යුත් තැපෑල)
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="email"
-                    required
                     value={editForm.email}
                     onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                    className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* Phone */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                  Phone Number (දුරකථන අංකය)
+                </label>
+                <div className="relative">
+                  <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="tel"
+                    placeholder="e.g. 0771234567"
+                    value={editForm.phone}
+                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                     className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                   />
                 </div>
@@ -935,7 +992,7 @@ export default function UserManagement() {
             <div className="bg-rose-50/70 border border-rose-100 rounded-2xl p-4 text-xs text-rose-800 space-y-1.5">
               <p className="font-semibold text-rose-900">Are you sure you want to delete this user?</p>
               <p>
-                <span className="font-bold">{selectedUser.name}</span> ({selectedUser.email}) - {selectedUser.role}
+                <span className="font-bold">{selectedUser.name}</span> ({selectedUser.email || selectedUser.phone || 'No contact'}) - {selectedUser.role}
               </p>
               <p className="text-rose-600">This action is permanent and cannot be undone.</p>
             </div>
@@ -984,7 +1041,7 @@ export default function UserManagement() {
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-900 text-base">{viewingUser.name}</h3>
-                  <p className="text-xs text-gray-500">{viewingUser.email}</p>
+                  <p className="text-xs text-gray-500">{viewingUser.email || viewingUser.phone || 'No contact'}</p>
                 </div>
               </div>
               <button 
@@ -1002,6 +1059,14 @@ export default function UserManagement() {
               </div>
 
               <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <span className="text-slate-400 block mb-0.5">Email Address</span>
+                  <span className="font-mono text-slate-700">{viewingUser.email || '—'}</span>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <span className="text-slate-400 block mb-0.5">Phone Number</span>
+                  <span className="font-mono text-slate-700">{viewingUser.phone || '—'}</span>
+                </div>
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
                   <span className="text-slate-400 block mb-0.5">Account ID</span>
                   <span className="font-mono text-slate-700 select-all break-all">{viewingUser.id}</span>

@@ -396,7 +396,13 @@ export default function ShortCourseDetail() {
 
           <div className="flex items-center gap-2 self-start sm:self-auto">
             <button
-              onClick={() => navigate('/short-courses')}
+              onClick={() => {
+                if (window.history.state && window.history.state.idx > 0) {
+                  navigate(-1);
+                } else {
+                  navigate('/short-courses');
+                }
+              }}
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-all cursor-pointer shadow-2xs"
             >
               <ArrowLeft size={14} />

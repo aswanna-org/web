@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Eye, EyeOff, X, Lock, Mail, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, X, Lock, Mail, Phone, ShieldCheck, ArrowRight } from 'lucide-react';
 
 export default function LoginModal() {
   const { isLoginModalOpen, closeLoginModal, openRegisterModal, login } = useAuth();
+  const [loginMethod, setLoginMethod] = useState<'email' | 'phone'>('email');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
@@ -37,24 +39,37 @@ export default function LoginModal() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    const identifier = loginMethod === 'email' ? email.trim() : phone.trim();
+    if (!identifier) {
+      setError(loginMethod === 'email' ? 'කරුණාකර ඊමේල් ලිපිනය ඇතුළත් කරන්න.' : 'කරුණාකර දුරකථන අංකය ඇතුළත් කරන්න.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/users/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          identifier,
+          email: loginMethod === 'email' ? email.trim() : undefined,
+          phone: loginMethod === 'phone' ? phone.trim() : undefined,
+          password
+        }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Invalid email or password. Please try again.');
+        throw new Error(data.error || 'Invalid credentials. Please try again.');
       }
 
       login(data.user, data.token);
       closeLoginModal();
       setEmail('');
+      setPhone('');
       setPassword('');
 
       // If the logged-in user is an ADMIN, always direct them to the admin dashboard
@@ -110,26 +125,87 @@ export default function LoginModal() {
         {/* Form Body */}
         <div className="p-7 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email Field */}
+            {/* Selection: Sign in via Email or Phone */}
             <div>
               <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5 ml-1">
-                Email Address
+                පිවිසෙන ක්‍රමය (Sign in with) *
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                  <Mail size={16} />
-                </div>
-                <input
-                  type="email"
-                  required
-                  autoFocus
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@aswanna.lk"
-                  className="w-full pl-10 pr-4 py-3 bg-gray-50/80 hover:bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 text-sm text-gray-800 transition-all placeholder:text-gray-400"
-                />
+              <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl border border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginMethod('email');
+                    setError('');
+                  }}
+                  className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    loginMethod === 'email'
+                      ? 'bg-white text-emerald-800 shadow-xs'
+                      : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                >
+                  <Mail size={14} />
+                  <span>විද්‍යුත් තැපෑල (Email)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginMethod('phone');
+                    setError('');
+                  }}
+                  className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    loginMethod === 'phone'
+                      ? 'bg-white text-emerald-800 shadow-xs'
+                      : 'text-gray-500 hover:text-gray-800'
+                  }`}
+                >
+                  <Phone size={14} />
+                  <span>දුරකථන අංකය (Phone)</span>
+                </button>
               </div>
             </div>
+
+            {/* Email Field or Phone Field */}
+            {loginMethod === 'email' ? (
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5 ml-1">
+                  Email Address (විද්‍යුත් තැපෑල)
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                    <Mail size={16} />
+                  </div>
+                  <input
+                    type="email"
+                    required={loginMethod === 'email'}
+                    autoFocus
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="name@domain.com"
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50/80 hover:bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 text-sm text-gray-800 transition-all placeholder:text-gray-400"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5 ml-1">
+                  Phone Number (දුරකථන අංකය)
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
+                    <Phone size={16} />
+                  </div>
+                  <input
+                    type="tel"
+                    required={loginMethod === 'phone'}
+                    autoFocus
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="07X XXXXXXX / +94 7X XXXXXXX"
+                    className="w-full pl-10 pr-4 py-3 bg-gray-50/80 hover:bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 text-sm text-gray-800 transition-all placeholder:text-gray-400"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Password Field */}
             <div>
