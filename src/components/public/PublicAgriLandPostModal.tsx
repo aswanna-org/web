@@ -768,16 +768,14 @@ export default function PublicAgriLandPostModal({
       const currentGndList = slDsd ? getGNDsForDSD(slDsd, slDistrict) : [];
       const gnd = currentGndList.find((g) => g.nameEn.toLowerCase() === slGnd.toLowerCase() || g.nameSi === slGnd);
 
-      // Resolve locationId safely from locations prop or landToEdit
+      // Resolve locationId safely from locations prop or landToEdit (only exact match so DSD/GND are preserved)
       const safeLocList = Array.isArray(locations) ? locations : [];
       const matchedLoc = safeLocList.find((loc) =>
         loc?.districtEn?.toLowerCase() === slDistrict.toLowerCase() &&
         (!slDsd || loc?.divisionalSecretariatEn?.toLowerCase() === slDsd.toLowerCase()) &&
         (!slGnd || loc?.gramaNiladhariDivisionEn?.toLowerCase() === slGnd.toLowerCase())
-      ) || safeLocList.find((loc) =>
-        loc?.districtEn?.toLowerCase() === slDistrict.toLowerCase()
       );
-      const resolvedLocId = landToEdit?.locationId || matchedLoc?.id || null;
+      const resolvedLocId = matchedLoc?.id || null;
 
       const finalImages = imagesList.map((img, idx) => ({
         ...(img.id ? { id: img.id } : {}),

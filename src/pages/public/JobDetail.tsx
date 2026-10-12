@@ -144,11 +144,9 @@ export default function JobDetail() {
   }, [jobIdentifier, API_BASE_URL]);
 
   const handleShare = () => {
-    const targetCat = job?.jobCategory?.slug || categorySlug;
-    const jobUrl = job?.slug
-      ? (targetCat
-          ? `${window.location.origin}/careers/jobs/${targetCat}/${job.slug}`
-          : `${window.location.origin}/careers/jobs/${job.slug}`)
+    const jobSlugOrId = job?.slug || job?.id || jobIdentifier;
+    const jobUrl = jobSlugOrId
+      ? `${API_BASE_URL}/share/careers/${encodeURIComponent(jobSlugOrId)}`
       : window.location.href;
 
     if (navigator.share) {

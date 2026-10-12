@@ -428,9 +428,14 @@ export default function AgroLandDetail() {
     ? (isSinhala ? (land.location.gramaNiladhariDivisionSi || land.location.gramaNiladhariDivisionEn) : land.location.gramaNiladhariDivisionEn)
     : null;
 
-  const locPartsRaw = [gndName, dsdName, districtName, provinceName].filter(Boolean);
-  const locPartsClean = locPartsRaw.filter((p, i) => locPartsRaw.indexOf(p) === i);
-  const locationDisplay = locPartsClean.length > 0 ? locPartsClean.join(', ') : (land.locationStr || 'Sri Lanka');
+  // Format Location parts with explicit administrative labels
+  const locPartsDetailed = [
+    gndName ? (isSinhala ? `${gndName} වසම` : `GN: ${gndName}`) : null,
+    dsdName ? (isSinhala ? `${dsdName} ප්‍රා.ලේ.` : `DSD: ${dsdName}`) : null,
+    districtName,
+    provinceName
+  ].filter(Boolean);
+  const locationDisplay = locPartsDetailed.length > 0 ? locPartsDetailed.join(', ') : (land.locationStr || 'Sri Lanka');
 
   // Price text with currency formatting
   const formatDetailPrice = (val?: string | null, isSi = false) => {
@@ -717,14 +722,75 @@ export default function AgroLandDetail() {
               </h3>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {/* 0. Location */}
-                <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100/80 flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-100/80 text-[#006837] flex items-center justify-center shrink-0">
-                    <MapPin size={18} />
+                {/* 0. Comprehensive Location Breakdown */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-emerald-50/70 via-gray-50 to-emerald-50/30 border border-emerald-100/90 col-span-1 sm:col-span-2 md:col-span-3 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-100/70 pb-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-xl bg-[#006837] text-white flex items-center justify-center shrink-0 shadow-2xs">
+                        <MapPin size={16} />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-gray-900 block">
+                          {isSinhala ? 'ඉඩම පිහිටි පරිපාලන ප්‍රදේශය (පිහිටීම)' : 'Administrative Location Details'}
+                        </span>
+                        <span className="text-[11px] text-gray-500 font-medium block">
+                          {locationDisplay}
+                        </span>
+                      </div>
+                    </div>
+                    {land.locationUrl && (
+                      <a
+                        href={land.locationUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-emerald-800 hover:text-emerald-900 bg-white border border-emerald-200 px-3 py-1.5 rounded-xl font-bold inline-flex items-center gap-1.5 shadow-2xs transition-colors shrink-0"
+                      >
+                        <Compass size={13} />
+                        <span>{isSinhala ? 'Google Maps හි බලන්න' : 'View on Google Maps'}</span>
+                      </a>
+                    )}
                   </div>
-                  <div>
-                    <span className="text-xs text-gray-500 font-semibold block">{isSinhala ? 'පිහිටීම / දිස්ත්‍රික්කය' : 'Administrative Location'}</span>
-                    <span className="text-sm font-bold text-gray-900">{locationDisplay}</span>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    {/* 1. පළාත */}
+                    <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-gray-200/70 shadow-2xs">
+                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">
+                        {isSinhala ? 'පළාත' : 'Province'}
+                      </span>
+                      <span className="text-xs sm:text-sm font-bold text-gray-900 block truncate mt-0.5" title={provinceName || ''}>
+                        {provinceName || '—'}
+                      </span>
+                    </div>
+
+                    {/* 2. දිස්ත්‍රික්කය */}
+                    <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-gray-200/70 shadow-2xs">
+                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">
+                        {isSinhala ? 'දිස්ත්‍රික්කය' : 'District'}
+                      </span>
+                      <span className="text-xs sm:text-sm font-bold text-gray-900 block truncate mt-0.5" title={districtName || ''}>
+                        {districtName || '—'}
+                      </span>
+                    </div>
+
+                    {/* 3. ප්‍රාදේශීය ලේකම් කොට්ඨාසය */}
+                    <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-gray-200/70 shadow-2xs">
+                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">
+                        {isSinhala ? 'ප්‍රා. ලේ. කොට්ඨාසය' : 'Divisional Secretariat'}
+                      </span>
+                      <span className="text-xs sm:text-sm font-bold text-gray-900 block truncate mt-0.5" title={dsdName || ''}>
+                        {dsdName || '—'}
+                      </span>
+                    </div>
+
+                    {/* 4. ග්‍රාම නිලධාරී වසම */}
+                    <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-gray-200/70 shadow-2xs">
+                      <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider block">
+                        {isSinhala ? 'ග්‍රාම නිලධාරී වසම' : 'GN Division'}
+                      </span>
+                      <span className="text-xs sm:text-sm font-bold text-emerald-800 block truncate mt-0.5" title={gndName || ''}>
+                        {gndName || '—'}
+                      </span>
+                    </div>
                   </div>
                 </div>
 

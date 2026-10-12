@@ -98,12 +98,12 @@ export default function ImportantEventsSection() {
                   style={{ background: KNIGHT_RIDER_GRADIENT }}
                 />
 
-                {/* Inner Content Card holding the Banner Image */}
-                <div className="relative z-10 w-full h-full rounded-[20px] sm:rounded-[34px] overflow-hidden bg-white shadow-xs">
+                {/* Inner Content Card holding the Banner Image (Responsive 1920x566 ratio) */}
+                <div className="relative z-10 w-full aspect-[1920/566] rounded-[16px] sm:rounded-[26px] lg:rounded-[34px] overflow-hidden bg-white shadow-xs">
                   <img
                     src={event.imageUrl}
                     alt="Important Event"
-                    className="w-full h-48 sm:h-60 md:h-72 lg:h-80 xl:h-[350px] object-cover object-center rounded-[20px] sm:rounded-[34px] transition-transform duration-500 group-hover:scale-[1.01]"
+                    className="w-full h-full object-cover object-center rounded-[16px] sm:rounded-[26px] lg:rounded-[34px] transition-transform duration-500 group-hover:scale-[1.01]"
                     loading="lazy"
                   />
                 </div>
@@ -117,7 +117,7 @@ export default function ImportantEventsSection() {
                   href={event.hyperlink!}
                   target={event.hyperlink!.startsWith('http') ? '_blank' : '_self'}
                   rel="noopener noreferrer"
-                  className="reveal-fade-up relative block w-full p-[2.5px] sm:p-[3px] rounded-[22px] sm:rounded-[36px] overflow-hidden group shadow-[0_14px_45px_rgba(16,185,129,0.22),0_10px_28px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_55px_rgba(16,185,129,0.32),0_14px_38px_rgba(0,0,0,0.14)] transition-all duration-300 hover:scale-[1.006] active:scale-[0.995] cursor-pointer"
+                  className="reveal-fade-up relative block w-full p-[2px] sm:p-[3px] rounded-[18px] sm:rounded-[28px] lg:rounded-[36px] overflow-hidden group shadow-[0_14px_45px_rgba(16,185,129,0.22),0_10px_28px_rgba(0,0,0,0.08)] hover:shadow-[0_20px_55px_rgba(16,185,129,0.32),0_14px_38px_rgba(0,0,0,0.14)] transition-all duration-300 hover:scale-[1.006] active:scale-[0.995] cursor-pointer"
                 >
                   {bannerCard}
                 </a>
@@ -127,7 +127,7 @@ export default function ImportantEventsSection() {
             return (
               <div
                 key={event.id}
-                className="reveal-fade-up relative block w-full p-[2.5px] sm:p-[3px] rounded-[22px] sm:rounded-[36px] overflow-hidden group shadow-[0_14px_45px_rgba(16,185,129,0.22),0_10px_28px_rgba(0,0,0,0.08)]"
+                className="reveal-fade-up relative block w-full p-[2px] sm:p-[3px] rounded-[18px] sm:rounded-[28px] lg:rounded-[36px] overflow-hidden group shadow-[0_14px_45px_rgba(16,185,129,0.22),0_10px_28px_rgba(0,0,0,0.08)]"
               >
                 {bannerCard}
               </div>

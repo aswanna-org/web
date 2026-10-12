@@ -123,26 +123,35 @@ export default function ShortCourseDetail() {
       });
   }, [slug, API_BASE_URL]);
 
+  const getSocialShareUrl = () => {
+    const courseSlugOrId = course?.slug || slug || '';
+    if (!courseSlugOrId) return window.location.href;
+    return `${API_BASE_URL}/share/short-courses/${encodeURIComponent(courseSlugOrId)}`;
+  };
+
   const handleCopyLink = (urlToCopy?: string) => {
-    const link = urlToCopy || window.location.href;
+    const shareUrl = urlToCopy || getSocialShareUrl();
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(link).then(() => {
+      navigator.clipboard.writeText(shareUrl).then(() => {
         setCopiedLink(true);
         setTimeout(() => setCopiedLink(false), 2500);
+      }).catch(() => {
+        navigator.clipboard.writeText(urlToCopy || window.location.href);
       });
     }
   };
 
   const handleShare = () => {
-    const currentUrl = window.location.href;
+    const shareUrl = getSocialShareUrl();
     const title = course
-      ? (isSinhala ? course.titleSi : (course.titleEn || course.titleSi))
+      ? (isSinhala ? (course.titleSi || course.titleEn) : (course.titleEn || course.titleSi))
       : 'Short Course - Aswanna';
 
     if (navigator.share) {
       navigator.share({
         title,
-        url: currentUrl,
+        text: isSinhala ? `${title} - Aswanna කෙටිකාලීන පාඨමාලාව:` : `Check out this course on Aswanna: ${title}`,
+        url: shareUrl,
       }).catch(() => {});
     } else {
       handleCopyLink();
@@ -850,13 +859,28 @@ export default function ShortCourseDetail() {
               {/* Share */}
               <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
                 <span>{isSinhala ? 'පාඨමාලාව බෙදාහරින්න:' : 'Share this course:'}</span>
-                <button
-                  onClick={handleShare}
-                  className="inline-flex items-center gap-1 text-emerald-800 hover:text-emerald-950 font-bold cursor-pointer"
-                >
-                  {copiedLink ? <Check size={14} className="text-emerald-600" /> : <Share2 size={14} />}
-                  <span>{copiedLink ? (isSinhala ? 'පිටපත් විය!' : 'Copied!') : (isSinhala ? 'සබැඳිය පිටපත් කරන්න' : 'Copy Link')}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const shareUrl = getSocialShareUrl();
+                      const shareTitle = course ? (isSinhala ? (course.titleSi || course.titleEn) : (course.titleEn || course.titleSi)) : 'Aswanna Short Course';
+                      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareTitle + '\n' + shareUrl)}`, '_blank');
+                    }}
+                    title={isSinhala ? 'WhatsApp මඟින් බෙදාහරින්න' : 'Share on WhatsApp'}
+                    className="p-1 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <WhatsAppIcon className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleShare}
+                    className="inline-flex items-center gap-1 text-emerald-800 hover:text-emerald-950 font-bold cursor-pointer"
+                  >
+                    {copiedLink ? <Check size={14} className="text-emerald-600" /> : <Share2 size={14} />}
+                    <span>{copiedLink ? (isSinhala ? 'පිටපත් විය!' : 'Copied!') : (isSinhala ? 'සබැඳිය පිටපත් කරන්න' : 'Copy Link')}</span>
+                  </button>
+                </div>
               </div>
             </div>
 

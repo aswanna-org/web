@@ -85,7 +85,11 @@ export default function PublicationDetail() {
   }, [slug, API_BASE_URL]);
 
   const handleCopyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
+    const pubSlug = publication?.slug || slug;
+    const shareUrl = pubSlug
+      ? `${API_BASE_URL}/share/publications-manuals/${encodeURIComponent(pubSlug)}`
+      : window.location.href;
+    navigator.clipboard.writeText(shareUrl);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
   };

@@ -743,9 +743,12 @@ export default function ImportantEventManagement() {
                     onClick={() => fileInputRef.current?.click()}
                     className="border-2 border-dashed border-gray-300 hover:border-emerald-500 rounded-lg p-5 text-center cursor-pointer bg-gray-50/50 hover:bg-emerald-50/20 transition-all"
                   >
-                    <Upload size={22} className="mx-auto text-gray-400 mb-1" />
+                    <Upload size={22} className="mx-auto text-emerald-600 mb-1" />
                     <p className="font-semibold text-gray-700">Click to upload banner image</p>
-                    <p className="text-[11px] text-gray-400 mt-0.5">PNG, JPG, WEBP recommended</p>
+                    <p className="text-[11px] text-emerald-700 font-semibold mt-0.5">
+                      Recommended size: 1920 × 566 px (Desktop & Mobile)
+                    </p>
+                    <p className="text-[10px] text-gray-400">PNG, JPG, WEBP formats</p>
                   </div>
                 )}
 

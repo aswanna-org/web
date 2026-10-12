@@ -125,19 +125,28 @@ export default function MarketplaceDetail() {
   const images = (item?.images && item.images.length > 0) ? item.images : [];
   const activeImage = images[selectedImageIndex] || images[0];
 
+  const getSocialShareUrl = () => {
+    const itemSlugOrId = item?.slug || targetIdentifier;
+    return itemSlugOrId
+      ? `${API_BASE_URL}/share/marketplace/${encodeURIComponent(itemSlugOrId)}`
+      : window.location.href;
+  };
+
   const handleCopyLink = () => {
+    const shareUrl = getSocialShareUrl();
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(shareUrl);
       setCopiedLink(true);
       setTimeout(() => setCopiedLink(false), 2500);
     }
   };
 
   const handleShare = () => {
+    const shareUrl = getSocialShareUrl();
     if (navigator.share) {
       navigator.share({
         title: displayTitle,
-        url: window.location.href
+        url: shareUrl
       }).catch(() => {});
     } else {
       handleCopyLink();
