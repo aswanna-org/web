@@ -44,6 +44,7 @@ import GovernmentInstitutions from './pages/public/GovernmentInstitutions';
 import PrivateInstitutions from './pages/public/PrivateInstitutions';
 import InternationalInstitutions from './pages/public/InternationalInstitutions';
 import InstitutionDetail from './pages/public/InstitutionDetail';
+import SocialPlatformDetail from './pages/public/SocialPlatformDetail';
 
 // Admin imports
 import AdminLayout from './admin/layouts/AdminLayout';
@@ -69,6 +70,7 @@ import Analytics from './admin/pages/Analytics';
 import Login from './admin/pages/Login';
 import MarketplaceController from './admin/pages/MarketplaceController';
 import ImportantEventManagement from './admin/pages/ImportantEventManagement';
+import SocialLinkManagement from './admin/pages/SocialLinkManagement';
 import { ProtectedRoute } from './admin/components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 
@@ -172,6 +174,9 @@ function App() {
               <Route path="government-institutions" element={<GovernmentInstitutions />} />
               <Route path="private-institutions" element={<PrivateInstitutions />} />
               <Route path="international-institutions" element={<InternationalInstitutions />} />
+              <Route path="social/:platformSlug" element={<SocialPlatformDetail />} />
+              <Route path="social-connect/:platformSlug" element={<SocialPlatformDetail />} />
+              <Route path="community/:platformSlug" element={<SocialPlatformDetail />} />
             </Route>
 
 
@@ -210,6 +215,7 @@ function App() {
               <Route path="users" element={<UserManagement />} />
               <Route path="contacts" element={<ContactManagement />} />
               <Route path="important-events" element={<ImportantEventManagement />} />
+              <Route path="social-links" element={<SocialLinkManagement />} />
             </Route>
           </Routes>
           <CartModal />

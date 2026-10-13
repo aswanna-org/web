@@ -21,7 +21,8 @@ import {
   X,
   BookMarked,
   Store,
-  Calendar
+  Calendar,
+  Share2
 } from 'lucide-react';
 
 interface NavGroup {
@@ -70,6 +71,7 @@ const navGroups: NavGroup[] = [
       { name: 'Blog Management', path: '/admin/blogs', icon: BookOpen },
       { name: 'Publication & Handbook Management', path: '/admin/publications-handbooks', icon: BookMarked },
       { name: 'Important Events', path: '/admin/important-events', icon: Calendar },
+      { name: 'Social Links Management', path: '/admin/social-links', icon: Share2 },
       { name: 'Career Management', path: '/admin/careers', icon: Briefcase },
       { name: 'Gallery Management', path: '/admin/gallery', icon: ImageIcon }
     ]
