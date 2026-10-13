@@ -67,7 +67,7 @@ export default function SocialPlatformsSection() {
   const displayPlatforms = platforms.length > 0 ? platforms : DEFAULT_PLATFORMS;
 
   return (
-    <section className="w-full py-12 sm:py-16 lg:py-20 bg-gray-50/70 font-roboto relative overflow-hidden">
+    <section className="w-full py-8 sm:py-16 lg:py-20 bg-gray-50/70 font-roboto relative overflow-hidden">
       {/* Frosted ambient colored background orbs for true Glassmorphism light refraction */}
       <div className="absolute top-10 left-1/4 w-80 h-80 bg-emerald-200/25 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 right-1/4 w-80 h-80 bg-blue-200/25 rounded-full blur-3xl pointer-events-none" />
@@ -75,14 +75,48 @@ export default function SocialPlatformsSection() {
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
-        <div className="max-w-3xl mx-auto text-center mb-10 sm:mb-14">
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#111827] tracking-tight mb-3">
+        <div className="max-w-3xl mx-auto text-center mb-6 sm:mb-14">
+          <h2 className="text-xl sm:text-3xl lg:text-4xl font-extrabold text-[#111827] tracking-tight mb-2 sm:mb-3">
             {isSinhala ? 'අන්තර්ජාලය ඔස්සේ අප හා එක්වන්න' : 'Connect with us online'}
           </h2>
         </div>
 
-        {/* Platforms Grid - Items aligned at top to allow individual expansion on hover */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 sm:gap-6 items-start">
+        {/* Mobile View: Pure Icons in a Row (No Background) */}
+        <div className="sm:hidden flex items-center justify-center px-2">
+          <div className="grid grid-cols-5 gap-2.5 sm:gap-4 w-full max-w-[360px] mx-auto justify-items-center items-center">
+            {displayPlatforms.map((platform) => {
+              const brand = getBrandConfig(platform.slug || platform.name);
+              const iconSource = platform.icon || platform.imageUrl;
+              const isUrl = iconSource && (iconSource.startsWith('http://') || iconSource.startsWith('https://') || iconSource.startsWith('/'));
+
+              return (
+                <Link
+                  key={`mobile-${platform.id || platform.slug}`}
+                  to={`/social/${platform.slug}`}
+                  title={platform.name}
+                  aria-label={platform.name}
+                  style={{ color: brand.color }}
+                  className="p-1 transition-transform duration-200 hover:scale-120 active:scale-90 flex items-center justify-center cursor-pointer"
+                >
+                  {isUrl ? (
+                    <img
+                      src={iconSource}
+                      alt={platform.name}
+                      className="w-12 h-12 object-contain drop-shadow-xs"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 flex items-center justify-center [&_svg]:!w-12 [&_svg]:!h-12 drop-shadow-xs">
+                      {brand.iconSvg}
+                    </div>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Desktop/Tablet View: Glassmorphic Cards Grid */}
+        <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 sm:gap-6 items-start">
           {displayPlatforms.map((platform) => {
             const brand = getBrandConfig(platform.slug || platform.name);
             const isHovered = hoveredSlug === (platform.slug || platform.id);
