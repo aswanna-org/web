@@ -475,6 +475,11 @@ export default function NurseryDetail() {
 
                       <div className="flex flex-col justify-between min-w-0 grow">
                         <div>
+                          {item.category && (
+                            <span className="inline-block text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-1.5 py-0.2 rounded mb-1 truncate max-w-full">
+                              {isSinhala ? item.category.nameSi || item.category.nameEn : item.category.nameEn || item.category.nameSi}
+                            </span>
+                          )}
                           <h4 className="font-bold text-sm text-gray-800 truncate">
                             {isSinhala
                               ? item.crop?.nameSi || item.crop?.nameEn || 'බෝගය'

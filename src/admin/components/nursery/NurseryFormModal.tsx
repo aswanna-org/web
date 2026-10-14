@@ -111,9 +111,11 @@ export default function NurseryFormModal({
   const [newStockRange, setNewStockRange] = useState('500 - 1,000');
 
   // Fast selling entry temp state
+  const [newFastCategory, setNewFastCategory] = useState('');
   const [newFastCrop, setNewFastCrop] = useState('');
   const [newFastVariety, setNewFastVariety] = useState('');
   const [newFastPrice, setNewFastPrice] = useState('');
+  const [newFastPriceSi, setNewFastPriceSi] = useState('');
   const [newFastPhoto, setNewFastPhoto] = useState('');
   const [newFastBadge, setNewFastBadge] = useState('');
   const [isUploadingFastPhoto, setIsUploadingFastPhoto] = useState(false);
@@ -158,6 +160,7 @@ export default function NurseryFormModal({
         })),
         specialtyIds: (editingItem.specialties || []).map((sp: any) => sp.id || sp.specialtyId),
         fastSellingItems: (editingItem.fastSellingItems || []).map((f) => ({
+          categoryId: f.categoryId || '',
           cropId: f.cropId || '',
           varietyId: f.varietyId || '',
           priceEn: f.priceEn || f.priceSi || '',
@@ -497,8 +500,8 @@ export default function NurseryFormModal({
       setErrorMsg('Maximum 4 fast-selling items can be added.');
       return;
     }
-    if (!newFastCrop && !newFastVariety && !newFastPrice.trim()) {
-      setErrorMsg('Please specify at least Crop or Variety and Price for the fast-selling item.');
+    if (!newFastCategory && !newFastCrop && !newFastVariety && !newFastPrice.trim()) {
+      setErrorMsg('Please specify at least Category, Crop or Variety and Price for the fast-selling item.');
       return;
     }
     setFormData((prev) => ({
@@ -506,18 +509,21 @@ export default function NurseryFormModal({
       fastSellingItems: [
         ...prev.fastSellingItems,
         {
+          categoryId: newFastCategory,
           cropId: newFastCrop,
           varietyId: newFastVariety,
           priceEn: newFastPrice.trim(),
-          priceSi: newFastPrice.trim(),
+          priceSi: newFastPriceSi.trim() || newFastPrice.trim(),
           imageUrl: newFastPhoto.trim(),
           badgeId: newFastBadge
         }
       ]
     }));
+    setNewFastCategory('');
     setNewFastCrop('');
     setNewFastVariety('');
     setNewFastPrice('');
+    setNewFastPriceSi('');
     setNewFastPhoto('');
     setNewFastBadge('');
     setErrorMsg(null);
@@ -669,6 +675,7 @@ export default function NurseryFormModal({
         })),
         specialtyIds: formData.specialtyIds,
         fastSellingItems: formData.fastSellingItems.map((f) => ({
+          categoryId: f.categoryId || null,
           cropId: f.cropId || null,
           varietyId: f.varietyId || null,
           priceEn: f.priceEn.trim() || null,
@@ -787,10 +794,10 @@ export default function NurseryFormModal({
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                  Nursery Name *
+                  Nursery Name (English) *
                 </label>
                 <input
                   type="text"
@@ -804,13 +811,41 @@ export default function NurseryFormModal({
 
               <div>
                 <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                  Owner's Name *
+                  තවානේ නම (Sinhala / සිංහලෙන්)
+                </label>
+                <input
+                  type="text"
+                  value={formData.nameSi}
+                  onChange={(e) => setFormData({ ...formData, nameSi: e.target.value })}
+                  placeholder="උදා: සරබිම පැළ තවාන සහ කෘෂි මධ්‍යස්ථානය"
+                  className="w-full px-3.5 py-2 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all placeholder:text-gray-400"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                  Owner's Name (English)
                 </label>
                 <input
                   type="text"
                   value={formData.ownerNameEn}
                   onChange={(e) => setFormData({ ...formData, ownerNameEn: e.target.value, ownerNameSi: formData.ownerNameSi || e.target.value })}
                   placeholder="e.g. Mr. K. R. Gunasekara"
+                  className="w-full px-3.5 py-2 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all placeholder:text-gray-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                  හිමිකරුගේ නම (Sinhala / සිංහලෙන්)
+                </label>
+                <input
+                  type="text"
+                  value={formData.ownerNameSi}
+                  onChange={(e) => setFormData({ ...formData, ownerNameSi: e.target.value })}
+                  placeholder="උදා: කේ. ආර්. ගුණසේකර මහතා"
                   className="w-full px-3.5 py-2 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all placeholder:text-gray-400"
                 />
               </div>
@@ -977,21 +1012,38 @@ export default function NurseryFormModal({
             </div>
 
             {/* Full Physical Address */}
-            <div>
-              <label className="block text-[11px] font-semibold text-gray-600 mb-1">
-                Full Physical Address *
-              </label>
-              <input
-                type="text"
-                value={formData.fullAddressEn}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  fullAddressEn: e.target.value,
-                  fullAddressSi: formData.fullAddressSi || e.target.value
-                })}
-                placeholder="e.g. No. 45, Kurunegala Road, Narammala."
-                className="w-full px-3 py-2 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all placeholder:text-gray-400"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-gray-600 mb-1">
+                  Full Physical Address (English) *
+                </label>
+                <input
+                  type="text"
+                  value={formData.fullAddressEn}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    fullAddressEn: e.target.value,
+                    fullAddressSi: formData.fullAddressSi || e.target.value
+                  })}
+                  placeholder="e.g. No. 45, Kurunegala Road, Narammala."
+                  className="w-full px-3 py-2 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all placeholder:text-gray-400"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold text-gray-600 mb-1">
+                  සම්පූර්ණ ලිපිනය (Sinhala / සිංහලෙන්)
+                </label>
+                <input
+                  type="text"
+                  value={formData.fullAddressSi}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    fullAddressSi: e.target.value
+                  })}
+                  placeholder="උදා: නො. 45, කුරුණෑගල පාර, නාරම්මල."
+                  className="w-full px-3 py-2 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all placeholder:text-gray-400"
+                />
+              </div>
             </div>
           </div>
 
@@ -1295,8 +1347,26 @@ export default function NurseryFormModal({
             {/* Input Form Bar */}
             {formData.fastSellingItems.length < 4 ? (
               <div className="p-4 sm:p-5 bg-gray-50/70 border border-gray-200 rounded-xl space-y-4">
-                {/* 1. Fields Row: Crop, Variety, Unit Price, Badge (English labels only) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {/* 1. Fields Row: Category, Crop, Variety, Unit Price, Badge */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                      Crop Category
+                    </label>
+                    <select
+                      value={newFastCategory}
+                      onChange={(e) => setNewFastCategory(e.target.value)}
+                      className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-hidden focus:ring-1 focus:ring-rose-500"
+                    >
+                      <option value="">Select Category...</option>
+                      {options.categories.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.nameEn || cat.nameSi}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   <div>
                     <label className="block text-[11px] font-semibold text-gray-700 mb-1">
                       Crop Name
@@ -1340,7 +1410,10 @@ export default function NurseryFormModal({
                     <input
                       type="text"
                       value={newFastPrice}
-                      onChange={(e) => setNewFastPrice(e.target.value)}
+                      onChange={(e) => {
+                        setNewFastPrice(e.target.value);
+                        if (!newFastPriceSi) setNewFastPriceSi(e.target.value);
+                      }}
                       placeholder="e.g. Rs. 750 (per plant)"
                       className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-hidden focus:ring-1 focus:ring-rose-500"
                     />
@@ -1487,6 +1560,7 @@ export default function NurseryFormModal({
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                 {formData.fastSellingItems.map((item, idx) => {
+                  const catObj = options.categories?.find((c) => c.id === item.categoryId);
                   const cropObj = options.crops.find((c) => c.id === item.cropId);
                   const varietyObj = options.varieties.find((v) => v.id === item.varietyId);
                   const badgeObj = options.badges?.find((b) => b.id === item.badgeId);
@@ -1510,6 +1584,11 @@ export default function NurseryFormModal({
                         )}
                         <div className="min-w-0">
                           <div className="flex items-center gap-1.5 flex-wrap">
+                            {catObj && (
+                              <span className="text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded truncate">
+                                {catObj.nameEn || catObj.nameSi}
+                              </span>
+                            )}
                             <span className="text-xs font-bold text-gray-900 truncate">
                               {cropObj?.nameEn || cropObj?.nameSi || 'Crop'}
                             </span>
@@ -1776,21 +1855,39 @@ export default function NurseryFormModal({
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1.5">
-                  Nursery Description & Overview *
-                </label>
-                <textarea
-                  rows={3}
-                  value={formData.descriptionEn}
-                  onChange={(e) => setFormData({
-                    ...formData,
-                    descriptionEn: e.target.value,
-                    descriptionSi: formData.descriptionSi || e.target.value
-                  })}
-                  placeholder="e.g. Registered with the Department of Agriculture with over 18 years of experience. Large scale commercial fruit and timber plant provider..."
-                  className="w-full px-3.5 py-2.5 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 placeholder:text-gray-400"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    Nursery Description & Overview (English) *
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formData.descriptionEn}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      descriptionEn: e.target.value,
+                      descriptionSi: formData.descriptionSi || e.target.value
+                    })}
+                    placeholder="e.g. Registered with the Department of Agriculture with over 18 years of experience..."
+                    className="w-full px-3.5 py-2.5 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 placeholder:text-gray-400"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5">
+                    තවාන පිළිබඳ විස්තරය (Sinhala / සිංහලෙන්)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formData.descriptionSi}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      descriptionSi: e.target.value
+                    })}
+                    placeholder="උදා: කෘෂිකර්ම දෙපාර්තමේන්තුවේ ලියාපදිංචි වසර 18 කට අධික පළපුරුද්ද සහිත උසස් ප්‍රමිතියේ පැළ සපයන්නා..."
+                    className="w-full px-3.5 py-2.5 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 placeholder:text-gray-400"
+                  />
+                </div>
               </div>
             </div>
           </div>

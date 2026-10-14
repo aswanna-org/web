@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, type ChangeEvent, type DragEvent } from 'react';
+import React, { useState, useEffect, useRef, type ChangeEvent, type DragEvent } from 'react';
 import { X, ChevronLeft, ChevronRight, UploadCloud, RefreshCw, Trash2, Check } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import {
   SRI_LANKA_PROVINCES,
@@ -18,15 +19,6 @@ interface PublicNurseryPostModalProps {
 
 type StepNumber = 1 | 2 | 3 | 4 | 5 | 6;
 
-const STEPS: { num: StepNumber; label: string }[] = [
-  { num: 1, label: 'Basic Info' },
-  { num: 2, label: 'Location' },
-  { num: 3, label: 'Facilities' },
-  { num: 4, label: 'Photos' },
-  { num: 5, label: 'Featured Plants' },
-  { num: 6, label: 'Stocks & Submit' }
-];
-
 const DRAFT_PREFIX = 'aswanna_public_nursery_draft_';
 const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -36,6 +28,8 @@ export default function PublicNurseryPostModal({
   onSuccess,
   options: externalOptions
 }: PublicNurseryPostModalProps) {
+  const { i18n } = useTranslation();
+  const isSi = i18n.language === 'si';
   const { user, token } = useAuth();
 
   const [internalOptions, setInternalOptions] = useState<FormDropdownOptions>({
@@ -60,11 +54,14 @@ export default function PublicNurseryPostModal({
   const [successSubmitted, setSuccessSubmitted] = useState(false);
   const [draftRestored, setDraftRestored] = useState(false);
 
-  // Form State - Single Language, Professional
-  const [name, setName] = useState('');
-  const [ownerName, setOwnerName] = useState('');
+  // Form State - Bilingual
+  const [nameEn, setNameEn] = useState('');
+  const [nameSi, setNameSi] = useState('');
+  const [ownerNameEn, setOwnerNameEn] = useState('');
+  const [ownerNameSi, setOwnerNameSi] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
-  const [description, setDescription] = useState('');
+  const [descriptionEn, setDescriptionEn] = useState('');
+  const [descriptionSi, setDescriptionSi] = useState('');
 
   // Location
   const [provinceEn, setProvinceEn] = useState('Western');
@@ -75,7 +72,8 @@ export default function PublicNurseryPostModal({
   const [dsdSi, setDsdSi] = useState('');
   const [gndEn, setGndEn] = useState('');
   const [gndSi, setGndSi] = useState('');
-  const [fullAddress, setFullAddress] = useState('');
+  const [fullAddressEn, setFullAddressEn] = useState('');
+  const [fullAddressSi, setFullAddressSi] = useState('');
   const [googleMapsUrl, setGoogleMapsUrl] = useState('');
 
   // Facilities / Operations
@@ -92,11 +90,13 @@ export default function PublicNurseryPostModal({
   const [isDraggingPhotos, setIsDraggingPhotos] = useState(false);
   const photosInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Featured Plants (max 4)
+  // Featured / Fast-Selling Plants (max 4)
   const [fastSellingItems, setFastSellingItems] = useState<NurseryFastSellingItem[]>([]);
+  const [newFastCategory, setNewFastCategory] = useState('');
   const [newFastCrop, setNewFastCrop] = useState('');
   const [newFastVariety, setNewFastVariety] = useState('');
   const [newFastPrice, setNewFastPrice] = useState('');
+  const [newFastPriceSi, setNewFastPriceSi] = useState('');
   const [newFastBadge, setNewFastBadge] = useState('');
   const [newFastPhoto, setNewFastPhoto] = useState('');
   const [isUploadingFastPhoto, setIsUploadingFastPhoto] = useState(false);
@@ -107,11 +107,21 @@ export default function PublicNurseryPostModal({
   const [stocks, setStocks] = useState<NurseryStockItem[]>([]);
   const [newStockCategory, setNewStockCategory] = useState('');
   const [newStockCrop, setNewStockCrop] = useState('');
+  const [newStockVariety, setNewStockVariety] = useState('');
   const [newStockRange, setNewStockRange] = useState('500 - 1,000');
   const [specialtyIds, setSpecialtyIds] = useState<string[]>([]);
 
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
   const draftKey = `${DRAFT_PREFIX}${user?.id || 'anonymous'}`;
+
+  const stepsList: { num: StepNumber; label: string }[] = [
+    { num: 1, label: isSi ? 'මූලික තොරතුරු' : 'Basic Info' },
+    { num: 2, label: isSi ? 'පිහිටීම' : 'Location' },
+    { num: 3, label: isSi ? 'පහසුකම්' : 'Facilities' },
+    { num: 4, label: isSi ? 'ඡායාරූප' : 'Photos' },
+    { num: 5, label: isSi ? 'විශේෂ පැළ' : 'Featured Plants' },
+    { num: 6, label: isSi ? 'තොග සහ ඉදිරිපත් කිරීම' : 'Stocks & Submit' }
+  ];
 
   // Fetch form options fallback if not passed
   useEffect(() => {
@@ -140,10 +150,13 @@ export default function PublicNurseryPostModal({
         const now = Date.now();
         if (parsed && parsed.savedAt && now - parsed.savedAt <= DRAFT_TTL_MS) {
           const d = parsed.data || {};
-          setName(d.name || d.nameEn || d.nameSi || '');
-          setOwnerName(d.ownerName || d.ownerNameEn || d.ownerNameSi || '');
+          setNameEn(d.nameEn || d.name || '');
+          setNameSi(d.nameSi || d.name || '');
+          setOwnerNameEn(d.ownerNameEn || d.ownerName || '');
+          setOwnerNameSi(d.ownerNameSi || d.ownerName || '');
           setWhatsappNumber(d.whatsappNumber || '');
-          setDescription(d.description || d.descriptionEn || d.descriptionSi || '');
+          setDescriptionEn(d.descriptionEn || d.description || '');
+          setDescriptionSi(d.descriptionSi || d.description || '');
           setProvinceEn(d.provinceEn || 'Western');
           setProvinceSi(d.provinceSi || 'බස්නාහිර');
           setDistrictEn(d.districtEn || 'Colombo');
@@ -152,7 +165,8 @@ export default function PublicNurseryPostModal({
           setDsdSi(d.dsdSi || '');
           setGndEn(d.gndEn || '');
           setGndSi(d.gndSi || '');
-          setFullAddress(d.fullAddress || d.fullAddressEn || d.fullAddressSi || '');
+          setFullAddressEn(d.fullAddressEn || d.fullAddress || '');
+          setFullAddressSi(d.fullAddressSi || d.fullAddress || '');
           setGoogleMapsUrl(d.googleMapsUrl || '');
           setIsGovRegistered(Boolean(d.isGovRegistered));
           setCertificateNo(d.certificateNo || '');
@@ -180,17 +194,20 @@ export default function PublicNurseryPostModal({
   // Auto-persist draft for 7 days
   useEffect(() => {
     if (!isOpen || successSubmitted) return;
-    const hasData = Boolean(name || whatsappNumber || uploadedPhotos.length > 0);
+    const hasData = Boolean(nameEn || nameSi || whatsappNumber || uploadedPhotos.length > 0);
     if (!hasData) return;
 
     try {
       const payload = {
         savedAt: Date.now(),
         data: {
-          name,
-          ownerName,
+          nameEn,
+          nameSi,
+          ownerNameEn,
+          ownerNameSi,
           whatsappNumber,
-          description,
+          descriptionEn,
+          descriptionSi,
           provinceEn,
           provinceSi,
           districtEn,
@@ -199,7 +216,8 @@ export default function PublicNurseryPostModal({
           dsdSi,
           gndEn,
           gndSi,
-          fullAddress,
+          fullAddressEn,
+          fullAddressSi,
           googleMapsUrl,
           isGovRegistered,
           certificateNo,
@@ -221,10 +239,13 @@ export default function PublicNurseryPostModal({
   }, [
     isOpen,
     successSubmitted,
-    name,
-    ownerName,
+    nameEn,
+    nameSi,
+    ownerNameEn,
+    ownerNameSi,
     whatsappNumber,
-    description,
+    descriptionEn,
+    descriptionSi,
     provinceEn,
     provinceSi,
     districtEn,
@@ -233,7 +254,8 @@ export default function PublicNurseryPostModal({
     dsdSi,
     gndEn,
     gndSi,
-    fullAddress,
+    fullAddressEn,
+    fullAddressSi,
     googleMapsUrl,
     isGovRegistered,
     certificateNo,
@@ -252,11 +274,15 @@ export default function PublicNurseryPostModal({
   const handleDiscardDraft = () => {
     localStorage.removeItem(draftKey);
     localStorage.removeItem(`${DRAFT_PREFIX}anonymous`);
-    setName('');
-    setOwnerName('');
+    setNameEn('');
+    setNameSi('');
+    setOwnerNameEn('');
+    setOwnerNameSi('');
     setWhatsappNumber('');
-    setDescription('');
-    setFullAddress('');
+    setDescriptionEn('');
+    setDescriptionSi('');
+    setFullAddressEn('');
+    setFullAddressSi('');
     setGoogleMapsUrl('');
     setIsGovRegistered(false);
     setCertificateNo('');
@@ -267,6 +293,7 @@ export default function PublicNurseryPostModal({
     setUploadedPhotos([]);
     setFastSellingItems([]);
     setStocks([]);
+    setNewStockVariety('');
     setSpecialtyIds([]);
     setCurrentStep(1);
     setDraftRestored(false);
@@ -285,7 +312,11 @@ export default function PublicNurseryPostModal({
     const MAX_SIZE = 50 * 1024 * 1024;
     for (const file of filesToUpload) {
       if (file.size > MAX_SIZE) {
-        setErrorMsg(`Photo "${file.name}" exceeds the 50MB maximum limit.`);
+        setErrorMsg(
+          isSi
+            ? `"${file.name}" ඡායාරූපය උපරිම 50MB සීමාව ඉක්මවයි.`
+            : `Photo "${file.name}" exceeds the 50MB maximum limit.`
+        );
         return;
       }
     }
@@ -330,10 +361,10 @@ export default function PublicNurseryPostModal({
         }
       }
 
-      throw new Error('Image upload failed. Please verify format and size.');
+      throw new Error(isSi ? 'ඡායාරූප උඩුගත කිරීම අසාර්ථක විය.' : 'Image upload failed. Please verify format and size.');
     } catch (err: any) {
       console.error('Photo upload error:', err);
-      setErrorMsg(err.message || 'Image upload failed.');
+      setErrorMsg(err.message || (isSi ? 'ඡායාරූප උඩුගත කිරීම අසාර්ථක විය.' : 'Image upload failed.'));
     } finally {
       setIsUploadingPhotos(false);
     }
@@ -343,7 +374,11 @@ export default function PublicNurseryPostModal({
   const handleFastPhotoUpload = async (file: File) => {
     const MAX_SIZE = 50 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
-      setErrorMsg(`Photo "${file.name}" exceeds 50MB limit.`);
+      setErrorMsg(
+        isSi
+          ? `"${file.name}" ඡායාරූපය උපරිම 50MB සීමාව ඉක්මවයි.`
+          : `Photo "${file.name}" exceeds 50MB limit.`
+      );
       return;
     }
 
@@ -386,21 +421,25 @@ export default function PublicNurseryPostModal({
           return;
         }
       }
-      throw new Error('Plant photo upload failed.');
+      throw new Error(isSi ? 'පැළයේ ඡායාරූපය උඩුගත කිරීම අසාර්ථක විය.' : 'Plant photo upload failed.');
     } catch (err: any) {
-      setErrorMsg(err.message || 'Plant photo upload failed.');
+      setErrorMsg(err.message || (isSi ? 'පැළයේ ඡායාරූපය උඩුගත කිරීම අසාර්ථක විය.' : 'Plant photo upload failed.'));
     } finally {
       setIsUploadingFastPhoto(false);
     }
   };
 
   const handleAddFastItem = () => {
-    if (!newFastCrop) {
-      setErrorMsg('Please select a crop for the featured plant.');
+    if (!newFastCategory && !newFastCrop) {
+      setErrorMsg(
+        isSi
+          ? 'කරුණාකර අවම වශයෙන් බෝග ප්‍රවර්ගය හෝ බෝගය තෝරන්න.'
+          : 'Please select at least Crop Category or Crop Name for the featured plant.'
+      );
       return;
     }
     if (fastSellingItems.length >= 4) {
-      setErrorMsg('Maximum 4 featured plants allowed.');
+      setErrorMsg(isSi ? 'උපරිම විශේෂ පැළ වර්ග 4ක් පමණි.' : 'Maximum 4 featured plants allowed.');
       return;
     }
 
@@ -408,26 +447,29 @@ export default function PublicNurseryPostModal({
       ...prev,
       {
         id: `temp_${Date.now()}`,
-        cropId: newFastCrop,
+        categoryId: newFastCategory || null,
+        cropId: newFastCrop || null,
         varietyId: newFastVariety || null,
         priceEn: newFastPrice.trim() || null,
-        priceSi: newFastPrice.trim() || null,
+        priceSi: newFastPriceSi.trim() || newFastPrice.trim() || null,
         imageUrl: newFastPhoto || null,
         badgeId: newFastBadge || null
       }
     ]);
 
+    setNewFastCategory('');
     setNewFastCrop('');
     setNewFastVariety('');
     setNewFastPrice('');
+    setNewFastPriceSi('');
     setNewFastBadge('');
     setNewFastPhoto('');
     setErrorMsg(null);
   };
 
   const handleAddStock = () => {
-    if (!newStockCrop) {
-      setErrorMsg('Please select a crop for the available stock.');
+    if (!newStockCategory && !newStockCrop) {
+      setErrorMsg(isSi ? 'කරුණාකර තොග සඳහා බෝගය හෝ ප්‍රවර්ගය තෝරන්න.' : 'Please select a crop or category for the available stock.');
       return;
     }
 
@@ -436,13 +478,14 @@ export default function PublicNurseryPostModal({
       {
         id: `temp_stock_${Date.now()}`,
         categoryId: newStockCategory || null,
-        cropId: newStockCrop,
-        varietyId: null,
+        cropId: newStockCrop || null,
+        varietyId: newStockVariety || null,
         stockRangeEn: newStockRange,
         stockRangeSi: newStockRange
       }
     ]);
 
+    setNewStockVariety('');
     setNewStockCrop('');
     setErrorMsg(null);
   };
@@ -450,22 +493,22 @@ export default function PublicNurseryPostModal({
   const validateStep = (step: StepNumber): boolean => {
     setErrorMsg(null);
     if (step === 1) {
-      if (!name.trim()) {
-        setErrorMsg('Nursery name is required.');
+      if (!nameEn.trim() && !nameSi.trim()) {
+        setErrorMsg(isSi ? 'තවානේ නම ඇතුළත් කිරීම අනිවාර්ය වේ.' : 'Nursery name is required.');
         return false;
       }
       if (!whatsappNumber.trim()) {
-        setErrorMsg('WhatsApp or phone number is required.');
+        setErrorMsg(isSi ? 'WhatsApp හෝ දුරකථන අංකය ඇතුළත් කිරීම අනිවාර්ය වේ.' : 'WhatsApp or phone number is required.');
         return false;
       }
     }
     if (step === 2) {
       if (!provinceEn || !districtEn) {
-        setErrorMsg('Province and district are required.');
+        setErrorMsg(isSi ? 'පළාත සහ දිස්ත්‍රික්කය තෝරාගැනීම අනිවාර්ය වේ.' : 'Province and district are required.');
         return false;
       }
-      if (!fullAddress.trim()) {
-        setErrorMsg('Physical address is required.');
+      if (!fullAddressEn.trim() && !fullAddressSi.trim()) {
+        setErrorMsg(isSi ? 'තවානේ ලිපිනය ඇතුළත් කිරීම අනිවාර්ය වේ.' : 'Physical address is required.');
         return false;
       }
     }
@@ -488,29 +531,35 @@ export default function PublicNurseryPostModal({
 
     const activeToken = token || localStorage.getItem('token') || localStorage.getItem('admin_token');
     if (!activeToken) {
-      setErrorMsg('You must be signed in to submit a plant nursery.');
+      setErrorMsg(isSi ? 'තවාන ඉදිරිපත් කිරීමට කරුණාකර පළමුව ලොග් වන්න.' : 'You must be signed in to submit a plant nursery.');
       return;
     }
 
-    if (!name.trim() || !whatsappNumber.trim()) {
+    const finalNameEn = nameEn.trim() || nameSi.trim();
+    const finalNameSi = nameSi.trim() || nameEn.trim();
+
+    if (!finalNameEn || !whatsappNumber.trim()) {
       setCurrentStep(1);
-      setErrorMsg('Nursery name and phone number are required.');
+      setErrorMsg(isSi ? 'තවානේ නම සහ දුරකථන අංකය ඇතුළත් කිරීම අනිවාර්ය වේ.' : 'Nursery name and phone number are required.');
       return;
     }
 
-    if (!fullAddress.trim()) {
+    const finalAddressEn = fullAddressEn.trim() || fullAddressSi.trim();
+    const finalAddressSi = fullAddressSi.trim() || fullAddressEn.trim();
+
+    if (!finalAddressEn) {
       setCurrentStep(2);
-      setErrorMsg('Physical address is required.');
+      setErrorMsg(isSi ? 'තවානේ ලිපිනය ඇතුළත් කිරීම අනිවාර්ය වේ.' : 'Physical address is required.');
       return;
     }
 
     setIsSubmitting(true);
     try {
       const payload = {
-        nameEn: name.trim(),
-        nameSi: name.trim(),
-        ownerNameEn: ownerName.trim() || null,
-        ownerNameSi: ownerName.trim() || null,
+        nameEn: finalNameEn,
+        nameSi: finalNameSi,
+        ownerNameEn: ownerNameEn.trim() || ownerNameSi.trim() || null,
+        ownerNameSi: ownerNameSi.trim() || ownerNameEn.trim() || null,
         whatsappNumber: whatsappNumber.trim(),
         isGovRegistered,
         certificateNo: certificateNo.trim() || null,
@@ -519,8 +568,8 @@ export default function PublicNurseryPostModal({
         operatingHoursId: operatingHoursId || null,
         certificationId: certificationId || null,
         googleMapsUrl: googleMapsUrl.trim() || null,
-        descriptionEn: description.trim() || null,
-        descriptionSi: description.trim() || null,
+        descriptionEn: descriptionEn.trim() || descriptionSi.trim() || null,
+        descriptionSi: descriptionSi.trim() || descriptionEn.trim() || null,
         location: {
           provinceEn,
           provinceSi,
@@ -530,8 +579,8 @@ export default function PublicNurseryPostModal({
           divisionalSecretariatSi: dsdSi.trim() || null,
           gramaNiladhariDivisionEn: gndEn.trim() || null,
           gramaNiladhariDivisionSi: gndSi.trim() || null,
-          fullAddressEn: fullAddress.trim(),
-          fullAddressSi: fullAddress.trim()
+          fullAddressEn: finalAddressEn,
+          fullAddressSi: finalAddressSi
         },
         images: uploadedPhotos.map((url, idx) => ({
           imageUrl: url,
@@ -546,6 +595,7 @@ export default function PublicNurseryPostModal({
         })),
         specialtyIds,
         fastSellingItems: fastSellingItems.map((f) => ({
+          categoryId: f.categoryId || null,
           cropId: f.cropId || null,
           varietyId: f.varietyId || null,
           priceEn: f.priceEn?.trim() || null,
@@ -566,7 +616,7 @@ export default function PublicNurseryPostModal({
 
       const json = await res.json();
       if (!res.ok) {
-        throw new Error(json.error || json.message || 'Failed to submit nursery.');
+        throw new Error(json.error || json.message || (isSi ? 'තවාන ලියාපදිංචි කිරීම අසාර්ථක විය.' : 'Failed to submit nursery.'));
       }
 
       localStorage.removeItem(draftKey);
@@ -576,7 +626,7 @@ export default function PublicNurseryPostModal({
       onSuccess();
     } catch (err: any) {
       console.error('Submission error:', err);
-      setErrorMsg(err.message || 'Failed to submit nursery. Please try again.');
+      setErrorMsg(err.message || (isSi ? 'තවාන ඉදිරිපත් කිරීම අසාර්ථක විය. නැවත උත්සාහ කරන්න.' : 'Failed to submit nursery. Please try again.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -588,30 +638,60 @@ export default function PublicNurseryPostModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-xs font-sans">
       <div className="relative w-full max-w-5xl max-h-[95vh] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col">
         
-        {/* Header - Minimal & Professional */}
+        {/* Header - Minimal & Professional with Language Toggle */}
         <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
           <div>
             <h2 className="text-base sm:text-lg font-bold text-gray-900">
-              Register Plant Nursery
+              {isSi ? 'පැළ තවානක් ලියාපදිංචි කිරීම' : 'Register Plant Nursery'}
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">
-              Submit your nursery profile for review and listing on Aswanna.
+              {isSi
+                ? 'ඔබගේ පැළ තවාන අස්වැන්න (Aswanna) හි ලැයිස්තුගත කිරීමට තොරතුරු ඇතුළත් කරන්න.'
+                : 'Submit your nursery profile for review and listing on Aswanna.'}
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
-          >
-            <X size={18} />
-          </button>
+          <div className="flex items-center gap-2">
+            {/* Language Switcher Badge */}
+            <div className="flex items-center bg-gray-100 p-0.5 rounded-lg border border-gray-200 text-xs font-semibold">
+              <button
+                type="button"
+                onClick={() => i18n.changeLanguage('en')}
+                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                  !isSi
+                    ? 'bg-white text-gray-900 shadow-2xs font-bold'
+                    : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                English
+              </button>
+              <button
+                type="button"
+                onClick={() => i18n.changeLanguage('si')}
+                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                  isSi
+                    ? 'bg-[#006837] text-white shadow-2xs font-bold'
+                    : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                සිංහල
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
-        {/* Material UI Styled Tabs Bar */}
+        {/* Tabs Bar */}
         <div className="bg-white border-b border-gray-200 px-6 overflow-x-auto scrollbar-none">
           <div className="flex items-center gap-6 sm:gap-8 min-w-max">
-            {STEPS.map((s) => {
+            {stepsList.map((s) => {
               const isCurrent = currentStep === s.num;
               const isDone = currentStep > s.num;
 
@@ -644,7 +724,7 @@ export default function PublicNurseryPostModal({
                   </span>
                   <span>{s.label}</span>
 
-                  {/* Material UI active indicator underline */}
+                  {/* Active indicator underline */}
                   {isCurrent && (
                     <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#006837] rounded-t-sm" />
                   )}
@@ -659,13 +739,13 @@ export default function PublicNurseryPostModal({
           {/* Draft Restored Banner */}
           {draftRestored && (
             <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 text-xs">
-              <span>Restored your saved draft (valid for 7 days).</span>
+              <span>{isSi ? 'ඔබගේ පෙර සුරකින ලද කෙටුම්පත ප්‍රතිස්ථාපනය කෙරිණි (දින 7ක් වලංගුයි).' : 'Restored your saved draft (valid for 7 days).'}</span>
               <button
                 type="button"
                 onClick={handleDiscardDraft}
                 className="text-gray-900 font-semibold underline text-xs cursor-pointer ml-3"
               >
-                Discard Draft
+                {isSi ? 'කෙටුම්පත ඉවත් කරන්න' : 'Discard Draft'}
               </button>
             </div>
           )}
@@ -673,7 +753,9 @@ export default function PublicNurseryPostModal({
           {/* Login prompt if anonymous */}
           {!user && (
             <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 text-xs">
-              You can complete these fields now. You will be prompted to log in when submitting.
+              {isSi
+                ? 'ඔබට දැන් මෙම තොරතුරු පිරවිය හැක. අවසන් ඉදිරිපත් කිරීමේදී ලොග් වීමට අවශ්‍ය වනු ඇත.'
+                : 'You can complete these fields now. You will be prompted to log in when submitting.'}
             </div>
           )}
 
@@ -690,10 +772,12 @@ export default function PublicNurseryPostModal({
                 <Check size={24} />
               </div>
               <h3 className="text-lg font-bold text-gray-900">
-                Nursery Submitted Successfully
+                {isSi ? 'තවාන සාර්ථකව ඉදිරිපත් කරන ලදී' : 'Nursery Submitted Successfully'}
               </h3>
               <p className="text-xs text-gray-600 max-w-md mx-auto leading-relaxed">
-                Your nursery listing has been submitted for administrative verification. It will appear publicly on the Aswanna Plant Finder portal once approved.
+                {isSi
+                  ? 'ඔබගේ තවාන් විස්තර අපගේ පරිපාලන අංශය වෙත යොමු කර ඇත. තහවුරු කිරීමෙන් පසු අස්වැන්න (Aswanna) වෙබ් අඩවියේ ප්‍රදර්ශනය වනු ඇත.'
+                  : 'Your nursery listing has been submitted for administrative verification. It will appear publicly on the Aswanna Plant Finder portal once approved.'}
               </p>
               <div className="pt-3">
                 <button
@@ -701,7 +785,7 @@ export default function PublicNurseryPostModal({
                   onClick={onClose}
                   className="px-6 py-2 text-xs font-bold text-white bg-[#006837] hover:bg-[#00522c] rounded-xl transition-all cursor-pointer shadow-xs"
                 >
-                  Done
+                  {isSi ? 'සම්පූර්ණයි' : 'Done'}
                 </button>
               </div>
             </div>
@@ -712,20 +796,28 @@ export default function PublicNurseryPostModal({
               {currentStep === 1 && (
                 <div className="space-y-4">
                   <div className="border-b border-gray-100 pb-2">
-                    <h3 className="text-sm font-bold text-gray-900">1. Basic Nursery Information</h3>
-                    <p className="text-xs text-gray-500">Provide official nursery name and direct contact numbers.</p>
+                    <h3 className="text-sm font-bold text-gray-900">
+                      {isSi ? '1. මූලික තවාන් තොරතුරු' : '1. Basic Nursery Information'}
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      {isSi
+                        ? 'තවානේ නම, හිමිකරුගේ නම සහ සෘජු දුරකථන අංක ලබාදෙන්න.'
+                        : 'Provide official nursery name and direct contact numbers.'}
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Nursery Name *
+                        {isSi ? 'තවානේ නම (English)' : 'Nursery Name (English) *'}
                       </label>
                       <input
                         type="text"
-                        required
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
+                        value={nameEn}
+                        onChange={(e) => {
+                          setNameEn(e.target.value);
+                          if (!nameSi) setNameSi(e.target.value);
+                        }}
                         placeholder="e.g. Green Meadows Plant Nursery"
                         className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
                       />
@@ -733,12 +825,31 @@ export default function PublicNurseryPostModal({
 
                     <div>
                       <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Owner / Manager Name
+                        {isSi ? 'තවානේ නම (සිංහලෙන්) *' : 'Nursery Name (Sinhala / සිංහලෙන්)'}
                       </label>
                       <input
                         type="text"
-                        value={ownerName}
-                        onChange={(e) => setOwnerName(e.target.value)}
+                        value={nameSi}
+                        onChange={(e) => {
+                          setNameSi(e.target.value);
+                          if (!nameEn) setNameEn(e.target.value);
+                        }}
+                        placeholder="උදා: ග්‍රීන් මෙඩෝස් පැළ තවාන"
+                        className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        {isSi ? 'හිමිකරු / කළමනාකරු නම (English)' : 'Owner / Manager Name (English)'}
+                      </label>
+                      <input
+                        type="text"
+                        value={ownerNameEn}
+                        onChange={(e) => {
+                          setOwnerNameEn(e.target.value);
+                          if (!ownerNameSi) setOwnerNameSi(e.target.value);
+                        }}
                         placeholder="e.g. K. R. Gunasekara"
                         className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
                       />
@@ -746,7 +857,23 @@ export default function PublicNurseryPostModal({
 
                     <div>
                       <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        WhatsApp / Contact Number *
+                        {isSi ? 'හිමිකරු / කළමනාකරු නම (සිංහලෙන්)' : 'Owner / Manager Name (Sinhala)'}
+                      </label>
+                      <input
+                        type="text"
+                        value={ownerNameSi}
+                        onChange={(e) => {
+                          setOwnerNameSi(e.target.value);
+                          if (!ownerNameEn) setOwnerNameEn(e.target.value);
+                        }}
+                        placeholder="උදා: කේ. ආර්. ගුණසේකර"
+                        className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        {isSi ? 'WhatsApp / සබඳතා දුරකථන අංකය *' : 'WhatsApp / Contact Number *'}
                       </label>
                       <input
                         type="text"
@@ -758,15 +885,34 @@ export default function PublicNurseryPostModal({
                       />
                     </div>
 
-                    <div className="sm:col-span-2">
+                    <div>
                       <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Nursery Description & Overview
+                        {isSi ? 'තවාන පිළිබඳ විස්තරය (English)' : 'Nursery Description (English)'}
                       </label>
                       <textarea
                         rows={3}
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
+                        value={descriptionEn}
+                        onChange={(e) => {
+                          setDescriptionEn(e.target.value);
+                          if (!descriptionSi) setDescriptionSi(e.target.value);
+                        }}
                         placeholder="Brief overview about your plant varieties, nursery services, or plant propagation..."
+                        className="w-full text-xs p-2.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        {isSi ? 'තවාන පිළිබඳ විස්තරය (සිංහලෙන්)' : 'Nursery Description (Sinhala / සිංහලෙන්)'}
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={descriptionSi}
+                        onChange={(e) => {
+                          setDescriptionSi(e.target.value);
+                          if (!descriptionEn) setDescriptionEn(e.target.value);
+                        }}
+                        placeholder="ඔබගේ තවානේ පැළ වර්ග, සේවාවන් පිළිබඳ කෙටි හැඳින්වීමක්..."
                         className="w-full text-xs p-2.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
                       />
                     </div>
@@ -778,13 +924,19 @@ export default function PublicNurseryPostModal({
               {currentStep === 2 && (
                 <div className="space-y-4">
                   <div className="border-b border-gray-100 pb-2">
-                    <h3 className="text-sm font-bold text-gray-900">2. Physical Location & Administrative Division</h3>
-                    <p className="text-xs text-gray-500">Official geographical location of the nursery premises.</p>
+                    <h3 className="text-sm font-bold text-gray-900">
+                      {isSi ? '2. පිහිටීම සහ පරිපාලන කොට්ඨාසය' : '2. Physical Location & Administrative Division'}
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      {isSi ? 'තවාන පිහිටි නිල ප්‍රදේශය සහ ලිපිනය තෝරන්න.' : 'Official geographical location of the nursery premises.'}
+                    </p>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Province *</label>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        {isSi ? 'පළාත *' : 'Province *'}
+                      </label>
                       <select
                         value={provinceEn}
                         onChange={(e) => {
@@ -799,14 +951,16 @@ export default function PublicNurseryPostModal({
                       >
                         {SRI_LANKA_PROVINCES.map((p) => (
                           <option key={p.en} value={p.en}>
-                            {p.en}
+                            {isSi ? p.si : p.en} {isSi ? `(${p.en})` : ''}
                           </option>
                         ))}
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">District *</label>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        {isSi ? 'දිස්ත්‍රික්කය *' : 'District *'}
+                      </label>
                       <select
                         value={districtEn}
                         onChange={(e) => {
@@ -818,17 +972,19 @@ export default function PublicNurseryPostModal({
                         }}
                         className="w-full text-xs px-2.5 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
                       >
-                        <option value="">Select District</option>
+                        <option value="">{isSi ? 'දිස්ත්‍රික්කය තෝරන්න' : 'Select District'}</option>
                         {availableDistricts.map((d) => (
                           <option key={d.en} value={d.en}>
-                            {d.en}
+                            {isSi ? d.si : d.en} {isSi ? `(${d.en})` : ''}
                           </option>
                         ))}
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">DS Division (DSD)</label>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        {isSi ? 'ප්‍රා. ලේ. කොට්ඨාසය (DSD)' : 'DS Division (DSD)'}
+                      </label>
                       <select
                         value={dsdEn}
                         onChange={(e) => {
@@ -839,17 +995,19 @@ export default function PublicNurseryPostModal({
                         }}
                         className="w-full text-xs px-2.5 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
                       >
-                        <option value="">Select DSD</option>
+                        <option value="">{isSi ? 'ප්‍රා. ලේ. කොට්ඨාසය තෝරන්න' : 'Select DSD'}</option>
                         {availableDsds.map((dsd) => (
                           <option key={dsd.nameEn} value={dsd.nameEn}>
-                            {dsd.nameEn}
+                            {isSi ? (dsd.nameSi || dsd.nameEn) : dsd.nameEn}
                           </option>
                         ))}
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">GN Division (GND)</label>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        {isSi ? 'ග්‍රාම නිලධාරී වසම (GND)' : 'GN Division (GND)'}
+                      </label>
                       <select
                         value={gndEn}
                         onChange={(e) => {
@@ -859,10 +1017,10 @@ export default function PublicNurseryPostModal({
                         }}
                         className="w-full text-xs px-2.5 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
                       >
-                        <option value="">Select GND</option>
+                        <option value="">{isSi ? 'ග්‍රාම නිලධාරී වසම තෝරන්න' : 'Select GND'}</option>
                         {availableGnds.map((gnd) => (
                           <option key={gnd.nameEn} value={gnd.nameEn}>
-                            {gnd.nameEn}
+                            {isSi ? (gnd.nameSi || gnd.nameEn) : gnd.nameEn}
                           </option>
                         ))}
                       </select>
@@ -872,13 +1030,15 @@ export default function PublicNurseryPostModal({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Full Physical Address *
+                        {isSi ? 'සම්පූර්ණ ලිපිනය (English) *' : 'Full Physical Address (English) *'}
                       </label>
                       <input
                         type="text"
-                        required
-                        value={fullAddress}
-                        onChange={(e) => setFullAddress(e.target.value)}
+                        value={fullAddressEn}
+                        onChange={(e) => {
+                          setFullAddressEn(e.target.value);
+                          if (!fullAddressSi) setFullAddressSi(e.target.value);
+                        }}
                         placeholder="e.g. No. 45, Kurunegala Road, Narammala."
                         className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
                       />
@@ -886,7 +1046,23 @@ export default function PublicNurseryPostModal({
 
                     <div>
                       <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Google Maps Link (Optional)
+                        {isSi ? 'සම්පූර්ණ ලිපිනය (සිංහලෙන්)' : 'Physical Address (Sinhala / සිංහලෙන්)'}
+                      </label>
+                      <input
+                        type="text"
+                        value={fullAddressSi}
+                        onChange={(e) => {
+                          setFullAddressSi(e.target.value);
+                          if (!fullAddressEn) setFullAddressEn(e.target.value);
+                        }}
+                        placeholder="උදා: නො. 45, කුරුණෑගල පාර, නාරම්මල."
+                        className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
+                      />
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        {isSi ? 'Google Maps සබැඳිය (විකල්ප)' : 'Google Maps Link (Optional)'}
                       </label>
                       <input
                         type="url"
@@ -904,8 +1080,12 @@ export default function PublicNurseryPostModal({
               {currentStep === 3 && (
                 <div className="space-y-4">
                   <div className="border-b border-gray-100 pb-2">
-                    <h3 className="text-sm font-bold text-gray-900">3. Registration & Operational Facilities</h3>
-                    <p className="text-xs text-gray-500">Government certification and customer service facilities.</p>
+                    <h3 className="text-sm font-bold text-gray-900">
+                      {isSi ? '3. ලියාපදිංචිය සහ මෙහෙයුම් පහසුකම්' : '3. Registration & Operational Facilities'}
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      {isSi ? 'රාජ්‍ය ලියාපදිංචිය සහ පාරිභෝගික සේවා පහසුකම් විස්තර.' : 'Government certification and customer service facilities.'}
+                    </p>
                   </div>
 
                   <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-xl space-y-3">
@@ -918,14 +1098,16 @@ export default function PublicNurseryPostModal({
                         className="w-4 h-4 text-[#006837] rounded cursor-pointer"
                       />
                       <label htmlFor="isGovRegPublic" className="text-xs font-bold text-gray-800 cursor-pointer">
-                        Government Department of Agriculture (DOA) Registered
+                        {isSi
+                          ? 'කෘෂිකර්ම දෙපාර්තමේන්තුවේ (DOA) ලියාපදිංචි තවානකි'
+                          : 'Government Department of Agriculture (DOA) Registered'}
                       </label>
                     </div>
 
                     {isGovRegistered && (
                       <div>
                         <label className="block text-xs font-semibold text-gray-700 mb-1">
-                          Registration / Certificate Number
+                          {isSi ? 'ලියාපදිංචි / සහතික අංකය' : 'Registration / Certificate Number'}
                         </label>
                         <input
                           type="text"
@@ -940,64 +1122,72 @@ export default function PublicNurseryPostModal({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Nursery Grade</label>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        {isSi ? 'තවාන් ශ්‍රේණිය' : 'Nursery Grade'}
+                      </label>
                       <select
                         value={gradeId}
                         onChange={(e) => setGradeId(e.target.value)}
                         className="w-full text-xs px-2.5 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837]"
                       >
-                        <option value="">Select Grade</option>
+                        <option value="">{isSi ? 'ශ්‍රේණිය තෝරන්න' : 'Select Grade'}</option>
                         {options.grades.map((g) => (
                           <option key={g.id} value={g.id}>
-                            {g.nameEn || g.nameSi}
+                            {isSi ? (g.nameSi || g.nameEn) : (g.nameEn || g.nameSi)}
                           </option>
                         ))}
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Delivery Service</label>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        {isSi ? 'බෙදාහැරීමේ ක්‍රම' : 'Delivery Service'}
+                      </label>
                       <select
                         value={deliveryId}
                         onChange={(e) => setDeliveryId(e.target.value)}
                         className="w-full text-xs px-2.5 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837]"
                       >
-                        <option value="">Select Delivery Option</option>
+                        <option value="">{isSi ? 'බෙදාහැරීමේ ක්‍රමය තෝරන්න' : 'Select Delivery Option'}</option>
                         {options.deliveries.map((d) => (
                           <option key={d.id} value={d.id}>
-                            {d.nameEn || d.nameSi}
+                            {isSi ? (d.nameSi || d.nameEn) : (d.nameEn || d.nameSi)}
                           </option>
                         ))}
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Operating Hours</label>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        {isSi ? 'විවෘත වේලාවන්' : 'Operating Hours'}
+                      </label>
                       <select
                         value={operatingHoursId}
                         onChange={(e) => setOperatingHoursId(e.target.value)}
                         className="w-full text-xs px-2.5 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837]"
                       >
-                        <option value="">Select Operating Hours</option>
+                        <option value="">{isSi ? 'විවෘත වේලාවන් තෝරන්න' : 'Select Operating Hours'}</option>
                         {options.operatingHours.map((h) => (
                           <option key={h.id} value={h.id}>
-                            {h.nameEn || h.nameSi}
+                            {isSi ? (h.nameSi || h.nameEn) : (h.nameEn || h.nameSi)}
                           </option>
                         ))}
                       </select>
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-gray-700 mb-1">Certification Type</label>
+                      <label className="block text-xs font-semibold text-gray-700 mb-1">
+                        {isSi ? 'සහතිකකරණ වර්ගය' : 'Certification Type'}
+                      </label>
                       <select
                         value={certificationId}
                         onChange={(e) => setCertificationId(e.target.value)}
                         className="w-full text-xs px-2.5 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837]"
                       >
-                        <option value="">Select Certification</option>
+                        <option value="">{isSi ? 'සහතිකකරණය තෝරන්න' : 'Select Certification'}</option>
                         {options.certifications?.map((c) => (
                           <option key={c.id} value={c.id}>
-                            {c.nameEn || c.nameSi}
+                            {isSi ? (c.nameSi || c.nameEn) : (c.nameEn || c.nameSi)}
                           </option>
                         ))}
                       </select>
@@ -1011,11 +1201,17 @@ export default function PublicNurseryPostModal({
                 <div className="space-y-4">
                   <div className="flex items-center justify-between border-b border-gray-100 pb-2">
                     <div>
-                      <h3 className="text-sm font-bold text-gray-900">4. Nursery Photos (Max 5)</h3>
-                      <p className="text-xs text-gray-500">Upload photos of your nursery beds, premises, or entrance.</p>
+                      <h3 className="text-sm font-bold text-gray-900">
+                        {isSi ? '4. තවාන් ඡායාරූප (උපරිම 5)' : '4. Nursery Photos (Max 5)'}
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {isSi
+                          ? 'ඔබගේ තවානේ පිවිසුම, පැළ තවාන් පාත්ති සහ ගොඩනැගිලි ඡායාරූප ඇතුළත් කරන්න.'
+                          : 'Upload photos of your nursery beds, premises, or entrance.'}
+                      </p>
                     </div>
                     <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full">
-                      {uploadedPhotos.length} / 5 Photos
+                      {uploadedPhotos.length} / 5 {isSi ? 'ඡායාරූප' : 'Photos'}
                     </span>
                   </div>
 
@@ -1043,7 +1239,9 @@ export default function PublicNurseryPostModal({
                       {isUploadingPhotos ? (
                         <div className="flex flex-col items-center gap-2 text-[#006837] py-2">
                           <RefreshCw className="w-5 h-5 animate-spin" />
-                          <span className="text-xs font-bold">Uploading photos...</span>
+                          <span className="text-xs font-bold">
+                            {isSi ? 'ඡායාරූප උඩුගත වෙමින් පවතී...' : 'Uploading photos...'}
+                          </span>
                         </div>
                       ) : (
                         <div className="flex flex-col items-center gap-1.5">
@@ -1051,7 +1249,9 @@ export default function PublicNurseryPostModal({
                             <UploadCloud size={18} />
                           </div>
                           <p className="text-xs font-semibold text-gray-800">
-                            Click or drag photos here (Up to 50MB each)
+                            {isSi
+                              ? 'ඡායාරූප මෙහි ඇද දමන්න හෝ ක්ලික් කරන්න (එකක් 50MB දක්වා)'
+                              : 'Click or drag photos here (Up to 50MB each)'}
                           </p>
                           <p className="text-[11px] text-gray-400">JPG, PNG, WEBP supported</p>
                         </div>
@@ -1079,7 +1279,7 @@ export default function PublicNurseryPostModal({
                           <img src={url} alt={`Photo ${idx + 1}`} className="w-full h-24 object-cover" />
                           {idx === 0 && (
                             <span className="absolute top-1 left-1 bg-[#006837] text-white text-[9px] font-bold px-1.5 py-0.2 rounded">
-                              Cover
+                              {isSi ? 'ප්‍රධාන' : 'Cover'}
                             </span>
                           )}
                           <button
@@ -1101,71 +1301,111 @@ export default function PublicNurseryPostModal({
                 <div className="space-y-4">
                   <div className="flex items-center justify-between border-b border-gray-100 pb-2">
                     <div>
-                      <h3 className="text-sm font-bold text-gray-900">5. Featured / Fast-Selling Plants (Max 4)</h3>
-                      <p className="text-xs text-gray-500">Showcase your signature plant varieties and current pricing.</p>
+                      <h3 className="text-sm font-bold text-gray-900">
+                        {isSi ? '5. විශේෂයෙන් අලෙවි වන පැළ (උපරිම 4)' : '5. Featured / Fast-Selling Plants (Max 4)'}
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {isSi
+                          ? 'ඔබගේ ජනප්‍රියම හෝ අලුතින් ලැබුණු පැළ වර්ග, මිල ගණන් සහ ඡායාරූප සමඟ එක් කරන්න.'
+                          : 'Showcase your signature plant varieties and current pricing.'}
+                      </p>
                     </div>
                     <span className="text-xs font-semibold text-gray-600 bg-gray-100 px-2.5 py-0.5 rounded-full">
-                      {fastSellingItems.length} / 4 Added
+                      {fastSellingItems.length} / 4 {isSi ? 'එක් කර ඇත' : 'Added'}
                     </span>
                   </div>
 
                   {fastSellingItems.length < 4 && (
                     <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl space-y-3.5">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                        {/* 1. Crop Category */}
                         <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-1">Crop *</label>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                            {isSi ? 'බෝග ප්‍රවර්ගය' : 'Crop Category'}
+                          </label>
+                          <select
+                            value={newFastCategory}
+                            onChange={(e) => setNewFastCategory(e.target.value)}
+                            className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837]"
+                          >
+                            <option value="">{isSi ? 'ප්‍රවර්ගය තෝරන්න...' : 'Select Category...'}</option>
+                            {options.categories.map((c) => (
+                              <option key={c.id} value={c.id}>
+                                {isSi ? (c.nameSi || c.nameEn) : (c.nameEn || c.nameSi)}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* 2. Crop Name */}
+                        <div>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                            {isSi ? 'බෝගය' : 'Crop Name'}
+                          </label>
                           <select
                             value={newFastCrop}
                             onChange={(e) => setNewFastCrop(e.target.value)}
                             className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837]"
                           >
-                            <option value="">Select Crop</option>
+                            <option value="">{isSi ? 'බෝගය තෝරන්න...' : 'Select Crop...'}</option>
                             {options.crops.map((c) => (
                               <option key={c.id} value={c.id}>
-                                {c.nameEn || c.nameSi}
+                                {isSi ? (c.nameSi || c.nameEn) : (c.nameEn || c.nameSi)}
                               </option>
                             ))}
                           </select>
                         </div>
 
+                        {/* 3. Variety */}
                         <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-1">Variety</label>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                            {isSi ? 'පැළ ප්‍රභේදය' : 'Plant Variety'}
+                          </label>
                           <select
                             value={newFastVariety}
                             onChange={(e) => setNewFastVariety(e.target.value)}
                             className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837]"
                           >
-                            <option value="">Select Variety</option>
+                            <option value="">{isSi ? 'ප්‍රභේදය තෝරන්න...' : 'Select Variety...'}</option>
                             {options.varieties.map((v) => (
                               <option key={v.id} value={v.id}>
-                                {v.nameEn || v.nameSi}
+                                {isSi ? (v.nameSi || v.nameEn) : (v.nameEn || v.nameSi)}
                               </option>
                             ))}
                           </select>
                         </div>
 
+                        {/* 4. Unit Price */}
                         <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-1">Unit Price</label>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                            {isSi ? 'ඒකක මිල' : 'Unit Price'}
+                          </label>
                           <input
                             type="text"
                             value={newFastPrice}
-                            onChange={(e) => setNewFastPrice(e.target.value)}
-                            placeholder="e.g. Rs. 750"
+                            onChange={(e) => {
+                              setNewFastPrice(e.target.value);
+                              if (!newFastPriceSi) setNewFastPriceSi(e.target.value);
+                            }}
+                            placeholder={isSi ? 'උදා: රු. 750' : 'e.g. Rs. 750'}
                             className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837]"
                           />
                         </div>
 
+                        {/* 5. Promotion Badge */}
                         <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-1">Badge</label>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                            {isSi ? 'ප්‍රවර්ධන ලාංඡනය' : 'Badge'}
+                          </label>
                           <select
                             value={newFastBadge}
                             onChange={(e) => setNewFastBadge(e.target.value)}
                             className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837]"
                           >
-                            <option value="">Select Badge</option>
+                            <option value="">{isSi ? 'ලාංඡනය තෝරන්න...' : 'Select Badge...'}</option>
                             {options.badges?.map((b) => (
                               <option key={b.id} value={b.id}>
-                                {b.nameEn || b.nameSi}
+                                {isSi ? (b.nameSi || b.nameEn) : (b.nameEn || b.nameSi)}
                               </option>
                             ))}
                           </select>
@@ -1174,7 +1414,9 @@ export default function PublicNurseryPostModal({
 
                       {/* Plant Photo Upload */}
                       <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-1">Plant Photo</label>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">
+                          {isSi ? 'පැළයේ ඡායාරූපය' : 'Plant Photo'}
+                        </label>
                         {newFastPhoto ? (
                           <div className="flex items-center justify-between p-2.5 bg-white border border-gray-200 rounded-lg">
                             <div className="flex items-center gap-2.5 min-w-0">
@@ -1209,11 +1451,13 @@ export default function PublicNurseryPostModal({
                           >
                             {isUploadingFastPhoto ? (
                               <span className="text-xs text-[#006837] flex items-center gap-1.5">
-                                <RefreshCw className="w-4 h-4 animate-spin" /> Uploading...
+                                <RefreshCw className="w-4 h-4 animate-spin" /> {isSi ? 'උඩුගත වෙමින් පවතී...' : 'Uploading...'}
                               </span>
                             ) : (
                               <span className="text-xs text-gray-600">
-                                Click or drop plant photo here (Up to 50MB)
+                                {isSi
+                                  ? 'පැළයේ ඡායාරූපය මෙතැනට ඇද දමන්න හෝ ක්ලික් කරන්න (50MB දක්වා)'
+                                  : 'Click or drop plant photo here (Up to 50MB)'}
                               </span>
                             )}
                           </div>
@@ -1237,7 +1481,7 @@ export default function PublicNurseryPostModal({
                           onClick={handleAddFastItem}
                           className="px-3.5 py-1.5 text-xs font-bold text-white bg-[#006837] hover:bg-[#00522c] rounded-lg cursor-pointer"
                         >
-                          + Add Plant Variety
+                          {isSi ? '+ විශේෂ පැළයක් එක් කරන්න' : '+ Add Plant Variety'}
                         </button>
                       </div>
                     </div>
@@ -1246,6 +1490,7 @@ export default function PublicNurseryPostModal({
                   {fastSellingItems.length > 0 && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
                       {fastSellingItems.map((item, idx) => {
+                        const catObj = options.categories.find((c) => c.id === item.categoryId);
                         const cropObj = options.crops.find((c) => c.id === item.cropId);
                         const varObj = options.varieties.find((v) => v.id === item.varietyId);
                         const badgeObj = options.badges?.find((b) => b.id === item.badgeId);
@@ -1257,24 +1502,29 @@ export default function PublicNurseryPostModal({
                                 <img src={item.imageUrl} alt="" className="w-9 h-9 rounded object-cover border border-gray-200 shrink-0" />
                               )}
                               <div className="min-w-0">
-                                <div className="flex items-center gap-1 flex-wrap">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  {catObj && (
+                                    <span className="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.2 rounded font-medium truncate">
+                                      {isSi ? catObj.nameSi || catObj.nameEn : catObj.nameEn || catObj.nameSi}
+                                    </span>
+                                  )}
                                   <span className="text-xs font-bold text-gray-900 truncate">
-                                    {cropObj?.nameEn || cropObj?.nameSi || 'Crop'}
+                                    {isSi ? (cropObj?.nameSi || cropObj?.nameEn || 'බෝගය') : (cropObj?.nameEn || cropObj?.nameSi || 'Crop')}
                                   </span>
                                   {varObj && (
                                     <span className="text-[10px] text-gray-500 truncate">
-                                      ({varObj.nameEn || varObj.nameSi})
+                                      ({isSi ? (varObj.nameSi || varObj.nameEn) : (varObj.nameEn || varObj.nameSi)})
                                     </span>
                                   )}
                                   {badgeObj && (
-                                    <span className="text-[9px] bg-gray-100 text-gray-700 px-1.5 py-0.2 rounded font-medium">
-                                      {badgeObj.nameEn || badgeObj.nameSi}
+                                    <span className="text-[9px] bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.2 rounded font-medium">
+                                      {isSi ? (badgeObj.nameSi || badgeObj.nameEn) : (badgeObj.nameEn || badgeObj.nameSi)}
                                     </span>
                                   )}
                                 </div>
-                                {item.priceEn && (
+                                {(item.priceEn || item.priceSi) && (
                                   <span className="text-xs font-semibold text-[#006837] block mt-0.5">
-                                    {item.priceEn}
+                                    {isSi ? (item.priceSi || item.priceEn) : (item.priceEn || item.priceSi)}
                                   </span>
                                 )}
                               </div>
@@ -1299,53 +1549,90 @@ export default function PublicNurseryPostModal({
               {currentStep === 6 && (
                 <div className="space-y-4">
                   <div className="border-b border-gray-100 pb-2">
-                    <h3 className="text-sm font-bold text-gray-900">6. Current Plant Stocks & Specialties</h3>
-                    <p className="text-xs text-gray-500">Specify available inventory ranges and plant specializations.</p>
+                    <h3 className="text-sm font-bold text-gray-900">
+                      {isSi ? '6. පවතින තොග සහ විශේෂතා' : '6. Current Plant Stocks & Specialties'}
+                    </h3>
+                    <p className="text-xs text-gray-500">
+                      {isSi
+                        ? 'ඔබ සතුව ඇති පැළ තොග ප්‍රමාණ සහ විශේෂිත ක්ෂේත්‍ර තෝරන්න.'
+                        : 'Specify available inventory ranges and plant specializations.'}
+                    </p>
                   </div>
 
                   {/* Stock Controls */}
                   <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-xl space-y-3">
-                    <span className="text-xs font-bold text-gray-800 block">Add Available Crops & Volume</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 items-end">
+                    <span className="text-xs font-bold text-gray-800 block">
+                      {isSi ? 'පවතින පැළ සහ තොග ප්‍රමාණ එක් කරන්න' : 'Add Available Crops & Volume'}
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 items-end">
                       <div>
-                        <label className="block text-[11px] font-semibold text-gray-600 mb-1">Category</label>
+                        <label className="block text-[11px] font-semibold text-gray-600 mb-1">
+                          {isSi ? 'ප්‍රවර්ගය' : 'Category'}
+                        </label>
                         <select
                           value={newStockCategory}
                           onChange={(e) => setNewStockCategory(e.target.value)}
                           className="w-full text-xs px-2 py-1.5 rounded-lg border border-gray-300 bg-white"
                         >
-                          <option value="">All Categories</option>
+                          <option value="">{isSi ? 'සියලු ප්‍රවර්ග' : 'All Categories'}</option>
                           {options.categories.map((c) => (
-                            <option key={c.id} value={c.id}>{c.nameEn || c.nameSi}</option>
+                            <option key={c.id} value={c.id}>
+                              {isSi ? (c.nameSi || c.nameEn) : (c.nameEn || c.nameSi)}
+                            </option>
                           ))}
                         </select>
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-semibold text-gray-600 mb-1">Crop *</label>
+                        <label className="block text-[11px] font-semibold text-gray-600 mb-1">
+                          {isSi ? 'බෝගය *' : 'Crop *'}
+                        </label>
                         <select
                           value={newStockCrop}
                           onChange={(e) => setNewStockCrop(e.target.value)}
                           className="w-full text-xs px-2 py-1.5 rounded-lg border border-gray-300 bg-white"
                         >
-                          <option value="">Select Crop</option>
-                          {options.crops.map((cr) => (
-                            <option key={cr.id} value={cr.id}>{cr.nameEn || cr.nameSi}</option>
+                          <option value="">{isSi ? 'බෝගය තෝරන්න' : 'Select Crop'}</option>
+                          {options.crops.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {isSi ? (c.nameSi || c.nameEn) : (c.nameEn || c.nameSi)}
+                            </option>
                           ))}
                         </select>
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-semibold text-gray-600 mb-1">Stock Range</label>
+                        <label className="block text-[11px] font-semibold text-gray-600 mb-1">
+                          {isSi ? 'පැළ ප්‍රභේදය' : 'Plant Variety'}
+                        </label>
+                        <select
+                          value={newStockVariety}
+                          onChange={(e) => setNewStockVariety(e.target.value)}
+                          className="w-full text-xs px-2 py-1.5 rounded-lg border border-gray-300 bg-white"
+                        >
+                          <option value="">{isSi ? 'ප්‍රභේදය තෝරන්න (විකල්ප)' : 'Select Variety (Optional)'}</option>
+                          {options.varieties.map((v) => (
+                            <option key={v.id} value={v.id}>
+                              {isSi ? (v.nameSi || v.nameEn) : (v.nameEn || v.nameSi)}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-semibold text-gray-600 mb-1">
+                          {isSi ? 'තොග ප්‍රමාණය' : 'Stock Range'}
+                        </label>
                         <select
                           value={newStockRange}
                           onChange={(e) => setNewStockRange(e.target.value)}
-                          className="w-full text-xs px-2 py-1.5 rounded-lg border border-gray-300 bg-white"
+                          className="w-full text-xs px-2 py-1.5 rounded-lg border border-gray-300 bg-white font-mono"
                         >
-                          <option value="100 - 500">100 - 500 Plants</option>
-                          <option value="500 - 1,000">500 - 1,000 Plants</option>
-                          <option value="1,000 - 5,000">1,000 - 5,000 Plants</option>
-                          <option value="5,000+">5,000+ Plants</option>
+                          <option value="100 - 500">100 - 500</option>
+                          <option value="500 - 1,000">500 - 1,000</option>
+                          <option value="1,000 - 5,000">1,000 - 5,000</option>
+                          <option value="5,000 - 10,000">5,000 - 10,000</option>
+                          <option value="10,000+">10,000+</option>
                         </select>
                       </div>
 
@@ -1355,7 +1642,7 @@ export default function PublicNurseryPostModal({
                           onClick={handleAddStock}
                           className="w-full px-3 py-1.5 text-xs font-bold text-white bg-[#006837] hover:bg-[#00522c] rounded-lg cursor-pointer"
                         >
-                          + Add Stock
+                          {isSi ? '+ තොගය එක් කරන්න' : '+ Add Stock'}
                         </button>
                       </div>
                     </div>
@@ -1363,10 +1650,21 @@ export default function PublicNurseryPostModal({
                     {stocks.length > 0 && (
                       <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200">
                         {stocks.map((st, idx) => {
+                          const cat = options.categories.find((x) => x.id === st.categoryId);
                           const c = options.crops.find((x) => x.id === st.cropId);
+                          const v = options.varieties.find((x) => x.id === st.varietyId);
                           return (
                             <span key={idx} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white border border-gray-200 rounded-lg text-xs font-medium text-gray-800">
-                              <span>{c?.nameEn || c?.nameSi || 'Crop'} ({st.stockRangeEn})</span>
+                              {cat && (
+                                <span className="text-[10px] text-emerald-800 bg-emerald-50 px-1 rounded font-semibold">
+                                  {isSi ? cat.nameSi || cat.nameEn : cat.nameEn || cat.nameSi}
+                                </span>
+                              )}
+                              <span>
+                                {isSi ? (c?.nameSi || c?.nameEn || 'බෝගය') : (c?.nameEn || c?.nameSi || 'Crop')}
+                                {v ? ` - ${isSi ? v.nameSi || v.nameEn : v.nameEn || v.nameSi}` : ''}
+                              </span>
+                              <span className="text-gray-500 font-mono text-[11px]">({st.stockRangeEn})</span>
                               <button type="button" onClick={() => setStocks((prev) => prev.filter((_, i) => i !== idx))} className="text-gray-400 hover:text-red-600 cursor-pointer">
                                 <X size={12} />
                               </button>
@@ -1380,7 +1678,9 @@ export default function PublicNurseryPostModal({
                   {/* Specialties Multi-select */}
                   {options.specialties.length > 0 && (
                     <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-xl space-y-2">
-                      <span className="text-xs font-bold text-gray-800 block">Nursery Specialties</span>
+                      <span className="text-xs font-bold text-gray-800 block">
+                        {isSi ? 'තවාන් විශේෂතා' : 'Nursery Specialties'}
+                      </span>
                       <div className="flex flex-wrap gap-2">
                         {options.specialties.map((sp) => {
                           const isSelected = specialtyIds.includes(sp.id);
@@ -1399,7 +1699,7 @@ export default function PublicNurseryPostModal({
                                   : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'
                               }`}
                             >
-                              {sp.nameEn || sp.nameSi}
+                              {isSi ? (sp.nameSi || sp.nameEn) : (sp.nameEn || sp.nameSi)}
                             </button>
                           );
                         })}
@@ -1408,7 +1708,9 @@ export default function PublicNurseryPostModal({
                   )}
 
                   <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-600 text-xs leading-relaxed">
-                    By submitting this form, you certify that the nursery details provided are authentic. Your listing will appear on the public Plant Finder once approved by our verification team.
+                    {isSi
+                      ? 'මෙම පෝරමය ඉදිරිපත් කිරීමෙන්, ඔබ විසින් සපයන ලද තොරතුරු සත්‍ය හා නිවැරදි බව තහවුරු කරනු ලබයි. අපගේ පරිපාලන අනුමැතියෙන් පසු මෙම තවාන Aswanna වෙබ් අඩවියේ ප්‍රසිද්ධ කරනු ඇත.'
+                      : 'By submitting this form, you certify that the nursery details provided are authentic. Your listing will appear on the public Plant Finder once approved by our verification team.'}
                   </div>
                 </div>
               )}
@@ -1422,7 +1724,7 @@ export default function PublicNurseryPostModal({
                     className="inline-flex items-center gap-1 px-4 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all cursor-pointer"
                   >
                     <ChevronLeft size={14} />
-                    <span>Previous</span>
+                    <span>{isSi ? 'පෙර' : 'Previous'}</span>
                   </button>
                 ) : (
                   <div />
@@ -1439,7 +1741,7 @@ export default function PublicNurseryPostModal({
                     }}
                     className="inline-flex items-center gap-1 px-5 py-2 text-xs font-bold text-white bg-[#006837] hover:bg-[#00522c] rounded-xl transition-all cursor-pointer shadow-xs"
                   >
-                    <span>Next</span>
+                    <span>{isSi ? 'ඊළඟ' : 'Next'}</span>
                     <ChevronRight size={14} />
                   </button>
                 ) : (
@@ -1457,10 +1759,10 @@ export default function PublicNurseryPostModal({
                     {isSubmitting ? (
                       <>
                         <RefreshCw size={14} className="animate-spin" />
-                        <span>Submitting...</span>
+                        <span>{isSi ? 'ඉදිරිපත් වෙමින් පවතී...' : 'Submitting...'}</span>
                       </>
                     ) : (
-                      <span>Submit Plant Nursery</span>
+                      <span>{isSi ? 'තවාන ඉදිරිපත් කරන්න' : 'Submit Plant Nursery'}</span>
                     )}
                   </button>
                 )}

@@ -62,6 +62,8 @@ export interface NurseryBadge extends AssociateOption {
 export interface NurseryFastSellingItem {
   id?: string;
   slug?: string;
+  categoryId?: string | null;
+  category?: AssociateOption | null;
   cropId?: string | null;
   crop?: AssociateOption | null;
   varietyId?: string | null;
@@ -165,6 +167,7 @@ export interface NurseryFormState {
   specialtyIds: string[];
   // Fast Selling Items (Max 4)
   fastSellingItems: Array<{
+    categoryId?: string;
     cropId: string;
     varietyId: string;
     priceEn: string;

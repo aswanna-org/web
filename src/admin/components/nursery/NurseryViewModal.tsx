@@ -195,6 +195,11 @@ export default function NurseryViewModal({
                     )}
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1 flex-wrap">
+                        {item.category && (
+                          <span className="text-[10px] text-emerald-800 font-semibold bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded truncate">
+                            {item.category.nameEn || item.category.nameSi}
+                          </span>
+                        )}
                         <span className="text-xs font-bold text-gray-900 truncate">
                           {item.crop?.nameEn || item.crop?.nameSi || 'Crop'}
                         </span>
