@@ -1,4 +1,4 @@
-import { ShoppingCart, Menu, X, ChevronDown, ChevronRight, Sprout, Store, Map, Building, LogOut, PhoneCall } from 'lucide-react';
+import { ShoppingCart, Menu, X, ChevronDown, ChevronRight, LogOut, PhoneCall } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useMemo } from 'react';
@@ -75,13 +75,13 @@ export default function Header() {
     <>
       <header className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${isScrolled
         ? 'bg-black/40 backdrop-blur-md shadow-xl py-2'
-        : 'bg-transparent py-4'
+        : 'bg-transparent py-2.5 sm:py-4'
         }`}>
         <div className="container mx-auto px-4 lg:px-8 flex items-center justify-between">
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
-            <img src="/images/aswanna_logo.png" alt="Aswanna Logo" className="h-16 xl:h-24 w-auto object-contain" />
+            <img src="/images/aswanna_logo.png" alt="Aswanna Logo" className="h-12 sm:h-16 xl:h-24 w-auto object-contain" />
           </Link>
 
           {/* Desktop Navigation */}
@@ -299,43 +299,6 @@ export default function Header() {
             <Link to="/education" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.education', 'Education')}</Link>
             <Link to="/gallery" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-[var(--color-primary)] transition-colors">{t('header.gallery', 'Gallery')}</Link>
 
-            {/* Mobile Quick Links */}
-            <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-white/10">
-              <span className="text-xs font-bold text-gray-500 tracking-widest uppercase mb-2">Quick Access</span>
-              <Link to="/marketplace" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 bg-[#f6a847]/10 border border-[#f6a847]/30 rounded-xl hover:bg-[#f6a847]/20 transition-colors">
-                <Store className="w-6 h-6 text-[#f6a847]" />
-                <div className="flex flex-col">
-                  <span className="text-base font-bold text-white">{isSinhala ? 'අලෙවිසැල' : 'Marketplace'}</span>
-                  <span className="text-[11px] text-gray-400">{isSinhala ? 'බීජ, පොහොර, උපකරණ' : 'Seeds, Fertilizers'}</span>
-                </div>
-              </Link>
-              <Link to="/plant-finder" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 bg-[#5bc07c]/10 border border-[#5bc07c]/30 rounded-xl hover:bg-[#5bc07c]/20 transition-colors">
-                <Sprout className="w-6 h-6 text-[#5bc07c]" />
-                <div className="flex flex-col">
-                  <span className="text-base font-bold text-white">{isSinhala ? 'පැළයක් සොයාගමු' : 'Plant Finder'}</span>
-                  <span className="text-[11px] text-gray-400">{isSinhala ? 'පසට ගැළපෙන බෝග' : 'Suitable crops'}</span>
-                </div>
-              </Link>
-              <Link to="/agro-lands" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 bg-[#679fe4]/10 border border-[#679fe4]/30 rounded-xl hover:bg-[#679fe4]/20 transition-colors">
-                <Map className="w-6 h-6 text-[#679fe4]" />
-                <div className="flex flex-col">
-                  <span className="text-base font-bold text-white">{isSinhala ? 'කෘෂි ඉඩම්' : 'Agro Lands'}</span>
-                  <span className="text-[11px] text-gray-400">{isSinhala ? 'විකිණීමට හා බද්දට' : 'Sale and lease'}</span>
-                </div>
-              </Link>
-              <Link to="/govijana-sewa" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl hover:bg-emerald-500/20 transition-colors">
-                <Building className="w-6 h-6 text-emerald-400" />
-                <div className="flex flex-col">
-                  <span className="text-base font-bold text-white">{isSinhala ? 'ගොවිජන සේවා' : 'Govijana Sewa'}</span>
-                  <span className="text-[11px] text-gray-400">{isSinhala ? 'මධ්‍යස්ථාන සොයන්න' : 'Find Agrarian Centers'}</span>
-                </div>
-              </Link>
-            </div>
-
-            {/* Mobile Font Size Accessibility Control */}
-            <div className="mt-4 pt-4 border-t border-white/10">
-              <FontSizeSwitcher showLabels />
-            </div>
 
             {/* Contact & Login for mobile */}
             <div className="flex flex-col gap-4 mt-2 pt-6 border-t border-white/10">

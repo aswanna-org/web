@@ -13,6 +13,8 @@ export interface PageHeroProps {
   badgeBg?: string; // e.g. 'bg-[#0f4d30]'
   waveColor?: string; // e.g. 'text-white' or 'text-[#fbfdfa]' or 'text-gray-50'
   showWave?: boolean;
+  className?: string;
+  contentClassName?: string;
   children?: React.ReactNode;
 }
 
@@ -31,6 +33,8 @@ export default function PageHero({
   badgeBg,
   waveColor = 'text-white',
   showWave = true,
+  className,
+  contentClassName,
   children
 }: PageHeroProps) {
   const activeImage = image || DEFAULT_HERO_IMAGE;
@@ -62,7 +66,7 @@ export default function PageHero({
   };
 
   return (
-    <section className="relative z-30 w-full h-[24vh] sm:h-[34vh] md:h-[44vh] min-h-[160px] sm:min-h-[250px] md:min-h-[360px] flex flex-col justify-center">
+    <section className={`relative z-30 w-full min-h-[220px] sm:min-h-[260px] md:min-h-[340px] h-auto sm:h-[34vh] md:h-[44vh] flex flex-col justify-center ${className || ''}`}>
       {/* Background Image with Overlay */}
       <div className="absolute inset-0 z-0 overflow-hidden bg-emerald-950">
         <img
@@ -113,10 +117,10 @@ export default function PageHero({
       </div>
 
       {/* Hero Content */}
-      <div className="container mx-auto px-4 lg:px-12 relative z-10 flex flex-col justify-center h-full pt-10 sm:pt-16 md:pt-20 pb-6 sm:pb-12 lg:pb-16">
+      <div className={`container mx-auto px-4 lg:px-12 relative z-10 flex flex-col justify-center h-full pt-20 sm:pt-20 md:pt-24 pb-8 sm:pb-12 lg:pb-16 ${contentClassName || ''}`}>
         <div className="max-w-4xl">
           {subtitle && (
-            <p className={subtitleClassName || "text-white/80 text-[10px] sm:text-sm font-medium uppercase tracking-[0.2em] mb-1 sm:mb-2"}>
+            <p className={subtitleClassName || "text-white/80 text-[10px] sm:text-xs md:text-sm font-medium uppercase tracking-[0.2em] mb-1 sm:mb-2"}>
               {subtitle}
             </p>
           )}

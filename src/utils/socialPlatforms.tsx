@@ -14,6 +14,7 @@ export interface PlatformBrandConfig {
   actionText: string;
   actionTextSi: string;
   iconSvg: React.ReactNode;
+  defaultUrl?: string;
 }
 
 export const PLATFORM_BRANDS: Record<string, PlatformBrandConfig> = {
@@ -30,6 +31,7 @@ export const PLATFORM_BRANDS: Record<string, PlatformBrandConfig> = {
     watermark: 'Follow',
     actionText: 'Follow on Instagram',
     actionTextSi: 'ඉන්ස්ටග්‍රෑම් ඔස්සේ සම්බන්ධ වන්න',
+    defaultUrl: 'https://www.instagram.com/aswanna.lk',
     iconSvg: (
       <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
@@ -71,6 +73,7 @@ export const PLATFORM_BRANDS: Record<string, PlatformBrandConfig> = {
     watermark: 'Connect',
     actionText: 'Connect on LinkedIn',
     actionTextSi: 'ලින්ක්ඩ්ඉන් ඔස්සේ සම්බන්ධ වන්න',
+    defaultUrl: 'https://www.linkedin.com/company/aswanna',
     iconSvg: (
       <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
@@ -92,6 +95,7 @@ export const PLATFORM_BRANDS: Record<string, PlatformBrandConfig> = {
     watermark: 'Subscribe',
     actionText: 'Subscribe on YouTube',
     actionTextSi: 'යූටියුබ් නාලිකාවට එක්වන්න',
+    defaultUrl: 'https://www.youtube.com/@aswanna',
     iconSvg: (
       <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M2.5 17a24.12 24.12 0 0 1 0-10 2 2 0 0 1 1.4-1.4 49.56 49.56 0 0 1 16.2 0A2 2 0 0 1 21.5 7a24.12 24.12 0 0 1 0 10 2 2 0 0 1-1.4 1.4 49.55 49.55 0 0 1-16.2 0A2 2 0 0 1 2.5 17" />
@@ -112,6 +116,7 @@ export const PLATFORM_BRANDS: Record<string, PlatformBrandConfig> = {
     watermark: 'Follow',
     actionText: 'Follow on Facebook',
     actionTextSi: 'ෆේස්බුක් ඔස්සේ සම්බන්ධ වන්න',
+    defaultUrl: 'https://www.facebook.com/aswanna',
     iconSvg: (
       <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
@@ -131,6 +136,7 @@ export const PLATFORM_BRANDS: Record<string, PlatformBrandConfig> = {
     watermark: 'Channel',
     actionText: 'Join Telegram Channel',
     actionTextSi: 'ටෙලිග්‍රෑම් නාලිකාවට එක්වන්න',
+    defaultUrl: 'https://t.me/aswanna',
     iconSvg: (
       <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="m22 2-7 20-4-9-9-4Z" />
@@ -151,6 +157,7 @@ export const PLATFORM_BRANDS: Record<string, PlatformBrandConfig> = {
     watermark: 'Watch',
     actionText: 'Watch on TikTok',
     actionTextSi: 'ටික්ටොක් ඔස්සේ නරඹන්න',
+    defaultUrl: 'https://www.tiktok.com/@aswanna',
     iconSvg: (
       <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
@@ -170,6 +177,7 @@ export const PLATFORM_BRANDS: Record<string, PlatformBrandConfig> = {
     watermark: 'Follow',
     actionText: 'Follow on X',
     actionTextSi: 'X ඔස්සේ සම්බන්ධ වන්න',
+    defaultUrl: 'https://x.com/aswanna',
     iconSvg: (
       <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M4 4l11.733 16h4.267l-11.733 -16z" />

@@ -139,7 +139,7 @@ export default function EducationDetail() {
     if (!slug) return;
     const lower = slug.toLowerCase();
     if (lower === 'academic-courses') {
-      navigate('/education?type=academic-courses', { replace: true });
+      navigate('/education?type=all', { replace: true });
       return;
     }
     if (lower.includes('short')) {

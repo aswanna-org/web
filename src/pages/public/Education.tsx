@@ -219,6 +219,10 @@ export default function Education() {
         navigate('/agricultural-educational-institutes', { replace: true });
         return;
       }
+      if (lower.includes('academic')) {
+        navigate('/education?type=all', { replace: true });
+        return;
+      }
       setActiveTypeView(typeParam);
     } else {
       setActiveTypeView(null);
@@ -249,7 +253,7 @@ export default function Education() {
   // Fetch courses when inside an education type or searching
   useEffect(() => {
     let url = `${API_BASE_URL}/courses?page=${currentPage}&limit=12`;
-    if (activeTypeView && activeTypeView !== 'ALL') {
+    if (activeTypeView && activeTypeView.toUpperCase() !== 'ALL') {
       url += `&educationTypeId=${encodeURIComponent(activeTypeView)}`;
     }
     if (selectedLevel !== 'All') {
@@ -301,10 +305,11 @@ export default function Education() {
       navigate('/agricultural-educational-institutes');
       return;
     }
-    setActiveTypeView(selectedKey);
+    const targetType = selectedKey.includes('academic') ? 'all' : selectedKey;
+    setActiveTypeView(targetType);
     setSearchParams(prev => {
       const next = new URLSearchParams(prev);
-      next.set('type', selectedKey);
+      next.set('type', targetType);
       return next;
     });
     setCurrentPage(1);
@@ -333,18 +338,24 @@ export default function Education() {
 
   // Find currently active type object
   const activeTypeObj = useMemo(() => {
-    if (!activeTypeView || activeTypeView === 'ALL') return null;
+    if (!activeTypeView) return null;
+    if (activeTypeView.toLowerCase() === 'all') {
+      return displayTypes.find(t => t.slug === 'academic-courses' || t.slug?.includes('academic')) || displayTypes[0] || null;
+    }
     return displayTypes.find(t => t.id === activeTypeView || t.slug === activeTypeView);
   }, [activeTypeView, displayTypes]);
 
   const activeCategoryTitle = useMemo(() => {
-    if (!activeTypeView || activeTypeView === 'ALL') {
+    if (!activeTypeView) {
       return isSinhala ? 'සියලුම පාඨමාලා සහ සම්පත්' : 'All Courses & Resources';
+    }
+    if (activeTypeView.toLowerCase() === 'all') {
+      return isSinhala ? 'අධ්‍යයන පාඨමාලා' : 'Academic Courses';
     }
     if (activeTypeObj) {
       return isSinhala ? activeTypeObj.nameSi : activeTypeObj.nameEn;
     }
-    return isSinhala ? 'අධ්‍යාපනික පාඨමාලා' : 'Agro Courses';
+    return isSinhala ? 'අධ්‍යයන පාඨමාලා' : 'Academic Courses';
   }, [activeTypeView, activeTypeObj, isSinhala]);
 
   const pageKeywords = useMemo(() => {

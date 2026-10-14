@@ -247,7 +247,7 @@ export default function AgroLands() {
       // 1. Process new AgriLands
       if (agriRes.status === 'fulfilled' && agriRes.value.ok) {
         const agriData = await agriRes.value.json();
-        const rawAgriList = agriData.data || [];
+        const rawAgriList = (agriData.data || []).filter((l: any) => l.approvalStatus === 'APPROVED' || !l.approvalStatus);
         agriCount = rawAgriList.length;
         rawAgriList.forEach((l: any) => {
           const cover = l.images?.find((img: any) => img.isPrimary) || l.images?.[0];
@@ -740,14 +740,8 @@ export default function AgroLands() {
                 const landPrice = formatDisplayPrice(land.priceFormatted || land.price, isSinhala);
                 const landSize = isSinhala ? (land.sizeSi || land.size) : land.size;
 
-                const isPending = land.approvalStatus === 'PENDING';
                 const isAvailable = land.status === 'Available';
-                const statusBadge = isPending ? (
-                  <div className="h-6 sm:h-7 inline-flex items-center gap-1 sm:gap-1.5 backdrop-blur-md text-white text-[10px] sm:text-xs font-bold px-2 sm:px-3 rounded-full shadow-xs bg-amber-500/95 border border-amber-300/40">
-                    <Clock className="w-3 h-3 stroke-[2.5]" />
-                    <span className="truncate">{isSinhala ? 'අනුමැතිය අපේක්ෂිතයි' : 'PENDING'}</span>
-                  </div>
-                ) : (
+                const statusBadge = (
                   <div className={`h-6 sm:h-7 inline-flex items-center gap-1 sm:gap-1.5 backdrop-blur-md text-white text-[10px] sm:text-xs font-bold px-2 sm:px-3 rounded-full shadow-xs ${
                     isAvailable ? 'bg-emerald-600/90 border border-emerald-400/40' : 'bg-red-600/90 border border-red-400/40'
                   }`}>
@@ -769,9 +763,10 @@ export default function AgroLands() {
                       image={land.image || 'https://images.unsplash.com/photo-1629731215450-4591e1d0ed53?w=800&q=80'}
                       badge={landTypeBadge}
                       topRightBadge={statusBadge}
+                      icon={MapPin}
                       title={landTitle}
                       subtitle={landLocation}
-                      titleClassName="text-xs sm:text-base font-bold text-gray-900 leading-snug mb-1 line-clamp-2"
+                      titleClassName="text-xs sm:text-base font-bold text-[#143d4d] leading-snug mb-1 line-clamp-2"
                       meta={[
                         { icon: Tag, text: landPrice },
                         ...(landSize ? [{ icon: Maximize, text: landSize }] : []),

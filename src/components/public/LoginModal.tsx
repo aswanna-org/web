@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Eye, EyeOff, X, Lock, Mail, Phone, ShieldCheck, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, X, ArrowUpRight, UserPlus } from 'lucide-react';
 
 export default function LoginModal() {
   const { isLoginModalOpen, closeLoginModal, openRegisterModal, login } = useAuth();
@@ -90,213 +90,202 @@ export default function LoginModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto font-sans">
       {/* Backdrop overlay */}
       <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-md transition-opacity animate-fadeIn"
+        className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity animate-fadeIn"
         onClick={closeLoginModal}
       />
 
-      {/* Modal Dialog Card */}
-      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-10 animate-scaleUp">
-        {/* Top Header Background Banner */}
-        <div className="bg-gradient-to-r from-emerald-800 via-green-700 to-emerald-900 pt-8 pb-7 px-8 text-white relative">
-          {/* Close button */}
-          <button
-            onClick={closeLoginModal}
-            aria-label="Close login popup"
-            className="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-2 rounded-full transition-all focus:outline-none"
-          >
-            <X size={18} />
-          </button>
-
-          <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 rounded-2xl bg-white/15 backdrop-blur-sm border border-white/25 flex items-center justify-center shadow-sm">
-              <img src="/images/aswanna_logo.png" alt="Aswanna Logo" className="h-8 object-contain brightness-0 invert" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-white tracking-tight">Aswanna Portal</h2>
-              <p className="text-xs text-emerald-100/80 font-medium">Agricultural Management System</p>
-            </div>
+      {/* Modal Dialog Card (Plain & Clean Payoneer Style) */}
+      <div className="relative w-full max-w-[430px] bg-white rounded-[32px] sm:rounded-[36px] shadow-2xl p-7 sm:p-9 border border-gray-100/80 z-10 animate-scaleUp">
+        {/* Top Bar: Aswanna Brand Logo & Sign Up Switch */}
+        <div className="flex items-center justify-between mb-8 sm:mb-9">
+          <div className="flex items-center gap-2.5">
+            <img 
+              src="/images/aswanna_logo.png" 
+              alt="Aswanna Logo" 
+              className="h-10 sm:h-11 w-auto object-contain" 
+            />
+            <span className="text-xl font-bold tracking-tight text-[#2d4023]">
+              Aswanna
+            </span>
           </div>
-          <p className="text-xs text-white/70 mt-1">Sign in with your credentials to access your administrative dashboard.</p>
-        </div>
 
-        {/* Form Body */}
-        <div className="p-7 sm:p-8">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Selection: Sign in via Email or Phone */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5 ml-1">
-                පිවිසෙන ක්‍රමය (Sign in with) *
-              </label>
-              <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-xl border border-gray-200">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLoginMethod('email');
-                    setError('');
-                  }}
-                  className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                    loginMethod === 'email'
-                      ? 'bg-white text-emerald-800 shadow-xs'
-                      : 'text-gray-500 hover:text-gray-800'
-                  }`}
-                >
-                  <Mail size={14} />
-                  <span>විද්‍යුත් තැපෑල (Email)</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setLoginMethod('phone');
-                    setError('');
-                  }}
-                  className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                    loginMethod === 'phone'
-                      ? 'bg-white text-emerald-800 shadow-xs'
-                      : 'text-gray-500 hover:text-gray-800'
-                  }`}
-                >
-                  <Phone size={14} />
-                  <span>දුරකථන අංකය (Phone)</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Email Field or Phone Field */}
-            {loginMethod === 'email' ? (
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5 ml-1">
-                  Email Address (විද්‍යුත් තැපෑල)
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <Mail size={16} />
-                  </div>
-                  <input
-                    type="email"
-                    required={loginMethod === 'email'}
-                    autoFocus
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="name@domain.com"
-                    className="w-full pl-10 pr-4 py-3 bg-gray-50/80 hover:bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 text-sm text-gray-800 transition-all placeholder:text-gray-400"
-                  />
-                </div>
-              </div>
-            ) : (
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1.5 ml-1">
-                  Phone Number (දුරකථන අංකය)
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <Phone size={16} />
-                  </div>
-                  <input
-                    type="tel"
-                    required={loginMethod === 'phone'}
-                    autoFocus
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="07X XXXXXXX / +94 7X XXXXXXX"
-                    className="w-full pl-10 pr-4 py-3 bg-gray-50/80 hover:bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 text-sm text-gray-800 transition-all placeholder:text-gray-400"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Password Field */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5 ml-1">
-                <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                  Password
-                </label>
-              </div>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                  <Lock size={16} />
-                </div>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full pl-10 pr-11 py-3 bg-gray-50/80 hover:bg-gray-50 focus:bg-white rounded-xl border border-gray-200 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 text-sm text-gray-800 transition-all placeholder:text-gray-400"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-            </div>
-
-            {/* Remember Me */}
-            <div className="flex items-center justify-between pt-1">
-              <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-600 select-none">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 h-4 w-4"
-                />
-                Remember this device
-              </label>
-              <span className="text-[11px] text-gray-400 flex items-center gap-1">
-                <ShieldCheck size={13} className="text-emerald-600" />
-                256-bit SSL
-              </span>
-            </div>
-
-            {/* Error Message */}
-            {error && (
-              <div className="p-3 bg-rose-50 border border-rose-200/80 rounded-xl text-xs text-rose-600 font-medium animate-fadeIn flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full mt-2 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-semibold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-700/20 hover:shadow-emerald-700/30 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed text-sm"
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Authenticating...</span>
-                </>
-              ) : (
-                <>
-                  <span>Sign In</span>
-                  <ArrowRight size={16} />
-                </>
-              )}
-            </button>
-          </form>
-
-          {/* Switch to Register Link */}
-          <div className="mt-5 pt-4 border-t border-gray-100 text-center text-xs text-gray-500">
-            Don't have an account? (ගිණුමක් නැද්ද?){' '}
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
               onClick={openRegisterModal}
-              className="text-emerald-700 font-bold hover:underline ml-1 cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-[#4d5938] transition-colors cursor-pointer py-1 px-2.5 rounded-full hover:bg-gray-100"
             >
-              Register here (ලියාපදිංචි වන්න)
+              <UserPlus size={14} className="text-gray-500" />
+              <span>Sign Up</span>
+            </button>
+
+            <button
+              onClick={closeLoginModal}
+              aria-label="Close login popup"
+              className="text-gray-400 hover:text-gray-700 p-1.5 rounded-full hover:bg-gray-100 transition-colors focus:outline-none cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+
+        {/* Clean Large Heading */}
+        <div className="mb-7 text-left">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
+            Sign In
+          </h1>
+          <p className="text-xs text-gray-400 mt-1">
+            Sign in to access your Aswanna account
+          </p>
+        </div>
+
+        {/* Form Body */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Subtle Segmented Switcher for Email vs Phone */}
+          <div className="flex bg-gray-100 p-1 rounded-full text-xs font-medium">
+            <button
+              type="button"
+              onClick={() => {
+                setLoginMethod('email');
+                setError('');
+              }}
+              className={`flex-1 py-1.5 rounded-full text-center transition-all cursor-pointer ${
+                loginMethod === 'email'
+                  ? 'bg-white text-gray-900 shadow-xs font-semibold'
+                  : 'text-gray-500 hover:text-gray-800'
+              }`}
+            >
+              Email
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setLoginMethod('phone');
+                setError('');
+              }}
+              className={`flex-1 py-1.5 rounded-full text-center transition-all cursor-pointer ${
+                loginMethod === 'phone'
+                  ? 'bg-white text-gray-900 shadow-xs font-semibold'
+                  : 'text-gray-500 hover:text-gray-800'
+              }`}
+            >
+              Phone
             </button>
           </div>
 
-          {/* Footer note */}
-          <div className="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
-            <span>Official Aswanna Agri Platform</span>
-            <span>v2.4.0</span>
+          {/* Identifier Input */}
+          {loginMethod === 'email' ? (
+            <div>
+              <input
+                type="email"
+                required={loginMethod === 'email'}
+                autoFocus
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email or Username"
+                className="w-full px-5 py-3.5 rounded-full border border-gray-200 focus:border-[#4d5938] focus:outline-none focus:ring-1 focus:ring-[#4d5938]/30 text-sm text-gray-900 placeholder:text-gray-400 bg-white transition-all"
+              />
+            </div>
+          ) : (
+            <div>
+              <input
+                type="tel"
+                required={loginMethod === 'phone'}
+                autoFocus
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="07X XXXXXXX / Phone Number"
+                className="w-full px-5 py-3.5 rounded-full border border-gray-200 focus:border-[#4d5938] focus:outline-none focus:ring-1 focus:ring-[#4d5938]/30 text-sm text-gray-900 placeholder:text-gray-400 bg-white transition-all"
+              />
+            </div>
+          )}
+
+          {/* Password Input */}
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              className="w-full pl-5 pr-12 py-3.5 rounded-full border border-gray-200 focus:border-[#4d5938] focus:outline-none focus:ring-1 focus:ring-[#4d5938]/30 text-sm text-gray-900 placeholder:text-gray-400 bg-white transition-all"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 transition-colors cursor-pointer"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+
+          {/* Forgot Password Link & Remember Me Switcher */}
+          <div className="flex items-center justify-between pt-1 px-1 text-xs">
+            <span className="text-[#4d5938] hover:text-[#384328] hover:underline cursor-pointer font-medium">
+              Forgot password?
+            </span>
+            <label className="flex items-center gap-2 cursor-pointer text-gray-600 select-none group">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="sr-only"
+              />
+              <div
+                className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ease-in-out ${
+                  rememberMe ? 'bg-[#4d5938]' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out ${
+                    rememberMe ? 'translate-x-[19px]' : 'translate-x-[3px]'
+                  }`}
+                />
+              </div>
+              <span className="text-xs text-gray-500 group-hover:text-gray-800 transition-colors">
+                Remember me
+              </span>
+            </label>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="p-3 bg-rose-50 border border-rose-200/80 rounded-2xl text-xs text-rose-600 font-medium animate-fadeIn flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Submit Button (Aswanna Signature Olive-Green Pill) */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full mt-3 py-2 pl-6 pr-2 rounded-full bg-[#4d5938] hover:bg-[#404b2e] border border-white/40 text-white font-bold text-sm shadow-[0_6px_20px_rgba(77,89,56,0.32)] hover:shadow-[0_8px_25px_rgba(77,89,56,0.42)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-between group cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            <span className="font-semibold text-sm tracking-wide text-white">
+              {isLoading ? 'Signing in...' : 'Sign In'}
+            </span>
+            <div className="w-8 h-8 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-white shrink-0 group-hover:rotate-45 transition-transform duration-300 shadow-2xs">
+              {isLoading ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <ArrowUpRight size={17} className="stroke-[2.5]" />
+              )}
+            </div>
+          </button>
+        </form>
+
+        {/* Footer info (Payoneer style) */}
+        <div className="mt-8 pt-4 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-400">
+          <span>© 2026 Aswanna Inc.</span>
+          <div className="flex items-center gap-3">
+            <Link to="/pages/contact" onClick={closeLoginModal} className="hover:text-gray-600 transition-colors">
+              Contact Us
+            </Link>
+            <span>English</span>
           </div>
         </div>
       </div>

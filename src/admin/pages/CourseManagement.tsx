@@ -1065,11 +1065,10 @@ export default function CourseManagement() {
       <div className="flex border-b border-gray-200 gap-2 overflow-x-auto">
         <button
           onClick={() => setViewMode('courses')}
-          className={`flex items-center gap-2 pb-3.5 px-4 text-sm font-bold border-b-2 transition-all cursor-pointer shrink-0 ${
-            viewMode === 'courses'
+          className={`flex items-center gap-2 pb-3.5 px-4 text-sm font-bold border-b-2 transition-all cursor-pointer shrink-0 ${viewMode === 'courses'
               ? 'border-emerald-600 text-emerald-700'
               : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
-          }`}
+            }`}
         >
           <BookOpen size={17} />
           <span>Courses</span>
@@ -1083,11 +1082,10 @@ export default function CourseManagement() {
             setViewMode('applications');
             fetchApplications(1);
           }}
-          className={`flex items-center gap-2 pb-3.5 px-4 text-sm font-bold border-b-2 transition-all cursor-pointer relative shrink-0 ${
-            viewMode === 'applications'
+          className={`flex items-center gap-2 pb-3.5 px-4 text-sm font-bold border-b-2 transition-all cursor-pointer relative shrink-0 ${viewMode === 'applications'
               ? 'border-emerald-600 text-emerald-700'
               : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
-          }`}
+            }`}
         >
           <UserCheck size={17} />
           <span>Applications</span>
@@ -1103,11 +1101,10 @@ export default function CourseManagement() {
 
         <button
           onClick={() => setViewMode('types')}
-          className={`flex items-center gap-2 pb-3.5 px-4 text-sm font-bold border-b-2 transition-all cursor-pointer shrink-0 ${
-            viewMode === 'types'
+          className={`flex items-center gap-2 pb-3.5 px-4 text-sm font-bold border-b-2 transition-all cursor-pointer shrink-0 ${viewMode === 'types'
               ? 'border-emerald-600 text-emerald-700'
               : 'border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300'
-          }`}
+            }`}
         >
           <Layers size={17} />
           <span>Education Types (අධ්‍යාපන අංශ)</span>
@@ -1322,11 +1319,10 @@ export default function CourseManagement() {
                             type="button"
                             onClick={() => handleToggleCourseStatus(course.id, course.status)}
                             title={course.status === 'Published' ? "Click to set as Draft" : "Click to Publish"}
-                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border transition-all cursor-pointer ${
-                              course.status === 'Published'
+                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border transition-all cursor-pointer ${course.status === 'Published'
                                 ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
                                 : 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-100'
-                            }`}
+                              }`}
                           >
                             <span className={`w-1.5 h-1.5 rounded-full ${course.status === 'Published' ? 'bg-emerald-600' : 'bg-amber-600'}`} />
                             <span>{course.status}</span>
@@ -1546,15 +1542,14 @@ export default function CourseManagement() {
                           <select
                             value={app.status}
                             onChange={e => handleUpdateAppStatus(app.id, e.target.value)}
-                            className={`px-2 py-0.5 rounded text-[10px] font-semibold border transition-all cursor-pointer outline-none ${
-                              app.status === 'Approved'
+                            className={`px-2 py-0.5 rounded text-[10px] font-semibold border transition-all cursor-pointer outline-none ${app.status === 'Approved'
                                 ? 'bg-emerald-50 text-emerald-800 border-emerald-300 focus:ring-1 focus:ring-emerald-500'
                                 : app.status === 'Pending'
-                                ? 'bg-amber-50 text-amber-800 border-amber-300 focus:ring-1 focus:ring-amber-500'
-                                : app.status === 'Contacted'
-                                ? 'bg-blue-50 text-blue-800 border-blue-300 focus:ring-1 focus:ring-blue-500'
-                                : 'bg-rose-50 text-rose-800 border-rose-300 focus:ring-1 focus:ring-rose-500'
-                            }`}
+                                  ? 'bg-amber-50 text-amber-800 border-amber-300 focus:ring-1 focus:ring-amber-500'
+                                  : app.status === 'Contacted'
+                                    ? 'bg-blue-50 text-blue-800 border-blue-300 focus:ring-1 focus:ring-blue-500'
+                                    : 'bg-rose-50 text-rose-800 border-rose-300 focus:ring-1 focus:ring-rose-500'
+                              }`}
                           >
                             <option value="Pending">Pending</option>
                             <option value="Contacted">Contacted</option>
@@ -1706,11 +1701,10 @@ export default function CourseManagement() {
                           <button
                             type="button"
                             onClick={() => handleToggleTypeActive(type)}
-                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold backdrop-blur-md border transition-all cursor-pointer ${
-                              type.isActive
+                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold backdrop-blur-md border transition-all cursor-pointer ${type.isActive
                                 ? 'bg-emerald-500/80 text-white border-emerald-400/50 hover:bg-emerald-600/90'
                                 : 'bg-gray-700/80 text-gray-200 border-gray-600/50 hover:bg-gray-600/90'
-                            }`}
+                              }`}
                             title="Click to toggle status"
                           >
                             <span className={`w-1.5 h-1.5 rounded-full ${type.isActive ? 'bg-white animate-pulse' : 'bg-gray-400'}`} />
@@ -1812,7 +1806,7 @@ export default function CourseManagement() {
 
           {/* Modal Container: Extra Wide max-w-7xl (almost full screen), Height 94vh */}
           <div className="bg-white rounded-2xl w-[96vw] max-w-7xl h-[94vh] relative z-10 shadow-2xl overflow-hidden flex flex-col border border-gray-200 animate-in fade-in zoom-in-95 duration-150">
-            
+
             {/* Clean Modal Header */}
             <div className="flex items-center justify-between px-8 py-4 border-b border-gray-200 bg-white shrink-0">
               <div>
@@ -1845,55 +1839,50 @@ export default function CourseManagement() {
               <button
                 type="button"
                 onClick={() => setActiveTab('basic')}
-                className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 ${
-                  activeTab === 'basic'
+                className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 ${activeTab === 'basic'
                     ? 'border-emerald-600 text-emerald-950 bg-white font-bold shadow-sm'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
+                  }`}
               >
                 <BookOpen size={16} /> 1. Basic Info
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('classification')}
-                className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 ${
-                  activeTab === 'classification'
+                className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 ${activeTab === 'classification'
                     ? 'border-emerald-600 text-emerald-950 bg-white font-bold shadow-sm'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
+                  }`}
               >
                 <Award size={16} /> 2. Level & Mode
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('schedule')}
-                className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 ${
-                  activeTab === 'schedule'
+                className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 ${activeTab === 'schedule'
                     ? 'border-emerald-600 text-emerald-950 bg-white font-bold shadow-sm'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
+                  }`}
               >
                 <Clock size={16} /> 3. Schedule & Venue
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('requirements')}
-                className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 ${
-                  activeTab === 'requirements'
+                className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 ${activeTab === 'requirements'
                     ? 'border-emerald-600 text-emerald-950 bg-white font-bold shadow-sm'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
+                  }`}
               >
                 <DollarSign size={16} /> 4. Fees & Requirements
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTab('modules')}
-                className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 ${
-                  activeTab === 'modules'
+                className={`flex items-center gap-2 px-5 py-3 text-xs sm:text-sm font-semibold rounded-t-xl transition-all border-b-2 ${activeTab === 'modules'
                     ? 'border-emerald-600 text-emerald-950 bg-white font-bold shadow-sm'
                     : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
+                  }`}
               >
                 <Layers size={16} /> 5. Syllabus Modules ({modules.length})
               </button>
@@ -1901,7 +1890,7 @@ export default function CourseManagement() {
 
             {/* Modal Body Form - Spacious with smooth scrolling */}
             <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
-              
+
               {/* ── TAB 1: BASIC INFO ── */}
               {activeTab === 'basic' && (
                 <div className="space-y-6">
@@ -2042,11 +2031,10 @@ export default function CourseManagement() {
                           <p className="text-xs font-bold text-gray-900 uppercase tracking-wider">
                             Application Called Status
                           </p>
-                          <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${
-                            form.applicationCalled
+                          <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${form.applicationCalled
                               ? 'bg-blue-600 text-white border-blue-600'
                               : 'bg-gray-200 text-gray-700 border-gray-300'
-                          }`}>
+                            }`}>
                             {form.applicationCalled ? 'ACTIVE (Calling Open)' : 'CLOSED (Calling Closed)'}
                           </span>
                         </div>
@@ -2128,11 +2116,10 @@ export default function CourseManagement() {
                               key={med}
                               type="button"
                               onClick={() => handleMediumToggle(med)}
-                              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all border ${
-                                isSelected
+                              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all border ${isSelected
                                   ? 'bg-emerald-700 text-white border-emerald-700 shadow-sm'
                                   : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                              }`}
+                                }`}
                             >
                               {isSelected && <Check size={15} />} {med}
                             </button>
@@ -2196,11 +2183,10 @@ export default function CourseManagement() {
                                 type="button"
                                 onClick={() => handleToggleJobSelection(job.id)}
                                 title={isSelected ? 'Click to remove from this course' : 'Click to add to this course'}
-                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all border cursor-pointer ${
-                                  isSelected
+                                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all border cursor-pointer ${isSelected
                                     ? 'bg-emerald-700 text-white border-emerald-700 shadow-sm shadow-emerald-700/20 scale-[1.02]'
                                     : 'bg-gray-50/80 text-gray-700 border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/40 hover:text-emerald-900'
-                                }`}
+                                  }`}
                               >
                                 {isSelected ? (
                                   <Check size={14} className="stroke-[3] text-white" />
@@ -2727,11 +2713,10 @@ export default function CourseManagement() {
             {/* Modal Scrollable Body */}
             <div className="p-6 sm:p-8 overflow-y-auto space-y-6 text-sm">
               {/* Status Banner with Quick Action */}
-              <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                previewCourse.status === 'Published'
+              <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${previewCourse.status === 'Published'
                   ? 'bg-emerald-50/90 border-emerald-200 text-emerald-900'
                   : 'bg-amber-50/90 border-amber-200 text-amber-900'
-              }`}>
+                }`}>
                 <div className="flex items-start gap-3">
                   {previewCourse.status === 'Published' ? (
                     <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
@@ -2766,11 +2751,10 @@ export default function CourseManagement() {
                   <button
                     type="button"
                     onClick={() => handleToggleApplicationCalled(previewCourse.id, !!previewCourse.applicationCalled)}
-                    className={`px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 flex items-center justify-center gap-1.5 ${
-                      previewCourse.applicationCalled
+                    className={`px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 flex items-center justify-center gap-1.5 ${previewCourse.applicationCalled
                         ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300'
                         : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
-                    }`}
+                      }`}
                   >
                     {previewCourse.applicationCalled ? (
                       <>
@@ -2787,11 +2771,10 @@ export default function CourseManagement() {
                   <button
                     type="button"
                     onClick={() => handleToggleCourseStatus(previewCourse.id, previewCourse.status)}
-                    className={`px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 flex items-center justify-center gap-1.5 ${
-                      previewCourse.status === 'Published'
+                    className={`px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-xs shrink-0 flex items-center justify-center gap-1.5 ${previewCourse.status === 'Published'
                         ? 'bg-amber-100 hover:bg-amber-200 text-amber-900 border border-amber-300'
                         : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm'
-                    }`}
+                      }`}
                   >
                     {previewCourse.status === 'Published' ? (
                       <>
@@ -3504,11 +3487,10 @@ export default function CourseManagement() {
                             <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0" />
                             <span className="text-xs font-semibold text-gray-800 truncate">{job.name}</span>
                             {job._count?.courses !== undefined && (
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${
-                                job._count.courses > 0
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0 ${job._count.courses > 0
                                   ? 'bg-blue-50 text-blue-800 border-blue-200'
                                   : 'bg-gray-100 text-gray-500 border-gray-200'
-                              }`}>
+                                }`}>
                                 {job._count.courses} {job._count.courses === 1 ? 'course' : 'courses'}
                               </span>
                             )}
@@ -3574,15 +3556,14 @@ export default function CourseManagement() {
                     <span className="text-xs text-gray-500">
                       Applied: {new Date(selectedApp.appliedAt).toLocaleString()}
                     </span>
-                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${
-                      selectedApp.status === 'Approved'
+                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full border ${selectedApp.status === 'Approved'
                         ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
                         : selectedApp.status === 'Pending'
-                        ? 'bg-amber-50 text-amber-800 border-amber-300'
-                        : selectedApp.status === 'Contacted'
-                        ? 'bg-blue-50 text-blue-800 border-blue-300'
-                        : 'bg-rose-50 text-rose-800 border-rose-300'
-                    }`}>
+                          ? 'bg-amber-50 text-amber-800 border-amber-300'
+                          : selectedApp.status === 'Contacted'
+                            ? 'bg-blue-50 text-blue-800 border-blue-300'
+                            : 'bg-rose-50 text-rose-800 border-rose-300'
+                      }`}>
                       {selectedApp.status}
                     </span>
                   </div>
@@ -3664,44 +3645,40 @@ export default function CourseManagement() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <button
                     onClick={() => handleUpdateAppStatus(selectedApp.id, 'Pending')}
-                    className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all flex items-center justify-center gap-1.5 ${
-                      selectedApp.status === 'Pending'
+                    className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all flex items-center justify-center gap-1.5 ${selectedApp.status === 'Pending'
                         ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
                         : 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100'
-                    }`}
+                      }`}
                   >
                     <Clock size={13} className="shrink-0" />
                     <span>Pending</span>
                   </button>
                   <button
                     onClick={() => handleUpdateAppStatus(selectedApp.id, 'Contacted')}
-                    className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all flex items-center justify-center gap-1.5 ${
-                      selectedApp.status === 'Contacted'
+                    className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all flex items-center justify-center gap-1.5 ${selectedApp.status === 'Contacted'
                         ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                         : 'bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-100'
-                    }`}
+                      }`}
                   >
                     <Phone size={13} className="shrink-0" />
                     <span>Contacted</span>
                   </button>
                   <button
                     onClick={() => handleUpdateAppStatus(selectedApp.id, 'Approved')}
-                    className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all flex items-center justify-center gap-1.5 ${
-                      selectedApp.status === 'Approved'
+                    className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all flex items-center justify-center gap-1.5 ${selectedApp.status === 'Approved'
                         ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
                         : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                    }`}
+                      }`}
                   >
                     <CheckCircle2 size={13} className="shrink-0" />
                     <span>Approved</span>
                   </button>
                   <button
                     onClick={() => handleUpdateAppStatus(selectedApp.id, 'Rejected')}
-                    className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all flex items-center justify-center gap-1.5 ${
-                      selectedApp.status === 'Rejected'
+                    className={`py-2 px-3 rounded-xl font-bold text-xs border transition-all flex items-center justify-center gap-1.5 ${selectedApp.status === 'Rejected'
                         ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
                         : 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100'
-                    }`}
+                      }`}
                   >
                     <XCircle size={13} className="shrink-0" />
                     <span>Rejected</span>

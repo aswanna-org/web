@@ -22,7 +22,8 @@ import {
   BookMarked,
   Store,
   Calendar,
-  Share2
+  Share2,
+  Trees
 } from 'lucide-react';
 
 interface NavGroup {
@@ -51,6 +52,7 @@ const navGroups: NavGroup[] = [
       { name: 'Institution Management', path: '/admin/institutions', icon: Landmark },
       { name: 'Govijana Sewa Management', path: '/admin/asc', icon: Building2 },
       { name: 'Plant Management', path: '/admin/plants', icon: Sprout },
+      { name: 'Nursery Management', path: '/admin/nurseries', icon: Trees },
       { name: 'Agro Land Management', path: '/admin/agrolands', icon: MapPin }
     ]
   },

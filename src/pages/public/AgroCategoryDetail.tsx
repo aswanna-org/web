@@ -154,7 +154,7 @@ export default function AgroCategoryDetail() {
         image={category.headerImage || category.image}
       />
       {/* ── Hero ── */}
-      <section className="relative z-20 w-full h-[24vh] sm:h-[34vh] md:h-[44vh] min-h-[160px] sm:min-h-[250px] md:min-h-[360px] flex flex-col justify-center">
+      <section className="relative z-20 w-full min-h-[220px] sm:min-h-[260px] md:min-h-[340px] h-auto sm:h-[34vh] md:h-[44vh] flex flex-col justify-center">
         {/* Background - clipped */}
         <div className="absolute inset-0 z-0 bg-gray-900 overflow-hidden">
           <img
@@ -179,7 +179,7 @@ export default function AgroCategoryDetail() {
             viewBox="0 0 1440 120"
             preserveAspectRatio="none"
           >
-            <path d="M0,32 C240,65 480,80 720,45 C960,10 1200,55 1440,30 L1440,120 L0,120 Z" />
+            <path d="M0,32 C240,65 480,80 720,45 C960,10 1200,55 1440,30 L1440,120 Z" />
           </svg>
 
           {/* Circular Badge Icon with Category Image from Backend */}
@@ -201,7 +201,7 @@ export default function AgroCategoryDetail() {
           </div>
         </div>
 
-        <div className="container mx-auto px-4 lg:px-12 relative z-10 flex flex-col justify-center h-full pt-10 sm:pt-16 md:pt-20 pb-6 sm:pb-12 lg:pb-16">
+        <div className="container mx-auto px-4 lg:px-12 relative z-10 flex flex-col justify-center h-full pt-20 sm:pt-20 md:pt-24 pb-8 sm:pb-12 lg:pb-16">
           {/* Breadcrumb */}
           <Link
             to={`/agro/${mainCategory.slug}`}

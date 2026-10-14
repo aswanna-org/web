@@ -45,6 +45,7 @@ import PrivateInstitutions from './pages/public/PrivateInstitutions';
 import InternationalInstitutions from './pages/public/InternationalInstitutions';
 import InstitutionDetail from './pages/public/InstitutionDetail';
 import SocialPlatformDetail from './pages/public/SocialPlatformDetail';
+import NurseryDetail from './pages/public/NurseryDetail';
 
 // Admin imports
 import AdminLayout from './admin/layouts/AdminLayout';
@@ -71,6 +72,7 @@ import Login from './admin/pages/Login';
 import MarketplaceController from './admin/pages/MarketplaceController';
 import ImportantEventManagement from './admin/pages/ImportantEventManagement';
 import SocialLinkManagement from './admin/pages/SocialLinkManagement';
+import NurseryManagement from './admin/pages/NurseryManagement';
 import { ProtectedRoute } from './admin/components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 
@@ -157,8 +159,9 @@ function App() {
               <Route path="marketplace/items/:categorySlug/:slug" element={<MarketplaceDetail />} />
               <Route path="marketplace/items/:slug" element={<MarketplaceDetail />} />
               <Route path="marketplace/item/:id" element={<MarketplaceDetail />} />
-              <Route path="marketplace/:categorySlug/:slug" element={<MarketplaceDetail />} />
               <Route path="plant-finder" element={<PlantFinder />} />
+              <Route path="plant-finder/nursery/:slug" element={<NurseryDetail />} />
+              <Route path="plant-nurseries/:slug" element={<NurseryDetail />} />
               <Route path="agro-lands" element={<AgroLands />} />
               <Route path="agro-lands/:slug" element={<AgroLandDetail />} />
               <Route path="agro-lands/id/:id" element={<AgroLandDetail />} />
@@ -216,6 +219,8 @@ function App() {
               <Route path="contacts" element={<ContactManagement />} />
               <Route path="important-events" element={<ImportantEventManagement />} />
               <Route path="social-links" element={<SocialLinkManagement />} />
+              <Route path="nurseries" element={<NurseryManagement />} />
+              <Route path="nursery-management" element={<NurseryManagement />} />
             </Route>
           </Routes>
           <CartModal />

@@ -144,7 +144,7 @@ export default function AgroProductDetail() {
           }
         }}
       />
-      <section className="relative z-20 w-full h-[24vh] sm:h-[34vh] md:h-[44vh] min-h-[160px] sm:min-h-[250px] md:min-h-[360px] flex flex-col justify-center">
+      <section className="relative z-20 w-full min-h-[220px] sm:min-h-[260px] md:min-h-[340px] h-auto sm:h-[34vh] md:h-[44vh] flex flex-col justify-center">
         {/* Background Image Container - clipped */}
         <div className="absolute inset-0 overflow-hidden z-0">
           <img src={headerImage} alt={product.name} className="w-full h-full object-cover" />
@@ -193,7 +193,7 @@ export default function AgroProductDetail() {
           </div>
         </div>
 
-        <div className="relative z-10 container mx-auto px-4 lg:px-12 flex flex-col justify-center h-full pt-10 sm:pt-16 md:pt-20 pb-6 sm:pb-12 lg:pb-16">
+        <div className="relative z-10 container mx-auto px-4 lg:px-12 flex flex-col justify-center h-full pt-20 sm:pt-20 md:pt-24 pb-8 sm:pb-12 lg:pb-16">
           <Link to={`/agro/${mainCategory.slug}/${category.slug}`} className="inline-flex items-center w-fit gap-1.5 sm:gap-2 text-white/80 hover:text-white text-xs sm:text-sm transition-colors group mb-1 sm:mb-2">
             <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:-translate-x-1 transition-transform" />
             {isSinhala ? (category.sinhalaName || category.name) : category.name}

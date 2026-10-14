@@ -61,17 +61,17 @@ export default function BlogsSection() {
         {/* Embla Carousel */}
         <div className="reveal-fade-up delay-150 w-full relative">
           <div className="overflow-hidden py-4 -my-4 px-2 -mx-2" ref={emblaRef}>
-            <div className="flex gap-6 touch-pan-y py-4">
+            <div className="flex gap-3 sm:gap-6 touch-pan-y py-4">
               {blogItems.map((item) => (
                 <div 
                   key={item.id} 
-                  className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_25%] min-w-0 group relative transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col bg-transparent pb-2"
+                  className="flex-[0_0_calc(50%-6px)] sm:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(25%-18px)] min-w-0 group relative transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col bg-transparent pb-2"
                 >
-                  <div className="h-full px-1 py-1">
+                  <div className="h-full px-0.5 sm:px-1 py-1">
                     <Card
                       image={item.image || 'https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&q=80'}
                       badge="BLOG"
-                      titleClassName="text-sm sm:text-base font-bold text-gray-900 leading-snug mb-1 line-clamp-2"
+                      titleClassName="text-xs sm:text-base font-bold text-gray-900 leading-snug mb-1 line-clamp-2"
                       title={isSinhala ? (item.sinhalaTitle || item.title || 'Untitled') : (item.title || item.sinhalaTitle || 'Untitled')}
                       meta={[
                         { icon: User, text: item.authorName || 'Admin' },

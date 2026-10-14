@@ -75,21 +75,21 @@ export default function CoursesSection() {
         {/* Embla Carousel / Cards */}
         <div className="reveal-fade-up delay-150 w-full relative">
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 py-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 py-4">
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="bg-white rounded-[28px] border border-gray-100 p-2 h-96 animate-pulse flex flex-col">
-                  <div className="h-56 bg-gray-200/80 rounded-[22px] w-full mb-4"></div>
-                  <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
-                    <div className="h-5 bg-gray-200 rounded w-3/4"></div>
-                    <div className="h-4 bg-gray-100 rounded w-1/2"></div>
-                    <div className="h-10 bg-gray-200/70 rounded-full mt-auto"></div>
+                <div key={i} className="bg-white rounded-[22px] sm:rounded-[28px] border border-gray-100 p-1.5 sm:p-2 h-72 sm:h-96 animate-pulse flex flex-col">
+                  <div className="h-32 sm:h-56 bg-gray-200/80 rounded-[18px] sm:rounded-[22px] w-full mb-3 sm:mb-4"></div>
+                  <div className="p-2 sm:p-4 space-y-2 sm:space-y-3 flex-1 flex flex-col justify-between">
+                    <div className="h-4 sm:h-5 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-3 sm:h-4 bg-gray-100 rounded w-1/2"></div>
+                    <div className="h-8 sm:h-10 bg-gray-200/70 rounded-full mt-auto"></div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
             <div className="overflow-hidden py-4 -my-4 px-2 -mx-2" ref={emblaRef}>
-              <div className="flex gap-6 touch-pan-y py-4">
+              <div className="flex gap-3 sm:gap-6 touch-pan-y py-4">
                 {courses.map((course) => {
                   const categoryLabel = isSinhala
                     ? (course.category?.categoryNameSi || course.category?.categoryNameEn)
@@ -106,17 +106,17 @@ export default function CoursesSection() {
                   return (
                     <div 
                       key={course.id} 
-                      className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_25%] min-w-0 group relative transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col bg-transparent pb-2"
+                      className="flex-[0_0_calc(50%-6px)] sm:flex-[0_0_calc(50%-12px)] lg:flex-[0_0_calc(25%-18px)] min-w-0 group relative transition-all duration-300 cursor-grab active:cursor-grabbing flex flex-col bg-transparent pb-2"
                     >
-                      <div className="h-full px-1 py-1">
+                      <div className="h-full px-0.5 sm:px-1 py-1">
                         <Card
                           to={`/education/${course.slug || course.id}`}
                           image={course.bannerImageUrl || 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=800&q=80'}
                           badge={formatQualificationLevel(course.courseLevel, isSinhala) || (isSinhala ? 'පාඨමාලාව' : 'Course')}
-                          titleClassName="text-sm sm:text-base font-bold text-gray-900 leading-snug mb-1 line-clamp-2"
+                          titleClassName="text-xs sm:text-base font-bold text-gray-900 leading-snug mb-1 line-clamp-2"
                           topRightBadge={course.applicationCalled ? (
-                            <div className="h-6 inline-flex items-center gap-1.5 bg-amber-500/85 backdrop-blur-md text-white text-[11px] font-bold px-2.5 rounded-full shadow-xs border border-amber-300/40 max-w-full">
-                              <Sparkles size={11} className="shrink-0 text-amber-100" />
+                            <div className="h-5 sm:h-6 inline-flex items-center gap-1 bg-amber-500/85 backdrop-blur-md text-white text-[9px] sm:text-[11px] font-bold px-1.5 sm:px-2.5 rounded-full shadow-xs border border-amber-300/40 max-w-full">
+                              <Sparkles size={10} className="shrink-0 text-amber-100" />
                               <span className="truncate">{isSinhala ? 'අයදුම්පත් කැඳවා ඇත' : 'Application Called'}</span>
                             </div>
                           ) : null}
