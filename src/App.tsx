@@ -68,6 +68,7 @@ import UserManagement from './admin/pages/UserManagement';
 import ContactManagement from './admin/pages/ContactManagement';
 import InstitutionManagement from './admin/pages/InstitutionManagement';
 import Analytics from './admin/pages/Analytics';
+import GA4TrafficDashboard from './admin/pages/GA4TrafficDashboard';
 import Login from './admin/pages/Login';
 import MarketplaceController from './admin/pages/MarketplaceController';
 import ImportantEventManagement from './admin/pages/ImportantEventManagement';
@@ -193,6 +194,7 @@ function App() {
             }>
               <Route index element={<Dashboard />} />
               <Route path="analytics" element={<Analytics />} />
+              <Route path="ga4-traffic" element={<GA4TrafficDashboard />} />
               <Route path="categories" element={<CategoryManagement />} />
               <Route path="items" element={<ItemManagement />} />
               <Route path="institutions" element={<InstitutionManagement />} />

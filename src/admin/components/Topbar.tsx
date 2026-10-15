@@ -21,6 +21,7 @@ interface RouteMeta {
 const ROUTE_CONFIG: Record<string, RouteMeta> = {
   '/admin': { title: 'Dashboard Overview', category: 'Main' },
   '/admin/analytics': { title: 'Analytics Management', category: 'Main' },
+  '/admin/ga4-traffic': { title: 'GA4 Traffic Dashboard', category: 'Main' },
   '/admin/categories': { title: 'Category Management', category: 'Agro & Services' },
   '/admin/items': { title: 'Item Management', category: 'Agro & Services' },
   '/admin/institutions': { title: 'Institution Management', category: 'Agro & Services' },

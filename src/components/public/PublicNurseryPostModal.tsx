@@ -102,6 +102,17 @@ export default function PublicNurseryPostModal({
   const [isUploadingFastPhoto, setIsUploadingFastPhoto] = useState(false);
   const [isDraggingFastPhoto, setIsDraggingFastPhoto] = useState(false);
   const fastPhotoInputRef = useRef<HTMLInputElement | null>(null);
+  const tabsContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Auto-scroll active tab into view in tabs bar
+  useEffect(() => {
+    if (tabsContainerRef.current) {
+      const activeBtn = tabsContainerRef.current.querySelector<HTMLElement>('[data-active="true"]');
+      if (activeBtn) {
+        activeBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+  }, [currentStep]);
 
   // Stocks & Specialties
   const [stocks, setStocks] = useState<NurseryStockItem[]>([]);
@@ -635,44 +646,42 @@ export default function PublicNurseryPostModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 overflow-y-auto bg-black/60 backdrop-blur-xs font-sans">
-      <div className="relative w-full max-w-5xl max-h-[95vh] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col">
-        
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-2.5 sm:p-4 md:p-6 overflow-y-auto bg-black/60 backdrop-blur-xs font-sans">
+      <div className="relative w-full max-w-5xl my-auto max-h-[calc(100dvh-1.25rem)] sm:max-h-[90vh] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden">
+
         {/* Header - Minimal & Professional with Language Toggle */}
-        <div className="sticky top-0 z-20 flex items-center justify-between px-6 py-4 bg-white border-b border-gray-200">
-          <div>
-            <h2 className="text-base sm:text-lg font-bold text-gray-900">
+        <div className="shrink-0 flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4 bg-white border-b border-gray-200">
+          <div className="min-w-0 pr-2">
+            <h2 className="text-sm sm:text-lg font-bold text-gray-900 leading-tight">
               {isSi ? 'පැළ තවානක් ලියාපදිංචි කිරීම' : 'Register Plant Nursery'}
             </h2>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5 leading-tight line-clamp-1 sm:line-clamp-none">
               {isSi
                 ? 'ඔබගේ පැළ තවාන අස්වැන්න (Aswanna) හි ලැයිස්තුගත කිරීමට තොරතුරු ඇතුළත් කරන්න.'
                 : 'Submit your nursery profile for review and listing on Aswanna.'}
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             {/* Language Switcher Badge */}
             <div className="flex items-center bg-gray-100 p-0.5 rounded-lg border border-gray-200 text-xs font-semibold">
               <button
                 type="button"
                 onClick={() => i18n.changeLanguage('en')}
-                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-                  !isSi
-                    ? 'bg-white text-gray-900 shadow-2xs font-bold'
-                    : 'text-gray-500 hover:text-gray-900'
-                }`}
+                className={`px-2 sm:px-2.5 py-1 rounded-md transition-all cursor-pointer ${!isSi
+                  ? 'bg-white text-gray-900 shadow-2xs font-bold'
+                  : 'text-gray-500 hover:text-gray-900'
+                  }`}
               >
                 English
               </button>
               <button
                 type="button"
                 onClick={() => i18n.changeLanguage('si')}
-                className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
-                  isSi
-                    ? 'bg-[#006837] text-white shadow-2xs font-bold'
-                    : 'text-gray-500 hover:text-gray-900'
-                }`}
+                className={`px-2 sm:px-2.5 py-1 rounded-md transition-all cursor-pointer ${isSi
+                  ? 'bg-[#006837] text-white shadow-2xs font-bold'
+                  : 'text-gray-500 hover:text-gray-900'
+                  }`}
               >
                 සිංහල
               </button>
@@ -682,6 +691,7 @@ export default function PublicNurseryPostModal({
               type="button"
               onClick={onClose}
               className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+              aria-label="Close"
             >
               <X size={18} />
             </button>
@@ -689,8 +699,11 @@ export default function PublicNurseryPostModal({
         </div>
 
         {/* Tabs Bar */}
-        <div className="bg-white border-b border-gray-200 px-6 overflow-x-auto scrollbar-none">
-          <div className="flex items-center gap-6 sm:gap-8 min-w-max">
+        <div
+          ref={tabsContainerRef}
+          className="shrink-0 bg-white border-b border-gray-200 px-3 sm:px-6 overflow-x-auto scrollbar-none"
+        >
+          <div className="flex items-center gap-4 sm:gap-8 min-w-max">
             {stepsList.map((s) => {
               const isCurrent = currentStep === s.num;
               const isDone = currentStep > s.num;
@@ -699,26 +712,25 @@ export default function PublicNurseryPostModal({
                 <button
                   key={s.num}
                   type="button"
+                  data-active={isCurrent ? 'true' : 'false'}
                   onClick={() => {
                     if (isDone || isCurrent) setCurrentStep(s.num);
                     else if (validateStep(currentStep)) setCurrentStep(s.num);
                   }}
-                  className={`relative py-3.5 px-0.5 text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
-                    isCurrent
-                      ? 'text-[#006837]'
-                      : isDone
+                  className={`relative py-2.5 sm:py-3.5 px-1 sm:px-0.5 text-xs sm:text-sm font-semibold transition-all cursor-pointer flex items-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0 ${isCurrent
+                    ? 'text-[#006837]'
+                    : isDone
                       ? 'text-gray-700 hover:text-gray-900'
                       : 'text-gray-400 hover:text-gray-600'
-                  }`}
+                    }`}
                 >
                   <span
-                    className={`w-4.5 h-4.5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
-                      isCurrent
-                        ? 'bg-[#006837] text-white'
-                        : isDone
+                    className={`w-5 h-5 shrink-0 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${isCurrent
+                      ? 'bg-[#006837] text-white shadow-2xs'
+                      : isDone
                         ? 'bg-emerald-100 text-[#006837]'
                         : 'bg-gray-100 text-gray-500'
-                    }`}
+                      }`}
                   >
                     {isDone ? <Check size={11} strokeWidth={2.5} /> : s.num}
                   </span>
@@ -735,7 +747,7 @@ export default function PublicNurseryPostModal({
         </div>
 
         {/* Modal Body */}
-        <div className="p-6 space-y-5 grow overflow-y-auto">
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-5 flex-1 min-h-0 overflow-y-auto">
           {/* Draft Restored Banner */}
           {draftRestored && (
             <div className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200 rounded-xl text-gray-700 text-xs">
@@ -791,7 +803,7 @@ export default function PublicNurseryPostModal({
             </div>
           ) : (
             <form onSubmit={(e) => { e.preventDefault(); if (currentStep === 6) { handleSubmit(e); } else { handleNext(); } }} className="space-y-5">
-              
+
               {/* STEP 1: Basic Information */}
               {currentStep === 1 && (
                 <div className="space-y-4">
@@ -1230,11 +1242,10 @@ export default function PublicNurseryPostModal({
                           handlePhotoUpload(Array.from(e.dataTransfer.files));
                         }
                       }}
-                      className={`w-full py-8 px-6 border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-center cursor-pointer transition-all ${
-                        isDraggingPhotos
-                          ? 'border-[#006837] bg-emerald-50/30'
-                          : 'border-gray-300 hover:border-[#006837] bg-white'
-                      }`}
+                      className={`w-full py-8 px-6 border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-center cursor-pointer transition-all ${isDraggingPhotos
+                        ? 'border-[#006837] bg-emerald-50/30'
+                        : 'border-gray-300 hover:border-[#006837] bg-white'
+                        }`}
                     >
                       {isUploadingPhotos ? (
                         <div className="flex flex-col items-center gap-2 text-[#006837] py-2">
@@ -1445,9 +1456,8 @@ export default function PublicNurseryPostModal({
                               const f = Array.from(e.dataTransfer.files).find((x) => x.type.startsWith('image/'));
                               if (f) handleFastPhotoUpload(f);
                             }}
-                            className={`w-full py-4 px-4 border border-dashed rounded-lg flex items-center justify-center gap-2 cursor-pointer transition-all ${
-                              isDraggingFastPhoto ? 'border-[#006837] bg-emerald-50/20' : 'border-gray-300 bg-white hover:border-[#006837]'
-                            }`}
+                            className={`w-full py-4 px-4 border border-dashed rounded-lg flex items-center justify-center gap-2 cursor-pointer transition-all ${isDraggingFastPhoto ? 'border-[#006837] bg-emerald-50/20' : 'border-gray-300 bg-white hover:border-[#006837]'
+                              }`}
                           >
                             {isUploadingFastPhoto ? (
                               <span className="text-xs text-[#006837] flex items-center gap-1.5">
@@ -1693,11 +1703,10 @@ export default function PublicNurseryPostModal({
                                   isSelected ? prev.filter((id) => id !== sp.id) : [...prev, sp.id]
                                 );
                               }}
-                              className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer border ${
-                                isSelected
-                                  ? 'bg-[#006837] text-white border-[#006837]'
-                                  : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'
-                              }`}
+                              className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer border ${isSelected
+                                ? 'bg-[#006837] text-white border-[#006837]'
+                                : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-100'
+                                }`}
                             >
                               {isSi ? (sp.nameSi || sp.nameEn) : (sp.nameEn || sp.nameSi)}
                             </button>
