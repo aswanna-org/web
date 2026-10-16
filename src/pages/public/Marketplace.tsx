@@ -320,7 +320,7 @@ export default function Marketplace() {
     : '';
 
   return (
-    <div className="min-h-screen bg-[#fcfdfa] pb-16 font-roboto">
+    <div className="min-h-screen bg-[#fcfdfa] pb-28 sm:pb-32 lg:pb-16 font-roboto">
       <SEO
         title={
           activeCategoryTitle
@@ -569,7 +569,7 @@ export default function Marketplace() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5 lg:gap-6">
                 {items.map((it, idx) => {
                   const primaryImg =
                     it.images?.find((img) => img.isPrimary)?.imageUrl ||
@@ -590,7 +590,7 @@ export default function Marketplace() {
                     >
                       {/* Top Media Wrapper */}
                       <div className="relative">
-                        <div className="h-40 sm:h-48 w-full relative overflow-hidden bg-white">
+                        <div className="h-32 sm:h-44 lg:h-48 w-full relative overflow-hidden bg-white">
                           <img
                             src={primaryImg}
                             alt={itemTitle}
@@ -604,20 +604,20 @@ export default function Marketplace() {
                         <CardWaveDivider />
 
                         {/* Floating Round Badge */}
-                        <div className="absolute -bottom-4 sm:-bottom-5 left-4 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#006837] text-white flex items-center justify-center border-[3px] border-white shadow-md sm:shadow-lg group-hover:scale-110 transition-transform">
+                        <div className="absolute -bottom-3.5 sm:-bottom-4 left-3 sm:left-5 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#006837] text-white flex items-center justify-center border-[2px] sm:border-[3px] border-white shadow-md sm:shadow-lg group-hover:scale-110 transition-transform">
                           <Tag className="w-4 h-4 sm:w-5 sm:h-5" />
                         </div>
                       </div>
 
                       {/* Card Content Area */}
-                      <div className="pt-7 sm:pt-8 px-4 sm:px-6 pb-4 sm:pb-6 flex-1 flex flex-col justify-between space-y-4">
+                      <div className="pt-5 sm:pt-6 px-3 sm:px-4.5 pb-3 sm:pb-4 flex-1 flex flex-col justify-between space-y-2.5 sm:space-y-3">
                         <div>
-                          <h4 className="font-bold text-sm sm:text-base lg:text-lg text-[#143d4d] leading-snug group-hover:text-[#006837] transition-colors line-clamp-2">
+                          <h4 className="font-bold text-xs sm:text-sm md:text-base text-[#143d4d] leading-snug group-hover:text-[#006837] transition-colors line-clamp-2 min-h-[2rem] sm:min-h-[2.5rem]">
                             {itemTitle}
                           </h4>
 
-                          <div className="flex items-center gap-1 text-xs text-gray-500 mt-2">
-                            <MapPin size={13} className="text-rose-500 shrink-0" />
+                          <div className="flex items-center gap-1 text-[11px] sm:text-xs text-gray-500 mt-1 sm:mt-1.5">
+                            <MapPin size={12} className="text-rose-500 shrink-0" />
                             <span className="font-medium text-gray-700">{itemDistrict}</span>
                             {itemLocation && (
                               <span className="text-gray-400 truncate">({itemLocation})</span>
@@ -625,35 +625,33 @@ export default function Marketplace() {
                           </div>
 
                           {it.phoneNumber && (
-                            <div className="flex items-center gap-1 text-xs text-gray-400 mt-1">
-                              <Phone size={12} className="shrink-0" />
-                              <span>{it.phoneNumber}</span>
+                            <div className="flex items-center gap-1 text-[10px] sm:text-xs text-gray-400 mt-0.5">
+                              <Phone size={11} className="shrink-0" />
+                              <span className="truncate">{it.phoneNumber}</span>
                             </div>
                           )}
                         </div>
 
                         {/* Footer: Price & Explore */}
-                        <div className="flex items-center justify-between pt-3 border-t border-gray-50">
-                          <div>
-                            <span className="text-[10px] text-gray-400 uppercase tracking-wider block">
+                        <div className="flex items-center justify-between pt-2.5 sm:pt-3 border-t border-gray-50 mt-auto">
+                          <div className="min-w-0 pr-1">
+                            <span className="text-[9px] sm:text-[10px] text-gray-400 uppercase tracking-wider block">
                               {isSi ? 'මිල' : 'Price'}
                             </span>
-                            <span className="font-extrabold text-[#006837] text-sm sm:text-base">
+                            <span className="font-extrabold text-[#006837] text-xs sm:text-sm truncate block">
                               {itemPrice || (isSi ? 'සාකච්ඡා කරගත හැක' : 'Negotiable')}
                             </span>
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1.5 shrink-0">
                             <button
                               type="button"
-                              className="bg-[#006837] hover:bg-[#00532c] text-white text-xs font-semibold px-3 py-1.5 rounded-full flex items-center gap-1 transition-all shadow-xs group-hover:shadow cursor-pointer"
+                              className="bg-[#006837] hover:bg-[#00532c] text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3.5 py-1.5 rounded-full flex items-center gap-1 transition-all shadow-xs group-hover:shadow cursor-pointer"
                             >
                               <span>{isSi ? 'විස්තර' : 'View'}</span>
-                              <ArrowUpRight size={14} />
+                              <ArrowUpRight className="w-3.5 h-3.5" />
                             </button>
-                            <div className="hidden xs:block">
-                              <AswannaLeafBadge />
-                            </div>
+                            <AswannaLeafBadge />
                           </div>
                         </div>
                       </div>

@@ -407,16 +407,16 @@ export default function JobDetail() {
                   <span>{isSi ? 'වැටුප් සහ දීමනා විස්තර' : 'Salary & Allowance Details'}</span>
                 </h3>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className={`grid gap-4 ${job.salaryDetails.salaryCode && (job.salaryDetails.basicSalary || job.salaryDetails.salaryDisplay) ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
                   {job.salaryDetails.salaryCode && (
-                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                      <span className="text-xs text-gray-500 font-medium block mb-1">{isSi ? 'වැටුප් කේතය' : 'Salary Code'}</span>
+                    <div className="bg-gray-50 p-4 sm:p-5 rounded-2xl border border-gray-100 w-full">
+                      <span className="text-xs text-gray-500 font-bold uppercase tracking-wider block mb-1">{isSi ? 'වැටුප් කේතය' : 'Salary Code'}</span>
                       <span className="font-bold text-gray-900 text-sm">{job.salaryDetails.salaryCode}</span>
                     </div>
                   )}
                   {(job.salaryDetails.basicSalary || job.salaryDetails.salaryDisplay) && (
-                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                      <span className="text-xs text-gray-500 font-medium block mb-1">{isSi ? 'මූලික වැටුප' : 'Basic Salary'}</span>
+                    <div className="bg-gray-50 p-4 sm:p-5 rounded-2xl border border-gray-100 w-full">
+                      <span className="text-xs text-gray-500 font-bold uppercase tracking-wider block mb-1">{isSi ? 'මූලික වැටුප' : 'Basic Salary'}</span>
                       <span className="font-bold text-emerald-800 text-sm">
                         {isSi && job.salaryDetails.basicSalarySi ? job.salaryDetails.basicSalarySi : (job.salaryDetails.basicSalary || job.salaryDetails.salaryDisplay)}
                       </span>
@@ -456,17 +456,17 @@ export default function JobDetail() {
                 </h3>
 
                 {(job.eligibility.ageLimit || job.eligibility.ageRelaxation) && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                  <div className={`grid gap-4 text-sm ${job.eligibility.ageLimit && job.eligibility.ageRelaxation ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
                     {job.eligibility.ageLimit && (
-                      <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                        <span className="text-xs text-gray-500 font-medium block mb-1">{isSi ? 'වයස් සීමාව' : 'Age Limit'}</span>
-                        <span className="font-bold text-gray-900">{isSi && job.eligibility.ageLimitSi ? job.eligibility.ageLimitSi : job.eligibility.ageLimit}</span>
+                      <div className="bg-gray-50 p-4 sm:p-5 rounded-2xl border border-gray-100 w-full">
+                        <span className="text-xs text-gray-500 font-bold uppercase tracking-wider block mb-1.5">{isSi ? 'වයස් සීමාව' : 'Age Limit'}</span>
+                        <div className="font-semibold text-gray-900 leading-relaxed text-xs sm:text-sm">{isSi && job.eligibility.ageLimitSi ? job.eligibility.ageLimitSi : job.eligibility.ageLimit}</div>
                       </div>
                     )}
                     {job.eligibility.ageRelaxation && (
-                      <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                        <span className="text-xs text-gray-500 font-medium block mb-1">{isSi ? 'වයස් ලිහිල් කිරීම්' : 'Age Relaxation'}</span>
-                        <span className="font-bold text-gray-900">{isSi && job.eligibility.ageRelaxationSi ? job.eligibility.ageRelaxationSi : job.eligibility.ageRelaxation}</span>
+                      <div className="bg-gray-50 p-4 sm:p-5 rounded-2xl border border-gray-100 w-full">
+                        <span className="text-xs text-gray-500 font-bold uppercase tracking-wider block mb-1.5">{isSi ? 'වයස් ලිහිල් කිරීම්' : 'Age Relaxation'}</span>
+                        <div className="font-semibold text-gray-900 leading-relaxed text-xs sm:text-sm">{isSi && job.eligibility.ageRelaxationSi ? job.eligibility.ageRelaxationSi : job.eligibility.ageRelaxation}</div>
                       </div>
                     )}
                   </div>
@@ -536,10 +536,10 @@ export default function JobDetail() {
                 </h3>
 
                 {(job.applicationInfo.gazetteNo || job.applicationInfo.examFee) && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                  <div className={`grid gap-4 text-sm ${job.applicationInfo.gazetteNo && job.applicationInfo.examFee ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'}`}>
                     {job.applicationInfo.gazetteNo && (
-                      <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                        <span className="text-xs text-gray-500 font-medium block mb-1">{isSi ? 'ගැසට් අංකය' : 'Gazette Number'}</span>
+                      <div className="bg-gray-50 p-4 sm:p-5 rounded-2xl border border-gray-100 w-full">
+                        <span className="text-xs text-gray-500 font-bold uppercase tracking-wider block mb-1">{isSi ? 'ගැසට් අංකය' : 'Gazette Number'}</span>
                         <span className="font-semibold text-gray-900">
                           {job.applicationInfo.gazetteNo}
                           {job.applicationInfo.gazetteDate && ` (${new Date(job.applicationInfo.gazetteDate).toLocaleDateString()})`}
@@ -547,8 +547,8 @@ export default function JobDetail() {
                       </div>
                     )}
                     {job.applicationInfo.examFee && (
-                      <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                        <span className="text-xs text-gray-500 font-medium block mb-1">{isSi ? 'විභාග ගාස්තුව' : 'Application / Exam Fee'}</span>
+                      <div className="bg-gray-50 p-4 sm:p-5 rounded-2xl border border-gray-100 w-full">
+                        <span className="text-xs text-gray-500 font-bold uppercase tracking-wider block mb-1">{isSi ? 'විභාග ගාස්තුව' : 'Application / Exam Fee'}</span>
                         <span className="font-semibold text-gray-900">{isSi && job.applicationInfo.examFeeSi ? job.applicationInfo.examFeeSi : job.applicationInfo.examFee}</span>
                       </div>
                     )}

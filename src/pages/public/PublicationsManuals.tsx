@@ -172,7 +172,7 @@ export default function PublicationsManuals() {
   };
 
   return (
-    <div className="w-full min-h-screen bg-gray-50/50 pb-16">
+    <div className="w-full min-h-screen bg-gray-50/50 pb-28 sm:pb-32 lg:pb-16">
       <SEO
         title={isSinhala ? 'කෘෂි ප්‍රකාශන සහ අත්පොත් | Aswanna' : 'Publications & Manuals | Aswanna'}
         description={
@@ -313,8 +313,8 @@ export default function PublicationsManuals() {
           </div>
         ) : (
           <div className="space-y-10">
-            {/* Direct Thumbnail Cards Grid: 2 columns on mobile, 3 on tablet, 4 on desktop */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
+            {/* Direct Thumbnail Cards Grid: 2 columns on mobile/tablet, 3 on lg, 4 on xl */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5 lg:gap-6">
               {publications.map((pub, index) => {
                 const pubTitle = isSinhala ? pub.titleSi : (pub.titleEn || pub.titleSi);
                 const pubAuthor = isSinhala

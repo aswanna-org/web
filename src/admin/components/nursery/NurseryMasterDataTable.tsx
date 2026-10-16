@@ -20,6 +20,8 @@ interface NurseryMasterDataTableProps {
   itemSingular: string;
   endpoint: string;
   icon: React.ReactNode;
+  categories?: AssociateOption[];
+  hasCategoryRelation?: boolean;
   onDataChanged?: () => void;
 }
 
@@ -28,12 +30,15 @@ export default function NurseryMasterDataTable({
   itemSingular,
   endpoint,
   icon,
+  categories,
+  hasCategoryRelation,
   onDataChanged
 }: NurseryMasterDataTableProps) {
   const [items, setItems] = useState<AssociateOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
+  const [categoryFilter, setCategoryFilter] = useState('');
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -46,6 +51,7 @@ export default function NurseryMasterDataTable({
   const [editingItem, setEditingItem] = useState<AssociateOption | null>(null);
   const [nameEn, setNameEn] = useState('');
   const [nameSi, setNameSi] = useState('');
+  const [categoryId, setCategoryId] = useState('');
   const [activeState, setActiveState] = useState(true);
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -59,6 +65,9 @@ export default function NurseryMasterDataTable({
       if (search.trim()) params.append('search', search.trim());
       if (statusFilter !== 'all') {
         params.append('activeOnly', statusFilter === 'active' ? 'true' : 'false');
+      }
+      if (hasCategoryRelation && categoryFilter) {
+        params.append('categoryId', categoryFilter);
       }
 
       const res = await fetch(`${API_BASE_URL}/${endpoint}?${params.toString()}`);
@@ -74,11 +83,11 @@ export default function NurseryMasterDataTable({
     } finally {
       setLoading(false);
     }
-  }, [endpoint, page, limit, search, statusFilter]);
+  }, [endpoint, page, limit, search, statusFilter, hasCategoryRelation, categoryFilter]);
 
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter]);
+  }, [search, statusFilter, categoryFilter]);
 
   useEffect(() => {
     fetchItems();
@@ -88,6 +97,7 @@ export default function NurseryMasterDataTable({
     setEditingItem(null);
     setNameEn('');
     setNameSi('');
+    setCategoryId(categoryFilter || '');
     setActiveState(true);
     setErrorMsg(null);
     setIsModalOpen(true);
@@ -97,6 +107,7 @@ export default function NurseryMasterDataTable({
     setEditingItem(item);
     setNameEn(item.nameEn || '');
     setNameSi(item.nameSi || '');
+    setCategoryId(item.categoryId || item.category?.id || '');
     setActiveState(item.activeState !== false);
     setErrorMsg(null);
     setIsModalOpen(true);
@@ -108,16 +119,23 @@ export default function NurseryMasterDataTable({
       setErrorMsg('Please enter at least one name.');
       return;
     }
+    if (hasCategoryRelation && !categoryId) {
+      setErrorMsg('Please select a Crop Category.');
+      return;
+    }
 
     setSaving(true);
     setErrorMsg(null);
     try {
       const token = localStorage.getItem('admin_token') || localStorage.getItem('token');
-      const payload = {
+      const payload: any = {
         nameEn: nameEn.trim() || nameSi.trim(),
         nameSi: nameSi.trim() || nameEn.trim(),
         activeState
       };
+      if (hasCategoryRelation) {
+        payload.categoryId = categoryId || null;
+      }
 
       const url = editingItem
         ? `${API_BASE_URL}/${endpoint}/${editingItem.id}`
@@ -234,6 +252,22 @@ export default function NurseryMasterDataTable({
             <option value="inactive">Inactive</option>
           </select>
 
+          {/* Category Filter (When applicable, e.g. Crops under Category) */}
+          {hasCategoryRelation && categories && categories.length > 0 && (
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="px-2.5 py-1.5 text-xs bg-gray-50 border border-emerald-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-600 cursor-pointer font-medium text-emerald-950"
+            >
+              <option value="">All Categories</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nameEn || c.nameSi}
+                </option>
+              ))}
+            </select>
+          )}
+
           {/* Refresh Button */}
           <button
             onClick={() => fetchItems()}
@@ -263,6 +297,7 @@ export default function NurseryMasterDataTable({
                 <th className="px-3 py-2 w-12 text-center">#</th>
                 <th className="px-3 py-2">Name (English)</th>
                 <th className="px-3 py-2">Name (Sinhala)</th>
+                {hasCategoryRelation && <th className="px-3 py-2">Category</th>}
                 <th className="px-3 py-2">Slug</th>
                 <th className="px-3 py-2 text-center">Nurseries / Stocks</th>
                 <th className="px-3 py-2 text-center">Status</th>
@@ -272,7 +307,7 @@ export default function NurseryMasterDataTable({
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-gray-400">
+                  <td colSpan={hasCategoryRelation ? 8 : 7} className="px-3 py-8 text-center text-gray-400">
                     <div className="inline-flex items-center gap-2">
                       <RefreshCw size={14} className="animate-spin text-emerald-600" />
                       <span>Loading records...</span>
@@ -281,7 +316,7 @@ export default function NurseryMasterDataTable({
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-3 py-8 text-center text-gray-400">
+                  <td colSpan={hasCategoryRelation ? 8 : 7} className="px-3 py-8 text-center text-gray-400">
                     No {title.toLowerCase()} found.
                   </td>
                 </tr>
@@ -310,6 +345,18 @@ export default function NurseryMasterDataTable({
                           {item.nameSi || '—'}
                         </span>
                       </td>
+
+                      {hasCategoryRelation && (
+                        <td className="px-3 py-1.5 whitespace-nowrap">
+                          {item.category ? (
+                            <span className="inline-flex items-center text-[10px] px-2 py-0.5 rounded-full font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                              {item.category.nameEn || item.category.nameSi}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-gray-400 italic">None</span>
+                          )}
+                        </td>
+                      )}
 
                       <td className="px-3 py-1.5">
                         <span className="text-[10px] text-gray-400 font-mono truncate block max-w-[140px]">
@@ -425,6 +472,31 @@ export default function NurseryMasterDataTable({
               {errorMsg && (
                 <div className="p-2.5 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700">
                   {errorMsg}
+                </div>
+              )}
+
+              {/* Crop Category Dropdown (Required when hasCategoryRelation is true) */}
+              {hasCategoryRelation && (
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    Crop Category *
+                  </label>
+                  <select
+                    required
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value)}
+                    className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 cursor-pointer"
+                  >
+                    <option value="">-- Select Crop Category --</option>
+                    {categories?.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.nameEn || cat.nameSi} {cat.nameSi && cat.nameEn ? `(${cat.nameSi})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-gray-500 mt-1">
+                    Every crop belongs to a category (e.g. Vegetable → Carrot, Fruit → Mango).
+                  </p>
                 </div>
               )}
 

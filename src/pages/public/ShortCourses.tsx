@@ -321,7 +321,7 @@ export default function ShortCourses() {
     Boolean(searchQuery.trim());
 
   return (
-    <div className="w-full min-h-screen bg-gray-50/50 pb-16">
+    <div className="w-full min-h-screen bg-gray-50/50 pb-28 sm:pb-32 lg:pb-16">
       <SEO
         title={isSinhala ? 'කෙටිකාලීන හා ප්‍රායෝගික පුහුණු වැඩමුළු | Aswanna' : 'Short Courses & Practical Workshops | Aswanna'}
         description={
@@ -514,15 +514,21 @@ export default function ShortCourses() {
           </div>
         ) : (
           <div className="space-y-10">
-            {/* Grid: 2 cols on mobile, 3 on md, 4 on lg */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+            {/* Grid: 2 cols on mobile/tablet, 3 on lg, 4 on xl */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5 lg:gap-6">
               {courses.map((course, index) => {
-                const courseTitle = isSinhala ? course.titleSi : (course.titleEn || course.titleSi);
+                const courseTitle = isSinhala
+                  ? (course.titleSi || course.titleEn)
+                  : (course.titleEn || course.titleSi);
                 const subjectName = course.shortCourseSubject
-                  ? (isSinhala ? course.shortCourseSubject.nameSi : course.shortCourseSubject.nameEn)
+                  ? (isSinhala
+                      ? (course.shortCourseSubject.nameSi || course.shortCourseSubject.nameEn)
+                      : (course.shortCourseSubject.nameEn || course.shortCourseSubject.nameSi))
                   : '';
                 const centerName = course.shortCourseCenter
-                  ? (isSinhala ? course.shortCourseCenter.nameSi : course.shortCourseCenter.nameEn)
+                  ? (isSinhala
+                      ? (course.shortCourseCenter.nameSi || course.shortCourseCenter.nameEn)
+                      : (course.shortCourseCenter.nameEn || course.shortCourseCenter.nameSi))
                   : '';
                 const rawDistrict = course.district || course.shortCourseCenter?.district || '';
                 const districtName = getDistrictLabel(rawDistrict, isSinhala);

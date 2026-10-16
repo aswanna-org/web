@@ -20,6 +20,8 @@ export interface AssociateOption {
   nameSi?: string | null;
   nameEn?: string | null;
   activeState: boolean;
+  categoryId?: string | null;
+  category?: AssociateOption | null;
   _count?: {
     nurseries?: number;
     stocks?: number;

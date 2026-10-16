@@ -401,7 +401,7 @@ export default function Education() {
         : 'Explore professional courses and vocational training designed to equip you with modern agricultural skills in Sri Lanka.');
 
   return (
-    <div className="w-full min-h-screen bg-gray-50/50">
+    <div className="w-full min-h-screen bg-gray-50/50 pb-28 sm:pb-32 lg:pb-16">
       <SEO 
         title={pageTitle}
         description={pageDesc}
@@ -520,9 +520,7 @@ export default function Education() {
                           <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                         </button>
 
-                        <div className="hidden sm:block">
-                          <AswannaLeafBadge />
-                        </div>
+                        <AswannaLeafBadge />
                       </div>
                     </div>
                   </div>
@@ -663,7 +661,7 @@ export default function Education() {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5 lg:gap-6">
                 {courses.map((course, index) => {
                   const categoryLabel = isSinhala
                     ? (course.category?.categoryNameSi || course.category?.categoryNameEn)

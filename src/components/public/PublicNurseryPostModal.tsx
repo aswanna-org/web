@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, type ChangeEvent, type DragEvent } from 'react';
+import React, { useState, useEffect, useRef, useMemo, type ChangeEvent, type DragEvent } from 'react';
 import { X, ChevronLeft, ChevronRight, UploadCloud, RefreshCw, Trash2, Check } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
@@ -122,13 +122,24 @@ export default function PublicNurseryPostModal({
   const [newStockRange, setNewStockRange] = useState('500 - 1,000');
   const [specialtyIds, setSpecialtyIds] = useState<string[]>([]);
 
+  // Filter crops by selected category
+  const availableFastCrops = useMemo(() => {
+    if (!newFastCategory) return [];
+    return options.crops.filter((c) => !c.categoryId || c.categoryId === newFastCategory);
+  }, [options.crops, newFastCategory]);
+
+  const availableStockCrops = useMemo(() => {
+    if (!newStockCategory) return [];
+    return options.crops.filter((c) => !c.categoryId || c.categoryId === newStockCategory);
+  }, [options.crops, newStockCategory]);
+
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
   const draftKey = `${DRAFT_PREFIX}${user?.id || 'anonymous'}`;
 
   const stepsList: { num: StepNumber; label: string }[] = [
     { num: 1, label: isSi ? 'මූලික තොරතුරු' : 'Basic Info' },
     { num: 2, label: isSi ? 'පිහිටීම' : 'Location' },
-    { num: 3, label: isSi ? 'පහසුකම්' : 'Facilities' },
+    { num: 3, label: isSi ? 'පහසුකම් සහ විශේෂතා' : 'Facilities & Specialties' },
     { num: 4, label: isSi ? 'ඡායාරූප' : 'Photos' },
     { num: 5, label: isSi ? 'විශේෂ පැළ' : 'Featured Plants' },
     { num: 6, label: isSi ? 'තොග සහ ඉදිරිපත් කිරීම' : 'Stocks & Submit' }
@@ -441,11 +452,11 @@ export default function PublicNurseryPostModal({
   };
 
   const handleAddFastItem = () => {
-    if (!newFastCategory && !newFastCrop) {
+    if (!newFastCategory || !newFastCrop) {
       setErrorMsg(
         isSi
-          ? 'කරුණාකර අවම වශයෙන් බෝග ප්‍රවර්ගය හෝ බෝගය තෝරන්න.'
-          : 'Please select at least Crop Category or Crop Name for the featured plant.'
+          ? 'කරුණාකර විශේෂ පැළය සඳහා බෝග ප්‍රවර්ගය සහ බෝගය යන දෙකම තෝරන්න.'
+          : 'Please select both Crop Category and Crop Name for the featured plant.'
       );
       return;
     }
@@ -479,8 +490,12 @@ export default function PublicNurseryPostModal({
   };
 
   const handleAddStock = () => {
-    if (!newStockCategory && !newStockCrop) {
-      setErrorMsg(isSi ? 'කරුණාකර තොග සඳහා බෝගය හෝ ප්‍රවර්ගය තෝරන්න.' : 'Please select a crop or category for the available stock.');
+    if (!newStockCategory || !newStockCrop) {
+      setErrorMsg(
+        isSi
+          ? 'කරුණාකර තොග සඳහා බෝග ප්‍රවර්ගය සහ බෝගය යන දෙකම තෝරන්න.'
+          : 'Please select both Crop Category and Crop Name for the available stock.'
+      );
       return;
     }
 
@@ -1205,6 +1220,56 @@ export default function PublicNurseryPostModal({
                       </select>
                     </div>
                   </div>
+
+                  {/* Specialties Multi-select in Step 3 */}
+                  <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-xl space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-xs font-bold text-gray-800 block">
+                          {isSi ? 'තවාන් විශේෂතා සහ ශාක ද්‍රව්‍ය (Specialties)' : 'Nursery Specialties & Plant Materials'}
+                        </span>
+                        <p className="text-[11px] text-gray-500">
+                          {isSi
+                            ? 'ඔබගේ තවාන විශේෂීකරණය වූ ශාක හෝ සේවා තෝරන්න (උදා: බද්ධ පැළ, පටක රෝපණ, කාබනික පැළ)'
+                            : 'Select specialties or plant material types your nursery offers (e.g. Grafted plants, tissue culture, organic)'}
+                        </p>
+                      </div>
+                      <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full shrink-0">
+                        {specialtyIds.length} {isSi ? 'තෝරා ඇත' : 'Selected'}
+                      </span>
+                    </div>
+
+                    {options.specialties && options.specialties.length > 0 ? (
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {options.specialties.map((sp) => {
+                          const isSelected = specialtyIds.includes(sp.id);
+                          return (
+                            <button
+                              key={sp.id}
+                              type="button"
+                              onClick={() => {
+                                setSpecialtyIds((prev) =>
+                                  isSelected ? prev.filter((id) => id !== sp.id) : [...prev, sp.id]
+                                );
+                              }}
+                              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer border ${
+                                isSelected
+                                  ? 'bg-[#006837] text-white border-[#006837] shadow-xs'
+                                  : 'bg-white text-gray-700 border-gray-200 hover:bg-emerald-50 hover:border-emerald-300'
+                              }`}
+                            >
+                              <span className={`w-2 h-2 rounded-full ${isSelected ? 'bg-white' : 'bg-gray-300'}`} />
+                              <span>{isSi ? (sp.nameSi || sp.nameEn) : (sp.nameEn || sp.nameSi)}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-gray-400 italic">
+                        {isSi ? 'තවාන් විශේෂතා ලැයිස්තුවක් නොමැත.' : 'No specialties listed yet.'}
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -1332,11 +1397,14 @@ export default function PublicNurseryPostModal({
                         {/* 1. Crop Category */}
                         <div>
                           <label className="block text-xs font-semibold text-gray-700 mb-1">
-                            {isSi ? 'බෝග ප්‍රවර්ගය' : 'Crop Category'}
+                            {isSi ? 'බෝග ප්‍රවර්ගය *' : 'Crop Category *'}
                           </label>
                           <select
                             value={newFastCategory}
-                            onChange={(e) => setNewFastCategory(e.target.value)}
+                            onChange={(e) => {
+                              setNewFastCategory(e.target.value);
+                              setNewFastCrop('');
+                            }}
                             className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837]"
                           >
                             <option value="">{isSi ? 'ප්‍රවර්ගය තෝරන්න...' : 'Select Category...'}</option>
@@ -1351,15 +1419,20 @@ export default function PublicNurseryPostModal({
                         {/* 2. Crop Name */}
                         <div>
                           <label className="block text-xs font-semibold text-gray-700 mb-1">
-                            {isSi ? 'බෝගය' : 'Crop Name'}
+                            {isSi ? 'බෝගය *' : 'Crop Name *'}
                           </label>
                           <select
                             value={newFastCrop}
+                            disabled={!newFastCategory}
                             onChange={(e) => setNewFastCrop(e.target.value)}
-                            className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837]"
+                            className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] disabled:bg-gray-100 disabled:text-gray-400"
                           >
-                            <option value="">{isSi ? 'බෝගය තෝරන්න...' : 'Select Crop...'}</option>
-                            {options.crops.map((c) => (
+                            <option value="">
+                              {!newFastCategory
+                                ? (isSi ? 'පළමුව ප්‍රවර්ගය තෝරන්න...' : 'Select Category first...')
+                                : (isSi ? 'බෝගය තෝරන්න...' : 'Select Crop...')}
+                            </option>
+                            {availableFastCrops.map((c) => (
                               <option key={c.id} value={c.id}>
                                 {isSi ? (c.nameSi || c.nameEn) : (c.nameEn || c.nameSi)}
                               </option>
@@ -1577,14 +1650,18 @@ export default function PublicNurseryPostModal({
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 items-end">
                       <div>
                         <label className="block text-[11px] font-semibold text-gray-600 mb-1">
-                          {isSi ? 'ප්‍රවර්ගය' : 'Category'}
+                          {isSi ? 'බෝග ප්‍රවර්ගය *' : 'Crop Category *'}
                         </label>
                         <select
                           value={newStockCategory}
-                          onChange={(e) => setNewStockCategory(e.target.value)}
+                          onChange={(e) => {
+                            setNewStockCategory(e.target.value);
+                            setNewStockCrop('');
+                            setNewStockVariety('');
+                          }}
                           className="w-full text-xs px-2 py-1.5 rounded-lg border border-gray-300 bg-white"
                         >
-                          <option value="">{isSi ? 'සියලු ප්‍රවර්ග' : 'All Categories'}</option>
+                          <option value="">{isSi ? 'ප්‍රවර්ගය තෝරන්න...' : 'Select Category...'}</option>
                           {options.categories.map((c) => (
                             <option key={c.id} value={c.id}>
                               {isSi ? (c.nameSi || c.nameEn) : (c.nameEn || c.nameSi)}
@@ -1599,11 +1676,16 @@ export default function PublicNurseryPostModal({
                         </label>
                         <select
                           value={newStockCrop}
+                          disabled={!newStockCategory}
                           onChange={(e) => setNewStockCrop(e.target.value)}
-                          className="w-full text-xs px-2 py-1.5 rounded-lg border border-gray-300 bg-white"
+                          className="w-full text-xs px-2 py-1.5 rounded-lg border border-gray-300 bg-white disabled:bg-gray-100 disabled:text-gray-400"
                         >
-                          <option value="">{isSi ? 'බෝගය තෝරන්න' : 'Select Crop'}</option>
-                          {options.crops.map((c) => (
+                          <option value="">
+                            {!newStockCategory
+                              ? (isSi ? 'පළමුව ප්‍රවර්ගය තෝරන්න' : 'Select category first')
+                              : (isSi ? 'බෝගය තෝරන්න' : 'Select Crop')}
+                          </option>
+                          {availableStockCrops.map((c) => (
                             <option key={c.id} value={c.id}>
                               {isSi ? (c.nameSi || c.nameEn) : (c.nameEn || c.nameSi)}
                             </option>

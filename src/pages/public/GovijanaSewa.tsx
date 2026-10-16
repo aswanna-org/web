@@ -7,7 +7,8 @@ import {
   Search,
   X,
   Building,
-  ArrowUpRight
+  ArrowUpRight,
+  RotateCcw
 } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import CustomDropdown from '../../components/ui/CustomDropdown';
@@ -131,7 +132,17 @@ export default function GovijanaSewa() {
     return ['All', ...Array.from(set)];
   }, [districts]);
 
-  const currentDistrictObj = districts.find(d => d.nameEn === selectedDistrictName);
+  const hasActiveFilters = Boolean(
+    searchQuery.trim() || selectedProvince !== 'All'
+  );
+
+  const handleClearFilters = () => {
+    setSearchQuery('');
+    setSelectedProvince('All');
+    if (districts.length > 0) {
+      handleDistrictChange(districts[0].nameEn);
+    }
+  };
 
   const filteredCenters = useMemo(() => {
     if (!searchQuery.trim()) return centers;
@@ -216,7 +227,7 @@ export default function GovijanaSewa() {
       : "Comprehensive directory of Agrarian Service Centers (ASC), appointed officers, and agricultural support contacts across Sri Lanka.";
 
   return (
-    <div className="w-full min-h-screen bg-gray-50/60 pb-24">
+    <div className="w-full min-h-screen bg-gray-50/60 pb-28 sm:pb-32 lg:pb-16">
       <SEO 
         title={dynamicTitle}
         description={dynamicDesc}
@@ -236,31 +247,48 @@ export default function GovijanaSewa() {
 
       <div className="container mx-auto px-4 lg:px-8 mt-8">
         
-        {/* ── Custom Styled Search & Filter Box ── */}
-        <div className="bg-white rounded-3xl shadow-sm border border-gray-200/90 p-5 sm:p-7 relative z-10">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6 pb-4 border-b border-gray-100">
-            <div>
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
-                {isSinhala ? 'ගොවිජන සේවා මධ්‍යස්ථාන නාමාවලිය' : 'Agrarian Service Centers Directory'}
-              </h2>
-              <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                {isSinhala ? 'පළාත හෝ දිස්ත්‍රික්කය තෝරා අදාළ ප්‍රදේශයේ මධ්‍යස්ථාන සහ නිලධාරී තොරතුරු සොයන්න' : 'Select province or district to locate nearest service centers and officers'}
-              </p>
-            </div>
-
-            <div className="text-xs font-semibold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-xl self-start md:self-auto">
-              <span>{filteredCenters.length} {isSinhala ? 'මධ්‍යස්ථාන' : 'Centers'}</span>
-            </div>
+        {/* Header Bar with Title & Count (matching PlantFinder & AgroLands) */}
+        <div className="flex items-center justify-between gap-2 sm:gap-4 mb-4 sm:mb-6">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <h1 className="text-base sm:text-2xl font-bold text-gray-900 truncate">
+              {isSinhala ? 'ගොවිජන සේවා මධ්‍යස්ථාන නාමාවලිය' : 'Agrarian Service Centers Directory'}
+            </h1>
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-[#006837] text-[11px] sm:text-xs font-bold shrink-0">
+              {filteredCenters.length}
+            </span>
           </div>
+        </div>
 
-          {/* Styled Dropdown Controls */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* ── Seamless Horizontal Filter Bar (matching AgroLands & PlantFinder) ── */}
+        <div className="space-y-3 mb-8">
+          <div className="grid grid-cols-2 lg:grid-cols-12 gap-2 sm:gap-3">
             
-            {/* 1. Province Dropdown */}
-            <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                {isSinhala ? 'පළාත' : 'Province'}
-              </label>
+            {/* 1. Search Bar */}
+            <div className="col-span-2 lg:col-span-6 relative group">
+              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-emerald-700">
+                <Search className="w-4 h-4" />
+              </div>
+              <input
+                type="text"
+                placeholder={isSinhala ? 'මධ්‍යස්ථානය, නගරය, නිලධාරී සොයන්න...' : 'Search center, town, officer, ASC ID...'}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-9 py-2.5 sm:py-3 rounded-xl sm:rounded-full border border-gray-200/90 bg-white hover:border-emerald-500/60 focus:border-[#006837] focus:ring-2 focus:ring-[#006837]/15 outline-none transition-all text-xs sm:text-sm text-gray-800 shadow-xs"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-gray-200/80 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all cursor-pointer"
+                  title={isSinhala ? 'සෙවීම ඉවත් කරන්න' : 'Clear search'}
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            {/* 2. Province Dropdown */}
+            <div className="col-span-1 lg:col-span-3">
               <CustomDropdown
                 value={selectedProvince}
                 onChange={(prov) => {
@@ -274,14 +302,12 @@ export default function GovijanaSewa() {
                   value: prov,
                   label: prov === 'All' ? (isSinhala ? 'සියලු පළාත් (All Provinces)' : 'All Provinces') : `${prov} Province`,
                 }))}
+                placeholder={isSinhala ? 'සියලු පළාත්' : 'All Provinces'}
               />
             </div>
 
-            {/* 2. District Dropdown */}
-            <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                {isSinhala ? 'දිස්ත්‍රික්කය' : 'District'}
-              </label>
+            {/* 3. District Dropdown */}
+            <div className="col-span-1 lg:col-span-3">
               <CustomDropdown
                 value={selectedDistrictName}
                 onChange={(val) => handleDistrictChange(val)}
@@ -290,55 +316,29 @@ export default function GovijanaSewa() {
                   label: isSinhala ? `${dist.nameSi} (${dist.nameEn})` : dist.nameEn,
                   count: stats[dist.nameEn] || 0,
                 }))}
+                placeholder={isSinhala ? 'දිස්ත්‍රික්කය තෝරන්න' : 'Select District'}
               />
             </div>
+          </div>
 
-            {/* 3. Styled Live Search Box */}
-            <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                {isSinhala ? 'සෙවුම' : 'Search'}
-              </label>
-
-              <div className="relative group">
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-emerald-700">
-                  <Search className="w-4 h-4" />
+          {/* Active Filter Clear Row */}
+          {hasActiveFilters && (
+            <div className="flex items-center justify-between pt-1 text-xs">
+              <span className="text-gray-500 font-medium">
+                {isSinhala ? 'ක්‍රියාකාරී පෙරහන් ක්‍රියාත්මකයි' : 'Filters applied'} ({filteredCenters.length})
+              </span>
+              <button
+                type="button"
+                onClick={handleClearFilters}
+                className="inline-flex items-center justify-between gap-2 pl-3.5 pr-1.5 py-1 rounded-full bg-white/70 hover:bg-white/95 backdrop-blur-xl border border-gray-200/80 hover:border-emerald-300 text-gray-800 font-bold text-xs shadow-xs hover:shadow transition-all group cursor-pointer"
+              >
+                <span>{isSinhala ? 'සියලු පෙරහන් ඉවත් කරන්න' : 'Clear All Filters'}</span>
+                <div className="w-5 h-5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-100/80 flex items-center justify-center group-hover:-rotate-180 transition-transform duration-300 shrink-0">
+                  <RotateCcw className="w-3 h-3 stroke-[2.5]" />
                 </div>
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  placeholder={isSinhala ? "මධ්‍යස්ථානය, නගරය, නිලධාරී..." : "Center, town, officer, ASC ID..."}
-                  className="w-full pl-10 pr-10 py-2.5 sm:py-3 rounded-xl sm:rounded-full border border-gray-200/90 bg-gray-50/70 hover:bg-white focus:bg-white hover:border-emerald-500/60 focus:border-[#006837] focus:ring-3 focus:ring-[#006837]/15 outline-none transition-all duration-200 text-xs sm:text-sm text-gray-800 shadow-xs"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-200/80 hover:bg-gray-300 text-gray-600 flex items-center justify-center transition-all cursor-pointer hover:scale-105"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
+              </button>
             </div>
-
-          </div>
-        </div>
-
-        {/* ── Centers Results Header ── */}
-        <div className="mt-8 mb-6 flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 px-1">
-          <div>
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">
-              {isSinhala
-                ? `${currentDistrictObj?.nameSi || selectedDistrictName} දිස්ත්‍රික්කයේ ගොවිජන සේවා මධ්‍යස්ථාන`
-                : `Agrarian Service Centers in ${selectedDistrictName} District`}
-            </h3>
-            <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-              {isSinhala
-                ? `මධ්‍යස්ථාන ${filteredCenters.length} ක් හමු විය`
-                : `Showing ${filteredCenters.length} centers`}
-            </p>
-          </div>
+          )}
         </div>
 
         {/* ── Centers Grid / List (3 per row on Desktop) ── */}
@@ -347,22 +347,31 @@ export default function GovijanaSewa() {
             <AgroLoader message={isSinhala ? 'මධ්‍යස්ථාන තොරතුරු පූරණය වෙමින් පවතී...' : 'Loading agrarian centers...'} />
           </div>
         ) : filteredCenters.length === 0 ? (
-          <div className="py-20 text-center bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
-            <h4 className="text-lg font-bold text-gray-800">
-              {isSinhala ? 'මධ්‍යස්ථාන කිසිවක් හමු නොවීය' : 'No Agrarian Centers Found'}
-            </h4>
-            <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">
-              {searchQuery
-                ? (isSinhala ? `"${searchQuery}" සෙවුමට ගැලපෙන මධ්‍යස්ථාන නොමැත.` : `No centers matched your query "${searchQuery}".`)
-                : (isSinhala ? 'මෙම දිස්ත්‍රික්කය සඳහා මධ්‍යස්ථාන දත්ත තවමත් ඇතුළත් කර නොමැත.' : 'No center data currently available for this district.')}
-            </p>
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery('')}
-                className="glass-btn-green mt-4 px-5 py-2 text-xs font-bold cursor-pointer"
-              >
-                {isSinhala ? 'සෙවුම ඉවත් කරන්න' : 'Clear Search'}
-              </button>
+          <div className="py-12 sm:py-16 text-center max-w-lg mx-auto space-y-4">
+            <AgroLoader message="" className="scale-90 sm:scale-100" />
+            <div className="space-y-1.5 pt-1">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+                {isSinhala ? 'මධ්‍යස්ථාන හමු නොවීය' : 'No Agrarian Centers Found'}
+              </h3>
+              <p className="text-gray-500 text-xs sm:text-sm leading-relaxed max-w-md mx-auto">
+                {isSinhala
+                  ? 'ඔබ සෙවූ නිර්ණායකවලට ගැළපෙන ගොවිජන සේවා මධ්‍යස්ථාන මේ මොහොතේ නොමැත. කරුණාකර පෙරහන් ඉවත් කර හෝ වෙනත් සෙවුම් වචනයක් යොදා නැවත උත්සාහ කරන්න.'
+                  : 'No agrarian service centers match your selected filters. Try clearing filters or using another keyword.'}
+              </p>
+            </div>
+            {hasActiveFilters && (
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={handleClearFilters}
+                  className="inline-flex items-center justify-between gap-2.5 pl-5 pr-2 py-2 rounded-full bg-white/70 hover:bg-white/95 backdrop-blur-xl border border-gray-200/80 hover:border-emerald-300 text-gray-900 font-bold text-xs sm:text-sm shadow-[0_4px_16px_rgba(0,0,0,0.05),inset_0_1px_1.5px_rgba(255,255,255,1)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
+                >
+                  <span className="truncate">{isSinhala ? 'සියලු පෙරහන් ඉවත් කරන්න' : 'Clear All Filters'}</span>
+                  <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-100/80 flex items-center justify-center group-hover:-rotate-180 transition-transform duration-300 shadow-2xs shrink-0">
+                    <RotateCcw className="w-3.5 h-3.5 stroke-[2.5]" />
+                  </div>
+                </button>
+              </div>
             )}
           </div>
         ) : (

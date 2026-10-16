@@ -546,7 +546,7 @@ export default function AgroLands() {
     : 'Browse agricultural lands for sale and lease across Sri Lanka. Coconut, tea, cinnamon, and commercial cultivation lands.';
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 pb-20">
+    <div className="w-full min-h-screen bg-gray-50 pb-28 sm:pb-32 lg:pb-16">
       <SEO
         title={pageTitle}
         description={pageDesc}
@@ -591,10 +591,10 @@ export default function AgroLands() {
 
         {/* ── Seamless Horizontal Filter Bar (matching Screenshot 2) ── */}
         <div className="space-y-3 mb-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-12 gap-2.5 sm:gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-12 lg:grid-cols-12 gap-2 sm:gap-3">
             
             {/* 1. Search Bar */}
-            <div className="sm:col-span-2 md:col-span-3 lg:col-span-4 relative group">
+            <div className="col-span-2 md:col-span-12 lg:col-span-4 relative group">
               <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-emerald-700">
                 <Search className="w-4 h-4" />
               </div>
@@ -621,7 +621,7 @@ export default function AgroLands() {
             </div>
 
             {/* 2. Deal Type Dropdown */}
-            <div className="sm:col-span-1 md:col-span-1 lg:col-span-2">
+            <div className="col-span-1 md:col-span-3 lg:col-span-2">
               <CustomDropdown
                 value={selectedType}
                 onChange={(val) => {
@@ -634,7 +634,7 @@ export default function AgroLands() {
             </div>
 
             {/* 3. District Dropdown (sl-gnd-dsd-districts) */}
-            <div className="sm:col-span-1 md:col-span-1 lg:col-span-2">
+            <div className="col-span-1 md:col-span-3 lg:col-span-2">
               <CustomDropdown
                 value={selectedDistrict}
                 onChange={(val) => {
@@ -648,7 +648,7 @@ export default function AgroLands() {
             </div>
 
             {/* 4. DSD Dropdown (sl-gnd-dsd-districts) */}
-            <div className="sm:col-span-1 md:col-span-1 lg:col-span-2">
+            <div className="col-span-1 md:col-span-3 lg:col-span-2">
               <CustomDropdown
                 value={selectedDsd}
                 onChange={(val) => {
@@ -657,11 +657,12 @@ export default function AgroLands() {
                 }}
                 options={dsdOptions}
                 placeholder={isSinhala ? 'සියලු ප්‍රා. ලේ. කොට්ඨාස' : 'All DSD Divisions'}
+                disabled={!selectedDistrict || selectedDistrict === 'all'}
               />
             </div>
 
             {/* 5. Category Dropdown */}
-            <div className="sm:col-span-1 md:col-span-1 lg:col-span-2">
+            <div className="col-span-1 md:col-span-3 lg:col-span-2">
               <CustomDropdown
                 value={selectedCategory}
                 onChange={(val) => {
@@ -729,8 +730,8 @@ export default function AgroLands() {
           </div>
         ) : (
           <div className="space-y-10">
-            {/* Grid: 2 cards per row on mobile, 4 on desktop */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-6">
+            {/* Grid: 2 cards per row on mobile/tablet, 3 on lg, 4 on xl */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5 lg:gap-6">
               {lands.map((land, index) => {
                 const landTitle = isSinhala ? (land.titleSi || land.title) : land.title;
                 const landTypeBadge = land.type

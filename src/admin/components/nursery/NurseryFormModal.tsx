@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, type ChangeEvent, type FormEvent, type DragEvent } from 'react';
+import { useState, useEffect, useRef, useMemo, type ChangeEvent, type FormEvent, type DragEvent } from 'react';
 import {
   X,
   RotateCcw,
@@ -121,6 +121,17 @@ export default function NurseryFormModal({
   const [isUploadingFastPhoto, setIsUploadingFastPhoto] = useState(false);
   const [isDraggingFast, setIsDraggingFast] = useState(false);
   const fastPhotoInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Filter crops based on selected category
+  const availableFastCrops = useMemo(() => {
+    if (!newFastCategory) return options.crops;
+    return options.crops.filter((c) => !c.categoryId || c.categoryId === newFastCategory);
+  }, [options.crops, newFastCategory]);
+
+  const availableStockCrops = useMemo(() => {
+    if (!newStockCategory) return options.crops;
+    return options.crops.filter((c) => !c.categoryId || c.categoryId === newStockCategory);
+  }, [options.crops, newStockCategory]);
 
   useEffect(() => {
     if (editingItem) {
@@ -1355,7 +1366,16 @@ export default function NurseryFormModal({
                     </label>
                     <select
                       value={newFastCategory}
-                      onChange={(e) => setNewFastCategory(e.target.value)}
+                      onChange={(e) => {
+                        const catId = e.target.value;
+                        setNewFastCategory(catId);
+                        if (newFastCrop) {
+                          const selectedCrop = options.crops.find((c) => c.id === newFastCrop);
+                          if (selectedCrop && selectedCrop.categoryId && selectedCrop.categoryId !== catId) {
+                            setNewFastCrop('');
+                          }
+                        }
+                      }}
                       className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-hidden focus:ring-1 focus:ring-rose-500"
                     >
                       <option value="">Select Category...</option>
@@ -1373,11 +1393,20 @@ export default function NurseryFormModal({
                     </label>
                     <select
                       value={newFastCrop}
-                      onChange={(e) => setNewFastCrop(e.target.value)}
+                      onChange={(e) => {
+                        const cropId = e.target.value;
+                        setNewFastCrop(cropId);
+                        if (cropId && !newFastCategory) {
+                          const cr = options.crops.find((c) => c.id === cropId);
+                          if (cr?.categoryId) setNewFastCategory(cr.categoryId);
+                        }
+                      }}
                       className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-hidden focus:ring-1 focus:ring-rose-500"
                     >
-                      <option value="">Select Crop...</option>
-                      {options.crops.map((c) => (
+                      <option value="">
+                        {!newFastCategory ? 'Select Crop...' : 'Select Crop...'}
+                      </option>
+                      {availableFastCrops.map((c) => (
                         <option key={c.id} value={c.id}>
                           {c.nameEn || c.nameSi}
                         </option>
@@ -1650,7 +1679,16 @@ export default function NurseryFormModal({
                 </label>
                 <select
                   value={newStockCategory}
-                  onChange={(e) => setNewStockCategory(e.target.value)}
+                  onChange={(e) => {
+                    const catId = e.target.value;
+                    setNewStockCategory(catId);
+                    if (newStockCrop) {
+                      const selectedCrop = options.crops.find((c) => c.id === newStockCrop);
+                      if (selectedCrop && selectedCrop.categoryId && selectedCrop.categoryId !== catId) {
+                        setNewStockCrop('');
+                      }
+                    }
+                  }}
                   className="w-full px-2.5 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-600"
                 >
                   <option value="">Select Category</option>
@@ -1668,11 +1706,20 @@ export default function NurseryFormModal({
                 </label>
                 <select
                   value={newStockCrop}
-                  onChange={(e) => setNewStockCrop(e.target.value)}
+                  onChange={(e) => {
+                    const cropId = e.target.value;
+                    setNewStockCrop(cropId);
+                    if (cropId && !newStockCategory) {
+                      const cr = options.crops.find((c) => c.id === cropId);
+                      if (cr?.categoryId) setNewStockCategory(cr.categoryId);
+                    }
+                  }}
                   className="w-full px-2.5 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-600"
                 >
-                  <option value="">Select Crop</option>
-                  {options.crops.map((cr) => (
+                  <option value="">
+                    {!newStockCategory ? 'Select Crop...' : 'Select Crop...'}
+                  </option>
+                  {availableStockCrops.map((cr) => (
                     <option key={cr.id} value={cr.id}>
                       {cr.nameEn || cr.nameSi}
                     </option>

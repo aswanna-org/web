@@ -63,7 +63,7 @@ const CustomDropdown: FC<CustomDropdownProps> = ({
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
-        className={`w-full flex items-center justify-between pl-4 sm:pl-5 pr-10 py-2.5 sm:py-3 rounded-xl sm:rounded-full border text-left transition-all duration-200 cursor-pointer text-xs sm:text-sm font-semibold shadow-xs ${
+        className={`w-full flex items-center justify-between pl-3 sm:pl-5 pr-7 sm:pr-10 py-2 sm:py-3 rounded-xl sm:rounded-full border text-left transition-all duration-200 cursor-pointer text-[11px] sm:text-sm font-semibold shadow-xs ${
           isOpen
             ? 'border-[#006837] bg-white ring-3 ring-[#006837]/15 shadow-sm text-gray-900'
             : 'border-gray-200/90 bg-gray-50/70 hover:bg-white hover:border-emerald-500/60 text-gray-800'
@@ -71,9 +71,9 @@ const CustomDropdown: FC<CustomDropdownProps> = ({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
-        <span className="truncate pr-2">{selectedLabel}</span>
+        <span className="truncate pr-1 sm:pr-2">{selectedLabel}</span>
         <ChevronDown
-          className={`absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-700 pointer-events-none transition-transform duration-200 ${
+          className={`absolute right-2.5 sm:right-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-700 pointer-events-none transition-transform duration-200 ${
             isOpen ? 'rotate-180' : 'group-hover:translate-y-[1px]'
           }`}
         />

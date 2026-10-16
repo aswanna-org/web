@@ -239,10 +239,21 @@ export default function ShortCourseDetail() {
     );
   }
 
-  const isNonEmptyHtml = (content?: string | null): boolean => {
+  const hasSinhalaChars = (str?: string | null): boolean => {
+    if (!str) return false;
+    return /[\u0D80-\u0DFF]/.test(str);
+  };
+
+  const isGenuineSinhalaHtml = (content?: string | null): boolean => {
     if (!content) return false;
     const text = stripHtml(content).replace(/\u00a0/g, ' ').trim();
-    return text.length > 0;
+    return text.length > 0 && hasSinhalaChars(text);
+  };
+
+  const isGenuineEnglishHtml = (content?: string | null): boolean => {
+    if (!content) return false;
+    const text = stripHtml(content).replace(/\u00a0/g, ' ').trim();
+    return text.length > 0 && !hasSinhalaChars(text) && /[a-zA-Z]/.test(text);
   };
 
   const courseTitle = isSinhala
@@ -250,34 +261,132 @@ export default function ShortCourseDetail() {
     : (course.titleEn || course.titleSi);
 
   // Strictly language-isolated description resolution to prevent cross-language mixing
-  const hasSinhalaOverview = isNonEmptyHtml(course.overviewSi);
-  const hasSinhalaDetailed = isNonEmptyHtml(course.detailedDescriptionSi);
-  const hasEnglishOverview = isNonEmptyHtml(course.overviewEn);
-  const hasEnglishDetailed = isNonEmptyHtml(course.detailedDescriptionEn);
+  const hasSinhalaOverview = isGenuineSinhalaHtml(course.overviewSi);
+  const hasSinhalaDetailed = isGenuineSinhalaHtml(course.detailedDescriptionSi);
+  const hasEnglishOverview = isGenuineEnglishHtml(course.overviewEn);
+  const hasEnglishDetailed = isGenuineEnglishHtml(course.detailedDescriptionEn);
 
-  const hasAnySinhalaDesc = hasSinhalaOverview || hasSinhalaDetailed;
-  const hasAnyEnglishDesc = hasEnglishOverview || hasEnglishDetailed;
+  // Fallback checks across misaligned fields (e.g. Sinhala saved in En field or vice versa)
+  const hasSinhalaInEnOverview = isGenuineSinhalaHtml(course.overviewEn);
+  const hasSinhalaInEnDetailed = isGenuineSinhalaHtml(course.detailedDescriptionEn);
+  const hasEnglishInSiOverview = isGenuineEnglishHtml(course.overviewSi);
+  const hasEnglishInSiDetailed = isGenuineEnglishHtml(course.detailedDescriptionSi);
+
+  const hasAnySinhalaDesc =
+    hasSinhalaOverview || hasSinhalaDetailed || hasSinhalaInEnOverview || hasSinhalaInEnDetailed;
+
+  const hasAnyEnglishDesc =
+    hasEnglishOverview || hasEnglishDetailed || hasEnglishInSiOverview || hasEnglishInSiDetailed;
 
   let overviewHtml: string | null = null;
   let detailedDescriptionHtml: string | null = null;
 
   if (isSinhala) {
     if (hasAnySinhalaDesc) {
-      overviewHtml = hasSinhalaOverview ? course.overviewSi! : null;
-      detailedDescriptionHtml = hasSinhalaDetailed ? course.detailedDescriptionSi! : null;
+      // Pick genuinely Sinhala content
+      let siOverview = hasSinhalaOverview
+        ? course.overviewSi!
+        : (hasSinhalaInEnOverview ? course.overviewEn! : null);
+
+      let siDetailed = hasSinhalaDetailed
+        ? course.detailedDescriptionSi!
+        : (hasSinhalaInEnDetailed ? course.detailedDescriptionEn! : null);
+
+      // Deduplicate if both fields contain the exact same content
+      if (siOverview && siDetailed) {
+        const cleanO = stripHtml(siOverview).replace(/\s+/g, ' ').trim();
+        const cleanD = stripHtml(siDetailed).replace(/\s+/g, ' ').trim();
+        if (cleanO === cleanD) {
+          siDetailed = null;
+        }
+      }
+
+      // If only one description is available, display it cleanly in the primary overview container
+      if (!siOverview && siDetailed) {
+        overviewHtml = siDetailed;
+        detailedDescriptionHtml = null;
+      } else {
+        overviewHtml = siOverview;
+        detailedDescriptionHtml = siDetailed;
+      }
     } else if (hasAnyEnglishDesc) {
-      // Complete fallback only if no Sinhala description exists at all
-      overviewHtml = hasEnglishOverview ? course.overviewEn! : null;
-      detailedDescriptionHtml = hasEnglishDetailed ? course.detailedDescriptionEn! : null;
+      // Complete fallback only if no Sinhala description exists at all across any field
+      let enOverview = hasEnglishOverview
+        ? course.overviewEn!
+        : (hasEnglishInSiOverview ? course.overviewSi! : null);
+
+      let enDetailed = hasEnglishDetailed
+        ? course.detailedDescriptionEn!
+        : (hasEnglishInSiDetailed ? course.detailedDescriptionSi! : null);
+
+      if (enOverview && enDetailed) {
+        const cleanO = stripHtml(enOverview).replace(/\s+/g, ' ').trim();
+        const cleanD = stripHtml(enDetailed).replace(/\s+/g, ' ').trim();
+        if (cleanO === cleanD) {
+          enDetailed = null;
+        }
+      }
+
+      if (!enOverview && enDetailed) {
+        overviewHtml = enDetailed;
+        detailedDescriptionHtml = null;
+      } else {
+        overviewHtml = enOverview;
+        detailedDescriptionHtml = enDetailed;
+      }
     }
   } else {
+    // English view
     if (hasAnyEnglishDesc) {
-      overviewHtml = hasEnglishOverview ? course.overviewEn! : null;
-      detailedDescriptionHtml = hasEnglishDetailed ? course.detailedDescriptionEn! : null;
+      // Pick genuinely English content (strictly NO Sinhala Unicode characters)
+      let enOverview = hasEnglishOverview
+        ? course.overviewEn!
+        : (hasEnglishInSiOverview ? course.overviewSi! : null);
+
+      let enDetailed = hasEnglishDetailed
+        ? course.detailedDescriptionEn!
+        : (hasEnglishInSiDetailed ? course.detailedDescriptionSi! : null);
+
+      if (enOverview && enDetailed) {
+        const cleanO = stripHtml(enOverview).replace(/\s+/g, ' ').trim();
+        const cleanD = stripHtml(enDetailed).replace(/\s+/g, ' ').trim();
+        if (cleanO === cleanD) {
+          enDetailed = null;
+        }
+      }
+
+      if (!enOverview && enDetailed) {
+        overviewHtml = enDetailed;
+        detailedDescriptionHtml = null;
+      } else {
+        overviewHtml = enOverview;
+        detailedDescriptionHtml = enDetailed;
+      }
     } else if (hasAnySinhalaDesc) {
       // Complete fallback only if no English description exists at all
-      overviewHtml = hasSinhalaOverview ? course.overviewSi! : null;
-      detailedDescriptionHtml = hasSinhalaDetailed ? course.detailedDescriptionSi! : null;
+      let siOverview = hasSinhalaOverview
+        ? course.overviewSi!
+        : (hasSinhalaInEnOverview ? course.overviewEn! : null);
+
+      let siDetailed = hasSinhalaDetailed
+        ? course.detailedDescriptionSi!
+        : (hasSinhalaInEnDetailed ? course.detailedDescriptionEn! : null);
+
+      if (siOverview && siDetailed) {
+        const cleanO = stripHtml(siOverview).replace(/\s+/g, ' ').trim();
+        const cleanD = stripHtml(siDetailed).replace(/\s+/g, ' ').trim();
+        if (cleanO === cleanD) {
+          siDetailed = null;
+        }
+      }
+
+      if (!siOverview && siDetailed) {
+        overviewHtml = siDetailed;
+        detailedDescriptionHtml = null;
+      } else {
+        overviewHtml = siOverview;
+        detailedDescriptionHtml = siDetailed;
+      }
     }
   }
 
@@ -307,35 +416,35 @@ export default function ShortCourseDetail() {
         : (course.shortCourseTrainer.positionEn || course.shortCourseTrainer.positionSi))
     : '';
 
-  const hasEligibilitySi = Array.isArray(course.eligibilitySi) && course.eligibilitySi.some((i) => i && i.trim().length > 0);
-  const hasEligibilityEn = Array.isArray(course.eligibilityEn) && course.eligibilityEn.some((i) => i && i.trim().length > 0);
+  const hasSinhalaEligibility = Array.isArray(course.eligibilitySi) && course.eligibilitySi.some((i) => i && hasSinhalaChars(i));
+  const hasEnglishEligibility = Array.isArray(course.eligibilityEn) && course.eligibilityEn.some((i) => i && i.trim().length > 0 && !hasSinhalaChars(i));
   const eligibilityList = isSinhala
-    ? (hasEligibilitySi
+    ? (hasSinhalaEligibility
         ? course.eligibilitySi!.filter((i) => i && i.trim().length > 0)
-        : (hasEligibilityEn ? course.eligibilityEn!.filter((i) => i && i.trim().length > 0) : []))
-    : (hasEligibilityEn
+        : (hasEnglishEligibility ? course.eligibilityEn!.filter((i) => i && i.trim().length > 0) : (course.eligibilitySi || []).filter((i) => i && i.trim().length > 0)))
+    : (hasEnglishEligibility
         ? course.eligibilityEn!.filter((i) => i && i.trim().length > 0)
-        : (hasEligibilitySi ? course.eligibilitySi!.filter((i) => i && i.trim().length > 0) : []));
+        : (hasSinhalaEligibility ? course.eligibilitySi!.filter((i) => i && i.trim().length > 0) : (course.eligibilityEn || []).filter((i) => i && i.trim().length > 0)));
 
-  const hasBenefitsSi = Array.isArray(course.benefitsSi) && course.benefitsSi.some((i) => i && i.trim().length > 0);
-  const hasBenefitsEn = Array.isArray(course.benefitsEn) && course.benefitsEn.some((i) => i && i.trim().length > 0);
+  const hasSinhalaBenefits = Array.isArray(course.benefitsSi) && course.benefitsSi.some((i) => i && hasSinhalaChars(i));
+  const hasEnglishBenefits = Array.isArray(course.benefitsEn) && course.benefitsEn.some((i) => i && i.trim().length > 0 && !hasSinhalaChars(i));
   const benefitsList = isSinhala
-    ? (hasBenefitsSi
+    ? (hasSinhalaBenefits
         ? course.benefitsSi!.filter((i) => i && i.trim().length > 0)
-        : (hasBenefitsEn ? course.benefitsEn!.filter((i) => i && i.trim().length > 0) : []))
-    : (hasBenefitsEn
+        : (hasEnglishBenefits ? course.benefitsEn!.filter((i) => i && i.trim().length > 0) : (course.benefitsSi || []).filter((i) => i && i.trim().length > 0)))
+    : (hasEnglishBenefits
         ? course.benefitsEn!.filter((i) => i && i.trim().length > 0)
-        : (hasBenefitsSi ? course.benefitsSi!.filter((i) => i && i.trim().length > 0) : []));
+        : (hasSinhalaBenefits ? course.benefitsSi!.filter((i) => i && i.trim().length > 0) : (course.benefitsEn || []).filter((i) => i && i.trim().length > 0)));
 
-  const hasSyllabusSi = Array.isArray(course.syllabusModulesSi) && course.syllabusModulesSi.some((i) => i && i.trim().length > 0);
-  const hasSyllabusEn = Array.isArray(course.syllabusModulesEn) && course.syllabusModulesEn.some((i) => i && i.trim().length > 0);
+  const hasSinhalaSyllabus = Array.isArray(course.syllabusModulesSi) && course.syllabusModulesSi.some((i) => i && hasSinhalaChars(i));
+  const hasEnglishSyllabus = Array.isArray(course.syllabusModulesEn) && course.syllabusModulesEn.some((i) => i && i.trim().length > 0 && !hasSinhalaChars(i));
   const syllabusModulesList = isSinhala
-    ? (hasSyllabusSi
+    ? (hasSinhalaSyllabus
         ? course.syllabusModulesSi!.filter((i) => i && i.trim().length > 0)
-        : (hasSyllabusEn ? course.syllabusModulesEn!.filter((i) => i && i.trim().length > 0) : []))
-    : (hasSyllabusEn
+        : (hasEnglishSyllabus ? course.syllabusModulesEn!.filter((i) => i && i.trim().length > 0) : (course.syllabusModulesSi || []).filter((i) => i && i.trim().length > 0)))
+    : (hasEnglishSyllabus
         ? course.syllabusModulesEn!.filter((i) => i && i.trim().length > 0)
-        : (hasSyllabusSi ? course.syllabusModulesSi!.filter((i) => i && i.trim().length > 0) : []));
+        : (hasSinhalaSyllabus ? course.syllabusModulesSi!.filter((i) => i && i.trim().length > 0) : (course.syllabusModulesEn || []).filter((i) => i && i.trim().length > 0)));
 
   const feeLabel = formatFee(course.fee, isSinhala);
   const whatsAppUrl = getWhatsAppLink(course.whatsappNumber, courseTitle);
@@ -546,7 +655,7 @@ export default function ShortCourseDetail() {
 
                 {overviewHtml && (
                   <div
-                    className="p-4 sm:p-5 rounded-xl bg-emerald-50/40 border border-emerald-100 text-xs sm:text-sm text-gray-800 leading-relaxed font-medium prose max-w-none"
+                    className="p-4 sm:p-5 rounded-xl bg-emerald-50/40 border border-emerald-100 text-xs sm:text-sm text-gray-800 leading-relaxed font-medium prose max-w-none prose-emerald rich-content"
                     dangerouslySetInnerHTML={{
                       __html: overviewHtml.replace(/&nbsp;|\u00a0/g, ' '),
                     }}

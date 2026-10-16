@@ -785,13 +785,13 @@ export default function Careers() {
           <CardWaveDivider />
 
           {/* Round Icon Badge */}
-          <div className="absolute -bottom-4 sm:-bottom-5 left-3 sm:left-6 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#006837] text-white flex items-center justify-center border-[2.5px] sm:border-[3.5px] border-white shadow-md sm:shadow-lg group-hover:scale-110 transition-transform">
+          <div className="absolute -bottom-3.5 sm:-bottom-4 left-3 sm:left-5 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#006837] text-white flex items-center justify-center border-[2px] sm:border-[3px] border-white shadow-md sm:shadow-lg group-hover:scale-110 transition-transform">
             {getJobCategoryIcon(job)}
           </div>
         </div>
 
         {/* Card Content Area: Job Title and Institution */}
-        <div className="pt-6 sm:pt-8 px-3 sm:px-6 pb-3.5 sm:pb-6 flex-1 flex flex-col justify-between">
+        <div className="pt-5 sm:pt-6 px-3 sm:px-4.5 pb-3 sm:pb-4 flex-1 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-1 sm:gap-2 mb-1.5 sm:mb-2 flex-wrap">
               {(job.recruitmentType || job.recruitmentTypeSi) && (
@@ -805,10 +805,10 @@ export default function Careers() {
                 </span>
               )}
             </div>
-            <h3 className="text-xs sm:text-xl font-bold text-[#143d4d] leading-snug group-hover:text-[#006837] transition-colors mb-1 min-h-[2rem] sm:min-h-[3rem] line-clamp-2">
+            <h3 className="text-xs sm:text-sm md:text-base font-bold text-[#143d4d] leading-snug group-hover:text-[#006837] transition-colors mb-1 min-h-[2rem] sm:min-h-[2.5rem] line-clamp-2">
               {displayTitle}
             </h3>
-            <p className="text-[10px] sm:text-sm text-gray-500 font-medium line-clamp-1 mb-2.5 sm:mb-4">
+            <p className="text-[10px] sm:text-xs text-gray-500 font-medium line-clamp-1 mb-2 sm:mb-3">
               {companyOrInstitution}
             </p>
           </div>
@@ -821,15 +821,13 @@ export default function Careers() {
                 e.stopPropagation();
                 navigate(jobUrl);
               }}
-              className="bg-[#006837] hover:bg-[#00532c] text-white text-[10px] sm:text-sm font-semibold px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full flex items-center gap-1 transition-all shadow-xs group-hover:shadow cursor-pointer"
+              className="bg-[#006837] hover:bg-[#00532c] text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3.5 py-1.5 rounded-full flex items-center gap-1 transition-all shadow-xs group-hover:shadow cursor-pointer"
             >
               <span>{isSi ? 'විස්තර බලන්න' : 'View Details'}</span>
               <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </button>
 
-            <div className="hidden xs:block sm:block">
-              <AswannaLeafBadge />
-            </div>
+            <AswannaLeafBadge />
           </div>
         </div>
       </div>
@@ -864,7 +862,7 @@ export default function Careers() {
       />
 
       {/* Main Container */}
-      <div className="container mx-auto px-3 sm:px-4 lg:px-12 py-8 sm:py-14">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-12 pt-6 sm:pt-10 pb-28 sm:pb-32 lg:pb-16">
 
         {/* Top Back Button & Breadcrumbs Navigation */}
         <div className="flex items-center justify-between gap-3 mb-6 pb-3 border-b border-gray-100">
@@ -966,14 +964,14 @@ export default function Careers() {
                       <CardWaveDivider />
 
                       {/* Floating Round Icon Badge - sits half on the wave and half on the white body, completely unclipped! */}
-                      <div className="absolute -bottom-4 sm:-bottom-5 left-3 sm:left-6 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#006837] text-white flex items-center justify-center border-[2.5px] sm:border-[3.5px] border-white shadow-md sm:shadow-lg group-hover:scale-110 transition-transform">
+                      <div className="absolute -bottom-3.5 sm:-bottom-4 left-3 sm:left-5 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#006837] text-white flex items-center justify-center border-[2px] sm:border-[3px] border-white shadow-md sm:shadow-lg group-hover:scale-110 transition-transform">
                         <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" />
                       </div>
                     </div>
 
                     {/* Card Content Area: Job Category Title ONLY! */}
-                    <div className="pt-6 sm:pt-8 px-3 sm:px-6 pb-3.5 sm:pb-6 flex-1 flex flex-col justify-between">
-                      <h3 className="text-xs sm:text-xl font-bold text-[#143d4d] leading-snug group-hover:text-[#006837] transition-colors mb-2 sm:mb-6 min-h-[2rem] sm:min-h-[3.2rem] line-clamp-2">
+                    <div className="pt-5 sm:pt-6 px-3 sm:px-4.5 pb-3 sm:pb-4 flex-1 flex flex-col justify-between">
+                      <h3 className="text-xs sm:text-sm md:text-base font-bold text-[#143d4d] leading-snug group-hover:text-[#006837] transition-colors mb-2 sm:mb-4 min-h-[2rem] sm:min-h-[2.5rem] line-clamp-2">
                         {cat.title}
                       </h3>
 
@@ -981,15 +979,13 @@ export default function Careers() {
                       <div className="flex items-center justify-between pt-2.5 sm:pt-3 border-t border-gray-50 mt-auto">
                         <button
                           type="button"
-                          className="bg-[#006837] hover:bg-[#00532c] text-white text-[11px] sm:text-sm font-semibold px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full flex items-center gap-1 transition-all shadow-xs group-hover:shadow cursor-pointer"
+                          className="bg-[#006837] hover:bg-[#00532c] text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3.5 py-1.5 rounded-full flex items-center gap-1 transition-all shadow-xs group-hover:shadow cursor-pointer"
                         >
                           <span>{isSi ? 'පිවිසෙන්න' : 'Explore'}</span>
                           <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </button>
 
-                        <div className="hidden xs:block sm:block">
-                          <AswannaLeafBadge />
-                        </div>
+                        <AswannaLeafBadge />
                       </div>
                     </div>
                   </div>
@@ -1158,7 +1154,7 @@ export default function Careers() {
                     <AgroLoader message={isSi ? 'දෛනික ශ්‍රමිකයන් පූරණය වෙමින් පවතී...' : 'Loading daily workers...'} />
                   </div>
                 ) : filteredDailyWorkers.length > 0 ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-6">
                     {filteredDailyWorkers.map((worker) => (
                       <div
                         key={worker.id}
@@ -1182,15 +1178,15 @@ export default function Careers() {
                           {/* Smooth Wave Divider */}
                           <CardWaveDivider />
 
-                          <div className="absolute -bottom-4 sm:-bottom-5 left-3 sm:left-6 z-20 w-9 h-9 sm:w-12 sm:h-12 rounded-full bg-[#006837] text-white flex items-center justify-center border-[2.5px] sm:border-[3.5px] border-white shadow-md sm:shadow-lg">
+                          <div className="absolute -bottom-3.5 sm:-bottom-4 left-3 sm:left-5 z-20 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#006837] text-white flex items-center justify-center border-[2px] sm:border-[3px] border-white shadow-md sm:shadow-lg">
                             <Users className="w-4 h-4 sm:w-5 sm:h-5" />
                           </div>
                         </div>
 
                         {/* Card Content Area */}
-                        <div className="pt-6 sm:pt-8 px-3 sm:px-6 pb-3.5 sm:pb-6 flex-1 flex flex-col justify-between">
+                        <div className="pt-5 sm:pt-6 px-3 sm:px-4.5 pb-3 sm:pb-4 flex-1 flex flex-col justify-between">
                           <div>
-                            <h3 className="text-xs sm:text-xl font-bold text-[#143d4d] leading-snug group-hover:text-[#006837] transition-colors mb-0.5 sm:mb-1 line-clamp-1">
+                            <h3 className="text-xs sm:text-sm md:text-base font-bold text-[#143d4d] leading-snug group-hover:text-[#006837] transition-colors mb-0.5 sm:mb-1 line-clamp-1">
                               {worker.fullName}
                             </h3>
                             <p className="text-[10px] sm:text-xs text-gray-500 font-medium mb-2 sm:mb-3 line-clamp-1">
@@ -1217,14 +1213,12 @@ export default function Careers() {
                           <div className="flex items-center justify-between pt-2.5 sm:pt-3 border-t border-gray-50 mt-auto">
                             <a
                               href={`tel:${worker.phone}`}
-                              className="bg-[#006837] hover:bg-[#00532c] text-white text-[10px] sm:text-sm font-semibold px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-full flex items-center gap-1 sm:gap-1.5 transition-all shadow-xs group-hover:shadow"
+                              className="bg-[#006837] hover:bg-[#00532c] text-white text-[10px] sm:text-xs font-semibold px-2.5 sm:px-3.5 py-1.5 rounded-full flex items-center gap-1 sm:gap-1.5 transition-all shadow-xs group-hover:shadow"
                             >
                               <Phone className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                               <span className="truncate max-w-[80px] sm:max-w-none">{worker.phone}</span>
                             </a>
-                            <div className="hidden xs:block sm:block">
-                              <AswannaLeafBadge />
-                            </div>
+                            <AswannaLeafBadge />
                           </div>
                         </div>
                       </div>
@@ -1266,7 +1260,7 @@ export default function Careers() {
                   </div>
                 ) : jobsData.length > 0 ? (
                   <div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5 lg:gap-6">
+                    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-6">
                       {jobsData.map(renderJobCard)}
                     </div>
 
