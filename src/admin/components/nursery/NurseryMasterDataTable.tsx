@@ -22,6 +22,8 @@ interface NurseryMasterDataTableProps {
   icon: React.ReactNode;
   categories?: AssociateOption[];
   hasCategoryRelation?: boolean;
+  crops?: AssociateOption[];
+  hasCropRelation?: boolean;
   onDataChanged?: () => void;
 }
 
@@ -32,6 +34,8 @@ export default function NurseryMasterDataTable({
   icon,
   categories,
   hasCategoryRelation,
+  crops,
+  hasCropRelation,
   onDataChanged
 }: NurseryMasterDataTableProps) {
   const [items, setItems] = useState<AssociateOption[]>([]);
@@ -39,6 +43,7 @@ export default function NurseryMasterDataTable({
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [cropFilter, setCropFilter] = useState('');
 
   // Pagination
   const [page, setPage] = useState(1);
@@ -52,6 +57,7 @@ export default function NurseryMasterDataTable({
   const [nameEn, setNameEn] = useState('');
   const [nameSi, setNameSi] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [cropId, setCropId] = useState('');
   const [activeState, setActiveState] = useState(true);
   const [saving, setSaving] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -69,6 +75,9 @@ export default function NurseryMasterDataTable({
       if (hasCategoryRelation && categoryFilter) {
         params.append('categoryId', categoryFilter);
       }
+      if (hasCropRelation && cropFilter) {
+        params.append('cropId', cropFilter);
+      }
 
       const res = await fetch(`${API_BASE_URL}/${endpoint}?${params.toString()}`);
       if (!res.ok) return;
@@ -83,11 +92,11 @@ export default function NurseryMasterDataTable({
     } finally {
       setLoading(false);
     }
-  }, [endpoint, page, limit, search, statusFilter, hasCategoryRelation, categoryFilter]);
+  }, [endpoint, page, limit, search, statusFilter, hasCategoryRelation, categoryFilter, hasCropRelation, cropFilter]);
 
   useEffect(() => {
     setPage(1);
-  }, [search, statusFilter, categoryFilter]);
+  }, [search, statusFilter, categoryFilter, cropFilter]);
 
   useEffect(() => {
     fetchItems();
@@ -98,6 +107,7 @@ export default function NurseryMasterDataTable({
     setNameEn('');
     setNameSi('');
     setCategoryId(categoryFilter || '');
+    setCropId(cropFilter || '');
     setActiveState(true);
     setErrorMsg(null);
     setIsModalOpen(true);
@@ -108,6 +118,7 @@ export default function NurseryMasterDataTable({
     setNameEn(item.nameEn || '');
     setNameSi(item.nameSi || '');
     setCategoryId(item.categoryId || item.category?.id || '');
+    setCropId(item.cropId || item.crop?.id || '');
     setActiveState(item.activeState !== false);
     setErrorMsg(null);
     setIsModalOpen(true);
@@ -123,6 +134,10 @@ export default function NurseryMasterDataTable({
       setErrorMsg('Please select a Crop Category.');
       return;
     }
+    if (hasCropRelation && !cropId) {
+      setErrorMsg('Please select a Crop.');
+      return;
+    }
 
     setSaving(true);
     setErrorMsg(null);
@@ -135,6 +150,9 @@ export default function NurseryMasterDataTable({
       };
       if (hasCategoryRelation) {
         payload.categoryId = categoryId || null;
+      }
+      if (hasCropRelation) {
+        payload.cropId = cropId || null;
       }
 
       const url = editingItem
@@ -268,6 +286,22 @@ export default function NurseryMasterDataTable({
             </select>
           )}
 
+          {/* Crop Filter (When applicable, e.g. Varieties under Crop) */}
+          {hasCropRelation && crops && crops.length > 0 && (
+            <select
+              value={cropFilter}
+              onChange={(e) => setCropFilter(e.target.value)}
+              className="px-2.5 py-1.5 text-xs bg-gray-50 border border-emerald-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-600 cursor-pointer font-medium text-emerald-950"
+            >
+              <option value="">All Crops</option>
+              {crops.map((cr) => (
+                <option key={cr.id} value={cr.id}>
+                  {cr.nameEn || cr.nameSi}
+                </option>
+              ))}
+            </select>
+          )}
+
           {/* Refresh Button */}
           <button
             onClick={() => fetchItems()}
@@ -298,6 +332,7 @@ export default function NurseryMasterDataTable({
                 <th className="px-3 py-2">Name (English)</th>
                 <th className="px-3 py-2">Name (Sinhala)</th>
                 {hasCategoryRelation && <th className="px-3 py-2">Category</th>}
+                {hasCropRelation && <th className="px-3 py-2">Crop</th>}
                 <th className="px-3 py-2">Slug</th>
                 <th className="px-3 py-2 text-center">Nurseries / Stocks</th>
                 <th className="px-3 py-2 text-center">Status</th>
@@ -307,7 +342,7 @@ export default function NurseryMasterDataTable({
             <tbody className="divide-y divide-gray-100">
               {loading ? (
                 <tr>
-                  <td colSpan={hasCategoryRelation ? 8 : 7} className="px-3 py-8 text-center text-gray-400">
+                  <td colSpan={7 + (hasCategoryRelation ? 1 : 0) + (hasCropRelation ? 1 : 0)} className="px-3 py-8 text-center text-gray-400">
                     <div className="inline-flex items-center gap-2">
                       <RefreshCw size={14} className="animate-spin text-emerald-600" />
                       <span>Loading records...</span>
@@ -316,7 +351,7 @@ export default function NurseryMasterDataTable({
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={hasCategoryRelation ? 8 : 7} className="px-3 py-8 text-center text-gray-400">
+                  <td colSpan={7 + (hasCategoryRelation ? 1 : 0) + (hasCropRelation ? 1 : 0)} className="px-3 py-8 text-center text-gray-400">
                     No {title.toLowerCase()} found.
                   </td>
                 </tr>
@@ -351,6 +386,18 @@ export default function NurseryMasterDataTable({
                           {item.category ? (
                             <span className="inline-flex items-center text-[10px] px-2 py-0.5 rounded-full font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                               {item.category.nameEn || item.category.nameSi}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] text-gray-400 italic">None</span>
+                          )}
+                        </td>
+                      )}
+
+                      {hasCropRelation && (
+                        <td className="px-3 py-1.5 whitespace-nowrap">
+                          {item.crop ? (
+                            <span className="inline-flex items-center text-[10px] px-2 py-0.5 rounded-full font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                              {item.crop.nameEn || item.crop.nameSi}
                             </span>
                           ) : (
                             <span className="text-[10px] text-gray-400 italic">None</span>
@@ -496,6 +543,31 @@ export default function NurseryMasterDataTable({
                   </select>
                   <p className="text-[10px] text-gray-500 mt-1">
                     Every crop belongs to a category (e.g. Vegetable → Carrot, Fruit → Mango).
+                  </p>
+                </div>
+              )}
+
+              {/* Crop Dropdown (Required when hasCropRelation is true) */}
+              {hasCropRelation && (
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    Crop *
+                  </label>
+                  <select
+                    required
+                    value={cropId}
+                    onChange={(e) => setCropId(e.target.value)}
+                    className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 cursor-pointer"
+                  >
+                    <option value="">-- Select Crop --</option>
+                    {crops?.map((cr) => (
+                      <option key={cr.id} value={cr.id}>
+                        {cr.nameEn || cr.nameSi} {cr.nameSi && cr.nameEn ? `(${cr.nameSi})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-gray-500 mt-1">
+                    Every plant variety belongs to a parent crop (e.g. Mango → TEJC, Chili → MI-2).
                   </p>
                 </div>
               )}

@@ -22,10 +22,13 @@ export interface AssociateOption {
   activeState: boolean;
   categoryId?: string | null;
   category?: AssociateOption | null;
+  cropId?: string | null;
+  crop?: AssociateOption | null;
   _count?: {
     nurseries?: number;
     stocks?: number;
     fastSellingItems?: number;
+    varieties?: number;
   };
 }
 

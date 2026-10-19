@@ -837,6 +837,8 @@ export default function NurseryManagement() {
           itemSingular="Plant Variety"
           endpoint="nursery-varieties"
           icon={<Sparkles size={16} />}
+          hasCropRelation={true}
+          crops={options.crops}
           onDataChanged={fetchFormOptions}
         />
       )}
@@ -875,6 +877,7 @@ export default function NurseryManagement() {
         }}
         editingItem={editingNursery}
         options={options}
+        onOptionsRefresh={fetchFormOptions}
       />
 
       {/* 2. Nursery View Modal */}

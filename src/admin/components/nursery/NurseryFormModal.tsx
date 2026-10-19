@@ -22,8 +22,10 @@ import {
 import type {
   NurseryItem,
   FormDropdownOptions,
-  NurseryFormState
+  NurseryFormState,
+  AssociateOption
 } from './types';
+import NurseryQuickAddModal, { type MasterDataType } from './NurseryQuickAddModal';
 import {
   SRI_LANKA_PROVINCES,
   getDistrictsForProvince,
@@ -46,6 +48,7 @@ interface NurseryFormModalProps {
   onSuccess: () => void;
   editingItem: NurseryItem | null;
   options: FormDropdownOptions;
+  onOptionsRefresh?: () => Promise<void> | void;
 }
 
 const initialFormState: NurseryFormState = {
@@ -83,12 +86,27 @@ const initialFormState: NurseryFormState = {
 const ADMIN_DRAFT_KEY = 'aswanna_admin_nursery_draft';
 const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
+type QuickAddContext =
+  | 'grade'
+  | 'delivery'
+  | 'operatingHours'
+  | 'certification'
+  | 'fastCategory'
+  | 'fastCrop'
+  | 'fastVariety'
+  | 'fastBadge'
+  | 'stockCategory'
+  | 'stockCrop'
+  | 'stockVariety'
+  | 'specialty';
+
 export default function NurseryFormModal({
   isOpen,
   onClose,
   onSuccess,
   editingItem,
-  options
+  options,
+  onOptionsRefresh
 }: NurseryFormModalProps) {
   const [formData, setFormData] = useState<NurseryFormState>(initialFormState);
   const [uploadedImages, setUploadedImages] = useState<string[]>([]);
@@ -97,6 +115,17 @@ export default function NurseryFormModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [draftRestored, setDraftRestored] = useState(false);
+
+  // Local synced options so that in-line quick-added masters appear immediately
+  const [localOptions, setLocalOptions] = useState<FormDropdownOptions>(options);
+
+  useEffect(() => {
+    setLocalOptions(options);
+  }, [options]);
+
+  // Quick-Add Modal State
+  const [quickAddType, setQuickAddType] = useState<MasterDataType | null>(null);
+  const [quickAddContext, setQuickAddContext] = useState<QuickAddContext | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -124,14 +153,109 @@ export default function NurseryFormModal({
 
   // Filter crops based on selected category
   const availableFastCrops = useMemo(() => {
-    if (!newFastCategory) return options.crops;
-    return options.crops.filter((c) => !c.categoryId || c.categoryId === newFastCategory);
-  }, [options.crops, newFastCategory]);
+    if (!newFastCategory) return localOptions.crops;
+    return localOptions.crops.filter((c) => !c.categoryId || c.categoryId === newFastCategory);
+  }, [localOptions.crops, newFastCategory]);
+
+  // Filter varieties based on selected crop (Crop -> Variety hierarchy)
+  const availableFastVarieties = useMemo(() => {
+    if (!newFastCrop) {
+      if (!newFastCategory) return localOptions.varieties;
+      return localOptions.varieties.filter((v) => !v.crop?.categoryId || v.crop.categoryId === newFastCategory);
+    }
+    return localOptions.varieties.filter((v) => !v.cropId || v.cropId === newFastCrop);
+  }, [localOptions.varieties, newFastCrop, newFastCategory]);
 
   const availableStockCrops = useMemo(() => {
-    if (!newStockCategory) return options.crops;
-    return options.crops.filter((c) => !c.categoryId || c.categoryId === newStockCategory);
-  }, [options.crops, newStockCategory]);
+    if (!newStockCategory) return localOptions.crops;
+    return localOptions.crops.filter((c) => !c.categoryId || c.categoryId === newStockCategory);
+  }, [localOptions.crops, newStockCategory]);
+
+  // Filter stock varieties based on selected crop (Crop -> Variety hierarchy)
+  const availableStockVarieties = useMemo(() => {
+    if (!newStockCrop) {
+      if (!newStockCategory) return localOptions.varieties;
+      return localOptions.varieties.filter((v) => !v.crop?.categoryId || v.crop.categoryId === newStockCategory);
+    }
+    return localOptions.varieties.filter((v) => !v.cropId || v.cropId === newStockCrop);
+  }, [localOptions.varieties, newStockCrop, newStockCategory]);
+
+  const openQuickAdd = (type: MasterDataType, context: QuickAddContext) => {
+    setQuickAddType(type);
+    setQuickAddContext(context);
+  };
+
+  const handleQuickAddSuccess = (createdItem: AssociateOption, type: MasterDataType) => {
+    // 1. Optimistically append into localOptions so it's instantly available in selects
+    setLocalOptions((prev) => {
+      const copy = { ...prev };
+      if (type === 'grade') copy.grades = [...copy.grades.filter((i) => i.id !== createdItem.id), createdItem];
+      else if (type === 'delivery') copy.deliveries = [...copy.deliveries.filter((i) => i.id !== createdItem.id), createdItem];
+      else if (type === 'operatingHours') copy.operatingHours = [...copy.operatingHours.filter((i) => i.id !== createdItem.id), createdItem];
+      else if (type === 'certification') copy.certifications = [...copy.certifications.filter((i) => i.id !== createdItem.id), createdItem];
+      else if (type === 'category') copy.categories = [...copy.categories.filter((i) => i.id !== createdItem.id), createdItem];
+      else if (type === 'crop') copy.crops = [...copy.crops.filter((i) => i.id !== createdItem.id), createdItem];
+      else if (type === 'variety') copy.varieties = [...copy.varieties.filter((i) => i.id !== createdItem.id), createdItem];
+      else if (type === 'specialty') copy.specialties = [...copy.specialties.filter((i) => i.id !== createdItem.id), createdItem];
+      else if (type === 'badge') copy.badges = [...copy.badges.filter((i) => i.id !== createdItem.id), createdItem];
+      return copy;
+    });
+
+    // 2. Auto-select created item into relevant state without disturbing any other nursery form data
+    if (quickAddContext === 'grade') {
+      setFormData((prev) => ({ ...prev, gradeId: createdItem.id }));
+    } else if (quickAddContext === 'delivery') {
+      setFormData((prev) => ({ ...prev, deliveryId: createdItem.id }));
+    } else if (quickAddContext === 'operatingHours') {
+      setFormData((prev) => ({ ...prev, operatingHoursId: createdItem.id }));
+    } else if (quickAddContext === 'certification') {
+      setFormData((prev) => ({ ...prev, certificationId: createdItem.id }));
+    } else if (quickAddContext === 'fastCategory') {
+      setNewFastCategory(createdItem.id);
+    } else if (quickAddContext === 'fastCrop') {
+      setNewFastCrop(createdItem.id);
+      if (createdItem.categoryId) setNewFastCategory(createdItem.categoryId);
+    } else if (quickAddContext === 'fastVariety') {
+      setNewFastVariety(createdItem.id);
+      if (createdItem.cropId) setNewFastCrop(createdItem.cropId);
+      if (createdItem.crop?.categoryId) setNewFastCategory(createdItem.crop.categoryId);
+    } else if (quickAddContext === 'fastBadge') {
+      setNewFastBadge(createdItem.id);
+    } else if (quickAddContext === 'stockCategory') {
+      setNewStockCategory(createdItem.id);
+    } else if (quickAddContext === 'stockCrop') {
+      setNewStockCrop(createdItem.id);
+      if (createdItem.categoryId) setNewStockCategory(createdItem.categoryId);
+    } else if (quickAddContext === 'stockVariety') {
+      setNewStockVariety(createdItem.id);
+      if (createdItem.cropId) setNewStockCrop(createdItem.cropId);
+      if (createdItem.crop?.categoryId) setNewStockCategory(createdItem.crop.categoryId);
+    } else if (quickAddContext === 'specialty') {
+      setFormData((prev) => ({
+        ...prev,
+        specialtyIds: prev.specialtyIds.includes(createdItem.id)
+          ? prev.specialtyIds
+          : [...prev.specialtyIds, createdItem.id]
+      }));
+    }
+
+    // 3. Trigger options refresh in background
+    onOptionsRefresh?.();
+  };
+
+  const initialCategoryIdForQuickAdd =
+    quickAddContext === 'fastCrop' || quickAddContext === 'fastVariety'
+      ? newFastCategory
+      : quickAddContext === 'stockCrop' || quickAddContext === 'stockVariety'
+      ? newStockCategory
+      : '';
+
+  const initialCropIdForQuickAdd =
+    quickAddContext === 'fastVariety'
+      ? newFastCrop
+      : quickAddContext === 'stockVariety'
+      ? newStockCrop
+      : '';
 
   useEffect(() => {
     if (editingItem) {
@@ -1098,16 +1222,27 @@ export default function NurseryFormModal({
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-gray-600 mb-1">
-                  Nursery Grade *
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-semibold text-gray-600">
+                    Nursery Grade *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => openQuickAdd('grade', 'grade')}
+                    className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer"
+                    title="Add New Grade Preset"
+                  >
+                    <Plus size={11} />
+                    <span>New</span>
+                  </button>
+                </div>
                 <select
                   value={formData.gradeId}
                   onChange={(e) => setFormData({ ...formData, gradeId: e.target.value })}
                   className="w-full px-3 py-2 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all cursor-pointer font-bold text-gray-800"
                 >
                   <option value="">Select Grade</option>
-                  {options.grades.map((gr) => (
+                  {localOptions.grades.map((gr) => (
                     <option key={gr.id} value={gr.id}>
                       {gr.nameEn || gr.nameSi}
                     </option>
@@ -1130,16 +1265,27 @@ export default function NurseryFormModal({
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div>
-                <label className="block text-[11px] font-semibold text-gray-600 mb-1">
-                  Delivery Facility *
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-semibold text-gray-600">
+                    Delivery Facility *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => openQuickAdd('delivery', 'delivery')}
+                    className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer"
+                    title="Add New Delivery Option"
+                  >
+                    <Plus size={11} />
+                    <span>New</span>
+                  </button>
+                </div>
                 <select
                   value={formData.deliveryId}
                   onChange={(e) => setFormData({ ...formData, deliveryId: e.target.value })}
                   className="w-full px-3 py-2 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all cursor-pointer"
                 >
                   <option value="">Select Delivery Option</option>
-                  {options.deliveries.map((del) => (
+                  {localOptions.deliveries.map((del) => (
                     <option key={del.id} value={del.id}>
                       {del.nameEn || del.nameSi}
                     </option>
@@ -1148,16 +1294,27 @@ export default function NurseryFormModal({
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-gray-600 mb-1">
-                  Operating Hours & Days *
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-semibold text-gray-600">
+                    Operating Hours & Days *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => openQuickAdd('operatingHours', 'operatingHours')}
+                    className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer"
+                    title="Add New Operating Hours Preset"
+                  >
+                    <Plus size={11} />
+                    <span>New</span>
+                  </button>
+                </div>
                 <select
                   value={formData.operatingHoursId}
                   onChange={(e) => setFormData({ ...formData, operatingHoursId: e.target.value })}
                   className="w-full px-3 py-2 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all cursor-pointer"
                 >
                   <option value="">Select Operating Hours</option>
-                  {options.operatingHours.map((oh) => (
+                  {localOptions.operatingHours.map((oh) => (
                     <option key={oh.id} value={oh.id}>
                       {oh.nameEn || oh.nameSi}
                     </option>
@@ -1166,16 +1323,27 @@ export default function NurseryFormModal({
               </div>
 
               <div>
-                <label className="block text-[11px] font-semibold text-gray-600 mb-1">
-                  Quality Certification (Optional)
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[11px] font-semibold text-gray-600">
+                    Quality Certification (Optional)
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => openQuickAdd('certification', 'certification')}
+                    className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer"
+                    title="Add New Certification Preset"
+                  >
+                    <Plus size={11} />
+                    <span>New</span>
+                  </button>
+                </div>
                 <select
                   value={formData.certificationId}
                   onChange={(e) => setFormData({ ...formData, certificationId: e.target.value })}
                   className="w-full px-3 py-2 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all cursor-pointer"
                 >
                   <option value="">Select Certification</option>
-                  {options.certifications.map((cert) => (
+                  {localOptions.certifications.map((cert) => (
                     <option key={cert.id} value={cert.id}>
                       {cert.nameEn || cert.nameSi}
                     </option>
@@ -1361,25 +1529,37 @@ export default function NurseryFormModal({
                 {/* 1. Fields Row: Category, Crop, Variety, Unit Price, Badge */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                   <div>
-                    <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                      Crop Category
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[11px] font-semibold text-gray-700">
+                        Crop Category
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => openQuickAdd('category', 'fastCategory')}
+                        className="inline-flex items-center gap-0.5 text-[10px] font-bold text-rose-600 hover:text-rose-700 hover:underline cursor-pointer"
+                        title="Add New Crop Category"
+                      >
+                        <Plus size={11} />
+                        <span>New</span>
+                      </button>
+                    </div>
                     <select
                       value={newFastCategory}
                       onChange={(e) => {
                         const catId = e.target.value;
                         setNewFastCategory(catId);
                         if (newFastCrop) {
-                          const selectedCrop = options.crops.find((c) => c.id === newFastCrop);
+                          const selectedCrop = localOptions.crops.find((c) => c.id === newFastCrop);
                           if (selectedCrop && selectedCrop.categoryId && selectedCrop.categoryId !== catId) {
                             setNewFastCrop('');
+                            setNewFastVariety('');
                           }
                         }
                       }}
                       className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-hidden focus:ring-1 focus:ring-rose-500"
                     >
                       <option value="">Select Category...</option>
-                      {options.categories.map((cat) => (
+                      {localOptions.categories.map((cat) => (
                         <option key={cat.id} value={cat.id}>
                           {cat.nameEn || cat.nameSi}
                         </option>
@@ -1388,17 +1568,34 @@ export default function NurseryFormModal({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                      Crop Name
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[11px] font-semibold text-gray-700">
+                        Crop Name
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => openQuickAdd('crop', 'fastCrop')}
+                        className="inline-flex items-center gap-0.5 text-[10px] font-bold text-rose-600 hover:text-rose-700 hover:underline cursor-pointer"
+                        title="Add New Crop"
+                      >
+                        <Plus size={11} />
+                        <span>New</span>
+                      </button>
+                    </div>
                     <select
                       value={newFastCrop}
                       onChange={(e) => {
                         const cropId = e.target.value;
                         setNewFastCrop(cropId);
                         if (cropId && !newFastCategory) {
-                          const cr = options.crops.find((c) => c.id === cropId);
+                          const cr = localOptions.crops.find((c) => c.id === cropId);
                           if (cr?.categoryId) setNewFastCategory(cr.categoryId);
+                        }
+                        if (newFastVariety) {
+                          const vr = localOptions.varieties.find((v) => v.id === newFastVariety);
+                          if (vr && vr.cropId && vr.cropId !== cropId) {
+                            setNewFastVariety('');
+                          }
                         }
                       }}
                       className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-hidden focus:ring-1 focus:ring-rose-500"
@@ -1415,16 +1612,40 @@ export default function NurseryFormModal({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                      Plant Variety
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[11px] font-semibold text-gray-700">
+                        Plant Variety
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => openQuickAdd('variety', 'fastVariety')}
+                        className="inline-flex items-center gap-0.5 text-[10px] font-bold text-rose-600 hover:text-rose-700 hover:underline cursor-pointer"
+                        title="Add New Plant Variety"
+                      >
+                        <Plus size={11} />
+                        <span>New</span>
+                      </button>
+                    </div>
                     <select
                       value={newFastVariety}
-                      onChange={(e) => setNewFastVariety(e.target.value)}
+                      onChange={(e) => {
+                        const vId = e.target.value;
+                        setNewFastVariety(vId);
+                        if (vId && !newFastCrop) {
+                          const vr = localOptions.varieties.find((v) => v.id === vId);
+                          if (vr?.cropId) {
+                            setNewFastCrop(vr.cropId);
+                            const cr = localOptions.crops.find((c) => c.id === vr.cropId);
+                            if (cr?.categoryId && !newFastCategory) setNewFastCategory(cr.categoryId);
+                          }
+                        }
+                      }}
                       className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-hidden focus:ring-1 focus:ring-rose-500"
                     >
-                      <option value="">Select Variety...</option>
-                      {options.varieties.map((v) => (
+                      <option value="">
+                        {newFastCrop ? 'Select Variety...' : 'Select Variety (All / Filtered)...'}
+                      </option>
+                      {availableFastVarieties.map((v) => (
                         <option key={v.id} value={v.id}>
                           {v.nameEn || v.nameSi}
                         </option>
@@ -1449,16 +1670,27 @@ export default function NurseryFormModal({
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-gray-700 mb-1">
-                      Promotion Badge
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[11px] font-semibold text-gray-700">
+                        Promotion Badge
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => openQuickAdd('badge', 'fastBadge')}
+                        className="inline-flex items-center gap-0.5 text-[10px] font-bold text-rose-600 hover:text-rose-700 hover:underline cursor-pointer"
+                        title="Add New Promotion Badge"
+                      >
+                        <Plus size={11} />
+                        <span>New</span>
+                      </button>
+                    </div>
                     <select
                       value={newFastBadge}
                       onChange={(e) => setNewFastBadge(e.target.value)}
                       className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-hidden focus:ring-1 focus:ring-rose-500"
                     >
                       <option value="">Select Badge...</option>
-                      {options.badges?.map((b) => (
+                      {localOptions.badges?.map((b) => (
                         <option key={b.id} value={b.id}>
                           {b.nameEn || b.nameSi}
                         </option>
@@ -1589,10 +1821,10 @@ export default function NurseryFormModal({
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
                 {formData.fastSellingItems.map((item, idx) => {
-                  const catObj = options.categories?.find((c) => c.id === item.categoryId);
-                  const cropObj = options.crops.find((c) => c.id === item.cropId);
-                  const varietyObj = options.varieties.find((v) => v.id === item.varietyId);
-                  const badgeObj = options.badges?.find((b) => b.id === item.badgeId);
+                  const catObj = localOptions.categories?.find((c) => c.id === item.categoryId);
+                  const cropObj = localOptions.crops.find((c) => c.id === item.cropId);
+                  const varietyObj = localOptions.varieties.find((v) => v.id === item.varietyId);
+                  const badgeObj = localOptions.badges?.find((b) => b.id === item.badgeId);
 
                   return (
                     <div
@@ -1674,25 +1906,37 @@ export default function NurseryFormModal({
             {/* Controls Row */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 items-end bg-gray-50/70 p-3 rounded-xl border border-gray-200">
               <div>
-                <label className="block text-[10px] font-bold text-gray-600 mb-1">
-                  Crop Category:
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[10px] font-bold text-gray-600">
+                    Crop Category:
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => openQuickAdd('category', 'stockCategory')}
+                    className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer"
+                    title="Add New Crop Category"
+                  >
+                    <Plus size={11} />
+                    <span>New</span>
+                  </button>
+                </div>
                 <select
                   value={newStockCategory}
                   onChange={(e) => {
                     const catId = e.target.value;
                     setNewStockCategory(catId);
                     if (newStockCrop) {
-                      const selectedCrop = options.crops.find((c) => c.id === newStockCrop);
+                      const selectedCrop = localOptions.crops.find((c) => c.id === newStockCrop);
                       if (selectedCrop && selectedCrop.categoryId && selectedCrop.categoryId !== catId) {
                         setNewStockCrop('');
+                        setNewStockVariety('');
                       }
                     }
                   }}
                   className="w-full px-2.5 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-600"
                 >
                   <option value="">Select Category</option>
-                  {options.categories.map((c) => (
+                  {localOptions.categories.map((c) => (
                     <option key={c.id} value={c.id}>
                       {c.nameEn || c.nameSi}
                     </option>
@@ -1701,17 +1945,34 @@ export default function NurseryFormModal({
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-gray-600 mb-1">
-                  Crop Name:
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[10px] font-bold text-gray-600">
+                    Crop Name:
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => openQuickAdd('crop', 'stockCrop')}
+                    className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer"
+                    title="Add New Crop"
+                  >
+                    <Plus size={11} />
+                    <span>New</span>
+                  </button>
+                </div>
                 <select
                   value={newStockCrop}
                   onChange={(e) => {
                     const cropId = e.target.value;
                     setNewStockCrop(cropId);
                     if (cropId && !newStockCategory) {
-                      const cr = options.crops.find((c) => c.id === cropId);
+                      const cr = localOptions.crops.find((c) => c.id === cropId);
                       if (cr?.categoryId) setNewStockCategory(cr.categoryId);
+                    }
+                    if (newStockVariety) {
+                      const vr = localOptions.varieties.find((v) => v.id === newStockVariety);
+                      if (vr && vr.cropId && vr.cropId !== cropId) {
+                        setNewStockVariety('');
+                      }
                     }
                   }}
                   className="w-full px-2.5 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-600"
@@ -1728,16 +1989,40 @@ export default function NurseryFormModal({
               </div>
 
               <div>
-                <label className="block text-[10px] font-bold text-gray-600 mb-1">
-                  Specific Variety:
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-[10px] font-bold text-gray-600">
+                    Specific Variety:
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => openQuickAdd('variety', 'stockVariety')}
+                    className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-700 hover:text-emerald-800 hover:underline cursor-pointer"
+                    title="Add New Plant Variety"
+                  >
+                    <Plus size={11} />
+                    <span>New</span>
+                  </button>
+                </div>
                 <select
                   value={newStockVariety}
-                  onChange={(e) => setNewStockVariety(e.target.value)}
+                  onChange={(e) => {
+                    const vId = e.target.value;
+                    setNewStockVariety(vId);
+                    if (vId && !newStockCrop) {
+                      const vr = localOptions.varieties.find((v) => v.id === vId);
+                      if (vr?.cropId) {
+                        setNewStockCrop(vr.cropId);
+                        const cr = localOptions.crops.find((c) => c.id === vr.cropId);
+                        if (cr?.categoryId && !newStockCategory) setNewStockCategory(cr.categoryId);
+                      }
+                    }
+                  }}
                   className="w-full px-2.5 py-1.5 text-xs bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-600"
                 >
-                  <option value="">Select Variety (Optional)</option>
-                  {options.varieties.map((v) => (
+                  <option value="">
+                    {newStockCrop ? 'Select Variety (Optional)' : 'Select Variety (All / Filtered)'}
+                  </option>
+                  {availableStockVarieties.map((v) => (
                     <option key={v.id} value={v.id}>
                       {v.nameEn || v.nameSi}
                     </option>
@@ -1789,9 +2074,9 @@ export default function NurseryFormModal({
                   </thead>
                   <tbody className="divide-y divide-gray-100">
                     {formData.stocks.map((st, idx) => {
-                      const cat = options.categories.find((c) => c.id === st.categoryId);
-                      const crp = options.crops.find((c) => c.id === st.cropId);
-                      const vr = options.varieties.find((v) => v.id === st.varietyId);
+                      const cat = localOptions.categories.find((c) => c.id === st.categoryId);
+                      const crp = localOptions.crops.find((c) => c.id === st.cropId);
+                      const vr = localOptions.varieties.find((v) => v.id === st.varietyId);
 
                       return (
                         <tr key={idx} className="hover:bg-emerald-50/30 transition-colors">
@@ -1830,17 +2115,28 @@ export default function NurseryFormModal({
 
           {/* Section 6: Specialties & Plant Materials */}
           <div className="bg-white border border-gray-200 rounded-2xl p-4 sm:p-5 shadow-2xs space-y-4">
-            <div className="flex items-center gap-2.5 pb-2 border-b border-gray-100">
-              <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0">
-                <Award size={15} />
+            <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0">
+                  <Award size={15} />
+                </div>
+                <h3 className="text-xs sm:text-sm font-bold text-gray-900">
+                  6. Specialties & Plant Materials *
+                </h3>
               </div>
-              <h3 className="text-xs sm:text-sm font-bold text-gray-900">
-                6. Specialties & Plant Materials *
-              </h3>
+              <button
+                type="button"
+                onClick={() => openQuickAdd('specialty', 'specialty')}
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+                title="Add New Specialty Option"
+              >
+                <Plus size={13} />
+                <span>Add Specialty</span>
+              </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {options.specialties.map((spec) => {
+              {localOptions.specialties.map((spec) => {
                 const isChecked = formData.specialtyIds.includes(spec.id);
 
                 return (
@@ -1970,6 +2266,21 @@ export default function NurseryFormModal({
           </div>
         </form>
       </div>
+
+      {/* Quick Add In-line Master Data Modal */}
+      <NurseryQuickAddModal
+        isOpen={Boolean(quickAddType)}
+        onClose={() => {
+          setQuickAddType(null);
+          setQuickAddContext(null);
+        }}
+        type={quickAddType}
+        categories={localOptions.categories}
+        crops={localOptions.crops}
+        initialCategoryId={initialCategoryIdForQuickAdd}
+        initialCropId={initialCropIdForQuickAdd}
+        onSuccess={handleQuickAddSuccess}
+      />
     </div>
   );
 }
