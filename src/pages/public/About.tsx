@@ -11,7 +11,6 @@ import {
   Tv2, 
   ArrowUpRight, 
   CheckCircle2, 
-  Sparkles, 
   Sprout, 
   ShieldCheck, 
   Award
@@ -158,11 +157,6 @@ export default function About() {
       <section className="w-full pt-12 sm:pt-16 pb-12 sm:pb-20">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="flex flex-col items-center text-center max-w-5xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-bold uppercase tracking-wider mb-5">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
-              <span>{isSinhala ? 'ඩිජිටල් කෘෂි පුරෝගාමියා' : 'Pioneering Digital Agriculture'}</span>
-            </div>
-
             <h2 className={`text-2xl sm:text-3xl lg:text-4xl xl:text-5xl font-black text-gray-900 leading-snug tracking-tight mb-6 ${isSinhala ? 'font-noto' : ''}`}>
               {t('aboutPage.desc', 'දශකයක ඩිජිටල් මෙහෙවරක සිට තිරසර කෘෂි පරිවර්තනයක් දක්වා')}
             </h2>
@@ -224,11 +218,6 @@ export default function About() {
 
             {/* Left Column: Narrative (7 cols) */}
             <div className="lg:col-span-7 flex flex-col justify-center">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-bold uppercase tracking-wider mb-4 w-fit">
-                <Sprout className="w-3.5 h-3.5 text-emerald-700" />
-                <span>{isSinhala ? 'අපගේ ආරම්භය හා ගමන් මඟ' : 'Our Story & Journey'}</span>
-              </div>
-
               <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 tracking-tight mb-6 leading-snug ${isSinhala ? 'font-noto' : ''}`}>
                 {t('aboutPage.originTitle')}
               </h2>
@@ -312,11 +301,6 @@ export default function About() {
             
             {/* Left Content (8 cols) */}
             <div className="lg:col-span-8">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-emerald-300 text-xs font-bold uppercase tracking-wider mb-4 border border-white/15">
-                <Building2 className="w-4 h-4" />
-                <span>{isSinhala ? 'ආයතනික වර්ධනය' : 'Corporate Identity'}</span>
-              </div>
-
               <h2 className={`text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight mb-5 ${isSinhala ? 'font-noto' : ''}`}>
                 {t('aboutPage.foundingTitle')}
               </h2>
@@ -376,10 +360,6 @@ export default function About() {
       <section id="services" className="w-full py-16 sm:py-24">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-bold uppercase tracking-wider mb-3">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
-              <span>{isSinhala ? 'අපේ කාර්යයන්' : 'What We Do'}</span>
-            </div>
             <h2 className={`text-2xl sm:text-3xl lg:text-4xl font-black text-gray-900 tracking-tight mb-3 ${isSinhala ? 'font-noto' : ''}`}>
               {t('aboutPage.servicesTitle')}
             </h2>
@@ -556,11 +536,6 @@ export default function About() {
             <div className="absolute bottom-0 left-10 w-80 h-80 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
             <div className="relative z-10 max-w-4xl mx-auto space-y-6">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-emerald-300 text-xs font-bold uppercase tracking-wider border border-white/15">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>{isSinhala ? 'අප හා එක්වන්න' : 'Get In Touch'}</span>
-              </div>
-
               <h2 className={`text-2xl sm:text-4xl lg:text-5xl font-black text-white leading-tight tracking-tight ${isSinhala ? 'font-noto' : ''}`}>
                 {isSinhala ? 'ශ්‍රී ලාංකේය කෘෂිකර්මාන්තයේ නව පරිච්ඡේදයකට අත්වැල් බඳින්න' : 'Join the Next Era of Sri Lankan Agriculture'}
               </h2>

@@ -5,7 +5,6 @@ import {
   Mail, 
   Clock, 
   CheckCircle2, 
-  Sparkles, 
   ArrowUpRight, 
   Smartphone, 
   ChevronDown,
@@ -376,12 +375,6 @@ export default function Contact() {
               <div className="absolute -bottom-24 -left-24 w-80 h-80 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none"></div>
 
               <div className="relative z-10">
-                {/* Pill Badge */}
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/90 backdrop-blur-md border border-emerald-200/60 shadow-xs text-xs sm:text-sm font-semibold text-emerald-950 mb-6">
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
-                  <span>{t('contact.getInTouchBadge', 'Get In Touch')}</span>
-                </div>
-
                 {/* Main Title */}
                 <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">
                   {isSinhala ? 'අප හා සම්බන්ධ වන්න' : 'Get In Touch'}
@@ -506,10 +499,6 @@ export default function Contact() {
         {/* ── 2. Unified Premium Social Media Hub Section ── */}
         <div className="mb-16 sm:mb-24">
           <div className="text-center max-w-2xl mx-auto mb-10">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-800 text-xs font-bold uppercase tracking-wider mb-3">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
-              <span>{isSinhala ? 'ඩිජිටල් ජාලය' : 'Social Network'}</span>
-            </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight mb-3">
               {t('contact.socialTitle', 'අපගේ ඩිජිටල් ජාලය හා එක්වන්න')}
             </h2>
@@ -570,11 +559,6 @@ export default function Contact() {
             
             {/* Left Content (8 cols) */}
             <div className="lg:col-span-8">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md text-emerald-300 text-xs font-bold uppercase tracking-wider mb-4 border border-white/10">
-                <Smartphone className="w-4 h-4" />
-                <span>{isSinhala ? 'ජංගම යෙදුම (Mobile App)' : 'Mobile Application'}</span>
-              </div>
-
               <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight tracking-tight mb-4">
                 {t('contact.appTitle', 'අස්වැන්න ජංගම යෙදුම දැන්ම බාගත කරගන්න')}
               </h2>

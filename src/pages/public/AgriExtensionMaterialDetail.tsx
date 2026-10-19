@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Layers, ArrowLeft, Sparkles } from 'lucide-react';
+import { Layers, ArrowLeft } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
@@ -45,11 +45,6 @@ export default function AgriExtensionMaterialDetail() {
 
         {/* Coming Soon & AgroLoader Container - Direct without background card */}
         <div className="py-12 sm:py-16 text-center max-w-3xl mx-auto space-y-6">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-teal-100/70 border border-teal-200 text-teal-800 text-xs sm:text-sm font-bold">
-            <Sparkles className="w-4 h-4 text-teal-600 animate-pulse" />
-            <span>{isSinhala ? 'ඉගෙනුම් ද්‍රව්‍ය සකස් වෙමින් පවතී' : 'Extension Package Coming Soon'}</span>
-          </div>
-
           <h2 className="text-2xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">
             {isSinhala ? 'ළඟදීම බලාපොරොත්තු වන්න' : 'Coming Soon'}
           </h2>

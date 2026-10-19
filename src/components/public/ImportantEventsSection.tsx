@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Sparkles } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -70,7 +70,7 @@ export default function ImportantEventsSection() {
         {/* Section Header */}
         <div className="reveal-fade-up flex flex-col items-center text-center mb-5 sm:mb-8">
           <div className="flex items-center gap-2 mb-1.5">
-            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--color-primary)]" />
+            <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--color-primary)]" />
             <span className="text-gray-500 font-bold text-[11px] sm:text-xs tracking-widest uppercase">
               {isSinhala ? 'විශේෂ නිවේදන සහ අවස්ථා' : 'Special Announcements & Events'}
             </span>
