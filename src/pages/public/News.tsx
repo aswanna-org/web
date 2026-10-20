@@ -89,7 +89,7 @@ const SECTIONS: SectionItem[] = [
     key: 'regional',
     nameEn: 'Regional & Village',
     nameSi: 'ප්‍රාදේශීය පුවත්',
-    aliases: ['ප්‍රාදේශීය පුවත්', 'Regional', 'Village Stories', 'Local News'],
+    aliases: ['ප්‍රාදේශීය පුවත්', 'Regional', 'Regional & Village', 'Village Stories', 'Local News'],
     icon: (cls) => <MapPin className={cls || 'w-4 h-4 text-rose-500'} />
   },
   {
@@ -135,6 +135,15 @@ const SECTIONS: SectionItem[] = [
     icon: (cls) => <Sparkles className={cls || 'w-4 h-4 text-teal-500'} />
   }
 ];
+
+// Find the section matching a key or any alias (language independent)
+const findSection = (value: string): SectionItem | null => {
+  if (!value) return null;
+  const v = value.toLowerCase();
+  return SECTIONS.find(sec =>
+    sec.key.toLowerCase() === v || sec.aliases.some(a => a.toLowerCase() === v)
+  ) || null;
+};
 
 export default function News() {
   const navigate = useNavigate();
@@ -196,7 +205,8 @@ export default function News() {
     params.set('limit', '10');
 
     if (selectedCategory) {
-      params.set('category', selectedCategory);
+      const sec = findSection(selectedCategory);
+      params.set('category', sec ? sec.aliases.join(',') : selectedCategory);
     }
     if (searchQuery) {
       params.set('search', searchQuery);
@@ -263,7 +273,7 @@ export default function News() {
   // Handle Category Filter Selection
   const handleSelectCategory = (catName: string) => {
     const newParams = new URLSearchParams(searchParams);
-    if (catName === selectedCategory || !catName) {
+    if (!catName || catName === selectedCategory) {
       newParams.delete('category');
     } else {
       newParams.set('category', catName);
@@ -290,10 +300,7 @@ export default function News() {
 
   // Active section details for mobile dropdown
   const activeSectionObj = useMemo(() => {
-    if (!selectedCategory) return null;
-    return SECTIONS.find(sec =>
-      sec.aliases.some(a => a.toLowerCase() === selectedCategory.toLowerCase())
-    ) || null;
+    return findSection(selectedCategory);
   }, [selectedCategory]);
 
   const activeSectionLabel = useMemo(() => {
@@ -345,7 +352,7 @@ export default function News() {
             {totalStories} {t('newsPage.stories', 'stories')}
             {selectedCategory && (
               <span className="ml-2 font-bold text-emerald-800">
-                — {selectedCategory}
+                — {activeSectionLabel}
               </span>
             )}
           </p>
@@ -423,17 +430,14 @@ export default function News() {
                 {SECTIONS.map((sec) => {
                   const label = isSinhala ? sec.nameSi : sec.nameEn;
                   const count = sectionCounts[sec.key] || 0;
-                  const isSecSelected = sec.aliases.some(
-                    a => a.toLowerCase() === selectedCategory.toLowerCase()
-                  );
+                  const isSecSelected = activeSectionObj?.key === sec.key;
 
                   return (
                     <button
                       key={sec.key}
                       type="button"
                       onClick={() => {
-                        const targetCategory = isSinhala ? sec.nameSi : sec.nameEn;
-                        handleSelectCategory(isSecSelected ? '' : targetCategory);
+                        handleSelectCategory(isSecSelected ? '' : sec.key);
                         setIsMobileCategoryOpen(false);
                       }}
                       className={`w-full flex items-center justify-between p-3 text-left transition-colors cursor-pointer ${
@@ -451,7 +455,7 @@ export default function News() {
                         </span>
                       </div>
                       <span className="text-xs text-gray-400 font-mono">
-                        {count > 0 ? count : 32}
+                        {count}
                       </span>
                     </button>
                   );
@@ -727,18 +731,14 @@ export default function News() {
                 {SECTIONS.map((sec) => {
                   const label = isSinhala ? sec.nameSi : sec.nameEn;
                   const count = sectionCounts[sec.key] || 0;
-                  const isSecSelected = sec.aliases.some(
-                    a => a.toLowerCase() === selectedCategory.toLowerCase()
-                  );
+                  const isSecSelected = activeSectionObj?.key === sec.key;
 
                   return (
                     <button
                       key={sec.key}
                       type="button"
                       onClick={() => {
-                        // Pick the first alias or the primary label to filter
-                        const targetCategory = isSinhala ? sec.nameSi : sec.nameEn;
-                        handleSelectCategory(isSecSelected ? '' : targetCategory);
+                        handleSelectCategory(isSecSelected ? '' : sec.key);
                       }}
                       className={`w-full flex items-center justify-between py-2.5 px-2.5 rounded transition-colors text-left cursor-pointer group ${
                         isSecSelected
@@ -755,7 +755,7 @@ export default function News() {
                         </span>
                       </div>
                       <span className="text-xs text-gray-400 font-mono">
-                        {count > 0 ? count : 32}
+                        {count}
                       </span>
                     </button>
                   );
