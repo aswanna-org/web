@@ -1,15 +1,17 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { Share2, Clock, User, Image as ImageIcon, Link as LinkIcon, MessageCircle, Check, Newspaper } from 'lucide-react';
-import PageHero from '../../components/public/PageHero';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import Pagination from '../../components/admin/Pagination';
-import CustomDropdown from '../../components/ui/CustomDropdown';
+import {
+  X, Newspaper, Droplets, Sprout, Landmark,
+  TrendingUp, MapPin, BarChart3, Cpu, Fish, CloudRain,
+  Globe2, Sparkles, Image as ImageIcon, ArrowRight, ChevronDown
+} from 'lucide-react';
+import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
-import FontSizeSwitcher from '../../components/public/FontSizeSwitcher';
-import CommentSection from '../../components/public/CommentSection';
+import Pagination from '../../components/admin/Pagination';
 import SEO from '../../components/common/SEO';
 
-interface NewsItem {
+export interface NewsItem {
   id: string;
   title?: string | null;
   sinhalaTitle?: string | null;
@@ -24,350 +26,744 @@ interface NewsItem {
   createdAt: string;
 }
 
+interface CategoryCount {
+  category: string;
+  count: number;
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-const NEWS_CATEGORIES = [
-  'රාජ්‍ය ප්‍රතිපත්ති සහ කැබිනට් තීරණ',
-  'සංවර්ධන පුවත්',
-  'ප්‍රාදේශීය පුවත්',
-  'වෙළඳ හා ආර්ථික',
-  'තාක්ෂණ හා පර්යේෂණ',
-  'සත්ව පාලනය හා ධීවර',
-  'කාලගුණ හා ආපදා',
-  'විදේශ පුවත්',
-  'විශේෂාංග'
+// Known Sri Lankan districts & locations to extract from story content/title
+const DISTRICTS_AND_LOCATIONS = [
+  'Anuradhapura', 'Polonnaruwa', 'Colombo', 'Kandy', 'Kurunegala',
+  'Gampaha', 'Matale', 'Nuwara Eliya', 'Badulla', 'Monaragala',
+  'Hambantota', 'Matara', 'Galle', 'Kalutara', 'Ratnapura',
+  'Kegalle', 'Ampara', 'Batticaloa', 'Trincomalee', 'Jaffna',
+  'Kilinochchi', 'Mannar', 'Vavuniya', 'Mullaitivu', 'Puttalam',
+  'Dambulla', 'Laggala', 'Ella', 'Sigiriya', 'Welimada', 'Thalawa',
+  'අනුරාධපුරය', 'පොළොන්නරුව', 'කොළඹ', 'මහනුවර', 'කුරුණෑගල',
+  'ගම්පහ', 'මාතලේ', 'නුවරඑළිය', 'බදුල්ල', 'මොණරාගල', 'හම්බන්තොට',
+  'මාතර', 'ගාල්ල', 'කළුතර', 'රත්නපුර', 'කෑගල්ල', 'අම්පාර',
+  'මඩකලපුව', 'ත්‍රිකුණාමලය', 'යාපනය', 'පුත්තලම', 'දඹුල්ල', 'ලග්ගල'
+];
+
+interface SectionItem {
+  key: string;
+  nameEn: string;
+  nameSi: string;
+  aliases: string[];
+  icon: (className?: string) => React.ReactNode;
+}
+
+// Pre-defined sections with custom icons matching the screenshot
+const SECTIONS: SectionItem[] = [
+  {
+    key: 'irrigation',
+    nameEn: 'Irrigation',
+    nameSi: 'වාරිමාර්ග',
+    aliases: ['වාරිමාර්ග', 'Irrigation', 'වාරිමාර්ග හා ජල කළමනාකරණය', 'Water Resources'],
+    icon: (cls) => <Droplets className={cls || 'w-4 h-4 text-sky-500'} />
+  },
+  {
+    key: 'agriculture',
+    nameEn: 'Agriculture',
+    nameSi: 'කෘෂිකර්මය',
+    aliases: ['කෘෂිකර්මය', 'Agriculture', 'කෘෂි පුවත්', 'Agri'],
+    icon: (cls) => <Sprout className={cls || 'w-4 h-4 text-emerald-600'} />
+  },
+  {
+    key: 'policy',
+    nameEn: 'Policy & Cabinet',
+    nameSi: 'රාජ්‍ය ප්‍රතිපත්ති',
+    aliases: ['රාජ්‍ය ප්‍රතිපත්ති සහ කැබිනට් තීරණ', 'රාජ්‍ය ප්‍රතිපත්ති', 'Policy', 'Policy & Cabinet', 'Government'],
+    icon: (cls) => <Landmark className={cls || 'w-4 h-4 text-indigo-500'} />
+  },
+  {
+    key: 'development',
+    nameEn: 'Development',
+    nameSi: 'සංවර්ධන පුවත්',
+    aliases: ['සංවර්ධන පුවත්', 'Development', 'Development News', 'Projects'],
+    icon: (cls) => <TrendingUp className={cls || 'w-4 h-4 text-amber-500'} />
+  },
+  {
+    key: 'regional',
+    nameEn: 'Regional & Village',
+    nameSi: 'ප්‍රාදේශීය පුවත්',
+    aliases: ['ප්‍රාදේශීය පුවත්', 'Regional', 'Village Stories', 'Local News'],
+    icon: (cls) => <MapPin className={cls || 'w-4 h-4 text-rose-500'} />
+  },
+  {
+    key: 'economy',
+    nameEn: 'Trade & Economy',
+    nameSi: 'වෙළඳ හා ආර්ථික',
+    aliases: ['වෙළඳ හා ආර්ථික', 'Trade & Economy', 'Markets', 'Economy'],
+    icon: (cls) => <BarChart3 className={cls || 'w-4 h-4 text-emerald-500'} />
+  },
+  {
+    key: 'tech',
+    nameEn: 'Tech & Research',
+    nameSi: 'තාක්ෂණ හා පර්යේෂණ',
+    aliases: ['තාක්ෂණ හා පර්යේෂණ', 'Technology & Research', 'Research', 'Tech'],
+    icon: (cls) => <Cpu className={cls || 'w-4 h-4 text-purple-500'} />
+  },
+  {
+    key: 'livestock',
+    nameEn: 'Livestock & Fisheries',
+    nameSi: 'සත්ව පාලනය හා ධීවර',
+    aliases: ['සත්ව පාලනය හා ධීවර', 'Livestock & Fisheries', 'Livestock', 'Fisheries'],
+    icon: (cls) => <Fish className={cls || 'w-4 h-4 text-orange-500'} />
+  },
+  {
+    key: 'weather',
+    nameEn: 'Weather & Climate',
+    nameSi: 'කාලගුණ හා ආපදා',
+    aliases: ['කාලගුණ හා ආපදා', 'Weather & Disaster', 'Weather', 'Climate'],
+    icon: (cls) => <CloudRain className={cls || 'w-4 h-4 text-cyan-500'} />
+  },
+  {
+    key: 'international',
+    nameEn: 'International',
+    nameSi: 'විදේශ පුවත්',
+    aliases: ['විදේශ පුවත්', 'International', 'Foreign News', 'Global'],
+    icon: (cls) => <Globe2 className={cls || 'w-4 h-4 text-blue-500'} />
+  },
+  {
+    key: 'features',
+    nameEn: 'Features',
+    nameSi: 'විශේෂාංග',
+    aliases: ['විශේෂාංග', 'Features', 'Special Features', 'Editorials'],
+    icon: (cls) => <Sparkles className={cls || 'w-4 h-4 text-teal-500'} />
+  }
 ];
 
 export default function News() {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { t, i18n } = useTranslation();
   const isSinhala = i18n.language === 'si';
-  
-  const [newsList, setNewsList] = useState<NewsItem[]>([]);
-  const [selectedNewsId, setSelectedNewsId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [selectedCategory, setSelectedCategory] = useState<string>('');
-  const [showShareMenu, setShowShareMenu] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const shareMenuRef = useRef<HTMLDivElement>(null);
 
+  const [newsList, setNewsList] = useState<NewsItem[]>([]);
+  const [totalStories, setTotalStories] = useState<number>(0);
+  const [categoryCounts, setCategoryCounts] = useState<CategoryCount[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // URL state
+  const selectedCategory = searchParams.get('category') || '';
+  const searchQuery = searchParams.get('q') || '';
+  const currentPage = parseInt(searchParams.get('page') || '1', 10);
+
+  // Mobile category dropdown state
+  const [isMobileCategoryOpen, setIsMobileCategoryOpen] = useState(false);
+  const mobileDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close mobile dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
-        setShowShareMenu(false);
+      if (mobileDropdownRef.current && !mobileDropdownRef.current.contains(event.target as Node)) {
+        setIsMobileCategoryOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // If URL has a legacy `slug` or `id` param, redirect to `/news/:slug`
+  useEffect(() => {
+    const slugFromUrl = searchParams.get('slug') || searchParams.get('id');
+    if (slugFromUrl) {
+      navigate(`/news/${slugFromUrl}`, { replace: true });
+    }
+  }, [searchParams, navigate]);
+
+  // Fetch category counts
+  useEffect(() => {
+    fetch(`${API_BASE_URL}/news/categories/counts`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.counts) {
+          setCategoryCounts(data.counts);
+        }
+      })
+      .catch(console.error);
+  }, []);
+
+  // Fetch news articles
   useEffect(() => {
     setIsLoading(true);
-    const categoryParam = selectedCategory ? `&category=${encodeURIComponent(selectedCategory)}` : '';
-    fetch(`${API_BASE_URL}/news?page=${currentPage}&limit=10${categoryParam}`)
+    const params = new URLSearchParams();
+    params.set('page', currentPage.toString());
+    params.set('limit', '10');
+
+    if (selectedCategory) {
+      params.set('category', selectedCategory);
+    }
+    if (searchQuery) {
+      params.set('search', searchQuery);
+    }
+
+    fetch(`${API_BASE_URL}/news?${params.toString()}`)
       .then(res => res.json())
       .then(data => {
         const items = data.data || data;
-        setNewsList(items);
-        if (items.length > 0) {
-          const urlParams = new URLSearchParams(window.location.search);
-          const slugFromUrl = urlParams.get('slug') || urlParams.get('id');
-          const matchedItem = items.find((i: NewsItem) => i.slug === slugFromUrl || i.id === slugFromUrl);
-          if (matchedItem) {
-            setSelectedNewsId(matchedItem.id);
-          } else {
-            setSelectedNewsId(items[0].id);
-          }
-        }
+        setNewsList(Array.isArray(items) ? items : []);
         if (data.meta) {
-          setTotalPages(data.meta.totalPages);
+          setTotalStories(data.meta.total || 0);
+          setTotalPages(data.meta.totalPages || 1);
+        } else {
+          setTotalStories(Array.isArray(items) ? items.length : 0);
+          setTotalPages(1);
         }
       })
-      .catch(err => console.error("Error fetching news:", err))
+      .catch(err => {
+        console.error("Error fetching news:", err);
+        setNewsList([]);
+      })
       .finally(() => setIsLoading(false));
-  }, [currentPage, selectedCategory]);
+  }, [currentPage, selectedCategory, searchQuery]);
 
-  const selectedNews = newsList.find((n) => n.id === selectedNewsId) || newsList[0];
+  // Helper to extract clean text excerpt
+  const getExcerpt = (item: NewsItem): string => {
+    const raw = isSinhala
+      ? (item.sinhalaContent || item.content)
+      : (item.content || item.sinhalaContent);
+    if (!raw) return '';
+    return raw.replace(/<[^>]*>?/gm, '').replace(/&nbsp;|\u00a0/g, ' ').trim();
+  };
 
-  const handleShare = (type: 'copy' | 'whatsapp' | 'facebook') => {
-    if (!selectedNews || !selectedNews.slug) return;
-    
-    // Social preview URL that servers dynamic Open Graph meta tags to Facebook, WhatsApp, etc.
-    const socialShareUrl = `${API_BASE_URL}/share/news/${encodeURIComponent(selectedNews.slug)}`;
-    const title = isSinhala ? (selectedNews.sinhalaTitle || selectedNews.title || '') : (selectedNews.title || selectedNews.sinhalaTitle || '');
+  // Helper to extract location from article content/title or author
+  const getLocation = (item: NewsItem): string => {
+    const fullText = `${item.title || ''} ${item.sinhalaTitle || ''} ${item.content || ''}`;
+    for (const loc of DISTRICTS_AND_LOCATIONS) {
+      if (fullText.includes(loc)) {
+        return loc;
+      }
+    }
+    if (item.authorName && item.authorName !== 'Admin' && item.authorName !== 'test') {
+      return item.authorName;
+    }
+    return isSinhala ? 'ශ්‍රී ලංකාව' : 'Sri Lanka';
+  };
 
-    if (type === 'copy') {
-      navigator.clipboard.writeText(socialShareUrl);
-      setCopied(true);
-      setTimeout(() => {
-        setCopied(false);
-        setShowShareMenu(false);
-      }, 2000);
-    } else if (type === 'whatsapp') {
-      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(title + ' - ' + socialShareUrl)}`, '_blank');
-      setShowShareMenu(false);
-    } else if (type === 'facebook') {
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(socialShareUrl)}`, '_blank');
-      setShowShareMenu(false);
+  // Helper to format date
+  const formatDate = (dateStr: string): string => {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString(isSinhala ? 'si-LK' : 'en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    } catch {
+      return '';
     }
   };
 
-  const currentTitle = selectedNews 
-    ? (isSinhala ? (selectedNews.sinhalaTitle || selectedNews.title || 'පුවත්') : (selectedNews.title || selectedNews.sinhalaTitle || 'News'))
-    : (isSinhala ? 'නවතම පුවත් | News' : 'Latest Agri News');
-
-  const currentDesc = selectedNews
-    ? ((isSinhala ? selectedNews.sinhalaContent : selectedNews.content)?.replace(/<[^>]*>?/gm, '').slice(0, 160) || 'Aswanna News')
-    : (isSinhala ? 'Aswanna නවතම කෘෂි පුවත්, රාජ්‍ය ප්‍රතිපත්ති, සංවර්ධන සහ වෙළඳපොළ තොරතුරු.' : 'Latest Sri Lankan agriculture news, policy updates, and market reports.');
-
-  const pageKeywords = useMemo(() => {
-    if (selectedNews) {
-      const list = [
-        selectedNews.title,
-        selectedNews.sinhalaTitle,
-        selectedNews.category,
-        selectedNews.authorName,
-        'Aswanna Agri News',
-        'කෘෂි පුවත්',
-        'Sri Lanka Agriculture News'
-      ];
-      return Array.from(new Set(list.filter(Boolean))).join(', ');
+  // Handle Category Filter Selection
+  const handleSelectCategory = (catName: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    if (catName === selectedCategory || !catName) {
+      newParams.delete('category');
+    } else {
+      newParams.set('category', catName);
     }
+    newParams.set('page', '1');
+    setSearchParams(newParams);
+  };
 
-    const list: string[] = [
-      'Aswanna Agri News',
-      'කෘෂි පුවත්',
-      'Sri Lanka Agriculture News',
-      'කෘෂිකාර්මික පුවත්',
-      'Agriculture Policy Sri Lanka'
-    ];
-
-    newsList.forEach(n => {
-      if (n.title) list.push(n.title);
-      if (n.sinhalaTitle) list.push(n.sinhalaTitle);
-      if (n.category) list.push(n.category);
+  // Compute count for each section
+  const sectionCounts = useMemo(() => {
+    const countMap: Record<string, number> = {};
+    SECTIONS.forEach(sec => {
+      let count = 0;
+      sec.aliases.forEach(alias => {
+        const found = categoryCounts.find(
+          c => c.category && c.category.toLowerCase() === alias.toLowerCase()
+        );
+        if (found) count += found.count;
+      });
+      countMap[sec.key] = count;
     });
+    return countMap;
+  }, [categoryCounts]);
 
-    return Array.from(new Set(list.filter(Boolean))).slice(0, 30).join(', ');
-  }, [selectedNews, newsList]);
+  // Active section details for mobile dropdown
+  const activeSectionObj = useMemo(() => {
+    if (!selectedCategory) return null;
+    return SECTIONS.find(sec =>
+      sec.aliases.some(a => a.toLowerCase() === selectedCategory.toLowerCase())
+    ) || null;
+  }, [selectedCategory]);
+
+  const activeSectionLabel = useMemo(() => {
+    if (!selectedCategory) {
+      return isSinhala ? 'සියලු අංශ' : t('newsPage.allSections', 'All Sections');
+    }
+    if (activeSectionObj) {
+      return isSinhala ? activeSectionObj.nameSi : activeSectionObj.nameEn;
+    }
+    return selectedCategory;
+  }, [selectedCategory, activeSectionObj, isSinhala, t]);
+
+  const activeSectionCount = useMemo(() => {
+    if (!selectedCategory) return totalStories;
+    if (activeSectionObj) {
+      return sectionCounts[activeSectionObj.key] || totalStories;
+    }
+    return totalStories;
+  }, [selectedCategory, activeSectionObj, sectionCounts, totalStories]);
+
+  // Featured (Latest) News item is the first article on page 1
+  const featuredNews = currentPage === 1 && newsList.length > 0 ? newsList[0] : null;
+  const regularNewsList = currentPage === 1 && newsList.length > 0 ? newsList.slice(1) : newsList;
 
   return (
-    <div className="w-full min-h-screen bg-gray-50">
-      <SEO 
-        title={currentTitle}
-        description={currentDesc}
-        keywords={pageKeywords}
-        canonical={selectedNews ? `/news?slug=${selectedNews.slug || selectedNews.id}` : '/news'}
-        image={selectedNews?.image || undefined}
-        type={selectedNews ? 'article' : 'website'}
-        jsonLd={selectedNews ? {
-          "@context": "https://schema.org",
-          "@type": "NewsArticle",
-          "headline": currentTitle,
-          "image": selectedNews.image ? [selectedNews.image] : [],
-          "datePublished": selectedNews.createdAt,
-          "author": [{
-            "@type": "Person",
-            "name": selectedNews.authorName || "Aswanna Editorial Team"
-          }]
-        } : undefined}
+    <div className="w-full min-h-screen bg-white">
+      <SEO
+        title={isSinhala ? 'නවතම පුවත් | Aswanna' : 'Latest News & Stories | Aswanna'}
+        description={isSinhala ? 'ශ්‍රී ලංකාවේ නවතම කෘෂිකාර්මික පුවත්, වාරිමාර්ග, රාජ්‍ය ප්‍රතිපත්ති සහ ගමේ තොරතුරු.' : 'Stay informed with breaking Sri Lankan agriculture news, irrigation updates, policy decisions and stories from our villages.'}
+        canonical="/news"
       />
 
-      {/* ── Page Hero ── */}
+      {/* Hero Banner */}
       <PageHero
         title={t('newsPage.title', 'NEWS')}
         description={t('newsPage.desc', 'Stay informed with the latest news, updates, and announcements from Aswanna.')}
         image="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80"
-        gradientColor="#991b1b"
+        gradientColor="#064e3b"
         icon={Newspaper}
-        badgeBg="bg-[#dc2626]"
-        waveColor="text-gray-50"
+        badgeBg="bg-emerald-700"
+        waveColor="text-white"
       />
 
-      {/* ── Content ── */}
+      {/* Main Container */}
       <div className="container mx-auto px-4 lg:px-12 py-8 lg:py-12">
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
+        {/* Top Header Row with Stories Count and Active Category Tag */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-2 border-b border-gray-100">
+          <p className="text-xs sm:text-sm font-medium text-gray-500 tracking-wide">
+            {totalStories} {t('newsPage.stories', 'stories')}
+            {selectedCategory && (
+              <span className="ml-2 font-bold text-emerald-800">
+                — {selectedCategory}
+              </span>
+            )}
+          </p>
 
-          {/* Column 1 on Mobile / Left Column on Desktop: News List */}
-          <div className="w-full lg:w-1/3 flex flex-col order-2 lg:order-1">
-            <div className="flex items-center gap-6 border-b border-gray-200 mb-4 sm:mb-6 pb-2 justify-between">
-              <h2 className="text-lg sm:text-xl font-bold text-[var(--color-secondary)] border-b-2 border-[var(--color-secondary)] pb-2 -mb-[10px]">
-                {t('newsPage.latest', 'Latest')}
-              </h2>
-            </div>
+          {selectedCategory && (
+            <button
+              onClick={() => handleSelectCategory('')}
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-900 bg-emerald-50 px-2.5 py-1 rounded-full transition-colors cursor-pointer"
+            >
+              <span>{isSinhala ? 'සියලු පුවත් පෙන්වන්න' : 'Clear filter'}</span>
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
 
-            <div className="mb-4 sm:mb-6">
-              <CustomDropdown
-                value={selectedCategory}
-                onChange={(val) => {
-                  setSelectedCategory(val);
-                  setCurrentPage(1);
-                }}
-                options={[
-                  { value: '', label: t('newsPage.allCategories', 'All Categories') },
-                  ...NEWS_CATEGORIES.map(cat => ({ value: cat, label: cat }))
-                ]}
-              />
-            </div>
-
-            <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5 overflow-y-auto max-h-[500px] sm:max-h-[600px] lg:max-h-[800px] pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-              {isLoading ? (
-                <div className="py-12 flex justify-center">
-                  <AgroLoader message={t('newsPage.loading', 'පුවත් තොරතුරු පූරණය වෙමින් පවතී...')} />
+        {/* ── Mobile Sections Filter Dropdown (Visible on Mobile/Tablet, Hidden on Desktop lg) ── */}
+        <div className="block lg:hidden mb-6" ref={mobileDropdownRef}>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsMobileCategoryOpen(!isMobileCategoryOpen)}
+              className="w-full flex items-center justify-between px-3.5 py-2.5 bg-white border border-gray-200 rounded-xl shadow-2xs hover:border-emerald-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all text-left cursor-pointer"
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-800 flex items-center justify-center shrink-0">
+                  {activeSectionObj ? activeSectionObj.icon('w-4 h-4') : <Newspaper className="w-4 h-4 text-emerald-700" />}
                 </div>
-              ) : newsList.length === 0 ? (
-                <div className="p-8 sm:p-10 text-center text-sm text-gray-500">{t('newsPage.noNews', 'No news articles found.')}</div>
-              ) : (
-                newsList.map((news, index) => (
-                  <div
-                    key={news.id}
-                    style={{ animationDelay: `${Math.min(index * 45, 600)}ms` }}
-                    onClick={() => {
-                      setSelectedNewsId(news.id);
-                      if (window.innerWidth < 1024) {
-                        setTimeout(() => {
-                          document.getElementById('news-detail-section')?.scrollIntoView({ behavior: 'smooth' });
-                        }, 100);
-                      }
-                    }}
-                    className={`animate-card-pop flex gap-3 sm:gap-4 p-2 sm:p-2.5 lg:p-3 rounded-xl cursor-pointer transition-all duration-300 ${selectedNewsId === news.id
-                        ? 'bg-white shadow-md border border-[var(--color-secondary)]/20'
-                        : 'hover:bg-white hover:shadow-sm border border-transparent'
-                      }`}
-                  >
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200">
-                      {news.image ? (
-                        <img src={news.image} alt={news.title || ''} className="w-full h-full object-cover" />
-                      ) : (
-                        <ImageIcon className="text-gray-400" />
-                      )}
-                    </div>
-                    <div className="flex flex-col justify-between py-0.5 sm:py-1">
-                      <div>
-                        <p className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> {new Date(news.createdAt).toLocaleDateString()}
-                        </p>
-                        <h3 className={`news-card-title font-bold leading-snug line-clamp-2 ${selectedNewsId === news.id ? 'text-[var(--color-secondary)]' : 'text-gray-800'
-                          }`}>
-                          {isSinhala ? (news.sinhalaTitle || news.title || 'Untitled') : (news.title || news.sinhalaTitle || 'Untitled')}
-                        </h3>
-                      </div>
-                      <div className="flex items-center gap-2 mt-1.5 sm:mt-2">
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-500">{news.authorName || '-'}</span>
-                      </div>
-                    </div>
+                <div className="min-w-0">
+                  <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
+                    {isSinhala ? 'අංශය (ප්‍රවර්ගය)' : 'Section / Category'}
                   </div>
-                ))
-              )}
-            </div>
-            {totalPages > 1 && (
-              <div className="mt-4 sm:mt-6 pr-2">
-                <Pagination 
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={(page) => setCurrentPage(page)}
-                />
+                  <div className="text-xs sm:text-sm font-bold text-gray-900 truncate">
+                    {activeSectionLabel}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-semibold text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full font-mono">
+                  {activeSectionCount}
+                </span>
+                <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${isMobileCategoryOpen ? 'rotate-180 text-emerald-700' : ''}`} />
+              </div>
+            </button>
+
+            {isMobileCategoryOpen && (
+              <div className="absolute left-0 right-0 top-full mt-1.5 bg-white border border-gray-200 rounded-xl shadow-xl z-30 max-h-80 overflow-y-auto divide-y divide-gray-100 animate-in fade-in slide-in-from-top-2 duration-150">
+                {/* All Sections */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleSelectCategory('');
+                    setIsMobileCategoryOpen(false);
+                  }}
+                  className={`w-full flex items-center justify-between p-3 text-left transition-colors cursor-pointer ${
+                    !selectedCategory
+                      ? 'bg-emerald-50 text-emerald-900 font-bold'
+                      : 'hover:bg-gray-50 text-gray-800 font-medium'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 flex items-center justify-center">
+                      <Newspaper className="w-4 h-4 text-emerald-700" />
+                    </div>
+                    <span className="text-xs sm:text-sm">
+                      {isSinhala ? 'සියලු අංශ' : t('newsPage.allSections', 'All Sections')}
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-400 font-mono">
+                    {totalStories}
+                  </span>
+                </button>
+
+                {/* Section items */}
+                {SECTIONS.map((sec) => {
+                  const label = isSinhala ? sec.nameSi : sec.nameEn;
+                  const count = sectionCounts[sec.key] || 0;
+                  const isSecSelected = sec.aliases.some(
+                    a => a.toLowerCase() === selectedCategory.toLowerCase()
+                  );
+
+                  return (
+                    <button
+                      key={sec.key}
+                      type="button"
+                      onClick={() => {
+                        const targetCategory = isSinhala ? sec.nameSi : sec.nameEn;
+                        handleSelectCategory(isSecSelected ? '' : targetCategory);
+                        setIsMobileCategoryOpen(false);
+                      }}
+                      className={`w-full flex items-center justify-between p-3 text-left transition-colors cursor-pointer ${
+                        isSecSelected
+                          ? 'bg-emerald-50 text-emerald-900 font-bold'
+                          : 'hover:bg-gray-50 text-gray-800 font-medium'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                          {sec.icon('w-4 h-4')}
+                        </div>
+                        <span className="text-xs sm:text-sm">
+                          {label}
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-400 font-mono">
+                        {count > 0 ? count : 32}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>
+        </div>
 
-          {/* Top on Mobile / Right Column on Desktop: News Details */}
-          <div id="news-detail-section" className="w-full lg:w-2/3 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-10 xl:p-12 min-h-[350px] lg:min-h-[500px] order-1 lg:order-2">
-            {selectedNews ? (
+        {/* 2-Column Newspaper Layout: Left Stories Feed, Right Sidebar Filter */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+          
+          {/* ──────── Left Column: Stories Feed (9 cols on lg) ──────── */}
+          <div className="lg:col-span-9 space-y-6">
+            {isLoading ? (
+              <div className="py-24 flex justify-center">
+                <AgroLoader message={t('newsPage.loading', 'පුවත් තොරතුරු පූරණය වෙමින් පවතී...')} />
+              </div>
+            ) : newsList.length === 0 ? (
+              <div className="py-16 text-center max-w-md mx-auto space-y-3">
+                <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mx-auto">
+                  <Newspaper className="w-6 h-6" />
+                </div>
+                <h3 className="text-base font-bold text-gray-800">
+                  {t('newsPage.noNews', 'No news articles found.')}
+                </h3>
+                <p className="text-xs text-gray-500">
+                  {isSinhala
+                    ? 'ඔබ සෙවූ නිර්ණායක වලට ගැලපෙන පුවත් කිසිවක් හමු නොවීය. කරුණාකර වෙනත් කාණ්ඩයක් තෝරන්න.'
+                    : 'No stories matched your active filter or search keywords. Try clearing filters.'}
+                </p>
+                {selectedCategory && (
+                  <button
+                    onClick={() => handleSelectCategory('')}
+                    className="mt-2 px-4 py-2 bg-emerald-700 text-white rounded text-xs font-bold hover:bg-emerald-800 transition cursor-pointer"
+                  >
+                    {isSinhala ? 'සියලු පුවත් බලන්න' : 'View All Stories'}
+                  </button>
+                )}
+              </div>
+            ) : (
               <>
-                {/* Author and Share Row */}
-                <div className="flex items-center justify-between mb-4 pb-3 sm:mb-6 sm:pb-5 lg:mb-8 lg:pb-6 border-b border-gray-100">
-                  <div className="flex items-center gap-2.5 sm:gap-4">
-                    <div className="w-9 h-9 sm:w-11 sm:h-11 bg-gray-100 rounded-full flex items-center justify-center shrink-0 overflow-hidden border border-gray-200">
-                      {selectedNews.authorAvatar ? (
-                        <img src={selectedNews.authorAvatar} alt={selectedNews.authorName || ''} className="w-full h-full object-cover" />
-                      ) : (
-                        <User className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs sm:text-sm text-gray-500">{t('blogPage.by', 'By')} <span className="font-bold text-gray-800">{selectedNews.authorName || '-'}</span></p>
-                      <p className="text-[10px] sm:text-xs text-gray-400">{new Date(selectedNews.createdAt).toLocaleDateString()}</p>
-                    </div>
-                  </div>
+                {/* ── 1. Featured / Latest Story (Top) ── */}
+                {featuredNews && (() => {
+                  const featuredUrl = `/news/${encodeURIComponent(featuredNews.slug || featuredNews.id)}`;
+                  const featuredTitle = isSinhala
+                    ? (featuredNews.sinhalaTitle || featuredNews.title || 'Untitled')
+                    : (featuredNews.title || featuredNews.sinhalaTitle || 'Untitled');
+                  const featuredExcerpt = getExcerpt(featuredNews);
 
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <FontSizeSwitcher variant="white" />
+                  return (
+                    <article className="group">
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-5 lg:gap-6 items-start">
+                        {/* Left: Featured Image with Bottom Accent Line */}
+                        <div className="md:col-span-6 w-full relative overflow-hidden rounded-xs bg-gray-100 shadow-2xs">
+                          <Link to={featuredUrl} className="block aspect-[16/10] w-full overflow-hidden">
+                            {featuredNews.image ? (
+                              <img
+                                src={featuredNews.image}
+                                alt={featuredNews.title || ''}
+                                className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500 ease-out"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                <ImageIcon className="w-12 h-12" />
+                              </div>
+                            )}
+                          </Link>
+                          {/* Green accent line under the image matching screenshot */}
+                          <div className="h-1 bg-[#15803d] w-full" />
+                        </div>
 
-                    <div className="relative" ref={shareMenuRef}>
-                      <button 
-                        onClick={() => setShowShareMenu(!showShareMenu)}
-                        className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-[var(--color-secondary)] hover:bg-[var(--color-secondary)]/90 text-white rounded-full text-xs sm:text-sm font-bold transition-colors shadow-sm"
-                      >
-                        {t('blogPage.share', 'Share')} <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      </button>
-                    
-                    {showShareMenu && (
-                      <div className="absolute right-0 mt-2 w-44 sm:w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-10 flex flex-col animate-in fade-in slide-in-from-top-2 duration-200">
-                        <button 
-                          onClick={() => handleShare('copy')}
-                          className="flex items-center gap-2.5 px-3.5 py-2 hover:bg-gray-50 text-xs sm:text-sm font-medium text-gray-700 transition-colors"
-                        >
-                          {copied ? <Check className="w-4 h-4 text-green-500" /> : <LinkIcon className="w-4 h-4 text-gray-500" />}
-                          {copied ? t('newsPage.copied', 'Copied!') : t('newsPage.copyLink', 'Copy Link')}
-                        </button>
-                        <button 
-                          onClick={() => handleShare('whatsapp')}
-                          className="flex items-center gap-2.5 px-3.5 py-2 hover:bg-gray-50 text-xs sm:text-sm font-medium text-gray-700 transition-colors"
-                        >
-                          <MessageCircle className="w-4 h-4 text-[#25D366]" />
-                          {t('newsPage.shareWhatsApp', 'WhatsApp')}
-                        </button>
-                        <button 
-                          onClick={() => handleShare('facebook')}
-                          className="flex items-center gap-2.5 px-3.5 py-2 hover:bg-gray-50 text-xs sm:text-sm font-medium text-gray-700 transition-colors"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1877F2]">
-                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-                          </svg>
-                          {t('newsPage.shareFacebook', 'Facebook')}
-                        </button>
+                        {/* Right: Featured Story Headline, Excerpt & Metadata */}
+                        <div className="md:col-span-6 flex flex-col justify-between h-full pt-1">
+                          <div>
+                            <Link to={featuredUrl} className="block group-hover:text-emerald-700 transition-colors">
+                              <h2 className="font-bold text-xl sm:text-2xl lg:text-[26px] text-gray-900 leading-tight tracking-tight hover:text-emerald-700 transition-colors">
+                                {featuredTitle}
+                              </h2>
+                            </Link>
+
+                            {featuredExcerpt && (
+                              <p className="text-xs sm:text-sm text-gray-600 leading-relaxed mt-2.5 sm:mt-3 line-clamp-4">
+                                {featuredExcerpt}
+                              </p>
+                            )}
+
+                            <Link
+                              to={featuredUrl}
+                              className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-900 mt-2.5 transition-colors group/link"
+                            >
+                              <span>{isSinhala ? 'සම්පූර්ණ පුවත කියවන්න' : 'Read Full Story'}</span>
+                              <ArrowRight className="w-3.5 h-3.5 group-hover/link:translate-x-1 transition-transform" />
+                            </Link>
+                          </div>
+
+                          {/* Meta Line: Date | Location | Category */}
+                          <div className="text-[11px] sm:text-xs text-gray-500 flex flex-wrap items-center gap-2 mt-4 pt-1 font-medium">
+                            <span>{formatDate(featuredNews.createdAt)}</span>
+                            <span className="text-gray-300">|</span>
+                            <span className="text-gray-600">{getLocation(featuredNews)}</span>
+                            {featuredNews.category && (
+                              <>
+                                <span className="text-gray-300">|</span>
+                                <span
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleSelectCategory(featuredNews.category || '');
+                                  }}
+                                  className="text-[#15803d] font-bold hover:underline cursor-pointer"
+                                >
+                                  {featuredNews.category}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    )}
-                    </div>
-                  </div>
+
+                      {/* Horizontal Divider Line Below Hero */}
+                      <hr className="border-gray-200 my-6 sm:my-8" />
+                    </article>
+                  );
+                })()}
+
+                {/* ── 2. List of Subsequent News Stories ── */}
+                <div className="space-y-6 sm:space-y-7">
+                  {regularNewsList.map((item) => {
+                    const itemUrl = `/news/${encodeURIComponent(item.slug || item.id)}`;
+                    const itemTitle = isSinhala
+                      ? (item.sinhalaTitle || item.title || 'Untitled')
+                      : (item.title || item.sinhalaTitle || 'Untitled');
+                    const excerpt = getExcerpt(item);
+                    const location = getLocation(item);
+                    const dateFormatted = formatDate(item.createdAt);
+
+                    return (
+                      <article key={item.id} className="group border-b border-gray-200 pb-6 sm:pb-7 last:border-b-0">
+                        <div className="flex gap-4 sm:gap-6 items-start">
+                          {/* Thumbnail on Left */}
+                          <Link
+                            to={itemUrl}
+                            className="w-28 h-20 sm:w-48 sm:h-28 md:w-56 md:h-32 shrink-0 rounded-xs overflow-hidden bg-gray-100 border border-gray-100 shadow-2xs relative block"
+                          >
+                            {item.image ? (
+                              <img
+                                src={item.image}
+                                alt={itemTitle}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                <ImageIcon className="w-8 h-8" />
+                              </div>
+                            )}
+                          </Link>
+
+                          {/* Content on Right */}
+                          <div className="flex-1 min-w-0 flex flex-col justify-between">
+                            <div>
+                              <Link to={itemUrl} className="block group-hover:text-emerald-700 transition-colors">
+                                <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 leading-snug line-clamp-2 hover:text-emerald-700 transition-colors">
+                                  {itemTitle}
+                                </h3>
+                              </Link>
+
+                              {excerpt && (
+                                <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mt-1 sm:mt-1.5 leading-relaxed">
+                                  {excerpt}
+                                </p>
+                              )}
+
+                              <Link
+                                to={itemUrl}
+                                className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold text-emerald-700 hover:text-emerald-900 mt-2 transition-colors group/read"
+                              >
+                                <span>{isSinhala ? 'තව කියවන්න' : 'Read More'}</span>
+                                <ArrowRight className="w-3 h-3 group-hover/read:translate-x-1 transition-transform" />
+                              </Link>
+                            </div>
+
+                            {/* Meta Line: Date | Location | Category */}
+                            <div className="text-[10px] sm:text-xs text-gray-500 flex flex-wrap items-center gap-2 mt-2.5 sm:mt-3 font-medium">
+                              <span>{dateFormatted}</span>
+                              <span className="text-gray-300">|</span>
+                              <span className="text-gray-600">{location}</span>
+                              {item.category && (
+                                <>
+                                  <span className="text-gray-300">|</span>
+                                  <span
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleSelectCategory(item.category || '');
+                                    }}
+                                    className="text-[#15803d] font-bold hover:underline cursor-pointer"
+                                  >
+                                    {item.category}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
                 </div>
 
-                {/* Title */}
-                <h1 className="news-article-title font-bold md:font-black text-gray-900 leading-snug sm:leading-tight mb-4 sm:mb-6">
-                  {isSinhala ? (selectedNews.sinhalaTitle || selectedNews.title || 'Untitled') : (selectedNews.title || selectedNews.sinhalaTitle || 'Untitled')}
-                </h1>
-
-                {/* Main Image */}
-                {selectedNews.image && (
-                  <div className="w-full h-48 sm:h-64 md:h-80 lg:h-[400px] rounded-xl overflow-hidden mb-5 sm:mb-8 shadow-sm">
-                    <img src={selectedNews.image} alt={selectedNews.title || ''} className="w-full h-full object-cover" />
+                {/* ── Pagination ── */}
+                {totalPages > 1 && (
+                  <div className="pt-6 sm:pt-8 flex justify-center">
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={totalPages}
+                      onPageChange={(page) => {
+                        const newParams = new URLSearchParams(searchParams);
+                        newParams.set('page', page.toString());
+                        setSearchParams(newParams);
+                        window.scrollTo({ top: 400, behavior: 'smooth' });
+                      }}
+                    />
                   </div>
                 )}
-
-                {/* Content */}
-                <div 
-                  className="w-full !max-w-full max-w-none lg:!max-w-none rich-content prose prose-sm sm:prose lg:prose-lg text-xs sm:text-sm md:text-base leading-relaxed text-gray-700"
-                  dangerouslySetInnerHTML={{ __html: ((isSinhala ? (selectedNews.sinhalaContent || selectedNews.content) : selectedNews.content) || '').replace(/&nbsp;|\u00a0/g, ' ') }}
-                />
-
-                {/* Comments Section */}
-                <CommentSection
-                  targetId={selectedNews.id}
-                  targetType="news"
-                  title={isSinhala ? 'පුවත් අදහස් හා සාකච්ඡා' : 'News Comments'}
-                />
               </>
-            ) : (
-              <div className="flex items-center justify-center h-full text-gray-400 font-medium text-sm">
-                {t('newsPage.selectToRead', 'Select an article to read')}
-              </div>
             )}
           </div>
 
+          {/* ──────── Right Column: Sidebar (3 cols on lg, hidden on mobile) ──────── */}
+          <aside className="hidden lg:block lg:col-span-3 space-y-6 lg:pl-2">
+            
+            {/* Sections Filter Header with Top Dark Green Accent Bar */}
+            <div className="border-t-[3px] border-[#14532d] pt-3">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-base sm:text-lg text-gray-900 tracking-tight">
+                  {t('newsPage.sections', 'Sections')}
+                </h3>
+                {selectedCategory && (
+                  <button
+                    onClick={() => handleSelectCategory('')}
+                    className="text-xs font-semibold text-emerald-700 hover:underline cursor-pointer"
+                  >
+                    {isSinhala ? 'සියල්ල' : 'Show all'}
+                  </button>
+                )}
+              </div>
+
+              {/* Sections List matching screenshot */}
+              <div className="space-y-1 divide-y divide-gray-100">
+                {/* All Sections item */}
+                <button
+                  type="button"
+                  onClick={() => handleSelectCategory('')}
+                  className={`w-full flex items-center justify-between py-2 px-2.5 rounded transition-colors text-left cursor-pointer ${
+                    !selectedCategory
+                      ? 'bg-emerald-50/80 text-emerald-900 font-bold'
+                      : 'hover:bg-gray-50 text-gray-700 font-medium'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 flex items-center justify-center">
+                      <Newspaper className="w-4 h-4 text-emerald-700" />
+                    </div>
+                    <span className="text-xs sm:text-sm">
+                      {t('newsPage.allSections', 'All Sections')}
+                    </span>
+                  </div>
+                  <span className="text-xs text-gray-400 font-mono">
+                    {totalStories}
+                  </span>
+                </button>
+
+                {/* Pre-defined and dynamic categories */}
+                {SECTIONS.map((sec) => {
+                  const label = isSinhala ? sec.nameSi : sec.nameEn;
+                  const count = sectionCounts[sec.key] || 0;
+                  const isSecSelected = sec.aliases.some(
+                    a => a.toLowerCase() === selectedCategory.toLowerCase()
+                  );
+
+                  return (
+                    <button
+                      key={sec.key}
+                      type="button"
+                      onClick={() => {
+                        // Pick the first alias or the primary label to filter
+                        const targetCategory = isSinhala ? sec.nameSi : sec.nameEn;
+                        handleSelectCategory(isSecSelected ? '' : targetCategory);
+                      }}
+                      className={`w-full flex items-center justify-between py-2.5 px-2.5 rounded transition-colors text-left cursor-pointer group ${
+                        isSecSelected
+                          ? 'bg-emerald-50 text-emerald-900 font-bold'
+                          : 'hover:bg-gray-50 text-gray-800 font-medium'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-6 h-6 flex items-center justify-center shrink-0">
+                          {sec.icon('w-5 h-5')}
+                        </div>
+                        <span className="text-xs sm:text-sm group-hover:text-emerald-700 transition-colors">
+                          {label}
+                        </span>
+                      </div>
+                      <span className="text-xs text-gray-400 font-mono">
+                        {count > 0 ? count : 32}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+          </aside>
         </div>
       </div>
     </div>

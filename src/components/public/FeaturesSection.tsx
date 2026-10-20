@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { ArrowUpRight } from 'lucide-react';
 
 export default function FeaturesSection() {
   const { t } = useTranslation();
@@ -37,8 +38,8 @@ export default function FeaturesSection() {
 
   return (
     <section className="relative w-full">
-      <div className="container mx-auto px-4 lg:px-8 relative z-10 -mt-6 sm:-mt-24 pb-8 sm:pb-16">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-8 relative z-10 -mt-6 sm:-mt-24 pb-8 sm:pb-16">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-6">
           {features.map((feature, idx) => {
             const delays = ['delay-100', 'delay-200', 'delay-300', 'delay-400'];
             const delayClass = delays[idx % delays.length];
@@ -55,18 +56,24 @@ export default function FeaturesSection() {
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
 
-                {/* Subtle dark gradient overlay so text and glass badge are crystal clear */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent group-hover:from-black/85 transition-colors duration-300 pointer-events-none" />
+                {/* Gentle green gradient overlay (replaces heavy black) */}
+                <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/45 via-black/10 to-transparent group-hover:from-emerald-950/60 transition-colors duration-300 pointer-events-none" />
 
-                {/* Liquid Glassmorphism label box with full text display */}
-                <div className="absolute bottom-0 left-0 w-full flex justify-center pb-2.5 sm:pb-4 px-2 sm:px-3">
-                  <div className="relative overflow-hidden w-full max-w-[96%] sm:max-w-[92%] bg-black/45 group-hover:bg-emerald-950/75 backdrop-blur-xl border border-white/40 group-hover:border-emerald-400/60 text-white font-bold py-1.5 sm:py-2.5 px-2 sm:px-3.5 rounded-full shadow-[0_12px_30px_rgba(0,0,0,0.35),inset_0_1.5px_2px_rgba(255,255,255,0.4)] flex items-center justify-center transition-all duration-300 group-hover:scale-[1.02] select-none min-h-[36px] sm:min-h-[44px]">
+                {/* Frosted Glass Pill Button - Strictly Single Row */}
+                <div className="absolute bottom-0 inset-x-0 flex justify-center pb-2 sm:pb-3.5 px-1.5 sm:px-2.5">
+                  <div className="relative overflow-hidden w-full bg-white/20 hover:bg-white/35 group-hover:bg-white/30 backdrop-blur-xl border border-white/50 group-hover:border-white/80 text-white font-bold py-1.5 sm:py-2 pl-2 sm:pl-3.5 pr-1 sm:pr-1.5 rounded-full shadow-[0_10px_35px_rgba(0,0,0,0.25),inset_0_1.5px_2px_rgba(255,255,255,0.7)] flex items-center justify-between transition-all duration-300 group-hover:scale-[1.02] select-none min-h-[34px] sm:min-h-[42px]">
                     {/* Top glass reflection sheen */}
                     <div className="absolute top-0 inset-x-0 h-1/2 bg-gradient-to-b from-white/30 via-white/10 to-transparent pointer-events-none rounded-t-full"></div>
 
-                    <span className="relative z-10 text-[11px] sm:text-xs md:text-[13px] lg:text-sm font-semibold tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)] text-center leading-tight whitespace-normal break-words">
+                    {/* Single-line text with responsive sizing to avoid wrapping */}
+                    <span className="relative z-10 flex-1 min-w-0 text-[8.5px] min-[360px]:text-[9px] min-[390px]:text-[9.5px] min-[420px]:text-[10px] sm:text-[11px] md:text-xs lg:text-[10px] xl:text-[11.5px] 2xl:text-xs font-bold tracking-tight text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)] text-left whitespace-nowrap truncate leading-none">
                       {t(feature.titleKey, feature.fallbackTitle)}
                     </span>
+
+                    {/* Circular Arrow Badge */}
+                    <div className="relative z-10 w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 rounded-full bg-white/30 backdrop-blur-md border border-white/70 flex items-center justify-center text-white group-hover:rotate-45 group-hover:bg-white/45 transition-all duration-300 shadow-sm shrink-0 ml-1 sm:ml-1.5">
+                      <ArrowUpRight className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
+                    </div>
                   </div>
                 </div>
               </Link>
@@ -77,4 +84,3 @@ export default function FeaturesSection() {
     </section>
   );
 }
-

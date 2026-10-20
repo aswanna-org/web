@@ -269,23 +269,23 @@ export default function JobDetail() {
       <div className="container mx-auto px-4 lg:px-12 py-8 sm:py-12">
 
         {/* Breadcrumb & Navigation */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center justify-between gap-2 sm:gap-4 mb-6">
           <button
             onClick={handleBack}
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-800 hover:text-emerald-950 bg-white hover:bg-emerald-50 border border-gray-200 px-4 py-2 rounded-full transition-all cursor-pointer shadow-xs w-fit"
+            className="inline-flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm font-bold text-emerald-800 hover:text-emerald-950 bg-white hover:bg-emerald-50 border border-gray-200 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full transition-all cursor-pointer shadow-xs min-w-0"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>
+            <ArrowLeft className="w-4 h-4 shrink-0" />
+            <span className="truncate">
               {job?.jobCategory
                 ? (isSi ? `ආපසු ${displayCategory} වෙත` : `Back to ${displayCategory}`)
                 : (isSi ? 'සියලු රැකියා වෙත' : 'Back to Careers')}
             </span>
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleShare}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold px-4 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 transition-colors shadow-xs cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold px-3 py-1.5 sm:px-4 sm:py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50 text-gray-700 transition-colors shadow-xs cursor-pointer shrink-0"
             >
               {copiedLink ? <Check className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4" />}
               <span>{copiedLink ? (isSi ? 'ලින්ක් එක කොපි විය' : 'Link Copied') : (isSi ? 'බෙදාහරින්න' : 'Share')}</span>

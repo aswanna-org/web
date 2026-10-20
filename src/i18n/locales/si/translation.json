@@ -209,7 +209,20 @@
     "latest": "නවතම පුවත්",
     "loading": "පුවත් පූරණය වෙමින් පවතී...",
     "noNews": "පුවත් කිසිවක් හමු නොවිණි.",
-    "selectToRead": "කියවීම සඳහා පුවතක් තෝරන්න"
+    "selectToRead": "කියවීම සඳහා පුවතක් තෝරන්න",
+    "stories": "පුවත්",
+    "sections": "අංශ",
+    "allSections": "සියලු අංශ",
+    "searchNews": "පුවත් සොයන්න...",
+    "haveAStory": "ඔබේ ගමේ පුවතක් තිබේද?",
+    "sendAStoryDesc": "දිනය, ස්ථානය සහ ඡායාරූප සමඟ එය අප වෙත එවන්න.",
+    "sendAStory": "පුවතක් එවන්න",
+    "backToNews": "සියලු පුවත් වෙත",
+    "readMore": "තව කියවන්න",
+    "copied": "කොපි විය!",
+    "copyLink": "ලින්ක් එක කොපි කරන්න",
+    "shareWhatsApp": "WhatsApp",
+    "shareFacebook": "Facebook"
   },
   "careers": {
     "subtitle": "අප හා එක්වන්න",

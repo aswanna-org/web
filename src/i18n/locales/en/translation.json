@@ -209,7 +209,20 @@
     "latest": "Latest",
     "loading": "Loading news...",
     "noNews": "No news articles found.",
-    "selectToRead": "Select an article to read"
+    "selectToRead": "Select an article to read",
+    "stories": "stories",
+    "sections": "Sections",
+    "allSections": "All Sections",
+    "searchNews": "Search news stories...",
+    "haveAStory": "Have a story from your village?",
+    "sendAStoryDesc": "Send it to us with the date, the place and photos.",
+    "sendAStory": "Send a story",
+    "backToNews": "Back to all stories",
+    "readMore": "Read more",
+    "copied": "Copied!",
+    "copyLink": "Copy Link",
+    "shareWhatsApp": "WhatsApp",
+    "shareFacebook": "Facebook"
   },
   "careers": {
     "subtitle": "JOIN US",

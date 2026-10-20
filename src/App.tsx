@@ -8,7 +8,9 @@ import Careers from './pages/public/Careers';
 import JobDetail from './pages/public/JobDetail';
 import CareerDispatcher from './pages/public/CareerDispatcher';
 import News from './pages/public/News';
+import NewsDetail from './pages/public/NewsDetail';
 import Blog from './pages/public/Blog';
+import BlogDetail from './pages/public/BlogDetail';
 import Education from './pages/public/Education';
 import EducationDetail from './pages/public/EducationDetail';
 import ShortCourses from './pages/public/ShortCourses';
@@ -123,7 +125,9 @@ function App() {
               <Route path="contact" element={<Contact />} />
               <Route path="projects" element={<div className="p-20 text-center font-roboto">Projects Placeholder <br /><a href="/" className="text-blue-500 underline">Back</a></div>} />
               <Route path="news" element={<News />} />
+              <Route path="news/:slug" element={<NewsDetail />} />
               <Route path="blog" element={<Blog />} />
+              <Route path="blog/:slug" element={<BlogDetail />} />
               <Route path="education" element={<Education />} />
               <Route path="education/category/:slug" element={<Education />} />
               <Route path="education/type/:slug" element={<Education />} />

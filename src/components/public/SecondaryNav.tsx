@@ -104,34 +104,17 @@ export default function SecondaryNav() {
   ];
 
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isAtBottom, setIsAtBottom] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 400);
-
-      const windowHeight = window.innerHeight;
-      const documentHeight = Math.max(
-        document.body.scrollHeight,
-        document.documentElement.scrollHeight,
-        document.body.offsetHeight,
-        document.documentElement.offsetHeight,
-        document.documentElement.clientHeight
-      );
-      const scrollTop = window.scrollY || document.documentElement.scrollTop || 0;
-
-      // When within 70px of the very bottom of the document
-      const atBottom = windowHeight + scrollTop >= documentHeight - 70;
-      setIsAtBottom(atBottom);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll, { passive: true });
     handleScroll();
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
     };
   }, [location.pathname]);
 
@@ -190,102 +173,80 @@ export default function SecondaryNav() {
         </div>
       </div>
 
-      {/* Mobile Apple Liquid Glass Floating Pill Navigation Bar (Aswanna Emerald Theme + Magnifier Effect) */}
+      {/* Mobile Bottom Navigation Bar (Elevated Active Tab, Aswanna Green Theme, Full Width, No Rounded Corners) */}
       <nav
         aria-label="Mobile Navigation"
-        className={`block lg:hidden fixed z-40 pointer-events-auto select-none transition-all duration-300 ease-out ${
-          isAtBottom
-            ? 'bottom-0 inset-x-0 w-full max-w-none'
-            : 'bottom-2.5 sm:bottom-4 inset-x-2 sm:inset-x-3 max-w-xl mx-auto'
-        }`}
+        className="block lg:hidden fixed bottom-0 left-0 right-0 w-full z-40 bg-white border-t border-gray-200/90 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] pointer-events-auto select-none"
       >
-        {/* Liquid Glass Shell - Unrounds at bottom when at the very end of page */}
-        <div
-          className={`relative w-full backdrop-blur-2xl transition-all duration-300 ease-out bg-gradient-to-r from-[#0c2f24]/96 via-[#0e3d2f]/96 to-[#0c2f24]/96 border border-emerald-400/35 shadow-[0_12px_36px_rgba(4,32,22,0.45),inset_0_1.5px_2px_rgba(255,255,255,0.25)] ${
-            isAtBottom
-              ? 'rounded-t-[24px] sm:rounded-t-[28px] rounded-b-none border-b-0 pt-2 pb-2.5 sm:pb-3 px-1.5 sm:px-3'
-              : 'rounded-full p-1.5'
-          }`}
-        >
-          {/* Liquid Glass Prismatic Refraction Sheen */}
-          <div
-            className={`absolute inset-0 overflow-hidden pointer-events-none transition-all duration-300 ${
-              isAtBottom ? 'rounded-t-[24px] sm:rounded-t-[28px] rounded-b-none' : 'rounded-full'
-            }`}
-          >
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_140%_at_15%_-20%,rgba(167,243,208,0.35)_0%,rgba(255,255,255,0.2)_35%,transparent_75%)]" />
-            <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-transparent to-transparent" />
-          </div>
+        <div className="w-full grid grid-cols-5 items-end pt-1 pb-[max(8px,env(safe-area-inset-bottom))] px-1">
+          {mobileTabs.map((tab, idx) => {
+            const isActive = idx === activeIndex;
+            const Icon = tab.icon;
 
-          {/* 5 Navigation Tabs with Green & White Theme */}
-          <div className="relative z-10 grid grid-cols-5 items-center w-full gap-0.5 sm:gap-1">
-            {mobileTabs.map((tab, idx) => {
-              const isActive = idx === activeIndex;
-              const Icon = tab.icon;
+            const tabContent = (
+              <div className="w-full h-[58px] flex flex-col items-center justify-end relative pb-0.5 group">
+                {isActive ? (
+                  /* Raised / Elevated Floating Circular Active Item matching user screenshot */
+                  <div className="flex flex-col items-center">
+                    <div className="w-12 h-12 rounded-full bg-[#006837] text-white flex items-center justify-center shadow-[0_6px_16px_rgba(0,104,55,0.35)] border-[3px] border-white -translate-y-3.5 transition-transform duration-200">
+                      <Icon className="w-6 h-6 text-white stroke-[2.3]" />
 
-              const tabContent = (
-                <div
-                  className={`w-full flex flex-col items-center justify-center transition-all duration-200 relative ${
-                    isActive
-                      ? 'py-1 px-1 rounded-full bg-white/20 border-2 border-white shadow-[0_2px_12px_rgba(0,0,0,0.2),inset_0_1px_1.5px_rgba(255,255,255,0.6)]'
-                      : 'py-1 px-0.5 rounded-full hover:bg-white/10 active:scale-95'
-                  }`}
-                >
-                  <div className="relative flex items-center justify-center">
-                    <Icon
-                      className={`transition-all duration-200 ${
-                        isActive
-                          ? 'w-7 h-7 xs:w-[30px] xs:h-[30px] text-white stroke-[2.2]'
-                          : 'w-6 h-6 xs:w-[26px] xs:h-[26px] text-white/75 group-hover:text-white stroke-[1.8]'
-                      }`}
-                    />
-
-                    {/* Live Cart Item Count Badge (Green & White) */}
-                    {tab.isCart && itemCount > 0 && (
-                      <span className="absolute -top-1 -right-2.5 bg-emerald-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs border border-white">
-                        {itemCount > 99 ? '99+' : itemCount}
-                      </span>
-                    )}
+                      {/* Live Cart Count Badge on Active Circle */}
+                      {tab.isCart && itemCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-amber-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs border border-white">
+                          {itemCount > 99 ? '99+' : itemCount}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[10px] font-bold text-[#006837] -mt-2 whitespace-nowrap leading-tight tracking-tight">
+                      {isSinhala ? tab.titleSi : tab.titleEn}
+                    </span>
                   </div>
+                ) : (
+                  /* Inactive Flat Item */
+                  <div className="flex flex-col items-center justify-center py-1">
+                    <div className="relative flex items-center justify-center h-7">
+                      <Icon className="w-6 h-6 text-gray-600 group-hover:text-gray-900 stroke-[1.8] transition-colors" />
 
-                  {/* Single-word localized label (Green & White only) */}
-                  <span
-                    className={`text-center whitespace-nowrap leading-tight tracking-tight transition-all duration-200 ${
-                      isActive
-                        ? 'text-[10px] xs:text-[11px] font-bold text-white mt-0.5'
-                        : 'text-[9px] xs:text-[10px] font-medium text-white/75 group-hover:text-white mt-0.5'
-                    }`}
-                  >
-                    {isSinhala ? tab.titleSi : tab.titleEn}
-                  </span>
-                </div>
-              );
+                      {/* Live Cart Item Count Badge */}
+                      {tab.isCart && itemCount > 0 && (
+                        <span className="absolute -top-1.5 -right-2.5 bg-[#006837] text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center shadow-xs border border-white">
+                          {itemCount > 99 ? '99+' : itemCount}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[10px] font-medium text-gray-600 group-hover:text-gray-900 mt-1 whitespace-nowrap leading-tight tracking-tight">
+                      {isSinhala ? tab.titleSi : tab.titleEn}
+                    </span>
+                  </div>
+                )}
+              </div>
+            );
 
-              if (tab.isCart) {
-                return (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setIsCartOpen(true)}
-                    className="flex items-center justify-center w-full focus:outline-none"
-                    aria-label="Open Cart"
-                  >
-                    {tabContent}
-                  </button>
-                );
-              }
-
+            if (tab.isCart) {
               return (
-                <Link
+                <button
                   key={tab.id}
-                  to={tab.to}
-                  className="flex items-center justify-center w-full focus:outline-none"
+                  type="button"
+                  onClick={() => setIsCartOpen(true)}
+                  className="flex items-center justify-center w-full focus:outline-none cursor-pointer"
+                  aria-label="Open Cart"
                 >
                   {tabContent}
-                </Link>
+                </button>
               );
-            })}
-          </div>
+            }
+
+            return (
+              <Link
+                key={tab.id}
+                to={tab.to}
+                className="flex items-center justify-center w-full focus:outline-none"
+              >
+                {tabContent}
+              </Link>
+            );
+          })}
         </div>
       </nav>
     </>

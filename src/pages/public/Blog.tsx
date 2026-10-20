@@ -1,14 +1,15 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { Share2, Clock, User, Image as ImageIcon, Link as LinkIcon, MessageCircle, Check, BookOpen } from 'lucide-react';
-import PageHero from '../../components/public/PageHero';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import Pagination from '../../components/admin/Pagination';
+import {
+  BookOpen, ArrowRight, Image as ImageIcon
+} from 'lucide-react';
+import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
-import FontSizeSwitcher from '../../components/public/FontSizeSwitcher';
-import CommentSection from '../../components/public/CommentSection';
+import Pagination from '../../components/admin/Pagination';
 import SEO from '../../components/common/SEO';
 
-interface BlogItem {
+export interface BlogItem {
   id: string;
   title?: string | null;
   sinhalaTitle?: string | null;
@@ -24,319 +25,297 @@ interface BlogItem {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+// Helper to strip HTML and test if there is real text inside
+const cleanHtmlText = (html?: string | null): string => {
+  if (!html) return '';
+  return html.replace(/<[^>]*>?/gm, '').replace(/&nbsp;|\u00a0/g, ' ').trim();
+};
+
 export default function Blog() {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { t, i18n } = useTranslation();
   const isSinhala = i18n.language === 'si';
 
   const [blogList, setBlogList] = useState<BlogItem[]>([]);
-  const [selectedBlogId, setSelectedBlogId] = useState<string | null>(null);
+  const [totalBlogs, setTotalBlogs] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [showShareMenu, setShowShareMenu] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const shareMenuRef = useRef<HTMLDivElement>(null);
 
+  const currentPage = parseInt(searchParams.get('page') || '1', 10);
+
+  // If URL has a legacy `slug` or `id` param, redirect to `/blog/:slug`
   useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
-        setShowShareMenu(false);
-      }
+    const slugFromUrl = searchParams.get('slug') || searchParams.get('id');
+    if (slugFromUrl) {
+      navigate(`/blog/${slugFromUrl}`, { replace: true });
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  }, [searchParams, navigate]);
 
+  // Fetch paginated blog posts
   useEffect(() => {
     setIsLoading(true);
     fetch(`${API_BASE_URL}/blogs?page=${currentPage}&limit=10`)
       .then(res => res.json())
       .then(data => {
         const items = data.data || data;
-        setBlogList(items);
-        if (items.length > 0) {
-          const urlParams = new URLSearchParams(window.location.search);
-          const slugFromUrl = urlParams.get('slug') || urlParams.get('id');
-          const matchedItem = items.find((i: BlogItem) => i.slug === slugFromUrl || i.id === slugFromUrl);
-          if (matchedItem) {
-            setSelectedBlogId(matchedItem.id);
-          } else {
-            setSelectedBlogId(items[0].id);
-          }
-        }
+        setBlogList(Array.isArray(items) ? items : []);
         if (data.meta) {
-          setTotalPages(data.meta.totalPages);
+          setTotalBlogs(data.meta.total || 0);
+          setTotalPages(data.meta.totalPages || 1);
+        } else {
+          setTotalBlogs(Array.isArray(items) ? items.length : 0);
+          setTotalPages(1);
         }
       })
-      .catch(err => console.error("Error fetching blogs:", err))
+      .catch(err => {
+        console.error("Error fetching blogs:", err);
+        setBlogList([]);
+      })
       .finally(() => setIsLoading(false));
   }, [currentPage]);
 
-  const selectedBlog = blogList.find((n) => n.id === selectedBlogId) || blogList[0];
+  // Helper to extract clean text excerpt
+  const getExcerpt = (item: BlogItem): string => {
+    const enClean = cleanHtmlText(item.content);
+    const siClean = cleanHtmlText(item.sinhalaContent);
+    const raw = isSinhala
+      ? (siClean ? item.sinhalaContent : item.content)
+      : (enClean ? item.content : item.sinhalaContent);
+    return cleanHtmlText(raw);
+  };
 
-  const handleShare = (type: 'copy' | 'whatsapp' | 'facebook') => {
-    if (!selectedBlog || !selectedBlog.slug) return;
-    
-    // Social preview URL that servers dynamic Open Graph meta tags to Facebook, WhatsApp, etc.
-    const socialShareUrl = `${API_BASE_URL}/share/blog/${encodeURIComponent(selectedBlog.slug)}`;
-    const title = isSinhala ? (selectedBlog.sinhalaTitle || selectedBlog.title || '') : (selectedBlog.title || selectedBlog.sinhalaTitle || '');
-
-    if (type === 'copy') {
-      navigator.clipboard.writeText(socialShareUrl);
-      setCopied(true);
-      setTimeout(() => {
-        setCopied(false);
-        setShowShareMenu(false);
-      }, 2000);
-    } else if (type === 'whatsapp') {
-      window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(title + ' - ' + socialShareUrl)}`, '_blank');
-      setShowShareMenu(false);
-    } else if (type === 'facebook') {
-      window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(socialShareUrl)}`, '_blank');
-      setShowShareMenu(false);
+  // Helper to format date
+  const formatDate = (dateStr: string): string => {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString(isSinhala ? 'si-LK' : 'en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    } catch {
+      return '';
     }
   };
 
-  const currentTitle = selectedBlog 
-    ? (isSinhala ? (selectedBlog.sinhalaTitle || selectedBlog.title || 'ලිපි') : (selectedBlog.title || selectedBlog.sinhalaTitle || 'Articles'))
-    : (isSinhala ? 'කෘෂි ලිපි හා උපදෙස් | Agri Blog' : 'Agri Blog & Farming Guides');
-
-  const currentDesc = selectedBlog
-    ? ((isSinhala ? selectedBlog.sinhalaContent : selectedBlog.content)?.replace(/<[^>]*>?/gm, '').slice(0, 160) || 'Aswanna Blog Article')
-    : (isSinhala ? 'නවතම වගා උපදෙස්, පළිබෝධ පාලනය, සහ කෘෂි ව්‍යවසායකත්ව ලිපි සහ මඟපෙන්වීම්.' : 'Practical farming guides, crop techniques, pest management, and agro-business insights.');
-
-  const pageKeywords = useMemo(() => {
-    if (selectedBlog) {
-      const list = [
-        selectedBlog.title,
-        selectedBlog.sinhalaTitle,
-        selectedBlog.authorName,
-        'Aswanna Agri Blog',
-        'කෘෂි ලිපි',
-        'වගා උපදෙස්',
-        'Farming Guides Sri Lanka'
-      ];
-      return Array.from(new Set(list.filter(Boolean))).join(', ');
-    }
-
-    const list: string[] = [
-      'Aswanna Agri Blog',
-      'කෘෂි ලිපි',
-      'වගා උපදෙස්',
-      'Farming Guides Sri Lanka',
-      'කෘෂි තාක්ෂණය'
-    ];
-
-    blogList.forEach(b => {
-      if (b.title) list.push(b.title);
-      if (b.sinhalaTitle) list.push(b.sinhalaTitle);
-    });
-
-    return Array.from(new Set(list.filter(Boolean))).slice(0, 30).join(', ');
-  }, [selectedBlog, blogList]);
+  // Featured (Latest) Blog item is the first article on page 1
+  const featuredBlog = currentPage === 1 && blogList.length > 0 ? blogList[0] : null;
+  const regularBlogList = currentPage === 1 && blogList.length > 0 ? blogList.slice(1) : blogList;
 
   return (
-    <div className="w-full min-h-screen bg-gray-50">
-      <SEO 
-        title={currentTitle}
-        description={currentDesc}
-        keywords={pageKeywords}
-        canonical={selectedBlog ? `/blog?slug=${selectedBlog.slug || selectedBlog.id}` : '/blog'}
-        image={selectedBlog?.image || undefined}
-        type={selectedBlog ? 'article' : 'website'}
-        jsonLd={selectedBlog ? {
-          "@context": "https://schema.org",
-          "@type": "BlogPosting",
-          "headline": currentTitle,
-          "image": selectedBlog.image ? [selectedBlog.image] : [],
-          "datePublished": selectedBlog.createdAt,
-          "author": [{
-            "@type": "Person",
-            "name": selectedBlog.authorName || "Aswanna Editorial Team"
-          }]
-        } : undefined}
+    <div className="w-full min-h-screen bg-white">
+      <SEO
+        title={isSinhala ? 'කෘෂි ලිපි හා උපදෙස් | Aswanna' : 'Agri Blog & Farming Guides | Aswanna'}
+        description={isSinhala ? 'නවතම වගා උපදෙස්, පළිබෝධ පාලනය, සහ කෘෂි ව්‍යවසායකත්ව ලිපි සහ මඟපෙන්වීම්.' : 'Read our latest articles, farming guides, and insights from industry experts.'}
+        canonical="/blog"
       />
 
-      {/* ── Page Hero ── */}
+      {/* Hero Banner */}
       <PageHero
         title={t('blogPage.title', 'BLOG')}
         description={t('blogPage.desc', 'Read our latest articles, farming guides, and insights from industry experts.')}
         image="https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=1600&q=80"
-        gradientColor="#7c2d12"
+        gradientColor="#064e3b"
         icon={BookOpen}
-        badgeBg="bg-[#c2410c]"
-        waveColor="text-gray-50"
+        badgeBg="bg-emerald-700"
+        waveColor="text-white"
       />
 
-      {/* ── Content ── */}
+      {/* Main Container */}
       <div className="container mx-auto px-4 lg:px-12 py-8 lg:py-12">
-        <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
+        {/* Top Header Row with Articles Count */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-2 border-b border-gray-100">
+          <p className="text-xs sm:text-sm font-medium text-gray-500 tracking-wide">
+            {totalBlogs} {isSinhala ? 'ලිපි' : t('blogPage.articles', 'articles')}
+          </p>
+        </div>
 
-          {/* Column 1 on Mobile / Left Column on Desktop: Blog List */}
-          <div className="w-full lg:w-1/3 flex flex-col order-2 lg:order-1">
-            <div className="flex items-center gap-6 border-b border-gray-200 mb-4 sm:mb-6 pb-2 justify-between">
-              <h2 className="text-lg sm:text-xl font-bold text-[var(--color-secondary)] border-b-2 border-[var(--color-secondary)] pb-2 -mb-[10px]">
-                {t('blogPage.latestPosts', 'Latest Posts')}
-              </h2>
+        {/* Full-width Articles Feed */}
+        <div className="w-full space-y-6">
+          {isLoading ? (
+            <div className="py-24 flex justify-center">
+              <AgroLoader message={t('blogPage.loading', 'ලිපි තොරතුරු පූරණය වෙමින් පවතී...')} />
             </div>
+          ) : blogList.length === 0 ? (
+            <div className="py-16 text-center max-w-md mx-auto space-y-3">
+              <div className="w-12 h-12 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mx-auto">
+                <BookOpen className="w-6 h-6" />
+              </div>
+              <h3 className="text-base font-bold text-gray-800">
+                {t('blogPage.noPosts', 'No blog posts found.')}
+              </h3>
+              <p className="text-xs text-gray-500">
+                {isSinhala
+                  ? 'ලිපි කිසිවක් හමු නොවීය.'
+                  : 'No articles found at the moment.'}
+              </p>
+            </div>
+          ) : (
+            <>
+              {/* ── 1. Featured / Latest Blog Post (Top) ── */}
+              {featuredBlog && (() => {
+                const featuredUrl = `/blog/${encodeURIComponent(featuredBlog.slug || featuredBlog.id)}`;
+                const featuredTitle = isSinhala
+                  ? (featuredBlog.sinhalaTitle || featuredBlog.title || 'Untitled')
+                  : (featuredBlog.title || featuredBlog.sinhalaTitle || 'Untitled');
+                const featuredExcerpt = getExcerpt(featuredBlog);
 
-            <div className="flex flex-col gap-3 sm:gap-4 lg:gap-5 overflow-y-auto max-h-[500px] sm:max-h-[600px] lg:max-h-[800px] pr-1 sm:pr-2 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
-              {isLoading ? (
-                <div className="py-16 flex justify-center">
-                  <AgroLoader message={t('blogPage.loading', 'ලිපි තොරතුරු පූරණය වෙමින් පවතී...')} />
-                </div>
-              ) : blogList.length === 0 ? (
-                <div className="p-8 sm:p-10 text-center text-sm text-gray-500">{t('blogPage.noPosts', 'No blog posts found.')}</div>
-              ) : (
-                blogList.map((blog, index) => (
-                  <div
-                    key={blog.id}
-                    style={{ animationDelay: `${Math.min(index * 45, 600)}ms` }}
-                    onClick={() => {
-                      setSelectedBlogId(blog.id);
-                      if (window.innerWidth < 1024) {
-                        setTimeout(() => {
-                          document.getElementById('blog-detail-section')?.scrollIntoView({ behavior: 'smooth' });
-                        }, 100);
-                      }
+                return (
+                  <article className="group">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8 items-start">
+                      {/* Left: Featured Image with Bottom Accent Line */}
+                      <div className="md:col-span-5 lg:col-span-5 w-full relative overflow-hidden rounded-xs bg-gray-100 shadow-2xs">
+                        <Link to={featuredUrl} className="block aspect-[16/10] w-full overflow-hidden">
+                          {featuredBlog.image ? (
+                            <img
+                              src={featuredBlog.image}
+                              alt={featuredBlog.title || ''}
+                              className="w-full h-full object-cover group-hover:scale-103 transition-transform duration-500 ease-out"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                              <ImageIcon className="w-12 h-12" />
+                            </div>
+                          )}
+                        </Link>
+                        {/* Green accent line under the image */}
+                        <div className="h-1 bg-[#15803d] w-full" />
+                      </div>
+
+                      {/* Right: Featured Story Headline, Excerpt & Metadata */}
+                      <div className="md:col-span-7 lg:col-span-7 flex flex-col justify-between h-full pt-1">
+                        <div>
+                          <Link to={featuredUrl} className="block group-hover:text-emerald-700 transition-colors">
+                            <h2 className="font-bold text-xl sm:text-2xl lg:text-3xl text-gray-900 leading-tight tracking-tight hover:text-emerald-700 transition-colors">
+                              {featuredTitle}
+                            </h2>
+                          </Link>
+
+                          {featuredExcerpt && (
+                            <p className="text-sm sm:text-base text-gray-600 leading-relaxed mt-3 sm:mt-4 line-clamp-4">
+                              {featuredExcerpt}
+                            </p>
+                          )}
+
+                          <Link
+                            to={featuredUrl}
+                            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-emerald-700 hover:text-emerald-900 mt-3.5 transition-colors group/link"
+                          >
+                            <span>{isSinhala ? 'සම්පූර්ණ ලිපිය කියවන්න' : 'Read Full Story'}</span>
+                            <ArrowRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
+                          </Link>
+                        </div>
+
+                        {/* Meta Line: Date | Author */}
+                        <div className="text-xs sm:text-sm text-gray-500 flex flex-wrap items-center gap-2 mt-5 pt-1 font-medium">
+                          <span>{formatDate(featuredBlog.createdAt)}</span>
+                          {featuredBlog.authorName && (
+                            <>
+                              <span className="text-gray-300">|</span>
+                              <span className="text-gray-700 font-semibold">{featuredBlog.authorName}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Horizontal Divider Line Below Hero */}
+                    <hr className="border-gray-200 my-8 sm:my-10" />
+                  </article>
+                );
+              })()}
+
+              {/* ── 2. List of Subsequent Blog Stories (2 blogs per row) ── */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 lg:gap-x-12 gap-y-8 sm:gap-y-10">
+                {regularBlogList.map((item) => {
+                  const itemUrl = `/blog/${encodeURIComponent(item.slug || item.id)}`;
+                  const itemTitle = isSinhala
+                    ? (item.sinhalaTitle || item.title || 'Untitled')
+                    : (item.title || item.sinhalaTitle || 'Untitled');
+                  const excerpt = getExcerpt(item);
+                  const dateFormatted = formatDate(item.createdAt);
+
+                  return (
+                    <article key={item.id} className="group border-b border-gray-200 pb-6 sm:pb-8 flex flex-col justify-between">
+                      <div className="flex gap-4 sm:gap-5 items-start">
+                        {/* Thumbnail on Left */}
+                        <Link
+                          to={itemUrl}
+                          className="w-28 h-20 sm:w-36 sm:h-26 md:w-40 md:h-28 lg:w-44 lg:h-30 shrink-0 rounded-xs overflow-hidden bg-gray-100 border border-gray-100 shadow-2xs relative block"
+                        >
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={itemTitle}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                              <ImageIcon className="w-7 h-7" />
+                            </div>
+                          )}
+                        </Link>
+
+                        {/* Content on Right */}
+                        <div className="flex-1 min-w-0 flex flex-col justify-between self-stretch">
+                          <div>
+                            <Link to={itemUrl} className="block group-hover:text-emerald-700 transition-colors">
+                              <h3 className="text-sm sm:text-base md:text-[17px] font-bold text-gray-900 leading-snug line-clamp-2 hover:text-emerald-700 transition-colors">
+                                {itemTitle}
+                              </h3>
+                            </Link>
+
+                            {excerpt && (
+                              <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mt-1 sm:mt-1.5 leading-relaxed">
+                                {excerpt}
+                              </p>
+                            )}
+
+                            <Link
+                              to={itemUrl}
+                              className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-bold text-emerald-700 hover:text-emerald-900 mt-2 transition-colors group/read"
+                            >
+                              <span>{isSinhala ? 'තව කියවන්න' : 'Read More'}</span>
+                              <ArrowRight className="w-3 h-3 group-hover/read:translate-x-1 transition-transform" />
+                            </Link>
+                          </div>
+
+                          {/* Meta Line: Date | Author */}
+                          <div className="text-[10px] sm:text-xs text-gray-500 flex flex-wrap items-center gap-1.5 sm:gap-2 mt-2.5 font-medium">
+                            <span>{dateFormatted}</span>
+                            {item.authorName && (
+                              <>
+                                <span className="text-gray-300">|</span>
+                                <span className="text-gray-700 font-semibold truncate max-w-[140px] sm:max-w-[180px]">{item.authorName}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+
+              {/* ── Pagination ── */}
+              {totalPages > 1 && (
+                <div className="pt-8 sm:pt-10 flex justify-center">
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={(page) => {
+                      const newParams = new URLSearchParams(searchParams);
+                      newParams.set('page', page.toString());
+                      setSearchParams(newParams);
+                      window.scrollTo({ top: 400, behavior: 'smooth' });
                     }}
-                    className={`animate-card-pop flex gap-3 sm:gap-4 p-2 sm:p-2.5 lg:p-3 rounded-xl cursor-pointer transition-all duration-300 ${selectedBlogId === blog.id
-                      ? 'bg-white shadow-md border border-[var(--color-secondary)]/20'
-                      : 'hover:bg-white hover:shadow-sm border border-transparent'
-                      }`}
-                  >
-                    <div className="w-20 h-20 sm:w-24 sm:h-24 shrink-0 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center border border-gray-200">
-                      {blog.image ? (
-                        <img src={blog.image} alt={blog.title || ''} className="w-full h-full object-cover" />
-                      ) : (
-                        <ImageIcon className="text-gray-400" />
-                      )}
-                    </div>
-                    <div className="flex flex-col justify-between py-0.5 sm:py-1">
-                      <div>
-                        <p className="text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1 flex items-center gap-1">
-                          <Clock className="w-3 h-3" /> {new Date(blog.createdAt).toLocaleDateString()}
-                        </p>
-                        <h3 className={`blog-card-title font-bold leading-snug line-clamp-2 ${selectedBlogId === blog.id ? 'text-[var(--color-secondary)]' : 'text-gray-800'
-                          }`}>
-                          {isSinhala ? (blog.sinhalaTitle || blog.title || 'Untitled') : (blog.title || blog.sinhalaTitle || 'Untitled')}
-                        </h3>
-                      </div>
-                      <div className="flex items-center gap-2 mt-1.5 sm:mt-2">
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-500">{blog.authorName || '-'}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-            {totalPages > 1 && (
-              <div className="mt-4 sm:mt-6 pr-2">
-                <Pagination 
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={(page) => setCurrentPage(page)}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Top on Mobile / Right Column on Desktop: Blog Details */}
-          <div id="blog-detail-section" className="w-full lg:w-2/3 bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 lg:p-10 xl:p-12 min-h-[350px] lg:min-h-[500px] order-1 lg:order-2">
-            {selectedBlog ? (
-              <>
-                {/* Author and Share Row */}
-                <div className="flex items-center justify-between mb-4 pb-3 sm:mb-6 sm:pb-5 lg:mb-8 lg:pb-6 border-b border-gray-100">
-                  <div className="flex items-center gap-2.5 sm:gap-4">
-                    <div className="w-9 h-9 sm:w-11 sm:h-11 bg-gray-100 rounded-full flex items-center justify-center shrink-0 overflow-hidden border border-gray-200">
-                      {selectedBlog.authorAvatar ? (
-                        <img src={selectedBlog.authorAvatar} alt={selectedBlog.authorName || ''} className="w-full h-full object-cover" />
-                      ) : (
-                        <User className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-xs sm:text-sm text-gray-500">{t('blogPage.by', 'By')} <span className="font-bold text-gray-800">{selectedBlog.authorName || '-'}</span></p>
-                      <p className="text-[10px] sm:text-xs text-gray-400">{new Date(selectedBlog.createdAt).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 sm:gap-3">
-                    <FontSizeSwitcher variant="white" />
-
-                    <div className="relative" ref={shareMenuRef}>
-                      <button 
-                        onClick={() => setShowShareMenu(!showShareMenu)}
-                        className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-[var(--color-secondary)] hover:bg-[var(--color-secondary)]/90 text-white rounded-full text-xs sm:text-sm font-bold transition-colors shadow-sm"
-                      >
-                        {t('blogPage.share', 'Share')} <Share2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                      </button>
-                    
-                    {showShareMenu && (
-                      <div className="absolute right-0 mt-2 w-44 sm:w-48 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-10 flex flex-col animate-in fade-in slide-in-from-top-2 duration-200">
-                        <button 
-                          onClick={() => handleShare('copy')}
-                          className="flex items-center gap-2.5 px-3.5 py-2 hover:bg-gray-50 text-xs sm:text-sm font-medium text-gray-700 transition-colors"
-                        >
-                          {copied ? <Check className="w-4 h-4 text-green-500" /> : <LinkIcon className="w-4 h-4 text-gray-500" />}
-                          {copied ? t('newsPage.copied', 'Copied!') : t('newsPage.copyLink', 'Copy Link')}
-                        </button>
-                        <button 
-                          onClick={() => handleShare('whatsapp')}
-                          className="flex items-center gap-2.5 px-3.5 py-2 hover:bg-gray-50 text-xs sm:text-sm font-medium text-gray-700 transition-colors"
-                        >
-                          <MessageCircle className="w-4 h-4 text-[#25D366]" />
-                          {t('newsPage.shareWhatsApp', 'WhatsApp')}
-                        </button>
-                        <button 
-                          onClick={() => handleShare('facebook')}
-                          className="flex items-center gap-2.5 px-3.5 py-2 hover:bg-gray-50 text-xs sm:text-sm font-medium text-gray-700 transition-colors"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#1877F2]">
-                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-                          </svg>
-                          {t('newsPage.shareFacebook', 'Facebook')}
-                        </button>
-                      </div>
-                    )}
-                    </div>
-                  </div>
+                  />
                 </div>
-
-                {/* Title */}
-                <h1 className="blog-article-title font-bold md:font-black text-gray-900 leading-snug sm:leading-tight mb-4 sm:mb-6">
-                  {isSinhala ? (selectedBlog.sinhalaTitle || selectedBlog.title || 'Untitled') : (selectedBlog.title || selectedBlog.sinhalaTitle || 'Untitled')}
-                </h1>
-
-                {/* Main Image */}
-                {selectedBlog.image && (
-                  <div className="w-full h-48 sm:h-64 md:h-80 lg:h-[400px] rounded-xl overflow-hidden mb-5 sm:mb-8 shadow-sm">
-                    <img src={selectedBlog.image} alt={selectedBlog.title || ''} className="w-full h-full object-cover" />
-                  </div>
-                )}
-
-                {/* Content */}
-                <div
-                  className="w-full !max-w-full max-w-none lg:!max-w-none rich-content prose prose-sm sm:prose lg:prose-lg text-xs sm:text-sm md:text-base leading-relaxed text-gray-700"
-                  dangerouslySetInnerHTML={{ __html: ((isSinhala ? (selectedBlog.sinhalaContent || selectedBlog.content) : selectedBlog.content) || '').replace(/&nbsp;|\u00a0/g, ' ') }}
-                />
-
-                {/* Comments Section */}
-                <CommentSection
-                  targetId={selectedBlog.id}
-                  targetType="blogs"
-                  title={isSinhala ? 'බ්ලොග් අදහස් හා සාකච්ඡා' : 'Blog Comments'}
-                />
-              </>
-            ) : (
-              <div className="flex items-center justify-center h-full text-gray-400 font-medium text-sm">
-                {t('blogPage.selectToRead', 'Select a post to read')}
-              </div>
-            )}
-          </div>
-
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>
