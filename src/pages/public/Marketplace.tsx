@@ -38,8 +38,40 @@ interface MarketplaceCategory {
   nameSi: string;
   imageUrl?: string | null;
   activeState: boolean;
+  targetUrl?: string;
   _count?: { marketplaces: number };
 }
+
+// Special permanent categories that link directly to dedicated feature pages
+const MANUAL_SPECIAL_CATEGORIES: MarketplaceCategory[] = [
+  {
+    id: 'manual-agricultural-workers',
+    slug: 'agricultural-workers',
+    nameSi: 'කෘෂිකාර්මික කම්කරුවන්',
+    nameEn: 'Agricultural workers',
+    imageUrl: '/images/manual_added/daily_wages.png',
+    activeState: true,
+    targetUrl: '/careers/category/daily-wage-jobs'
+  },
+  {
+    id: 'manual-agricultural-lands',
+    slug: 'agricultural-lands',
+    nameSi: 'කෘෂිකාර්මික ඉඩම්',
+    nameEn: 'Agricultural lands',
+    imageUrl: '/images/manual_added/lands.png',
+    activeState: true,
+    targetUrl: '/agro-lands'
+  },
+  {
+    id: 'manual-planting-material',
+    slug: 'planting-material',
+    nameSi: 'පැල හා බීජ අලෙවිසැල',
+    nameEn: 'Plants & Seeds Store',
+    imageUrl: '/images/manual_added/plants.png',
+    activeState: true,
+    targetUrl: '/plant-finder'
+  }
+];
 
 interface MarketplaceItem {
   id: string;
@@ -182,9 +214,20 @@ export default function Marketplace() {
     setIsPostModalOpen(true);
   };
 
-  // State
-  const [categories, setCategories] = useState<MarketplaceCategory[]>([]);
+  // State: Initialize with the 3 manual categories so they always exist
+  const [categories, setCategories] = useState<MarketplaceCategory[]>(MANUAL_SPECIAL_CATEGORIES);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+
+  // Auto-redirect if someone navigates to a special category URL directly
+  useEffect(() => {
+    if (categorySlug === 'agricultural-workers') {
+      navigate('/careers/category/daily-wage-jobs', { replace: true });
+    } else if (categorySlug === 'agricultural-lands') {
+      navigate('/agro-lands', { replace: true });
+    } else if (categorySlug === 'planting-material') {
+      navigate('/plant-finder', { replace: true });
+    }
+  }, [categorySlug, navigate]);
 
   const [items, setItems] = useState<MarketplaceItem[]>([]);
   const [isLoadingItems, setIsLoadingItems] = useState(true);
@@ -225,17 +268,30 @@ export default function Marketplace() {
     );
   }, [categories, searchQuery]);
 
-  // Fetch Categories
+  // Fetch Categories: Merge DB categories with manual special categories, preventing duplicates
   const fetchCategories = useCallback(async () => {
     setIsLoadingCategories(true);
     try {
       const res = await fetch(`${API_BASE_URL}/marketplace/categories?activeOnly=true`);
       if (res.ok) {
         const json = await res.json();
-        setCategories(json.data || []);
+        const rawList: MarketplaceCategory[] = Array.isArray(json.data)
+          ? json.data
+          : Array.isArray(json.items)
+          ? json.items
+          : Array.isArray(json)
+          ? json
+          : [];
+
+        const specialSlugs = new Set(['agricultural-workers', 'agricultural-lands', 'planting-material']);
+        const dbFiltered = rawList.filter((c) => !specialSlugs.has(c.slug));
+        setCategories([...dbFiltered, ...MANUAL_SPECIAL_CATEGORIES]);
+      } else {
+        setCategories(MANUAL_SPECIAL_CATEGORIES);
       }
     } catch (err) {
       console.error('Failed to load marketplace categories:', err);
+      setCategories(MANUAL_SPECIAL_CATEGORIES);
     } finally {
       setIsLoadingCategories(false);
     }
@@ -398,11 +454,12 @@ export default function Marketplace() {
                   {filteredCategories.map((cat, idx) => {
                     const title = isSi ? cat.nameSi : cat.nameEn;
                     const catImg = cat.imageUrl;
+                    const targetUrl = cat.targetUrl || `/marketplace/category/${cat.slug}`;
 
                     return (
                       <Link
-                        key={cat.id}
-                        to={`/marketplace/category/${cat.slug}`}
+                        key={cat.id || cat.slug}
+                        to={targetUrl}
                         style={{ animationDelay: `${Math.min(idx * 45, 600)}ms` }}
                         className="animate-card-pop group relative flex flex-col items-center justify-between p-2.5 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl bg-white border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-emerald-200/80 hover:-translate-y-1 transition-all duration-300 cursor-pointer"
                       >

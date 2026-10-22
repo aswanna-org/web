@@ -480,6 +480,7 @@ export default function AnalyticsMap() {
           {/* Period selector */}
           <div className="flex items-center bg-gray-100 p-1 rounded-xl border border-gray-200 text-xs font-semibold">
             {[
+              { label: '1D', value: 1 },
               { label: '7D', value: 7 },
               { label: '30D', value: 30 },
               { label: '90D', value: 90 }
@@ -587,7 +588,7 @@ export default function AnalyticsMap() {
               {isLoading ? '...' : (data?.summary?.totalScreenViews || 0).toLocaleString()}
             </div>
             <div className="text-[10px] text-emerald-600 font-semibold mt-0.5">
-              Past {selectedDays} Days
+              {selectedDays === 1 ? 'Past 24 Hours (1D)' : `Past ${selectedDays} Days`}
             </div>
           </div>
           <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center border border-blue-100 shrink-0">

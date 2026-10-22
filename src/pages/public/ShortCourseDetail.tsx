@@ -49,6 +49,9 @@ interface ShortCourseDetailData {
   id: string;
   slug: string;
   activeState: boolean;
+  institutionType?: string;
+  institutionTypeSi?: string;
+  institutionTypeEn?: string;
   titleSi: string;
   titleEn: string;
   overviewSi?: string | null;
@@ -567,9 +570,64 @@ export default function ShortCourseDetail() {
                 </div>
               </div>
 
+              {/* ── Course Primary Header: Clean Typography without badges ── */}
+              <div className="bg-white px-5 sm:px-7 py-6 border-b border-gray-100">
+                {/* Meta category & institution type text without pill badges */}
+                <div className="flex items-center gap-2 text-xs font-medium text-gray-500 mb-2 flex-wrap">
+                  {subjectName && (
+                    <span>{subjectName}</span>
+                  )}
+                  {subjectName && <span className="text-gray-300">•</span>}
+                  <span className="font-semibold text-gray-700">
+                    {course.institutionType === 'Private' || course.institutionTypeEn === 'Private'
+                      ? (isSinhala ? `${course.institutionTypeSi || 'පෞද්ගලික ආයතනය'}` : `${course.institutionTypeEn || 'Private Institution'}`)
+                      : course.institutionType === 'Semi-Government' || course.institutionTypeEn === 'Semi-Government'
+                      ? (isSinhala ? `${course.institutionTypeSi || 'අර්ධ රාජ්‍ය ආයතනය'}` : `${course.institutionTypeEn || 'Semi-Government Institution'}`)
+                      : (isSinhala ? `${course.institutionTypeSi || 'රාජ්‍ය ආයතනය'}` : `${course.institutionTypeEn || 'Government Institution'}`)}
+                  </span>
+                </div>
+
+                {/* Course Title */}
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-snug">
+                  {courseTitle}
+                </h1>
+
+                {/* Institute / Training Center Name */}
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 mt-2.5">
+                  <span className="text-gray-400 font-medium">{isSinhala ? 'ආයතනය / මධ්‍යස්ථානය:' : 'Institution / Training Center:'}</span>
+                  <span className="font-semibold text-emerald-900">
+                    {centerName || (isSinhala ? 'කෘෂිකර්ම දෙපාර්තමේන්තුව' : 'Department of Agriculture')}
+                  </span>
+                </div>
+              </div>
+
               {/* Form Grid */}
               <div className="p-5 sm:p-6 md:p-8">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4 text-xs sm:text-sm">
+                  {/* Field: Institution */}
+                  <div className="p-3.5 sm:p-4 bg-gray-50/70 rounded-xl border border-gray-100">
+                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                      {isSinhala ? 'ආයතනය / මධ්‍යස්ථානය' : 'Institution / Center'}
+                    </p>
+                    <p className="font-bold text-gray-900 truncate">
+                      {centerName || (isSinhala ? 'කෘෂිකර්ම දෙපාර්තමේන්තුව' : 'Department of Agriculture')}
+                    </p>
+                  </div>
+
+                  {/* Field: Institution Type */}
+                  <div className="p-3.5 sm:p-4 bg-gray-50/70 rounded-xl border border-gray-100">
+                    <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                      {isSinhala ? 'ආයතන වර්ගය' : 'Institution Type'}
+                    </p>
+                    <p className="font-bold text-gray-900">
+                      {course.institutionType === 'Private' || course.institutionTypeEn === 'Private'
+                        ? (isSinhala ? `${course.institutionTypeSi || 'පෞද්ගලික ආයතනය'}` : `${course.institutionTypeEn || 'Private Institution'}`)
+                        : course.institutionType === 'Semi-Government' || course.institutionTypeEn === 'Semi-Government'
+                        ? (isSinhala ? `${course.institutionTypeSi || 'අර්ධ රාජ්‍ය ආයතනය'}` : `${course.institutionTypeEn || 'Semi-Government Institution'}`)
+                        : (isSinhala ? `${course.institutionTypeSi || 'රාජ්‍ය ආයතනය'}` : `${course.institutionTypeEn || 'Government Institution'}`)}
+                    </p>
+                  </div>
+
                   {/* Field: Duration */}
                   <div className="p-3.5 sm:p-4 bg-gray-50/70 rounded-xl border border-gray-100">
                     <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">

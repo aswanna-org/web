@@ -184,7 +184,7 @@ export default function SocialPlatformsSection() {
         </div>
 
         {/* Desktop/Tablet View: Glassmorphic Cards Grid */}
-        <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 sm:gap-6 items-start">
+        <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 sm:gap-6 items-stretch">
           {displayPlatforms.map((platform) => {
             const brand = getBrandConfig(platform.slug || platform.name);
             const isHovered = hoveredSlug === (platform.slug || platform.id);
@@ -212,16 +212,16 @@ export default function SocialPlatformsSection() {
               );
             };
 
-            const cardClasses = `group relative flex flex-col justify-between p-5 sm:p-6 rounded-3xl transition-all duration-500 ease-out cursor-pointer overflow-hidden backdrop-blur-xl border ${
+            const cardClasses = `group relative flex flex-col justify-between h-full min-h-[220px] sm:min-h-[240px] p-5 sm:p-6 rounded-3xl transition-all duration-300 ease-out cursor-pointer overflow-hidden backdrop-blur-xl border ${
               isHovered
-                ? `min-h-[300px] sm:min-h-[320px] bg-gradient-to-br ${brand.bgHoverGradient} text-white border-white/40 shadow-[0_20px_45px_rgba(0,0,0,0.18)] scale-[1.02]`
-                : `min-h-[200px] sm:min-h-[210px] bg-white/65 border-white/80 text-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.05)] hover:shadow-lg`
+                ? `bg-gradient-to-br ${brand.bgHoverGradient} text-white border-white/40 shadow-[0_20px_45px_rgba(0,0,0,0.18)] scale-[1.02] z-20`
+                : `bg-white/65 border-white/80 text-gray-800 shadow-[0_8px_30px_rgb(0,0,0,0.05)] hover:shadow-lg`
             }`;
 
             const cardContent = (
               <>
                 {/* Top Section: Icon, Title, Tagline */}
-                <div>
+                <div className="flex flex-col flex-1">
                   <div className="mb-4 sm:mb-5">
                     {/* Glassmorphic Icon Badge */}
                     <div
@@ -240,9 +240,9 @@ export default function SocialPlatformsSection() {
                     {platform.name}
                   </h3>
 
-                  {/* Tagline */}
+                  {/* Tagline - user explicitly requested: content is not hidden or spliced */}
                   <p
-                    className={`text-xs leading-relaxed transition-colors duration-300 line-clamp-3 ${
+                    className={`text-xs leading-relaxed transition-colors duration-300 ${
                       isHovered ? 'text-white/90' : 'text-gray-500'
                     }`}
                   >
@@ -250,16 +250,16 @@ export default function SocialPlatformsSection() {
                   </p>
                 </div>
 
-                {/* Bottom Section: ONLY revealed when hovered! Smoothly expands height and displays 'Follow' watermark */}
+                {/* Bottom Section: Watermark reserved so card height remains constant and never shifts */}
                 <div
-                  className={`relative overflow-hidden transition-all duration-500 ease-out flex items-end ${
+                  className={`h-8 flex items-end overflow-hidden transition-all duration-300 ease-out pt-2 mt-3 border-t ${
                     isHovered
-                      ? 'max-h-24 opacity-100 mt-6 pt-3 border-t border-white/20 translate-y-0 pointer-events-auto'
-                      : 'max-h-0 opacity-0 mt-0 pt-0 border-t-0 translate-y-4 pointer-events-none'
+                      ? 'opacity-100 border-white/20 translate-y-0'
+                      : 'opacity-0 border-transparent translate-y-1'
                   }`}
                 >
                   {/* Big Watermark text (Follow, Join, Connect, Subscribe, etc.) */}
-                  <span className="text-3xl sm:text-4xl font-black tracking-tight select-none text-white/40 leading-none transition-transform duration-500">
+                  <span className="text-2xl sm:text-3xl font-black tracking-tight select-none text-white/40 leading-none">
                     {brand.watermark}
                   </span>
                 </div>

@@ -133,6 +133,17 @@ export default function PublicNurseryPostModal({
     return options.crops.filter((c) => !c.categoryId || c.categoryId === newStockCategory);
   }, [options.crops, newStockCategory]);
 
+  // Filter varieties by selected crop
+  const availableFastVarieties = useMemo(() => {
+    if (!newFastCrop) return [];
+    return options.varieties.filter((v: any) => v.cropId === newFastCrop);
+  }, [options.varieties, newFastCrop]);
+
+  const availableStockVarieties = useMemo(() => {
+    if (!newStockCrop) return [];
+    return options.varieties.filter((v: any) => v.cropId === newStockCrop);
+  }, [options.varieties, newStockCrop]);
+
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
   const draftKey = `${DRAFT_PREFIX}${user?.id || 'anonymous'}`;
 
@@ -1424,7 +1435,7 @@ export default function PublicNurseryPostModal({
                           <select
                             value={newFastCrop}
                             disabled={!newFastCategory}
-                            onChange={(e) => setNewFastCrop(e.target.value)}
+                            onChange={(e) => { setNewFastCrop(e.target.value); setNewFastVariety(''); }}
                             className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] disabled:bg-gray-100 disabled:text-gray-400"
                           >
                             <option value="">
@@ -1447,11 +1458,12 @@ export default function PublicNurseryPostModal({
                           </label>
                           <select
                             value={newFastVariety}
+                            disabled={!newFastCrop}
                             onChange={(e) => setNewFastVariety(e.target.value)}
-                            className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837]"
+                            className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] disabled:bg-gray-100 disabled:text-gray-400"
                           >
-                            <option value="">{isSi ? 'ප්‍රභේදය තෝරන්න...' : 'Select Variety...'}</option>
-                            {options.varieties.map((v) => (
+                            <option value="">{!newFastCrop ? (isSi ? 'පළමුව බෝගය තෝරන්න...' : 'Select Crop first...') : (isSi ? 'ප්‍රභේදය තෝරන්න...' : 'Select Variety...')}</option>
+                            {availableFastVarieties.map((v) => (
                               <option key={v.id} value={v.id}>
                                 {isSi ? (v.nameSi || v.nameEn) : (v.nameEn || v.nameSi)}
                               </option>
@@ -1677,7 +1689,7 @@ export default function PublicNurseryPostModal({
                         <select
                           value={newStockCrop}
                           disabled={!newStockCategory}
-                          onChange={(e) => setNewStockCrop(e.target.value)}
+                          onChange={(e) => { setNewStockCrop(e.target.value); setNewStockVariety(''); }}
                           className="w-full text-xs px-2 py-1.5 rounded-lg border border-gray-300 bg-white disabled:bg-gray-100 disabled:text-gray-400"
                         >
                           <option value="">
@@ -1699,11 +1711,12 @@ export default function PublicNurseryPostModal({
                         </label>
                         <select
                           value={newStockVariety}
+                          disabled={!newStockCrop}
                           onChange={(e) => setNewStockVariety(e.target.value)}
-                          className="w-full text-xs px-2 py-1.5 rounded-lg border border-gray-300 bg-white"
+                          className="w-full text-xs px-2 py-1.5 rounded-lg border border-gray-300 bg-white disabled:bg-gray-100 disabled:text-gray-400"
                         >
-                          <option value="">{isSi ? 'ප්‍රභේදය තෝරන්න (විකල්ප)' : 'Select Variety (Optional)'}</option>
-                          {options.varieties.map((v) => (
+                          <option value="">{!newStockCrop ? (isSi ? 'පළමුව බෝගය තෝරන්න' : 'Select crop first') : (isSi ? 'ප්‍රභේදය තෝරන්න (විකල්ප)' : 'Select Variety (Optional)')}</option>
+                          {availableStockVarieties.map((v) => (
                             <option key={v.id} value={v.id}>
                               {isSi ? (v.nameSi || v.nameEn) : (v.nameEn || v.nameSi)}
                             </option>

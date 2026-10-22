@@ -11,7 +11,7 @@ import Pagination from '../../components/admin/Pagination';
 import CustomDropdown from '../../components/ui/CustomDropdown';
 import AgroLoader from '../../components/common/AgroLoader';
 import { QUALIFICATION_LEVELS } from '../../data/educationData';
-import { formatQualificationLevel, formatDurationUnit } from './EducationDetail';
+import { formatQualificationLevel, formatDurationUnit, formatCourseTitle } from './EducationDetail';
 import SEO from '../../components/common/SEO';
 
 interface DBLevel {
@@ -684,14 +684,20 @@ export default function Education() {
                       <Card
                         to={`/education/${course.slug || course.id}`}
                         image={course.bannerImageUrl || 'https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=800&q=80'}
-                        badge={formatQualificationLevel(course.courseLevel, isSinhala)}
+                        badge={null}
                         topRightBadge={course.applicationCalled ? (
-                          <div className="h-6 sm:h-7 inline-flex items-center gap-1 sm:gap-1.5 bg-amber-500/85 backdrop-blur-md text-white text-[10px] sm:text-xs font-bold px-2 sm:px-3 rounded-full shadow-xs border border-amber-300/40 max-w-full">
+                          <div className="h-6 sm:h-7 inline-flex items-center gap-1 sm:gap-1.5 bg-amber-500/90 backdrop-blur-md text-white text-[10px] sm:text-xs font-bold px-2 sm:px-3 rounded-full shadow-xs border border-amber-300/40 max-w-full">
                             <Sparkles size={11} className="shrink-0 text-amber-100" />
                             <span className="truncate">{isSinhala ? 'අයදුම්පත් කැඳවා ඇත' : 'Application Called'}</span>
                           </div>
                         ) : null}
-                        title={course.title}
+                        tag={
+                          <div className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200/80 px-2 sm:px-2.5 py-0.5 rounded-md max-w-full truncate">
+                            <GraduationCap size={12} className="shrink-0 text-emerald-700" />
+                            <span className="truncate">{formatQualificationLevel(course.courseLevel, isSinhala)}</span>
+                          </div>
+                        }
+                        title={formatCourseTitle(course.title, isSinhala)}
                         subtitle={categoryLabel}
                         titleClassName="text-xs sm:text-base font-bold text-gray-900 leading-snug mb-1 line-clamp-2"
                         meta={[

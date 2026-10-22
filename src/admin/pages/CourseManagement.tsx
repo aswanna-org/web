@@ -211,6 +211,9 @@ interface Course {
   applicationFileUrl?: string | null;
   bannerImageUrl?: string | null;
   status: string;
+  institutionType?: string;
+  institutionTypeSi?: string;
+  institutionTypeEn?: string;
   applicationCalled?: boolean;
   internalNotes?: string | null;
   createdAt: string;
@@ -251,6 +254,9 @@ const defaultFormData = {
   applicationFileUrl: '',
   bannerImageUrl: '',
   status: 'Draft',
+  institutionType: 'Government',
+  institutionTypeSi: 'රාජ්‍ය',
+  institutionTypeEn: 'Government',
   applicationCalled: false,
   relatedJobIds: [] as string[],
   internalNotes: '',
@@ -280,6 +286,7 @@ export default function CourseManagement() {
   const [filterEducationType, setFilterEducationType] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterLevel, setFilterLevel] = useState('all');
+  const [filterInstitutionType, setFilterInstitutionType] = useState('all');
   const [kpis, setKpis] = useState({ total: 0, published: 0, draft: 0, archived: 0, free: 0 });
 
   // Applications State
@@ -352,6 +359,7 @@ export default function CourseManagement() {
       if (filterEducationType !== 'all') url += `&educationTypeId=${filterEducationType}`;
       if (filterStatus !== 'all') url += `&status=${filterStatus}`;
       if (filterLevel !== 'all') url += `&courseLevel=${encodeURIComponent(filterLevel)}`;
+      if (filterInstitutionType !== 'all') url += `&institutionType=${filterInstitutionType}`;
 
       const res = await fetch(url, { headers: authHeaders });
       if (res.ok) {
@@ -513,7 +521,7 @@ export default function CourseManagement() {
 
   useEffect(() => {
     fetchCourses(currentPage);
-  }, [currentPage, search, filterCategory, filterEducationType, filterStatus, filterLevel]);
+  }, [currentPage, search, filterCategory, filterEducationType, filterStatus, filterLevel, filterInstitutionType]);
 
   useEffect(() => {
     fetchApplications(appCurrentPage);
@@ -671,6 +679,9 @@ export default function CourseManagement() {
       applicationFileUrl: course.applicationFileUrl || '',
       bannerImageUrl: course.bannerImageUrl || '',
       status: course.status || 'Draft',
+      institutionType: course.institutionType || 'Government',
+      institutionTypeSi: course.institutionTypeSi || (course.institutionType === 'Private' ? 'පුද්ගලික' : course.institutionType === 'Semi-Government' ? 'අර්ධ රාජ්‍ය' : 'රාජ්‍ය'),
+      institutionTypeEn: course.institutionTypeEn || course.institutionType || 'Government',
       applicationCalled: Boolean(course.applicationCalled),
       relatedJobIds: course.relatedJobs?.map(j => j.id) || [],
       internalNotes: course.internalNotes || '',
@@ -1182,7 +1193,7 @@ export default function CourseManagement() {
 
           {/* ── Course Filters Bar ── */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3.5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
               <div className="relative">
                 <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
@@ -1235,6 +1246,19 @@ export default function CourseManagement() {
 
               <div>
                 <select
+                  value={filterInstitutionType}
+                  onChange={e => { setFilterInstitutionType(e.target.value); setCurrentPage(1); }}
+                  className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-600"
+                >
+                  <option value="all">All Institutions (ආයතන)</option>
+                  <option value="Government">Government (රාජ්‍ය)</option>
+                  <option value="Private">Private (පුද්ගලික)</option>
+                  <option value="Semi-Government">Semi-Government (අර්ධ රාජ්‍ය)</option>
+                </select>
+              </div>
+
+              <div>
+                <select
                   value={filterStatus}
                   onChange={e => { setFilterStatus(e.target.value); setCurrentPage(1); }}
                   className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-emerald-600"
@@ -1272,6 +1296,7 @@ export default function CourseManagement() {
                       <th className="px-3 py-2">Course</th>
                       <th className="px-3 py-2">Code</th>
                       <th className="px-3 py-2">Category</th>
+                      <th className="px-3 py-2">Institution</th>
                       <th className="px-3 py-2">Duration</th>
                       <th className="px-3 py-2">Fee</th>
                       <th className="px-3 py-2 text-center">Status</th>
@@ -1303,6 +1328,24 @@ export default function CourseManagement() {
                         <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
                           <span className="truncate max-w-[140px] inline-block" title={course.category?.categoryNameEn || '-'}>
                             {course.category?.categoryNameEn || '-'}
+                          </span>
+                        </td>
+
+                        <td className="px-3 py-1.5 whitespace-nowrap">
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                            course.institutionType === 'Private' || course.institutionTypeEn === 'Private'
+                              ? 'bg-purple-50 text-purple-700 border-purple-200'
+                              : course.institutionType === 'Semi-Government' || course.institutionTypeEn === 'Semi-Government'
+                              ? 'bg-amber-50 text-amber-700 border-amber-200'
+                              : 'bg-blue-50 text-blue-700 border-blue-200'
+                          }`}>
+                            <span>
+                              {course.institutionType === 'Private' || course.institutionTypeEn === 'Private'
+                                ? `🏢 ${course.institutionTypeSi || 'පුද්ගලික'}`
+                                : course.institutionType === 'Semi-Government' || course.institutionTypeEn === 'Semi-Government'
+                                ? `🏛️ ${course.institutionTypeSi || 'අර්ධ රාජ්‍ය'}`
+                                : `🏛️ ${course.institutionTypeSi || 'රාජ්‍ය'}`}
+                            </span>
                           </span>
                         </td>
 
@@ -1950,6 +1993,85 @@ export default function CourseManagement() {
                         <option value="Published">Published (Visible on website)</option>
                         <option value="Archived">Archived</option>
                       </select>
+                    </div>
+
+                    {/* Institution Type Section (Bilingual Sinhala & English) */}
+                    <div className="md:col-span-3 bg-gray-50/80 p-4 rounded-xl border border-gray-200">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider">
+                            Institution Type (ආයතන වර්ගය) *
+                          </label>
+                          <p className="text-[11px] text-gray-500">
+                            තෝරන්න හෝ සිංහල සහ ඉංග්‍රීසි භාෂා දෙකෙන්ම ආයතන වර්ගය සකසන්න.
+                          </p>
+                        </div>
+                        {/* Quick Presets */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => setForm({ ...form, institutionType: 'Government', institutionTypeEn: 'Government', institutionTypeSi: 'රාජ්‍ය' })}
+                            className={`px-2.5 py-1 text-xs rounded-lg font-semibold border transition-all cursor-pointer ${
+                              form.institutionType === 'Government'
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                            }`}
+                          >
+                            🏛️ Government (රාජ්‍ය)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setForm({ ...form, institutionType: 'Private', institutionTypeEn: 'Private', institutionTypeSi: 'පුද්ගලික' })}
+                            className={`px-2.5 py-1 text-xs rounded-lg font-semibold border transition-all cursor-pointer ${
+                              form.institutionType === 'Private'
+                                ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                            }`}
+                          >
+                            🏢 Private (පුද්ගලික)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setForm({ ...form, institutionType: 'Semi-Government', institutionTypeEn: 'Semi-Government', institutionTypeSi: 'අර්ධ රාජ්‍ය' })}
+                            className={`px-2.5 py-1 text-xs rounded-lg font-semibold border transition-all cursor-pointer ${
+                              form.institutionType === 'Semi-Government'
+                                ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+                            }`}
+                          >
+                            🏛️ Semi-Gov (අර්ධ රාජ්‍ය)
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                            English Type Name *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Government, Private, Semi-Government"
+                            value={form.institutionTypeEn || form.institutionType || ''}
+                            onChange={e => setForm({ ...form, institutionTypeEn: e.target.value, institutionType: e.target.value })}
+                            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-1 focus:ring-emerald-600 outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                            Sinhala Type Name (සිංහල නම) *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="උදා: රාජ්‍ය, පුද්ගලික, අර්ධ රාජ්‍ය"
+                            value={form.institutionTypeSi || ''}
+                            onChange={e => setForm({ ...form, institutionTypeSi: e.target.value })}
+                            className="w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-lg text-xs sm:text-sm focus:ring-1 focus:ring-emerald-600 outline-none font-sinhala"
+                          />
+                        </div>
+                      </div>
                     </div>
 
                     <div>
@@ -2692,6 +2814,15 @@ export default function CourseManagement() {
                         {previewCourse.educationType.nameSi}
                       </span>
                     )}
+                    <span className={`text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
+                      previewCourse.institutionType === 'Private'
+                        ? 'bg-purple-900/40 text-purple-200 border-purple-400/40'
+                        : previewCourse.institutionType === 'Semi-Government'
+                        ? 'bg-amber-900/40 text-amber-200 border-amber-400/40'
+                        : 'bg-blue-900/40 text-blue-200 border-blue-400/40'
+                    }`}>
+                      {previewCourse.institutionType === 'Private' ? '🏢 Private' : previewCourse.institutionType === 'Semi-Government' ? '🏛️ Semi-Gov' : '🏛️ Government'}
+                    </span>
                     <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider bg-white/10 px-2.5 py-0.5 rounded-full">
                       {previewCourse.category?.categoryNameEn || 'Course'}
                     </span>
@@ -2829,7 +2960,11 @@ export default function CourseManagement() {
               </div>
 
               {/* ── Key Metrics Grid ── */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-200 text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-200 text-xs">
+                <div>
+                  <p className="text-gray-400 font-medium">Institution</p>
+                  <p className="font-bold text-gray-900 mt-0.5">{previewCourse.institutionType || 'Government'}</p>
+                </div>
                 <div>
                   <p className="text-gray-400 font-medium">Qualification Level</p>
                   <p className="font-bold text-gray-900 mt-0.5">{previewCourse.courseLevel}</p>

@@ -25,6 +25,7 @@ export interface CardProps {
   };
   badge?: string | React.ReactNode;
   topRightBadge?: React.ReactNode;
+  tag?: React.ReactNode;
   to?: string;
   titleClassName?: string;
 }
@@ -62,6 +63,7 @@ export default function Card({
   secondaryAction,
   badge,
   topRightBadge,
+  tag,
   to,
   titleClassName,
 }: CardProps) {
@@ -138,6 +140,11 @@ export default function Card({
 
       {/* Content Section */}
       <div className="pt-4 sm:pt-7 px-2.5 sm:px-5 pb-2.5 sm:pb-5 flex flex-col flex-1">
+        {tag && (
+          <div className="mb-1.5 flex items-center">
+            {tag}
+          </div>
+        )}
         {/* Header */}
         <div className="mb-1.5 sm:mb-2">
           <h3 className={titleClassName || "text-xs sm:text-base font-bold text-[#143d4d] group-hover:text-[#006837] transition-colors leading-snug mb-1 line-clamp-2"}>

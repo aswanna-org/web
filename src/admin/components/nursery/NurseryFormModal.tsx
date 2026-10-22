@@ -163,7 +163,7 @@ export default function NurseryFormModal({
       if (!newFastCategory) return localOptions.varieties;
       return localOptions.varieties.filter((v) => !v.crop?.categoryId || v.crop.categoryId === newFastCategory);
     }
-    return localOptions.varieties.filter((v) => !v.cropId || v.cropId === newFastCrop);
+    return localOptions.varieties.filter((v) => v.cropId === newFastCrop);
   }, [localOptions.varieties, newFastCrop, newFastCategory]);
 
   const availableStockCrops = useMemo(() => {
@@ -177,7 +177,7 @@ export default function NurseryFormModal({
       if (!newStockCategory) return localOptions.varieties;
       return localOptions.varieties.filter((v) => !v.crop?.categoryId || v.crop.categoryId === newStockCategory);
     }
-    return localOptions.varieties.filter((v) => !v.cropId || v.cropId === newStockCrop);
+    return localOptions.varieties.filter((v) => v.cropId === newStockCrop);
   }, [localOptions.varieties, newStockCrop, newStockCategory]);
 
   const openQuickAdd = (type: MasterDataType, context: QuickAddContext) => {

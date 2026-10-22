@@ -544,39 +544,64 @@ export default function NurseryDetail() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {nursery.stocks.map((stk) => (
-                        <tr key={stk.id} className="hover:bg-gray-50/80 transition-colors">
-                          <td className="px-3 py-2">
-                            <span className="font-semibold text-gray-800 block text-xs">
-                              {isSinhala
-                                ? stk.crop?.nameSi || stk.crop?.nameEn || '-'
-                                : stk.crop?.nameEn || stk.crop?.nameSi || '-'}
-                            </span>
-                            {stk.variety && (
-                              <span className="text-[10px] text-gray-400">
-                                {isSinhala ? stk.variety.nameSi || stk.variety.nameEn : stk.variety.nameEn}
+                      {nursery.stocks.map((stk) => {
+                        const stockQty = isSinhala
+                          ? (stk.stockRangeSi || stk.stockRangeEn || stk.quantity || (stk as any).stockRange || (stk as any).stock)
+                          : (stk.stockRangeEn || stk.stockRangeSi || stk.quantity || (stk as any).stockRange || (stk as any).stock);
+
+                        const hasUnitInString = typeof stockQty === 'string' && (/පැළ/i.test(stockQty) || /plants?/i.test(stockQty));
+
+                        const gradeItem = stk.grade || (stk as any).condition || (stk as any).quality || (stk as any).status || nursery.grade || (nursery.isGovRegistered ? (isSinhala ? 'සහතිකලත්' : 'Certified') : null);
+
+                        const gradeText = typeof gradeItem === 'string'
+                          ? gradeItem
+                          : (isSinhala
+                              ? (gradeItem?.nameSi || gradeItem?.nameEn || (gradeItem as any)?.titleSi || (gradeItem as any)?.titleEn)
+                              : (gradeItem?.nameEn || gradeItem?.nameSi || (gradeItem as any)?.titleEn || (gradeItem as any)?.titleSi));
+
+                        return (
+                          <tr key={stk.id} className="hover:bg-gray-50/80 transition-colors">
+                            <td className="px-3 py-2">
+                              <span className="font-semibold text-gray-800 block text-xs">
+                                {isSinhala
+                                  ? stk.crop?.nameSi || stk.crop?.nameEn || '-'
+                                  : stk.crop?.nameEn || stk.crop?.nameSi || '-'}
                               </span>
-                            )}
-                          </td>
-                          <td className="px-3 py-2 text-gray-600">
-                            {stk.category ? (isSinhala ? stk.category.nameSi || stk.category.nameEn : stk.category.nameEn) : '-'}
-                          </td>
-                          <td className="px-3 py-2 text-center font-bold text-gray-800">
-                            {stk.quantity} <span className="font-normal text-[10px] text-gray-500">{stk.unit || 'plants'}</span>
-                          </td>
-                          <td className="px-3 py-2 text-center">
-                            {stk.grade ? (
-                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                                {typeof stk.grade === 'string'
-                                  ? stk.grade
-                                  : (isSinhala ? stk.grade.nameSi || stk.grade.nameEn : stk.grade.nameEn || stk.grade.nameSi)}
-                              </span>
-                            ) : (
-                              <span className="text-gray-400">-</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
+                              {stk.variety && (
+                                <span className="text-[10px] text-gray-400">
+                                  {isSinhala ? stk.variety.nameSi || stk.variety.nameEn : stk.variety.nameEn}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-3 py-2 text-gray-600">
+                              {stk.category ? (isSinhala ? stk.category.nameSi || stk.category.nameEn : stk.category.nameEn) : '-'}
+                            </td>
+                            <td className="px-3 py-2 text-center">
+                              {stockQty ? (
+                                <div className="inline-flex items-baseline justify-center gap-1 font-bold text-gray-800">
+                                  <span>{stockQty}</span>
+                                  {!hasUnitInString && (
+                                    <span className="font-normal text-[10px] text-gray-500">
+                                      {stk.unit || (isSinhala ? 'පැළ' : 'plants')}
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="text-gray-400 font-normal">-</span>
+                              )}
+                            </td>
+                            <td className="px-3 py-2 text-center">
+                              {gradeText ? (
+                                <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                  {gradeText}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 font-normal">-</span>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

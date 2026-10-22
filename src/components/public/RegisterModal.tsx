@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../context/AuthContext';
 import { Eye, EyeOff, X, ArrowUpRight, LogIn } from 'lucide-react';
 
 export default function RegisterModal() {
   const { isRegisterModalOpen, closeRegisterModal, openLoginModal, login } = useAuth();
+  const { i18n } = useTranslation();
+  const isSi = i18n.language === 'si';
+
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [registerMethod, setRegisterMethod] = useState<'email' | 'phone'>('email');
@@ -46,37 +50,37 @@ export default function RegisterModal() {
     setError('');
 
     if (!firstName.trim()) {
-      setError('කරුණාකර මුල් නම (First Name) ඇතුළත් කරන්න.');
+      setError(isSi ? 'කරුණාකර මුල් නම ඇතුළත් කරන්න.' : 'Please enter your first name.');
       return;
     }
 
     if (!lastName.trim()) {
-      setError('කරුණාකර අවසාන නම (Last Name) ඇතුළත් කරන්න.');
+      setError(isSi ? 'කරුණාකර අවසාන නම ඇතුළත් කරන්න.' : 'Please enter your last name.');
       return;
     }
 
     if (registerMethod === 'email' && !email.trim()) {
-      setError('කරුණාකර වලංගු ඊමේල් ලිපිනයක් ඇතුළත් කරන්න (Please enter a valid email address).');
+      setError(isSi ? 'කරුණාකර වලංගු ඊමේල් ලිපිනයක් ඇතුළත් කරන්න.' : 'Please enter a valid email address.');
       return;
     }
 
     if (registerMethod === 'phone' && !phone.trim()) {
-      setError('කරුණාකර වලංගු දුරකථන අංකයක් ඇතුළත් කරන්න (Please enter a valid phone number).');
+      setError(isSi ? 'කරුණාකර වලංගු දුරකථන අංකයක් ඇතුළත් කරන්න.' : 'Please enter a valid phone number.');
       return;
     }
 
     if (password !== confirmPassword) {
-      setError('මුරපද නොගැලපේ (Passwords do not match). Please check and try again.');
+      setError(isSi ? 'මුරපද එකිනෙකට නොගැලපේ. කරුණාකර නැවත පරීක්ෂා කරන්න.' : 'Passwords do not match. Please check and try again.');
       return;
     }
 
     if (password.length < 6) {
-      setError('මුරපදයට අවම වශයෙන් අකුරු/ඉලක්කම් 6ක් අඩංගු විය යුතුය (Password must be at least 6 characters).');
+      setError(isSi ? 'මුරපදය අවම වශයෙන් අකුරු 6කින් සමන්විත විය යුතුය.' : 'Password must be at least 6 characters long.');
       return;
     }
 
     if (!agreeTerms) {
-      setError('කරුණාකර සේවා කොන්දේසිවලට එකඟ වන්න (Please agree to the Terms of Service).');
+      setError(isSi ? 'කරුණාකර සේවා කොන්දේසිවලට එකඟ වන්න.' : 'Please agree to the Terms of Service.');
       return;
     }
 
@@ -101,7 +105,7 @@ export default function RegisterModal() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Registration failed. Please try again.');
+        throw new Error(data.error || (isSi ? 'ලියාපදිංචි වීම අසාර්ථක විය. නැවත උත්සාහ කරන්න.' : 'Registration failed. Please try again.'));
       }
 
       if (data.token && data.user) {
@@ -122,7 +126,7 @@ export default function RegisterModal() {
       }
       // Otherwise stay on current public page to proceed seamlessly
     } catch (err: any) {
-      setError(err.message || 'Registration failed. Please try again.');
+      setError(err.message || (isSi ? 'ලියාපදිංචි වීම අසාර්ථක විය. නැවත උත්සාහ කරන්න.' : 'Registration failed. Please try again.'));
     } finally {
       setIsLoading(false);
     }
@@ -138,7 +142,7 @@ export default function RegisterModal() {
 
       {/* Modal Dialog Card (Plain & Clean Payoneer Style) */}
       <div className="relative w-full max-w-[440px] bg-white rounded-[32px] sm:rounded-[36px] shadow-2xl p-7 sm:p-9 border border-gray-100/80 z-10 animate-scaleUp my-6 max-h-[95vh] overflow-y-auto">
-        {/* Top Bar: Aswanna Brand Logo & Sign In Switch */}
+        {/* Top Bar: Aswanna Brand Logo & Language Switcher */}
         <div className="flex items-center justify-between mb-7 sm:mb-8">
           <div className="flex items-center gap-2.5">
             <img 
@@ -151,15 +155,32 @@ export default function RegisterModal() {
             </span>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              type="button"
-              onClick={openLoginModal}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-gray-600 hover:text-[#4d5938] transition-colors cursor-pointer py-1 px-2.5 rounded-full hover:bg-gray-100"
-            >
-              <LogIn size={14} className="text-gray-500" />
-              <span>Sign In</span>
-            </button>
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* Language Switcher */}
+            <div className="flex items-center bg-gray-100 p-0.5 rounded-full text-xs font-medium">
+              <button
+                type="button"
+                onClick={() => i18n.changeLanguage('en')}
+                className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
+                  !isSi
+                    ? 'bg-white text-gray-900 shadow-2xs font-bold'
+                    : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                English
+              </button>
+              <button
+                type="button"
+                onClick={() => i18n.changeLanguage('si')}
+                className={`px-2.5 py-1 rounded-full transition-all cursor-pointer ${
+                  isSi
+                    ? 'bg-[#4d5938] text-white shadow-2xs font-bold'
+                    : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                සිංහල
+              </button>
+            </div>
 
             <button
               onClick={closeRegisterModal}
@@ -174,10 +195,10 @@ export default function RegisterModal() {
         {/* Clean Large Heading */}
         <div className="mb-6 text-left">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight">
-            Sign Up
+            {isSi ? 'ලියාපදිංචි වන්න' : 'Sign Up'}
           </h1>
           <p className="text-xs text-gray-400 mt-1">
-            Create your Aswanna account to get started
+            {isSi ? 'ආරම්භ කිරීමට ඔබගේ අස්වැන්න ගිණුම සාදන්න' : 'Create your Aswanna account to get started'}
           </p>
         </div>
 
@@ -192,7 +213,7 @@ export default function RegisterModal() {
                 autoFocus
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                placeholder="First Name"
+                placeholder={isSi ? 'මුල් නම *' : 'First Name *'}
                 className="w-full px-4 sm:px-5 py-3 rounded-full border border-gray-200 focus:border-[#4d5938] focus:outline-none focus:ring-1 focus:ring-[#4d5938]/30 text-sm text-gray-900 placeholder:text-gray-400 bg-white transition-all"
               />
             </div>
@@ -202,7 +223,7 @@ export default function RegisterModal() {
                 required
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                placeholder="Last Name"
+                placeholder={isSi ? 'වාසගම *' : 'Last Name *'}
                 className="w-full px-4 sm:px-5 py-3 rounded-full border border-gray-200 focus:border-[#4d5938] focus:outline-none focus:ring-1 focus:ring-[#4d5938]/30 text-sm text-gray-900 placeholder:text-gray-400 bg-white transition-all"
               />
             </div>
@@ -222,7 +243,7 @@ export default function RegisterModal() {
                   : 'text-gray-500 hover:text-gray-800'
               }`}
             >
-              Email
+              {isSi ? 'ඊමේල්' : 'Email'}
             </button>
             <button
               type="button"
@@ -236,7 +257,7 @@ export default function RegisterModal() {
                   : 'text-gray-500 hover:text-gray-800'
               }`}
             >
-              Phone
+              {isSi ? 'දුරකථන' : 'Phone'}
             </button>
           </div>
 
@@ -248,7 +269,7 @@ export default function RegisterModal() {
                 required={registerMethod === 'email'}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email Address"
+                placeholder={isSi ? 'ඊමේල් ලිපිනය *' : 'Email Address *'}
                 className="w-full px-5 py-3 rounded-full border border-gray-200 focus:border-[#4d5938] focus:outline-none focus:ring-1 focus:ring-[#4d5938]/30 text-sm text-gray-900 placeholder:text-gray-400 bg-white transition-all"
               />
             </div>
@@ -259,7 +280,7 @@ export default function RegisterModal() {
                 required={registerMethod === 'phone'}
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="07X XXXXXXX / Phone Number"
+                placeholder={isSi ? '07X XXXXXXX / දුරකථන අංකය *' : '07X XXXXXXX / Phone Number *'}
                 className="w-full px-5 py-3 rounded-full border border-gray-200 focus:border-[#4d5938] focus:outline-none focus:ring-1 focus:ring-[#4d5938]/30 text-sm text-gray-900 placeholder:text-gray-400 bg-white transition-all"
               />
             </div>
@@ -272,7 +293,7 @@ export default function RegisterModal() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Password (min 6 characters)"
+              placeholder={isSi ? 'මුරපදය (අවම අකුරු 6ක්) *' : 'Password (min 6 characters) *'}
               className="w-full pl-5 pr-12 py-3 rounded-full border border-gray-200 focus:border-[#4d5938] focus:outline-none focus:ring-1 focus:ring-[#4d5938]/30 text-sm text-gray-900 placeholder:text-gray-400 bg-white transition-all"
             />
             <button
@@ -291,7 +312,7 @@ export default function RegisterModal() {
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm Password"
+              placeholder={isSi ? 'මුරපදය නැවත ඇතුළත් කරන්න *' : 'Confirm Password *'}
               className="w-full pl-5 pr-12 py-3 rounded-full border border-gray-200 focus:border-[#4d5938] focus:outline-none focus:ring-1 focus:ring-[#4d5938]/30 text-sm text-gray-900 placeholder:text-gray-400 bg-white transition-all"
             />
             <button
@@ -322,8 +343,16 @@ export default function RegisterModal() {
                 />
               </button>
               <span className="text-xs text-gray-500 leading-tight">
-                <span onClick={() => setAgreeTerms(!agreeTerms)} className="cursor-pointer hover:text-gray-800 transition-colors">I agree to the </span>
-                <a href="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} className="text-[#4d5938] hover:underline font-medium">Terms of Service</a> & <a href="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} className="text-[#4d5938] hover:underline font-medium">Privacy Policy</a>
+                <span onClick={() => setAgreeTerms(!agreeTerms)} className="cursor-pointer hover:text-gray-800 transition-colors">
+                  {isSi ? 'මම ' : 'I agree to the '}
+                </span>
+                <a href="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} className="text-[#4d5938] hover:underline font-medium">
+                  {isSi ? 'සේවා කොන්දේසි' : 'Terms of Service'}
+                </a>
+                {' & '}
+                <a href="#" onClick={(e) => { e.preventDefault(); e.stopPropagation(); }} className="text-[#4d5938] hover:underline font-medium">
+                  {isSi ? 'රහස්‍යතා ප්‍රතිපත්තියට එකඟ වෙමි' : 'Privacy Policy'}
+                </a>
               </span>
             </div>
           </div>
@@ -340,18 +369,31 @@ export default function RegisterModal() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full mt-3 py-2 pl-6 pr-2 rounded-full bg-[#4d5938] hover:bg-[#404b2e] border border-white/40 text-white font-bold text-sm shadow-[0_6px_20px_rgba(77,89,56,0.32)] hover:shadow-[0_8px_25px_rgba(77,89,56,0.42)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-between group cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+            className="relative w-full mt-3 py-3 px-6 rounded-full bg-[#4d5938] hover:bg-[#404b2e] border border-white/40 text-white font-bold text-sm shadow-[0_6px_20px_rgba(77,89,56,0.32)] hover:shadow-[0_8px_25px_rgba(77,89,56,0.42)] hover:scale-[1.01] active:scale-[0.99] transition-all duration-300 flex items-center justify-center group cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
           >
             <span className="font-semibold text-sm tracking-wide text-white">
-              {isLoading ? 'Creating Account...' : 'Sign Up'}
+              {isLoading
+                ? (isSi ? 'ගිණුම සාදමින් පවතී...' : 'Creating Account...')
+                : (isSi ? 'ලියාපදිංචි වන්න' : 'Sign Up')}
             </span>
-            <div className="w-8 h-8 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-white shrink-0 group-hover:rotate-45 transition-transform duration-300 shadow-2xs">
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/20 border border-white/40 flex items-center justify-center text-white shrink-0 group-hover:rotate-45 transition-transform duration-300 shadow-2xs">
               {isLoading ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (
                 <ArrowUpRight size={17} className="stroke-[2.5]" />
               )}
             </div>
+          </button>
+
+          {/* Sign In Button */}
+          <button
+            type="button"
+            id="register-modal-signin-btn"
+            onClick={openLoginModal}
+            className="w-full py-3 rounded-full border border-[#4d5938] text-[#4d5938] hover:bg-[#4d5938]/5 font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
+          >
+            <LogIn size={16} />
+            <span>{isSi ? 'ඇතුල් වන්න' : 'Sign In'}</span>
           </button>
         </form>
 
@@ -360,9 +402,9 @@ export default function RegisterModal() {
           <span>© 2026 Aswanna Inc.</span>
           <div className="flex items-center gap-3">
             <Link to="/pages/contact" onClick={closeRegisterModal} className="hover:text-gray-600 transition-colors">
-              Contact Us
+              {isSi ? 'අප අමතන්න' : 'Contact Us'}
             </Link>
-            <span>English</span>
+            <span>{isSi ? 'සිංහල' : 'English'}</span>
           </div>
         </div>
       </div>

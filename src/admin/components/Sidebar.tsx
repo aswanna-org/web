@@ -7,7 +7,6 @@ import {
   Leaf,
   Landmark,
   Building2,
-  Sprout,
   MapPin,
   Package,
   ShoppingCart,
@@ -51,7 +50,6 @@ const navGroups: NavGroup[] = [
       { name: 'Item Management', path: '/admin/items', icon: Leaf },
       { name: 'Institution Management', path: '/admin/institutions', icon: Landmark },
       { name: 'Govijana Sewa Management', path: '/admin/asc', icon: Building2 },
-      { name: 'Plant Management', path: '/admin/plants', icon: Sprout },
       { name: 'Nursery Management', path: '/admin/nurseries', icon: Trees },
       { name: 'Agro Land Management', path: '/admin/agrolands', icon: MapPin }
     ]

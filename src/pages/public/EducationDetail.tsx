@@ -13,6 +13,51 @@ import AgroLoader from '../../components/common/AgroLoader';
 import { useAuth } from '../../context/AuthContext';
 import SEO from '../../components/common/SEO';
 
+// Helper to extract language-isolated course title from bilingual composite titles
+// e.g. "ජලජීවී වගා තාක්ෂණ පාඨමාලාව - AQUACULTURE TECHNOLOGY COURSE (NVQ LEVEL 4)"
+export const formatCourseTitle = (title: string | undefined | null, isSinhala: boolean): string => {
+  if (!title) return '';
+  const trimmed = title.trim();
+
+  // 1. Check if title is split by a hyphen, en-dash, em-dash, slash, or pipe
+  const separatorMatch = trimmed.match(/^(.+?)\s*(?:[-–—/|])\s*(.+)$/);
+  if (separatorMatch) {
+    const part1 = separatorMatch[1].trim();
+    const part2 = separatorMatch[2].trim();
+    const part1HasSi = /[\u0D80-\u0DFF]/.test(part1);
+    const part2HasSi = /[\u0D80-\u0DFF]/.test(part2);
+    const part1HasEn = /[a-zA-Z]/.test(part1);
+    const part2HasEn = /[a-zA-Z]/.test(part2);
+
+    if (part1HasSi && !part2HasSi && part2HasEn) {
+      return isSinhala ? part1 : part2;
+    }
+    if (!part1HasSi && part1HasEn && part2HasSi) {
+      return isSinhala ? part2 : part1;
+    }
+  }
+
+  // 2. Check if title has parentheses containing the second language
+  const parenMatch = trimmed.match(/^(.+?)\s*\((.+?)\)$/);
+  if (parenMatch) {
+    const main = parenMatch[1].trim();
+    const bracketed = parenMatch[2].trim();
+    const mainHasSi = /[\u0D80-\u0DFF]/.test(main);
+    const bracketedHasSi = /[\u0D80-\u0DFF]/.test(bracketed);
+    const mainHasEn = /[a-zA-Z]/.test(main);
+    const bracketedHasEn = /[a-zA-Z]/.test(bracketed);
+
+    if (mainHasSi && !bracketedHasSi && bracketedHasEn) {
+      return isSinhala ? main : bracketed;
+    }
+    if (!mainHasSi && mainHasEn && bracketedHasSi) {
+      return isSinhala ? bracketed : main;
+    }
+  }
+
+  return trimmed;
+};
+
 // Helper to extract or translate bilingual strings like "මාර්තු (March)" based on active language
 export const formatBilingualText = (text: string | undefined | null, isSinhala: boolean): string => {
   if (!text) return '';
@@ -333,8 +378,9 @@ export default function EducationDetail() {
   const defaultImage = 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80';
   const heroImage = course.bannerImageUrl || defaultImage;
 
-  const pageTitle = `${course.title} | Aswanna Agro Education`;
-  const pageDesc = course.shortDescription || (course.fullDescription ? course.fullDescription.replace(/<[^>]*>?/gm, '').slice(0, 160) : `Aswanna Agro Education course on ${course.title}.`);
+  const resolvedTitle = formatCourseTitle(course.title, isSinhala);
+  const pageTitle = `${resolvedTitle} | Aswanna Agro Education`;
+  const pageDesc = course.shortDescription || (course.fullDescription ? course.fullDescription.replace(/<[^>]*>?/gm, '').slice(0, 160) : `Aswanna Agro Education course on ${resolvedTitle}.`);
 
   return (
     <div className="w-full min-h-screen bg-[#f8fafc] pb-20">
@@ -347,7 +393,7 @@ export default function EducationDetail() {
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "Course",
-          "name": course.title,
+          "name": resolvedTitle,
           "description": pageDesc,
           "courseCode": course.courseCode,
           "provider": {
@@ -358,7 +404,7 @@ export default function EducationDetail() {
       />
       {/* ── Page Hero ── */}
       <PageHero
-        title={course.title}
+        title={resolvedTitle}
         description={course.shortDescription || ''}
         image={heroImage}
         gradientColor="#4c1d95"
@@ -415,9 +461,66 @@ export default function EducationDetail() {
             </div>
           </div>
 
+          {/* ── Course Primary Header: Clean Typography without badges ── */}
+          <div className="bg-white px-6 sm:px-8 py-6 border-b border-gray-100">
+            {/* Meta category & institution type text without pill badges */}
+            <div className="flex items-center gap-2 text-xs font-medium text-gray-500 mb-2 flex-wrap">
+              {course.category && (
+                <span>
+                  {isSinhala ? (course.category.categoryNameSi || course.category.categoryNameEn) : (course.category.categoryNameEn || course.category.categoryNameSi)}
+                </span>
+              )}
+              {course.category && <span className="text-gray-300">•</span>}
+              <span className="font-semibold text-gray-700">
+                {course.institutionType === 'Private' || course.institutionTypeEn === 'Private'
+                  ? (isSinhala ? `${course.institutionTypeSi || 'පෞද්ගලික ආයතනය'}` : `${course.institutionTypeEn || 'Private Institution'}`)
+                  : course.institutionType === 'Semi-Government' || course.institutionTypeEn === 'Semi-Government'
+                  ? (isSinhala ? `${course.institutionTypeSi || 'අර්ධ රාජ්‍ය ආයතනය'}` : `${course.institutionTypeEn || 'Semi-Government Institution'}`)
+                  : (isSinhala ? `${course.institutionTypeSi || 'රාජ්‍ය ආයතනය'}` : `${course.institutionTypeEn || 'Government Institution'}`)}
+              </span>
+            </div>
+
+            {/* Course Title */}
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 leading-snug">
+              {resolvedTitle}
+            </h1>
+
+            {/* Institute Name */}
+            <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-600 mt-2.5">
+              <span className="text-gray-400 font-medium">{isSinhala ? 'ආයතනය:' : 'Institution:'}</span>
+              <span className="font-semibold text-emerald-900">
+                {course.accreditedBy || (isSinhala ? 'කෘෂිකර්ම දෙපාර්තමේන්තුව / TVEC' : 'Department of Agriculture / TVEC')}
+              </span>
+            </div>
+          </div>
+
           {/* Form Fields Grid: 3 columns on lg screens */}
           <div className="p-6 md:p-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-5 gap-x-6 text-xs sm:text-sm">
+
+              {/* Field: Institution */}
+              <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
+                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                  {isSinhala ? 'ආයතනය / පවත්වන්නේ' : 'Institution / Offering Body'}
+                </p>
+                <p className="font-bold text-gray-900">
+                  {course.accreditedBy || (isSinhala ? 'කෘෂිකර්ම දෙපාර්තමේන්තුව' : 'Department of Agriculture')}
+                </p>
+              </div>
+
+              {/* Field: Institution Type */}
+              <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
+                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                  {isSinhala ? 'ආයතන වර්ගය' : 'Institution Type'}
+                </p>
+                <p className="font-bold text-gray-900">
+                  {course.institutionType === 'Private' || course.institutionTypeEn === 'Private'
+                    ? (isSinhala ? `${course.institutionTypeSi || 'පෞද්ගලික ආයතනය'}` : `${course.institutionTypeEn || 'Private Institution'}`)
+                    : course.institutionType === 'Semi-Government' || course.institutionTypeEn === 'Semi-Government'
+                    ? (isSinhala ? `${course.institutionTypeSi || 'අර්ධ රාජ්‍ය ආයතනය'}` : `${course.institutionTypeEn || 'Semi-Government Institution'}`)
+                    : (isSinhala ? `${course.institutionTypeSi || 'රාජ්‍ය ආයතනය'}` : `${course.institutionTypeEn || 'Government Institution'}`)}
+                </p>
+              </div>
 
               {/* Field: Level */}
               <div className="p-4 bg-gray-50/70 rounded-xl border border-gray-100">
@@ -982,7 +1085,7 @@ export default function EducationDetail() {
                 <h3 className="text-lg font-bold text-gray-900 mt-0.5">
                   {isSinhala ? 'පාඨමාලාවට ලියාපදිංචි වීමේ පෝරමය' : 'Course Application Form'}
                 </h3>
-                <p className="text-xs text-gray-500 truncate max-w-sm mt-0.5">{course.title}</p>
+                <p className="text-xs text-gray-500 truncate max-w-sm mt-0.5">{resolvedTitle}</p>
               </div>
               <button
                 type="button"

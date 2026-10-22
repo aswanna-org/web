@@ -91,6 +91,9 @@ interface ShortCourse {
   id: string;
   slug: string;
   activeState: boolean;
+  institutionType?: string;
+  institutionTypeSi?: string;
+  institutionTypeEn?: string;
   titleSi: string;
   titleEn: string;
   overviewSi?: string | null;
@@ -143,6 +146,7 @@ export default function ShortCourseManagement() {
   const [courseFilterTrainer, setCourseFilterTrainer] = useState('all');
   const [courseFilterDistrict, setCourseFilterDistrict] = useState('all');
   const [courseFilterStatus, setCourseFilterStatus] = useState('all');
+  const [courseFilterInstitutionType, setCourseFilterInstitutionType] = useState('all');
   const [kpis, setKpis] = useState({ total: 0, active: 0, inactive: 0, closingSoon: 0 });
 
   // ── ASSOCIATE DATA ──
@@ -199,6 +203,9 @@ export default function ShortCourseManagement() {
     titleEn: '',
     titleSi: '',
     slug: '',
+    institutionType: 'Government',
+    institutionTypeSi: 'රාජ්‍ය',
+    institutionTypeEn: 'Government',
     shortCourseSubjectId: '',
     shortCourseCenterId: '',
     shortCourseTrainerId: '',
@@ -318,6 +325,7 @@ export default function ShortCourseManagement() {
       if (courseFilterTrainer !== 'all') url += `&trainerId=${encodeURIComponent(courseFilterTrainer)}`;
       if (courseFilterDistrict !== 'all') url += `&district=${encodeURIComponent(courseFilterDistrict)}`;
       if (courseFilterStatus !== 'all') url += `&activeState=${courseFilterStatus === 'active'}`;
+      if (courseFilterInstitutionType !== 'all') url += `&institutionType=${encodeURIComponent(courseFilterInstitutionType)}`;
 
       const res = await fetch(url, { headers: authHeaders });
       if (res.ok) {
@@ -436,6 +444,7 @@ export default function ShortCourseManagement() {
     courseFilterTrainer,
     courseFilterDistrict,
     courseFilterStatus,
+    courseFilterInstitutionType,
     subjectsPage,
     subjectSearch,
     centersPage,
@@ -519,6 +528,9 @@ export default function ShortCourseManagement() {
       titleEn: course.titleEn || '',
       titleSi: course.titleSi || '',
       slug: course.slug || '',
+      institutionType: course.institutionType || 'Government',
+      institutionTypeSi: course.institutionTypeSi || (course.institutionType === 'Private' ? 'පුද්ගලික' : course.institutionType === 'Semi-Government' ? 'අර්ධ රාජ්‍ය' : 'රාජ්‍ය'),
+      institutionTypeEn: course.institutionTypeEn || course.institutionType || 'Government',
       shortCourseSubjectId: course.shortCourseSubjectId || '',
       shortCourseCenterId: course.shortCourseCenterId || '',
       shortCourseTrainerId: course.shortCourseTrainerId || '',
@@ -576,6 +588,9 @@ export default function ShortCourseManagement() {
       formData.append('titleEn', courseForm.titleEn.trim());
       formData.append('titleSi', courseForm.titleSi.trim());
       formData.append('slug', finalSlug);
+      formData.append('institutionType', courseForm.institutionType || 'Government');
+      formData.append('institutionTypeSi', courseForm.institutionTypeSi || (courseForm.institutionType === 'Private' ? 'පුද්ගලික' : courseForm.institutionType === 'Semi-Government' ? 'අර්ධ රාජ්‍ය' : 'රාජ්‍ය'));
+      formData.append('institutionTypeEn', courseForm.institutionTypeEn || courseForm.institutionType || 'Government');
       formData.append('shortCourseSubjectId', courseForm.shortCourseSubjectId);
       formData.append('shortCourseCenterId', courseForm.shortCourseCenterId);
       if (courseForm.shortCourseTrainerId) formData.append('shortCourseTrainerId', courseForm.shortCourseTrainerId);
@@ -1203,7 +1218,21 @@ export default function ShortCourseManagement() {
               <option value="inactive">Inactive Only</option>
             </select>
 
-            {(courseSearch || courseFilterSubject !== 'all' || courseFilterCenter !== 'all' || courseFilterTrainer !== 'all' || courseFilterDistrict !== 'all' || courseFilterStatus !== 'all') && (
+            <select
+              value={courseFilterInstitutionType}
+              onChange={e => {
+                setCourseFilterInstitutionType(e.target.value);
+                setCoursesPage(1);
+              }}
+              className="px-3 py-2 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 bg-white"
+            >
+              <option value="all">All Institutions (සියලු ආයතන)</option>
+              <option value="Government">🏛️ Government (රාජ්‍ය)</option>
+              <option value="Private">🏢 Private (පෞද්ගලික)</option>
+              <option value="Semi-Government">🏛️🏢 Semi-Gov (අර්ධ රාජ්‍ය)</option>
+            </select>
+
+            {(courseSearch || courseFilterSubject !== 'all' || courseFilterCenter !== 'all' || courseFilterTrainer !== 'all' || courseFilterDistrict !== 'all' || courseFilterStatus !== 'all' || courseFilterInstitutionType !== 'all') && (
               <button
                 onClick={() => {
                   setCourseSearch('');
@@ -1212,6 +1241,7 @@ export default function ShortCourseManagement() {
                   setCourseFilterTrainer('all');
                   setCourseFilterDistrict('all');
                   setCourseFilterStatus('all');
+                  setCourseFilterInstitutionType('all');
                   setCoursesPage(1);
                 }}
                 className="flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
@@ -1248,6 +1278,7 @@ export default function ShortCourseManagement() {
                   <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
                     <tr>
                       <th className="px-3 py-2">Course Program</th>
+                      <th className="px-3 py-2">Institution</th>
                       <th className="px-3 py-2">Subject</th>
                       <th className="px-3 py-2">Center</th>
                       <th className="px-3 py-2">Duration</th>
@@ -1276,6 +1307,24 @@ export default function ShortCourseManagement() {
                               {course.titleEn}
                             </span>
                           </div>
+                        </td>
+
+                        <td className="px-3 py-1.5 whitespace-nowrap">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
+                            course.institutionType === 'Private' || course.institutionTypeEn === 'Private'
+                              ? 'bg-purple-50 text-purple-700 border-purple-200'
+                              : course.institutionType === 'Semi-Government' || course.institutionTypeEn === 'Semi-Government'
+                              ? 'bg-amber-50 text-amber-700 border-amber-200'
+                              : 'bg-blue-50 text-blue-700 border-blue-200'
+                          }`}>
+                            <span>
+                              {course.institutionType === 'Private' || course.institutionTypeEn === 'Private'
+                                ? `🏢 ${course.institutionTypeSi || 'පුද්ගලික'}`
+                                : course.institutionType === 'Semi-Government' || course.institutionTypeEn === 'Semi-Government'
+                                ? `🏛️ ${course.institutionTypeSi || 'අර්ධ රාජ්‍ය'}`
+                                : `🏛️ ${course.institutionTypeSi || 'රාජ්‍ය'}`}
+                            </span>
+                          </span>
                         </td>
 
                         <td className="px-3 py-1.5 whitespace-nowrap text-gray-700">
@@ -1955,6 +2004,85 @@ export default function ShortCourseManagement() {
                             <option key={t.id} value={t.id}>{t.nameEn} ({t.positionEn || 'Instructor'})</option>
                           ))}
                         </select>
+                      </div>
+                    </div>
+
+                    {/* Institution Type Section (Bilingual Sinhala & English) */}
+                    <div className="bg-white p-4 rounded-xl border border-gray-200 space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <label className={fieldLabelClass}>
+                            Institution Type (ආයතන වර්ගය) <span className="text-red-500">*</span>
+                          </label>
+                          <p className="text-[11px] text-gray-500">
+                            තෝරන්න හෝ සිංහල සහ ඉංග්‍රීසි භාෂා දෙකෙන්ම ආයතන වර්ගය සකසන්න.
+                          </p>
+                        </div>
+                        {/* Quick Presets */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <button
+                            type="button"
+                            onClick={() => setCourseForm(prev => ({ ...prev, institutionType: 'Government', institutionTypeEn: 'Government', institutionTypeSi: 'රාජ්‍ය' }))}
+                            className={`px-2.5 py-1 text-xs rounded-lg font-semibold border transition-all cursor-pointer ${
+                              courseForm.institutionType === 'Government'
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                                : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
+                            }`}
+                          >
+                            🏛️ Government (රාජ්‍ය)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCourseForm(prev => ({ ...prev, institutionType: 'Private', institutionTypeEn: 'Private', institutionTypeSi: 'පුද්ගලික' }))}
+                            className={`px-2.5 py-1 text-xs rounded-lg font-semibold border transition-all cursor-pointer ${
+                              courseForm.institutionType === 'Private'
+                                ? 'bg-purple-600 text-white border-purple-600 shadow-xs'
+                                : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
+                            }`}
+                          >
+                            🏢 Private (පුද්ගලික)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCourseForm(prev => ({ ...prev, institutionType: 'Semi-Government', institutionTypeEn: 'Semi-Government', institutionTypeSi: 'අර්ධ රාජ්‍ය' }))}
+                            className={`px-2.5 py-1 text-xs rounded-lg font-semibold border transition-all cursor-pointer ${
+                              courseForm.institutionType === 'Semi-Government'
+                                ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                                : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'
+                            }`}
+                          >
+                            🏛️ Semi-Gov (අර්ධ රාජ්‍ය)
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                            English Type Name *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Government, Private, Semi-Government"
+                            value={courseForm.institutionTypeEn || courseForm.institutionType || ''}
+                            onChange={e => setCourseForm(prev => ({ ...prev, institutionTypeEn: e.target.value, institutionType: e.target.value }))}
+                            className={fieldInputClass}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-semibold text-gray-700 mb-1">
+                            Sinhala Type Name (සිංහල නම) *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="උදා: රාජ්‍ය, පුද්ගලික, අර්ධ රාජ්‍ය"
+                            value={courseForm.institutionTypeSi || ''}
+                            onChange={e => setCourseForm(prev => ({ ...prev, institutionTypeSi: e.target.value }))}
+                            className={`${fieldInputClass} font-sinhala`}
+                          />
+                        </div>
                       </div>
                     </div>
 
@@ -3051,6 +3179,15 @@ export default function ShortCourseManagement() {
                     </span>
                     <span className={`text-xs px-3 py-1 rounded-full font-bold ${previewCourse.activeState ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-600'}`}>
                       {previewCourse.activeState ? 'Active' : 'Inactive'}
+                    </span>
+                    <span className={`text-xs px-3 py-1 rounded-full font-bold border ${
+                      previewCourse.institutionType === 'Private'
+                        ? 'bg-purple-50 text-purple-700 border-purple-200'
+                        : previewCourse.institutionType === 'Semi-Government'
+                        ? 'bg-amber-50 text-amber-700 border-amber-200'
+                        : 'bg-blue-50 text-blue-700 border-blue-200'
+                    }`}>
+                      {previewCourse.institutionType === 'Private' ? '🏢 Private' : previewCourse.institutionType === 'Semi-Government' ? '🏛️ Semi-Gov' : '🏛️ Government'}
                     </span>
                     {(previewCourse.district || previewCourse.shortCourseCenter?.district) && (
                       <span className="bg-blue-50 text-blue-700 text-xs px-3 py-1 rounded-full font-bold flex items-center gap-1">
