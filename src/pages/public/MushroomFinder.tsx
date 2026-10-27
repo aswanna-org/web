@@ -16,10 +16,16 @@ import type {
   MushroomFormDropdownOptions
 } from '../../admin/components/mushroom/types';
 import { getDistricts, getDSDsByDistrict } from 'sl-gnd-dsd-districts';
+import { useAuth } from '../../context/AuthContext';
+import MushroomFormModal from '../../admin/components/mushroom/MushroomFormModal';
 
 export default function MushroomFinder() {
   const { i18n } = useTranslation();
   const isSinhala = i18n.language === 'si';
+  const { isAuthenticated, openLoginModal } = useAuth();
+
+  // Modal State for Public Supplier Registration
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
 
   // State
   const [suppliers, setSuppliers] = useState<MushroomSupplierItem[]>([]);
@@ -215,15 +221,22 @@ export default function MushroomFinder() {
             </span>
           </div>
 
-          <Link
-            to="/admin/mushrooms"
+          <button
+            type="button"
+            onClick={() => {
+              if (!isAuthenticated) {
+                openLoginModal();
+                return;
+              }
+              setIsPostModalOpen(true);
+            }}
             className="inline-flex items-center justify-between gap-1.5 sm:gap-2.5 pl-3 sm:pl-5 pr-1 sm:pr-2 py-1 sm:py-2 rounded-full bg-white/70 hover:bg-white/95 backdrop-blur-xl border border-gray-200/80 hover:border-emerald-300 text-gray-900 font-bold text-[11px] sm:text-sm shadow-[0_4px_16px_rgba(0,0,0,0.05),inset_0_1px_1.5px_rgba(255,255,255,1)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer shrink-0"
           >
             <span className="truncate">{isSinhala ? 'සපයන්නෙකු එක්කරන්න' : 'Register Supplier'}</span>
             <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-50 text-[#006837] border border-emerald-100/80 flex items-center justify-center group-hover:rotate-90 transition-transform duration-300 shadow-2xs shrink-0">
               <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5 stroke-[2.5]" />
             </div>
-          </Link>
+          </button>
         </div>
 
         {/* Filter Bar */}
@@ -481,6 +494,25 @@ export default function MushroomFinder() {
           </div>
         )}
       </div>
+
+      {/* Public Add Mushroom Supplier Modal */}
+      <MushroomFormModal
+        isOpen={isPostModalOpen}
+        onClose={() => setIsPostModalOpen(false)}
+        onSuccess={() => {
+          fetchSuppliers(1);
+        }}
+        editingItem={null}
+        options={options}
+        onOptionsRefresh={() => {
+          fetch(`${API_BASE_URL}/mushroom-suppliers/form-options`)
+            .then((res) => res.json())
+            .then((json) => {
+              if (json.data) setOptions(json.data);
+            });
+        }}
+        isAdmin={false}
+      />
     </div>
   );
 }

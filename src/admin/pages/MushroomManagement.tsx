@@ -566,6 +566,7 @@ export default function MushroomManagement() {
           editingItem={editingSupplier}
           options={options}
           onOptionsRefresh={fetchFormOptions}
+          isAdmin={true}
         />
       )}
 
