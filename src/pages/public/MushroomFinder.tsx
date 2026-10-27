@@ -383,7 +383,7 @@ export default function MushroomFinder() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-5">
             {suppliers.map((supplier, index) => {
               const primaryImg =
                 supplier.images?.find((img) => img.isPrimary)?.imageUrl ||
@@ -413,7 +413,7 @@ export default function MushroomFinder() {
                     className="bg-white rounded-2xl sm:rounded-3xl shadow-[0_4px_16px_rgba(0,0,0,0.05)] hover:shadow-[0_16px_36px_rgba(0,0,0,0.12)] transition-all duration-300 border border-gray-100 flex flex-col h-full overflow-hidden group hover:-translate-y-1.5 cursor-pointer block"
                   >
                     {/* Media Top */}
-                    <div className="relative h-44 sm:h-48 lg:h-52 w-full overflow-hidden bg-gray-100">
+                    <div className="relative h-28 xs:h-36 sm:h-48 lg:h-52 w-full overflow-hidden bg-gray-100">
                       <img
                         src={primaryImg}
                         alt={businessName}
@@ -422,11 +422,11 @@ export default function MushroomFinder() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
 
                       {/* Top Badges */}
-                      <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between gap-1.5 pointer-events-none">
+                      <div className="absolute top-2 sm:top-2.5 left-2 sm:left-2.5 right-2 sm:right-2.5 flex items-center justify-between gap-1 pointer-events-none">
                         <AswannaLeafBadge />
 
                         {supplier.images && supplier.images.length > 1 && (
-                          <span className="px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-bold">
+                          <span className="px-1.5 sm:px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-bold">
                             {supplier.images.length} Photos
                           </span>
                         )}
@@ -436,25 +436,25 @@ export default function MushroomFinder() {
                     </div>
 
                     {/* Card Content Body */}
-                    <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
-                      <div className="space-y-1.5">
+                    <div className="p-2.5 sm:p-5 flex-1 flex flex-col justify-between">
+                      <div className="space-y-1 sm:space-y-1.5">
                         {/* Title (Cultivation / Farm Name) */}
-                        <h3 className="font-bold text-gray-900 text-sm sm:text-base group-hover:text-[#006837] transition-colors line-clamp-1 leading-snug">
+                        <h3 className="font-bold text-gray-900 text-xs sm:text-base group-hover:text-[#006837] transition-colors line-clamp-1 leading-snug">
                           {businessName}
                         </h3>
 
                         {/* Owner Name */}
                         {owner && (
-                          <div className="text-[11px] text-gray-600 font-medium flex items-center gap-1">
-                            <span className="text-gray-400">{isSinhala ? 'හිමිකරු:' : 'Owner:'}</span>
+                          <div className="text-[10px] sm:text-[11px] text-gray-600 font-medium flex items-center gap-1">
+                            <span className="text-gray-400 shrink-0">{isSinhala ? 'හිමිකරු:' : 'Owner:'}</span>
                             <span className="font-semibold text-gray-800 truncate">{owner}</span>
                           </div>
                         )}
 
                         {/* Location address row */}
                         {(district || province) && (
-                          <div className="flex items-center gap-1.5 text-[11px] text-gray-500 pt-0.5">
-                            <MapPin size={12} className="text-[#006837] shrink-0" />
+                          <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] text-gray-500 pt-0.5">
+                            <MapPin size={11} className="text-[#006837] shrink-0 sm:w-3 sm:h-3" />
                             <span className="truncate">
                               {district}
                               {province ? `, ${province}` : ''}
@@ -464,10 +464,10 @@ export default function MushroomFinder() {
                       </div>
 
                       {/* Card Footer: "පිවිසෙන්න ↗" Button */}
-                      <div className="flex items-center justify-between pt-3 border-t border-gray-100 mt-3.5">
-                        <span className="bg-[#006837] group-hover:bg-[#00532c] text-white text-[10px] sm:text-xs font-semibold px-3 sm:px-3.5 py-1.5 rounded-full inline-flex items-center gap-1 transition-all shadow-xs group-hover:shadow">
+                      <div className="flex items-center justify-between pt-2 sm:pt-3 border-t border-gray-100 mt-2 sm:mt-3.5">
+                        <span className="bg-[#006837] group-hover:bg-[#00532c] text-white text-[9px] sm:text-xs font-semibold px-2 sm:px-3.5 py-1 sm:py-1.5 rounded-full inline-flex items-center gap-0.5 sm:gap-1 transition-all shadow-xs group-hover:shadow">
                           <span>{isSinhala ? 'පිවිසෙන්න' : 'Explore'}</span>
-                          <ArrowUpRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.5]" />
+                          <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4 stroke-[2.5]" />
                         </span>
 
                         <AswannaLeafBadge />

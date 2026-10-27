@@ -307,7 +307,7 @@ export default function MushroomDetail() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-2.5 sm:gap-4">
                   {supplier.featuredItems.map((item, idx) => {
                     const title = isSinhala
                       ? item.itemTypeSi || item.itemTypeEn
@@ -325,10 +325,10 @@ export default function MushroomDetail() {
                     return (
                       <div
                         key={idx}
-                        className="bg-white rounded-2xl border border-gray-200/90 hover:border-emerald-300 shadow-[0_4px_16px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_rgba(0,104,55,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden group"
+                        className="bg-white rounded-xl sm:rounded-2xl border border-gray-200/90 hover:border-emerald-300 shadow-[0_4px_16px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_rgba(0,104,55,0.08)] hover:-translate-y-1 transition-all duration-300 flex flex-col overflow-hidden group"
                       >
                         {/* Top: Full-bleed product image */}
-                        <div className="relative h-40 sm:h-44 w-full overflow-hidden bg-gray-100">
+                        <div className="relative h-28 xs:h-36 sm:h-44 w-full overflow-hidden bg-gray-100">
                           {item.imageUrl ? (
                             <img
                               src={item.imageUrl}
@@ -337,8 +337,8 @@ export default function MushroomDetail() {
                             />
                           ) : (
                             <div className="w-full h-full flex flex-col items-center justify-center bg-emerald-50/40 text-emerald-700/60 gap-1.5">
-                              <Package size={26} className="stroke-[1.75]" />
-                              <span className="text-[11px] font-medium text-gray-400">
+                              <Package size={22} className="stroke-[1.75]" />
+                              <span className="text-[10px] sm:text-[11px] font-medium text-gray-400">
                                 {isSinhala ? 'ඡායාරූපයක් නැත' : 'No photo'}
                               </span>
                             </div>
@@ -349,34 +349,34 @@ export default function MushroomDetail() {
 
                           {/* Floating Badge */}
                           {badgeText && (
-                            <div className="absolute top-2.5 left-2.5">
-                              <span className="px-2.5 py-0.5 rounded-full bg-white/95 backdrop-blur-md text-amber-900 border border-amber-200/80 text-[10px] font-bold shadow-xs flex items-center gap-1">
-                                <Sparkles size={11} className="text-amber-600" />
-                                <span>{badgeText}</span>
+                            <div className="absolute top-1.5 sm:top-2.5 left-1.5 sm:left-2.5">
+                              <span className="px-1.5 sm:px-2.5 py-0.5 rounded-full bg-white/95 backdrop-blur-md text-amber-900 border border-amber-200/80 text-[9px] sm:text-[10px] font-bold shadow-xs flex items-center gap-1">
+                                <Sparkles size={10} className="text-amber-600 sm:w-3 sm:h-3" />
+                                <span className="truncate max-w-[90px] sm:max-w-none">{badgeText}</span>
                               </span>
                             </div>
                           )}
                         </div>
 
                         {/* Card Content Body */}
-                        <div className="p-3.5 sm:p-4 flex-1 flex flex-col justify-between space-y-3">
+                        <div className="p-2.5 sm:p-4 flex-1 flex flex-col justify-between space-y-2 sm:space-y-3">
                           <div>
-                            <h4 className="font-bold text-gray-900 text-sm sm:text-base group-hover:text-[#006837] transition-colors leading-snug line-clamp-1">
+                            <h4 className="font-bold text-gray-900 text-xs sm:text-base group-hover:text-[#006837] transition-colors leading-snug line-clamp-1">
                               {title || (isSinhala ? 'බිම්මල් නිෂ්පාදනය' : 'Mushroom Product')}
                             </h4>
                             {variety && (
-                              <p className="text-xs text-gray-500 font-medium line-clamp-1 mt-0.5">
+                              <p className="text-[10px] sm:text-xs text-gray-500 font-medium line-clamp-1 mt-0.5">
                                 {variety}
                               </p>
                             )}
                           </div>
 
                           {/* Price Footer */}
-                          <div className="pt-2.5 border-t border-gray-100 flex items-center justify-between gap-2">
-                            <span className="text-[11px] text-gray-500 font-medium">
+                          <div className="pt-2 sm:pt-2.5 border-t border-gray-100 flex items-center justify-between gap-1 sm:gap-2">
+                            <span className="text-[9px] sm:text-[11px] text-gray-500 font-medium">
                               {isSinhala ? 'ඒකක මිල' : 'Unit Price'}
                             </span>
-                            <span className="px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200/80 font-mono font-bold text-xs sm:text-sm text-[#006837] shadow-2xs">
+                            <span className="px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-lg sm:rounded-xl bg-emerald-50 border border-emerald-200/80 font-mono font-bold text-[10px] sm:text-sm text-[#006837] shadow-2xs">
                               {formatPrice(price)}
                             </span>
                           </div>
