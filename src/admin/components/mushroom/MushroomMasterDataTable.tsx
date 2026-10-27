@@ -5,7 +5,6 @@ import {
   Plus,
   Edit2,
   Trash2,
-  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   RefreshCw,
@@ -193,6 +192,7 @@ export default function MushroomMasterDataTable({
       {/* Top Filter and Actions Bar */}
       <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
         <div className="flex flex-wrap items-center gap-2 flex-1">
+          {icon && <span className="text-emerald-700 shrink-0">{icon}</span>}
           <div className="relative min-w-[200px] flex-1 max-w-xs">
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
             <input

@@ -6,7 +6,6 @@ import {
   Eye,
   Edit,
   Trash2,
-  CheckCircle2,
   RefreshCw,
   Phone,
   Layers,
@@ -14,10 +13,7 @@ import {
   ChevronRight,
   Truck,
   Clock,
-  Flame,
-  MapPin,
-  Package,
-  Building2
+  Flame
 } from 'lucide-react';
 import type {
   MushroomSupplierItem,
@@ -164,7 +160,6 @@ export default function MushroomManagement() {
 
   const activeCount = suppliers.filter((s) => s.activeState).length;
   const totalInventoryCount = suppliers.reduce((acc, curr) => acc + (curr.inventoryItems?.length || 0), 0);
-  const totalFeaturedCount = suppliers.reduce((acc, curr) => acc + (curr.featuredItems?.length || 0), 0);
 
   const tabs = [
     { key: 'suppliers' as const, label: 'Mushroom Suppliers', icon: <Sparkles size={14} />, count: totalCount },

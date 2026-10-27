@@ -14,8 +14,7 @@ import {
   Sparkles,
   Flame,
   Package,
-  Layers,
-  Edit3
+  Layers
 } from 'lucide-react';
 import type {
   MushroomSupplierItem,
@@ -877,7 +876,7 @@ export default function MushroomFormModal({
                       <option value="">{formData.divisionalSecretariatEn ? 'තෝරන්න' : 'ප්‍රා.ලේ තෝරන්න'}</option>
                       {availableGNDs.map((gnd) => (
                         <option key={gnd.nameEn} value={gnd.nameEn}>
-                          {gnd.nameSi || gnd.nameEn} {gnd.gnNumber ? `(${gnd.gnNumber})` : ''}
+                          {gnd.nameSi || gnd.nameEn} {gnd.gnCode ? `(${gnd.gnCode})` : ''}
                         </option>
                       ))}
                       <option value="__custom__">+ වෙනත් එකක් ටයිප් කරන්න...</option>

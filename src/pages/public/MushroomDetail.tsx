@@ -5,7 +5,7 @@ import {
   MapPin, Phone, MessageSquare, ExternalLink, Share2, ArrowLeft,
   ChevronLeft, ChevronRight, Truck,
   Clock, Check, Sparkles, Flame,
-  User, Navigation, Package, Layers, Info, Image as ImageIcon
+  User, Navigation, Package, Layers, Info,
 } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
