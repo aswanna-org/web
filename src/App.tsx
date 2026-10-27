@@ -48,6 +48,8 @@ import InternationalInstitutions from './pages/public/InternationalInstitutions'
 import InstitutionDetail from './pages/public/InstitutionDetail';
 import SocialPlatformDetail from './pages/public/SocialPlatformDetail';
 import NurseryDetail from './pages/public/NurseryDetail';
+import MushroomFinder from './pages/public/MushroomFinder';
+import MushroomDetail from './pages/public/MushroomDetail';
 
 // Admin imports
 import AdminLayout from './admin/layouts/AdminLayout';
@@ -76,6 +78,7 @@ import MarketplaceController from './admin/pages/MarketplaceController';
 import ImportantEventManagement from './admin/pages/ImportantEventManagement';
 import SocialLinkManagement from './admin/pages/SocialLinkManagement';
 import NurseryManagement from './admin/pages/NurseryManagement';
+import MushroomManagement from './admin/pages/MushroomManagement';
 import { ProtectedRoute } from './admin/components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 
@@ -167,6 +170,10 @@ function App() {
               <Route path="plant-finder" element={<PlantFinder />} />
               <Route path="plant-finder/nursery/:slug" element={<NurseryDetail />} />
               <Route path="plant-nurseries/:slug" element={<NurseryDetail />} />
+              <Route path="mushrooms" element={<MushroomFinder />} />
+              <Route path="mushrooms/:slug" element={<MushroomDetail />} />
+              <Route path="mushroom-suppliers" element={<MushroomFinder />} />
+              <Route path="mushroom-suppliers/:slug" element={<MushroomDetail />} />
               <Route path="agro-lands" element={<AgroLands />} />
               <Route path="agro-lands/:slug" element={<AgroLandDetail />} />
               <Route path="agro-lands/id/:id" element={<AgroLandDetail />} />
@@ -227,6 +234,9 @@ function App() {
               <Route path="social-links" element={<SocialLinkManagement />} />
               <Route path="nurseries" element={<NurseryManagement />} />
               <Route path="nursery-management" element={<NurseryManagement />} />
+              <Route path="mushrooms" element={<MushroomManagement />} />
+              <Route path="mushroom-management" element={<MushroomManagement />} />
+              <Route path="mushroom-suppliers" element={<MushroomManagement />} />
             </Route>
           </Routes>
           <CartModal />
