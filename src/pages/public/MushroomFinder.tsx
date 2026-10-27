@@ -26,6 +26,7 @@ export default function MushroomFinder() {
 
   // Modal State for Public Supplier Registration
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [submissionNotice, setSubmissionNotice] = useState<string | null>(null);
 
   // State
   const [suppliers, setSuppliers] = useState<MushroomSupplierItem[]>([]);
@@ -210,6 +211,30 @@ export default function MushroomFinder() {
       />
 
       <div className="container mx-auto px-4 lg:px-12 mt-8">
+        {/* Submission Notice for Public Registration */}
+        {submissionNotice && (
+          <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start justify-between gap-3 shadow-xs animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="flex items-start gap-3">
+              <Sparkles className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-bold text-amber-950">
+                  {isSinhala ? 'තොරතුරු සාර්ථකව යොමු කරන ලදී' : 'Submission Received'}
+                </h4>
+                <p className="text-xs text-amber-800 mt-0.5 leading-relaxed">
+                  {submissionNotice}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSubmissionNotice(null)}
+              className="p-1 text-amber-700 hover:text-amber-900 hover:bg-amber-100 rounded-lg transition-colors cursor-pointer"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
+
         {/* Header Bar with Title, Count & Action */}
         <div className="flex items-center justify-between gap-2 sm:gap-4 mb-4 sm:mb-6">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
@@ -413,23 +438,25 @@ export default function MushroomFinder() {
                     className="bg-white rounded-2xl sm:rounded-3xl shadow-[0_4px_16px_rgba(0,0,0,0.05)] hover:shadow-[0_16px_36px_rgba(0,0,0,0.12)] transition-all duration-300 border border-gray-100 flex flex-col h-full overflow-hidden group hover:-translate-y-1.5 cursor-pointer block"
                   >
                     {/* Media Top */}
-                    <div className="relative h-28 xs:h-36 sm:h-48 lg:h-52 w-full overflow-hidden bg-gray-100">
-                      <img
-                        src={primaryImg}
-                        alt={businessName}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+                    <div className="relative">
+                      <div className="relative h-28 xs:h-36 sm:h-48 lg:h-52 w-full overflow-hidden bg-gray-100">
+                        <img
+                          src={primaryImg}
+                          alt={businessName}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
 
-                      {/* Top Badges */}
-                      <div className="absolute top-2 sm:top-2.5 left-2 sm:left-2.5 right-2 sm:right-2.5 flex items-center justify-between gap-1 pointer-events-none">
-                        <AswannaLeafBadge />
+                        {/* Top Badges */}
+                        <div className="absolute top-2 sm:top-2.5 left-2 sm:left-2.5 right-2 sm:right-2.5 flex items-center justify-between gap-1 pointer-events-none">
+                          <AswannaLeafBadge />
 
-                        {supplier.images && supplier.images.length > 1 && (
-                          <span className="px-1.5 sm:px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-bold">
-                            {supplier.images.length} Photos
-                          </span>
-                        )}
+                          {supplier.images && supplier.images.length > 1 && (
+                            <span className="px-1.5 sm:px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[9px] sm:text-[10px] font-bold">
+                              {supplier.images.length} Photos
+                            </span>
+                          )}
+                        </div>
                       </div>
 
                       <CardWaveDivider />
@@ -501,6 +528,12 @@ export default function MushroomFinder() {
         onClose={() => setIsPostModalOpen(false)}
         onSuccess={() => {
           fetchSuppliers(1);
+          setSubmissionNotice(
+            isSinhala
+              ? 'ඔබගේ බිම්මල් ව්‍යාපාර තොරතුරු සාර්ථකව යොමු කරන ලදී. අපගේ පරිපාලක මණ්ඩලය (Admin) විසින් සමාලෝචනය කර අනුමත කළ පසු එය වෙබ් අඩවියේ ප්‍රදර්ශනය කෙරේ.'
+              : 'Your mushroom supplier details have been submitted successfully. It will be published after review and approval by an administrator.'
+          );
+          window.scrollTo({ top: 300, behavior: 'smooth' });
         }}
         editingItem={null}
         options={options}

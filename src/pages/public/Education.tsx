@@ -45,7 +45,7 @@ const CardWaveDivider = () => (
     viewBox="0 0 500 62"
     preserveAspectRatio="none"
   >
-    <path d="M0,25 C150,55 350,0 500,25 L500,62 L0,62 Z" />
+    <path d="M0,25 C150,55 350,0 500,25 L500,75 L0,75 Z" />
   </svg>
 );
 

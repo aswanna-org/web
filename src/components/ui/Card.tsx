@@ -33,11 +33,11 @@ export interface CardProps {
 // Reusable SVG for wavy card divider matching reference Careers UI
 export const CardWaveDivider = () => (
   <svg
-    className="absolute -bottom-1 left-0 right-0 w-full h-8 sm:h-9 text-white fill-white pointer-events-none z-10 translate-y-1"
+    className="absolute -bottom-1 left-0 right-0 w-full h-8 sm:h-9 text-white fill-white pointer-events-none z-10 translate-y-0.5"
     viewBox="0 0 500 70"
     preserveAspectRatio="none"
   >
-    <path d="M0,25 C150,55 350,0 500,25 L500,70 L0,70 Z" />
+    <path d="M0,25 C150,55 350,0 500,25 L500,80 L0,80 Z" />
   </svg>
 );
 

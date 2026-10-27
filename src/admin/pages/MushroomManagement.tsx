@@ -424,18 +424,19 @@ export default function MushroomManagement() {
                             <button
                               type="button"
                               onClick={() => handleToggleStatus(item)}
+                              title={item.activeState ? 'Click to unpublish (Deactivate)' : 'Click to approve & publish (Activate)'}
                               className={`inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-semibold cursor-pointer transition ${
                                 item.activeState
-                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                  : 'bg-gray-100 text-gray-500 border border-gray-200'
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100/70'
+                                  : 'bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100/70'
                               }`}
                             >
                               <span
                                 className={`w-1.5 h-1.5 rounded-full ${
-                                  item.activeState ? 'bg-emerald-600' : 'bg-gray-400'
+                                  item.activeState ? 'bg-emerald-600' : 'bg-amber-500'
                                 }`}
                               />
-                              <span>{item.activeState ? 'Active' : 'Inactive'}</span>
+                              <span>{item.activeState ? 'Active' : 'Pending'}</span>
                             </button>
                           </td>
                           <td className="px-3 py-1.5 text-right whitespace-nowrap">

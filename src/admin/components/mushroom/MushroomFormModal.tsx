@@ -119,7 +119,10 @@ export default function MushroomFormModal({
   onOptionsRefresh,
   isAdmin = false
 }: MushroomFormModalProps) {
-  const [formData, setFormData] = useState<MushroomFormState>(initialFormState);
+  const [formData, setFormData] = useState<MushroomFormState>({
+    ...initialFormState,
+    activeState: isAdmin
+  });
   const [localOptions, setLocalOptions] = useState<MushroomFormDropdownOptions>(options);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -247,26 +250,29 @@ export default function MushroomFormModal({
           const draft = JSON.parse(rawDraft);
           const age = Date.now() - (draft.savedAt || 0);
           if (draft && draft.formData && age < DRAFT_EXPIRY_MS) {
-            setFormData(draft.formData);
+            setFormData({
+              ...draft.formData,
+              activeState: isAdmin ? (draft.formData.activeState ?? true) : false
+            });
             setUploadedPhotos(draft.uploadedPhotos || []);
             setActiveTab(draft.activeTab || 0);
             const daysRemaining = Math.max(1, Math.ceil((DRAFT_EXPIRY_MS - age) / (24 * 60 * 60 * 1000)));
             setDraftNotice(`කලින් ඇතුළත් කළ කෙටුම්පත (Draft) සාර්ථකව ලබා ගන්නා ලදී. (තවත් දින ${daysRemaining}ක් වලංගුයි)`);
           } else {
             localStorage.removeItem(DRAFT_KEY);
-            setFormData(initialFormState);
+            setFormData({ ...initialFormState, activeState: isAdmin });
             setUploadedPhotos([]);
             setActiveTab(0);
             setDraftNotice(null);
           }
         } else {
-          setFormData(initialFormState);
+          setFormData({ ...initialFormState, activeState: isAdmin });
           setUploadedPhotos([]);
           setActiveTab(0);
           setDraftNotice(null);
         }
       } catch {
-        setFormData(initialFormState);
+        setFormData({ ...initialFormState, activeState: isAdmin });
         setUploadedPhotos([]);
         setActiveTab(0);
         setDraftNotice(null);
@@ -844,7 +850,7 @@ export default function MushroomFormModal({
         images: imagesPayload,
         inventoryItems: inventoryItemsPayload,
         featuredItems: featuredItemsPayload,
-        activeState: formData.activeState
+        activeState: isAdmin ? Boolean(formData.activeState) : false
       };
 
       const url = editingItem
@@ -1837,19 +1843,31 @@ export default function MushroomFormModal({
                   />
                 </div>
 
-                {/* Active Status Toggle */}
-                <div className="flex items-center gap-2.5 pt-1">
-                  <input
-                    type="checkbox"
-                    id="activeStateToggle"
-                    checked={formData.activeState}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, activeState: e.target.checked }))}
-                    className="h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500 border-gray-300 cursor-pointer"
-                  />
-                  <label htmlFor="activeStateToggle" className="text-xs font-semibold text-gray-800 cursor-pointer">
-                    සක්‍රීය තත්ත්වය (Active State)
-                  </label>
-                </div>
+                {/* Active Status Toggle (Admin Only) or Approval Notice (Public Users) */}
+                {isAdmin ? (
+                  <div className="flex items-center gap-2.5 pt-1">
+                    <input
+                      type="checkbox"
+                      id="activeStateToggle"
+                      checked={formData.activeState}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, activeState: e.target.checked }))}
+                      className="h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500 border-gray-300 cursor-pointer"
+                    />
+                    <label htmlFor="activeStateToggle" className="text-xs font-semibold text-gray-800 cursor-pointer">
+                      සක්‍රීය තත්ත්වය (Active State)
+                    </label>
+                  </div>
+                ) : (
+                  <div className="flex items-start gap-2.5 p-3.5 rounded-xl bg-amber-50/90 border border-amber-200 text-amber-900 shadow-2xs">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div className="text-xs space-y-0.5">
+                      <p className="font-bold text-amber-950">පරිපාලක අනුමැතිය අවශ්‍යයි (Pending Admin Approval)</p>
+                      <p className="text-[11px] text-amber-800 leading-relaxed">
+                        ඔබගේ බිම්මල් ව්‍යාපාර තොරතුරු අපගේ පරිපාලක මණ්ඩලය (Admin) විසින් පරීක්ෂා කර අනුමත කළ පසු වෙබ් අඩවියේ සක්‍රීයව ප්‍රදර්ශනය වේ.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -1909,7 +1927,13 @@ export default function MushroomFormModal({
                       ) : (
                         <>
                           <Check size={14} />
-                          <span>{editingItem ? 'Update Supplier' : 'Save Supplier'}</span>
+                          <span>
+                            {editingItem
+                              ? 'Update Supplier'
+                              : isAdmin
+                                ? 'Save Supplier'
+                                : 'යොමු කරන්න (Submit for Approval)'}
+                          </span>
                         </>
                       )}
                     </button>
