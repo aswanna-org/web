@@ -10,6 +10,7 @@ import PageHero from '../../components/public/PageHero';
 import Pagination from '../../components/admin/Pagination';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
+import GoogleAd from '../../components/common/GoogleAd';
 import { useAuth } from '../../context/AuthContext';
 import { SRI_LANKA_PROVINCES, getDistricts, getDistrictsForProvince, getDSDsForDistrict, getGNDsForDSD } from '../../data/sriLankaLocations';
 
@@ -1262,6 +1263,16 @@ export default function Careers() {
                   <div>
                     <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-4 lg:gap-6">
                       {jobsData.map(renderJobCard)}
+                    </div>
+
+                    {/* Google AdSense Placement below Job Grid */}
+                    <div className="my-8 max-w-5xl mx-auto">
+                      <GoogleAd
+                        slot="8160968067"
+                        format="horizontal"
+                        showLabel={true}
+                        className="my-4"
+                      />
                     </div>
 
                     {/* Pagination */}

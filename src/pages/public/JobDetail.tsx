@@ -9,6 +9,7 @@ import {
 import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
+import GoogleAd from '../../components/common/GoogleAd';
 import { getShareUrl } from '../../utils/shareUrl';
 
 interface Job {
@@ -699,6 +700,14 @@ export default function JobDetail() {
               </div>
             )}
 
+            {/* In-Job Google AdSense Unit */}
+            <GoogleAd
+              slot="8160968067"
+              format="auto"
+              showLabel={true}
+              className="my-6"
+            />
+
           </div>
 
           {/* Right Column: Sticky Sidebar Summary */}
@@ -776,6 +785,16 @@ export default function JobDetail() {
                   {isSi ? '← සියලු රැකියා ලැයිස්තුව' : '← All Careers List'}
                 </Link>
               </div>
+            </div>
+
+            {/* Sidebar AdSense Placement */}
+            <div className="pt-2">
+              <GoogleAd
+                slot="8160968067"
+                format="rectangle"
+                showLabel={true}
+                className="w-full flex flex-col items-center"
+              />
             </div>
           </div>
 

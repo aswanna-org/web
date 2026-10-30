@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowUpRight } from 'lucide-react';
+import GoogleAd from '../common/GoogleAd';
 
 interface CropItem {
   id: string;
@@ -227,6 +228,16 @@ export default function ProductsSection() {
             <span className="text-[#fbd245] inline-block hover:scale-105 transition-transform mt-1 sm:mt-2">{t('products.fresh')}</span>
             <span className="text-[#5b9e54] inline-block hover:scale-105 transition-transform ml-1.5 sm:ml-3">{t('products.productsTxt')}</span>
           </h2>
+        </div>
+
+        {/* Google AdSense Placement below Typography */}
+        <div className="mt-8 sm:mt-12 w-full max-w-5xl mx-auto px-4 relative z-10">
+          <GoogleAd
+            slot="8432751601"
+            format="horizontal"
+            showLabel={true}
+            className="my-4"
+          />
         </div>
       </div>
     </section>
