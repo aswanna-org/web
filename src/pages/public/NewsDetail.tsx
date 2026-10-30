@@ -7,8 +7,10 @@ import {
 } from 'lucide-react';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
+import GoogleAd from '../../components/common/GoogleAd';
 import PageHero from '../../components/public/PageHero';
 import CommentSection from '../../components/public/CommentSection';
+import { getShareUrl } from '../../utils/shareUrl';
 
 interface NewsItem {
   id: string;
@@ -92,7 +94,7 @@ export default function NewsDetail() {
   const handleShare = (type: 'copy' | 'whatsapp' | 'facebook') => {
     if (!news) return;
     const itemSlug = news.slug || news.id;
-    const socialShareUrl = `${API_BASE_URL}/share/news/${encodeURIComponent(itemSlug)}`;
+    const socialShareUrl = getShareUrl('news', itemSlug);
     const shareTitle = isSinhala ? (news.sinhalaTitle || news.title || '') : (news.title || news.sinhalaTitle || '');
 
     if (type === 'copy') {
@@ -328,6 +330,14 @@ export default function NewsDetail() {
                 }}
               />
             </div>
+
+            {/* In-Article Google AdSense Unit */}
+            <GoogleAd
+              slot="6362168210"
+              format="auto"
+              showLabel={true}
+              className="my-8 max-w-3xl mx-auto"
+            />
 
             {/* Bottom Social Share Bar */}
             <div className="mt-12 pt-6 border-t border-gray-200 flex flex-wrap items-center justify-between gap-3">

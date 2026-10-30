@@ -10,6 +10,7 @@ import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
 import Pagination from '../../components/admin/Pagination';
 import SEO from '../../components/common/SEO';
+import GoogleAd from '../../components/common/GoogleAd';
 
 export interface NewsItem {
   id: string;
@@ -664,6 +665,14 @@ export default function News() {
                   })}
                 </div>
 
+                {/* Google AdSense In-Feed / Banner Placement */}
+                <GoogleAd
+                  slot="6362168210"
+                  format="horizontal"
+                  showLabel={true}
+                  className="my-6"
+                />
+
                 {/* ── Pagination ── */}
                 {totalPages > 1 && (
                   <div className="pt-6 sm:pt-8 flex justify-center">
@@ -761,6 +770,16 @@ export default function News() {
                   );
                 })}
               </div>
+            </div>
+
+            {/* Google AdSense Sidebar Placement */}
+            <div className="pt-2">
+              <GoogleAd
+                slot="6362168210"
+                format="rectangle"
+                showLabel={true}
+                className="w-full flex flex-col items-center"
+              />
             </div>
 
           </aside>

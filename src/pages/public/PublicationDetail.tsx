@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
+import { getShareUrl } from '../../utils/shareUrl';
 
 const BookFlipPdfReader = lazy(() => import('../../components/common/BookFlipPdfReader'));
 
@@ -87,7 +88,7 @@ export default function PublicationDetail() {
   const handleCopyLink = () => {
     const pubSlug = publication?.slug || slug;
     const shareUrl = pubSlug
-      ? `${API_BASE_URL}/share/publications-manuals/${encodeURIComponent(pubSlug)}`
+      ? getShareUrl('publications-manuals', pubSlug)
       : window.location.href;
     navigator.clipboard.writeText(shareUrl);
     setIsCopied(true);

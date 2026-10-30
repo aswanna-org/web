@@ -12,6 +12,7 @@ import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
 import { useAuth } from '../../context/AuthContext';
+import { getShareUrl } from '../../utils/shareUrl';
 import PublicAgriLandPostModal from '../../components/public/PublicAgriLandPostModal';
 import type {
   AgriLandDealType,
@@ -312,7 +313,7 @@ export default function AgroLandDetail() {
 
   const handleShare = async (type?: 'native' | 'copy' | 'whatsapp' | 'facebook') => {
     if (!land) return;
-    const socialShareUrl = `${API_BASE_URL}/share/agro-lands/${encodeURIComponent(land.slug || land.id)}`;
+    const socialShareUrl = getShareUrl('agro-lands', land.slug || land.id);
     const directPageUrl = window.location.href;
     const shareTitle = `${isSinhala ? (land.titleSi || land.titleEn) : (land.titleEn || land.titleSi)} | Aswanna`;
     const shareText = isSinhala

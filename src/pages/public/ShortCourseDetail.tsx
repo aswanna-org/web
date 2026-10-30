@@ -10,6 +10,7 @@ import {
 import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
+import { getShareUrl } from '../../utils/shareUrl';
 import { formatFee, stripHtml, getDistrictLabel, formatSchedule } from './ShortCourses';
 
 interface ShortCourseSubject {
@@ -129,7 +130,7 @@ export default function ShortCourseDetail() {
   const getSocialShareUrl = () => {
     const courseSlugOrId = course?.slug || slug || '';
     if (!courseSlugOrId) return window.location.href;
-    return `${API_BASE_URL}/share/short-courses/${encodeURIComponent(courseSlugOrId)}`;
+    return getShareUrl('short-courses', courseSlugOrId);
   };
 
   const handleCopyLink = (urlToCopy?: string) => {

@@ -9,6 +9,7 @@ import {
 import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
+import { getShareUrl } from '../../utils/shareUrl';
 
 interface Job {
   id: string;
@@ -146,7 +147,7 @@ export default function JobDetail() {
   const handleShare = () => {
     const jobSlugOrId = job?.slug || job?.id || jobIdentifier;
     const jobUrl = jobSlugOrId
-      ? `${API_BASE_URL}/share/careers/${encodeURIComponent(jobSlugOrId)}`
+      ? getShareUrl('careers', jobSlugOrId)
       : window.location.href;
 
     if (navigator.share) {

@@ -19,6 +19,7 @@ import {
 import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
+import { getShareUrl } from '../../utils/shareUrl';
 
 interface MarketplaceImage {
   id: string;
@@ -128,7 +129,7 @@ export default function MarketplaceDetail() {
   const getSocialShareUrl = () => {
     const itemSlugOrId = item?.slug || targetIdentifier;
     return itemSlugOrId
-      ? `${API_BASE_URL}/share/marketplace/${encodeURIComponent(itemSlugOrId)}`
+      ? getShareUrl('marketplace', itemSlugOrId)
       : window.location.href;
   };
 

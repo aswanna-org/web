@@ -1,0 +1,24 @@
+{
+  "name": "Aswanna - Digital Hub for Sri Lankan Agriculture",
+  "short_name": "Aswanna",
+  "description": "ශ්‍රී ලාංකේය කෘෂිකර්මාන්තයට නවීන තාක්ෂණයේ සවිය එක් කරන ඩිජිටල් කේන්ද්‍රස්ථානය",
+  "icons": [
+    {
+      "src": "/favicon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "theme_color": "#054a29",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/"
+}
+

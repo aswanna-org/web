@@ -1,15 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   MapPin, Phone, MessageSquare, ExternalLink, Share2, ArrowLeft,
   ChevronLeft, ChevronRight, Truck,
   Clock, Check, Sparkles, Flame,
-  User, Navigation, Package, Layers, Info,
+  User, Navigation, Package, Layers, Info, Copy, MessageCircle
 } from 'lucide-react';
 import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
+import { getShareUrl } from '../../utils/shareUrl';
 import type { MushroomSupplierItem } from '../../admin/components/mushroom/types';
 
 export default function MushroomDetail() {
@@ -23,9 +24,21 @@ export default function MushroomDetail() {
   const [error, setError] = useState<string | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
   const [copiedLink, setCopiedLink] = useState<boolean>(false);
+  const [showShareMenu, setShowShareMenu] = useState<boolean>(false);
+  const shareMenuRef = useRef<HTMLDivElement>(null);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
   const targetIdentifier = slug || id;
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (shareMenuRef.current && !shareMenuRef.current.contains(event.target as Node)) {
+        setShowShareMenu(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (!targetIdentifier) return;
@@ -66,28 +79,68 @@ export default function MushroomDetail() {
     }
   };
 
-  const handleShare = async () => {
-    const url = window.location.href;
-    const title = supplier
-      ? (isSinhala ? supplier.businessNameSi || supplier.businessNameEn : supplier.businessNameEn || supplier.businessNameSi) || 'Aswanna Mushroom Supplier'
-      : 'Aswanna Mushroom Supplier';
+  const handleShare = async (type?: 'native' | 'copy' | 'whatsapp' | 'facebook') => {
+    if (!supplier) return;
+    const identifier = supplier.slug || supplier.id;
+    const socialShareUrl = getShareUrl('mushrooms', identifier);
+    const directPageUrl = window.location.href;
+    const primaryName =
+      (isSinhala
+        ? supplier.businessNameSi || supplier.businessNameEn
+        : supplier.businessNameEn || supplier.businessNameSi) || 'Aswanna Mushroom Supplier';
+    const shareTitle = `${primaryName} | Aswanna`;
+    const shareText = isSinhala
+      ? `${shareTitle} - අස්වැන්න බිම්මල් වගාකරුවන් සහ නිෂ්පාදන තොරතුරු මෙතැනින් බලන්න:`
+      : `Check out ${shareTitle} on Aswanna:`;
 
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title,
-          text: `Check out ${title} on Aswanna!`,
-          url
-        });
-        return;
-      } catch {
-        // Fallback to clipboard
+    if (!type || type === 'native') {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: shareTitle,
+            text: shareText,
+            url: socialShareUrl
+          });
+          return;
+        } catch (err: any) {
+          if (err.name === 'AbortError') return;
+        }
       }
+      setShowShareMenu((prev) => !prev);
+      return;
     }
 
-    navigator.clipboard.writeText(url);
-    setCopiedLink(true);
-    setTimeout(() => setCopiedLink(false), 2500);
+    if (type === 'copy') {
+      try {
+        await navigator.clipboard.writeText(socialShareUrl);
+      } catch {
+        await navigator.clipboard.writeText(directPageUrl);
+      }
+      setCopiedLink(true);
+      setTimeout(() => {
+        setCopiedLink(false);
+        setShowShareMenu(false);
+      }, 2500);
+      return;
+    }
+
+    if (type === 'whatsapp') {
+      window.open(
+        `https://api.whatsapp.com/send?text=${encodeURIComponent(`${shareText} ${socialShareUrl}`)}`,
+        '_blank'
+      );
+      setShowShareMenu(false);
+      return;
+    }
+
+    if (type === 'facebook') {
+      window.open(
+        `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(socialShareUrl)}`,
+        '_blank'
+      );
+      setShowShareMenu(false);
+      return;
+    }
   };
 
   const cleanPhone = (phone?: string | null) => {
@@ -199,23 +252,60 @@ export default function MushroomDetail() {
             <span>{isSinhala ? 'සියලු බිම්මල් ව්‍යාපාර' : 'All Mushroom Suppliers'}</span>
           </button>
 
-          <button
-            type="button"
-            onClick={handleShare}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white hover:bg-emerald-50 text-gray-700 hover:text-emerald-700 text-xs font-bold border border-gray-200 hover:border-emerald-200 transition shadow-2xs cursor-pointer"
-          >
-            {copiedLink ? (
-              <>
-                <Check size={14} className="text-emerald-600" />
-                <span className="text-emerald-700">{isSinhala ? 'ලින්ක් එක කොපි විය!' : 'Copied!'}</span>
-              </>
-            ) : (
-              <>
-                <Share2 size={14} />
-                <span>{isSinhala ? 'බෙදාහරින්න' : 'Share'}</span>
-              </>
+          {/* Share Button with Dropdown */}
+          <div className="relative" ref={shareMenuRef}>
+            <button
+              type="button"
+              onClick={() => handleShare('native')}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white hover:bg-emerald-50 text-gray-700 hover:text-emerald-700 text-xs font-bold border border-gray-200 hover:border-emerald-200 transition shadow-2xs cursor-pointer"
+            >
+              {copiedLink ? (
+                <>
+                  <Check size={14} className="text-emerald-600" />
+                  <span className="text-emerald-700">{isSinhala ? 'ලින්ක් එක කොපි විය!' : 'Copied!'}</span>
+                </>
+              ) : (
+                <>
+                  <Share2 size={14} />
+                  <span>{isSinhala ? 'බෙදාහරින්න' : 'Share'}</span>
+                </>
+              )}
+            </button>
+
+            {/* Share Popover Menu */}
+            {showShareMenu && (
+              <div className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 space-y-1">
+                <button
+                  type="button"
+                  onClick={() => handleShare('whatsapp')}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-gray-700 hover:text-emerald-700 hover:bg-emerald-50/80 rounded-xl transition cursor-pointer text-left"
+                >
+                  <MessageCircle className="w-4 h-4 text-[#25D366]" />
+                  <span>WhatsApp</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleShare('facebook')}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-gray-700 hover:text-blue-700 hover:bg-blue-50/80 rounded-xl transition cursor-pointer text-left"
+                >
+                  <svg className="w-4 h-4 text-[#1877F2] fill-current" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                  </svg>
+                  <span>Facebook</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleShare('copy')}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold text-gray-700 hover:text-gray-900 hover:bg-gray-100/80 rounded-xl transition cursor-pointer text-left"
+                >
+                  <Copy size={14} className="text-gray-500" />
+                  <span>{copiedLink ? (isSinhala ? 'කොපි විය!' : 'Copied!') : (isSinhala ? 'ලින්ක් එක කොපි කරන්න' : 'Copy Link')}</span>
+                </button>
+              </div>
             )}
-          </button>
+          </div>
         </div>
 
         {/* Main Content Layout */}

@@ -15,7 +15,7 @@ export interface SEOProps {
 
 const DEFAULT_TITLE = 'Aswanna - Digital Hub for Sri Lankan Agriculture | අස්වැන්න';
 const DEFAULT_DESC = 'ශ්‍රී ලාංකේය කෘෂිකර්මාන්තයට නවීන තාක්ෂණයේ සවිය එක් කරමින්, බිම් මට්ටමේ ගොවියාගේ සිට වාණිජ ව්‍යවසායකයා දක්වා නිවැරදි දැනුමෙන් සන්නද්ධ කරන පුරෝගාමී ඩිජිටල් කේන්ද්‍රස්ථානය - Aswanna Ceylon Agro.';
-const DEFAULT_IMAGE = 'https://aswanna.lk/images/aswanna_logo.png';
+const DEFAULT_IMAGE = 'https://aswanna.lk/images/aswanna_logo_square.png';
 const BASE_URL = 'https://aswanna.lk';
 
 function setMetaTag(attributeName: 'name' | 'property', attributeValue: string, content: string) {
