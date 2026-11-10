@@ -5,12 +5,27 @@ import RichTextEditor from '../components/RichTextEditor';
 import AgroLoader from '../../components/common/AgroLoader';
 import { useConfirm } from '../components/ConfirmDialog';
 
+const YoutubeIcon = ({ size = 18, className = "" }: { size?: number; className?: string }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.377.55a3.016 3.016 0 0 0-2.122 2.136C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.55 9.376.55 9.376.55s7.505 0 9.377-.55a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+  </svg>
+);
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 interface NewsItem {
   id: string; title?: string; sinhalaTitle?: string; slug?: string;
   content?: string; sinhalaContent?: string; category?: string; image?: string;
-  authorName?: string; authorEmail?: string; authorAvatar?: string; createdAt: string;
+  authorName?: string; authorEmail?: string; authorAvatar?: string;
+  youtubeUrl?: string | null;
+  createdAt: string;
 }
 
 const NEWS_CATEGORIES = [
@@ -25,7 +40,7 @@ const NEWS_CATEGORIES = [
   'විශේෂාංග'
 ];
 
-const defaultForm = { title: '', sinhalaTitle: '', slug: '', content: '', sinhalaContent: '', category: '', image: '', authorName: '', authorEmail: '', authorAvatar: '' };
+const defaultForm = { title: '', sinhalaTitle: '', slug: '', content: '', sinhalaContent: '', category: '', image: '', authorName: '', authorEmail: '', authorAvatar: '', youtubeUrl: '' };
 
 export default function NewsManagement() {
   const { confirm } = useConfirm();
@@ -75,7 +90,8 @@ export default function NewsManagement() {
       image: item.image || '',
       authorName: item.authorName || '',
       authorEmail: item.authorEmail || '',
-      authorAvatar: item.authorAvatar || ''
+      authorAvatar: item.authorAvatar || '',
+      youtubeUrl: item.youtubeUrl || ''
     });
     setImageFile(null); setAuthorAvatarFile(null); setEditingId(item.id); setIsModalOpen(true);
   };
@@ -215,6 +231,17 @@ export default function NewsManagement() {
                   <td className="px-3 py-1.5 whitespace-nowrap text-gray-500">{new Date(item.createdAt).toLocaleDateString()}</td>
                   <td className="px-3 py-1.5 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1">
+                      {item.youtubeUrl && (
+                        <a
+                          href={item.youtubeUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          title="Open YouTube Video"
+                          className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                        >
+                          <YoutubeIcon size={14} />
+                        </a>
+                      )}
                       <button
                         onClick={() => {
                           setViewingItem(item);
@@ -279,6 +306,23 @@ export default function NewsManagement() {
                     <span className="text-sm text-gray-500 line-clamp-1">{authorAvatarFile ? authorAvatarFile.name : 'Choose avatar...'}</span>
                     <input type="file" accept="image/*" className="hidden" onChange={e => setAuthorAvatarFile(e.target.files?.[0] || null)} />
                   </label>
+                </div>
+                <div className="md:col-span-2 lg:col-span-4 bg-gray-50/70 p-3 rounded-xl border border-gray-150">
+                  <label className="block text-xs font-bold text-gray-700 mb-1 flex items-center gap-1.5">
+                    <YoutubeIcon size={16} className="text-red-600" />
+                    <span>YouTube Video URL (වීඩියෝ ලින්ක් එක - Optional)</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="url"
+                      placeholder="e.g. https://www.youtube.com/watch?v=... or https://youtu.be/..."
+                      value={form.youtubeUrl}
+                      onChange={e => setForm({...form, youtubeUrl: e.target.value})}
+                      className="w-full px-3 py-2 pl-9 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500/30 text-xs sm:text-sm"
+                    />
+                    <YoutubeIcon size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  </div>
+                  <p className="text-[11px] text-gray-400 mt-1">මෙම පුවතට අදාළව YouTube වීඩියෝවක් ඇත්නම් link එක ඇතුළත් කරන්න (ප්‍රසිද්ධ පුවත් පිටුවේ "වැඩි විස්තර සඳහා මෙම වීඩියෝව නරඹන්න" ලෙස බොත්තමක් දිස්වනු ඇත).</p>
                 </div>
               </div>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -464,6 +508,30 @@ export default function NewsManagement() {
                   </span>
                 )}
               </div>
+
+              {/* YouTube Video Preview Bar if present */}
+              {viewingItem.youtubeUrl && (
+                <div className="flex items-center justify-between gap-3 p-3 bg-red-50/80 border border-red-200/80 rounded-xl text-xs">
+                  <div className="flex items-center gap-2 text-red-900 font-semibold min-w-0">
+                    <div className="w-7 h-7 rounded-lg bg-red-600 text-white flex items-center justify-center shrink-0">
+                      <YoutubeIcon size={16} />
+                    </div>
+                    <div className="truncate">
+                      <span className="text-red-950 font-bold block">YouTube Video Attached</span>
+                      <span className="text-[11px] text-red-700/80 font-mono truncate block">{viewingItem.youtubeUrl}</span>
+                    </div>
+                  </div>
+                  <a
+                    href={viewingItem.youtubeUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 shrink-0 shadow-2xs"
+                  >
+                    <span>Watch</span>
+                    <ExternalLink size={12} />
+                  </a>
+                </div>
+              )}
 
               {/* Language Selection Tabs */}
               <div className="space-y-3 pt-2">

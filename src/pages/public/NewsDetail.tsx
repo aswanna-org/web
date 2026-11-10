@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   ArrowLeft, Clock, Share2, Link as LinkIcon, Check,
-  MessageCircle, ChevronRight, Calendar, Newspaper
+  MessageCircle, ChevronRight, Calendar, Newspaper, ExternalLink
 } from 'lucide-react';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
@@ -11,6 +11,19 @@ import GoogleAd from '../../components/common/GoogleAd';
 import PageHero from '../../components/public/PageHero';
 import CommentSection from '../../components/public/CommentSection';
 import { getShareUrl } from '../../utils/shareUrl';
+
+const YoutubeIcon = ({ size = 20, className = "" }: { size?: number; className?: string }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    className={className}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.377.55a3.016 3.016 0 0 0-2.122 2.136C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.55 9.376.55 9.376.55s7.505 0 9.377-.55a3.016 3.016 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+  </svg>
+);
 
 interface NewsItem {
   id: string;
@@ -24,6 +37,7 @@ interface NewsItem {
   authorName?: string | null;
   authorEmail?: string | null;
   authorAvatar?: string | null;
+  youtubeUrl?: string | null;
   createdAt: string;
 }
 
@@ -330,6 +344,36 @@ export default function NewsDetail() {
                 }}
               />
             </div>
+
+            {/* YouTube Video Section: Watch video for more details */}
+            {news.youtubeUrl && (
+              <div className="my-8 p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-red-50/90 via-rose-50/40 to-white border border-red-200/80 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-red-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-red-600/25">
+                    <YoutubeIcon size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 leading-snug">
+                      {isSinhala ? 'වැඩි විස්තර සඳහා මෙම වීඩියෝව නරඹන්න' : 'Watch this video for more details'}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
+                      {isSinhala ? 'මෙම පුවතට අදාළ සම්පූර්ණ වීඩියෝ වාර්තාව YouTube ඔස්සේ නරඹන්න' : 'Watch the complete video coverage of this story on YouTube'}
+                    </p>
+                  </div>
+                </div>
+
+                <a
+                  href={news.youtubeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-xs hover:shadow-md cursor-pointer shrink-0 w-full sm:w-auto justify-center group"
+                >
+                  <YoutubeIcon size={16} className="text-white" />
+                  <span>{isSinhala ? 'වීඩියෝව නරඹන්න' : 'Watch Video'}</span>
+                  <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </a>
+              </div>
+            )}
 
             {/* In-Article Google AdSense Unit */}
             <GoogleAd
