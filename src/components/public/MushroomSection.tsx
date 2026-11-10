@@ -33,7 +33,7 @@ export default function MushroomSection() {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  navigate('/agri-info-hub');
+                  navigate('/mushrooms');
                 }}
                 className="inline-flex items-center gap-2.5 sm:gap-3 pl-4 sm:pl-6 pr-2 sm:pr-2.5 py-1.5 sm:py-2 rounded-full bg-[#f1e3c8] hover:bg-[#e8d6b3] border border-[#c8a574]/70 hover:border-[#c8a574] text-black font-bold text-xs sm:text-sm md:text-base shadow-xs hover:shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
               >
