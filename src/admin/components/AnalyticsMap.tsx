@@ -760,7 +760,7 @@ export default function AnalyticsMap() {
           {/* Ultra-compact Table adhering to AGENTS.md */}
           <div className="border border-gray-200 rounded-xl overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs text-gray-700">
+              <table className="w-full min-w-[650px] text-left border-collapse text-xs text-gray-700">
                 <thead>
                   <tr className="bg-gray-50/90 border-b border-gray-200">
                     <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap w-12 text-center">
@@ -1483,7 +1483,7 @@ export default function AnalyticsMap() {
 
             <div className="border border-gray-200 rounded-xl overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs text-gray-700">
+                <table className="w-full min-w-[650px] text-left border-collapse text-xs text-gray-700">
                   <thead>
                     <tr className="bg-gray-50/90 border-b border-gray-200">
                       <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap w-12 text-center">

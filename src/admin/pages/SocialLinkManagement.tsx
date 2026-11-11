@@ -987,7 +987,7 @@ export default function SocialLinkManagement() {
           <div className="overflow-x-auto">
             {/* ── Social Links Table ── */}
             {activeTab === 'links' && (
-              <table className="w-full text-left text-xs text-gray-700 border-collapse">
+              <table className="w-full min-w-[850px] text-left text-xs text-gray-700 border-collapse">
                 <thead>
                   <tr>
                     <th className={`${thCls} w-12 text-center`}>#</th>
@@ -1096,7 +1096,7 @@ export default function SocialLinkManagement() {
 
             {/* ── Platforms Table ── */}
             {activeTab === 'platforms' && (
-              <table className="w-full text-left text-xs text-gray-700 border-collapse">
+              <table className="w-full min-w-[650px] text-left text-xs text-gray-700 border-collapse">
                 <thead>
                   <tr>
                     <th className={`${thCls} w-12`}>Image</th>
@@ -1194,7 +1194,7 @@ export default function SocialLinkManagement() {
 
             {/* ── Sub Types Table ── */}
             {activeTab === 'subtypes' && (
-              <table className="w-full text-left text-xs text-gray-700 border-collapse">
+              <table className="w-full min-w-[650px] text-left text-xs text-gray-700 border-collapse">
                 <thead>
                   <tr>
                     <th className={thCls}>Sub Type</th>

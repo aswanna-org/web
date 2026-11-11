@@ -114,40 +114,42 @@ export default function AgroLandManagement() {
         {isLoading ? (
           <div className="flex justify-center items-center py-20"><AgroLoader message="Loading agro lands..." /></div>
         ) : (
-          <table className="w-full text-left text-xs text-gray-700">
-            <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
-              <tr>
-                <th className="px-3 py-2">Title</th>
-                <th className="px-3 py-2">Location</th>
-                <th className="px-3 py-2">Price</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2">Type</th>
-                <th className="px-3 py-2 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {lands.length === 0 ? (
-                <tr><td colSpan={6} className="text-center py-12 text-gray-400"><MapPin className="mx-auto mb-2" size={32} /><p>No land listings found</p></td></tr>
-              ) : lands.map(land => (
-                <tr key={land.id} className="hover:bg-gray-50/70 transition-colors">
-                  <td className="px-3 py-1.5 whitespace-nowrap font-semibold text-gray-900 truncate max-w-xs" title={land.title}>{land.title}</td>
-                  <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">{land.location}</td>
-                  <td className="px-3 py-1.5 whitespace-nowrap font-bold text-emerald-700">Rs. {land.price?.toLocaleString()}</td>
-                  <td className="px-3 py-1.5 whitespace-nowrap">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${land.status === 'Available' ? 'bg-emerald-100 text-emerald-700' : land.status === 'Sold' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>{land.status}</span>
-                  </td>
-                  <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">{land.type?.name || '-'}</td>
-                  <td className="px-3 py-1.5 text-right whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-1">
-                      <button onClick={() => setViewingLand(land)} title="View Land Details" className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"><Eye size={15} /></button>
-                      <button onClick={() => openEdit(land)} title="Edit Land" className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"><Edit size={15} /></button>
-                      <button onClick={() => handleDelete(land.id)} title="Delete Land" className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"><Trash2 size={15} /></button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[700px] text-left text-xs text-gray-700">
+              <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
+                <tr>
+                  <th className="px-3 py-2">Title</th>
+                  <th className="px-3 py-2">Location</th>
+                  <th className="px-3 py-2">Price</th>
+                  <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2">Type</th>
+                  <th className="px-3 py-2 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {lands.length === 0 ? (
+                  <tr><td colSpan={6} className="text-center py-12 text-gray-400"><MapPin className="mx-auto mb-2" size={32} /><p>No land listings found</p></td></tr>
+                ) : lands.map(land => (
+                  <tr key={land.id} className="hover:bg-gray-50/70 transition-colors">
+                    <td className="px-3 py-1.5 whitespace-nowrap font-semibold text-gray-900 truncate max-w-xs" title={land.title}>{land.title}</td>
+                    <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">{land.location}</td>
+                    <td className="px-3 py-1.5 whitespace-nowrap font-bold text-emerald-700">Rs. {land.price?.toLocaleString()}</td>
+                    <td className="px-3 py-1.5 whitespace-nowrap">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${land.status === 'Available' ? 'bg-emerald-100 text-emerald-700' : land.status === 'Sold' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'}`}>{land.status}</span>
+                    </td>
+                    <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">{land.type?.name || '-'}</td>
+                    <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-1">
+                        <button onClick={() => setViewingLand(land)} title="View Land Details" className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"><Eye size={15} /></button>
+                        <button onClick={() => openEdit(land)} title="Edit Land" className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"><Edit size={15} /></button>
+                        <button onClick={() => handleDelete(land.id)} title="Delete Land" className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"><Trash2 size={15} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
         {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
       </div>

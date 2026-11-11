@@ -608,7 +608,7 @@ export default function AgriLandManagement() {
                   <p className="text-xs text-slate-400 mt-1">Try adjusting your filters or click "Add New Agri Land"</p>
                 </div>
               ) : (
-                <table className="w-full text-left border-collapse text-xs">
+                <table className="w-full min-w-[850px] text-left border-collapse text-xs">
                   <thead>
                     <tr className="bg-gray-50/90 text-gray-500 uppercase tracking-wider text-[11px] font-bold border-b border-gray-200">
                       <th className="px-3 py-2 whitespace-nowrap">Land Details</th>

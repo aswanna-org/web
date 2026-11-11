@@ -2062,7 +2062,7 @@ export default function NurseryFormModal({
             {/* Added Stocks Ultra-Compact Table */}
             {formData.stocks.length > 0 && (
               <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
-                <table className="w-full text-left border-collapse text-xs">
+                <table className="w-full min-w-[550px] text-left border-collapse text-xs">
                   <thead>
                     <tr className="bg-gray-50/90 border-b border-gray-200 text-[10px] text-gray-600 font-bold uppercase">
                       <th className="px-3 py-1.5">Category</th>

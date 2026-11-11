@@ -315,7 +315,7 @@ export default function NurseryMasterDataModal({
 
           {/* Ultra-compact Master Table */}
           <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full min-w-[650px] text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-gray-50/90 border-b border-gray-200 text-[11px] text-gray-500 font-bold uppercase whitespace-nowrap">
                   <th className="px-3 py-2">නම (සිංහල)</th>

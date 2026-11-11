@@ -1324,7 +1324,7 @@ export default function MushroomFormModal({
 
                 {/* Table of items */}
                 <div className="overflow-x-auto border border-gray-200 rounded-xl">
-                  <table className="w-full text-left border-collapse">
+                  <table className="w-full min-w-[600px] text-left border-collapse">
                     <thead>
                       <tr className="bg-gray-100/80 border-b border-gray-200">
                         <th className="px-3 py-2 text-[10px] uppercase font-bold text-gray-600">කාණ්ඩය</th>
@@ -1517,7 +1517,7 @@ export default function MushroomFormModal({
 
                 {/* Table of featured items */}
                 <div className="overflow-x-auto border border-gray-200 rounded-xl">
-                  <table className="w-full text-left border-collapse">
+                  <table className="w-full min-w-[600px] text-left border-collapse">
                     <thead>
                       <tr className="bg-gray-100/80 border-b border-gray-200">
                         <th className="px-3 py-2 text-[10px] uppercase font-bold text-gray-600">ඡායාරූපය</th>

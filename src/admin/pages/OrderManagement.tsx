@@ -114,21 +114,23 @@ export default function OrderManagement() {
                   </div>
                 </div>
                 {expandedId === order.id && (
-                  <div className="px-16 pb-4 bg-gray-50">
+                  <div className="px-4 sm:px-16 pb-4 bg-gray-50">
                     <p className="text-sm text-gray-500 mb-2"><strong>Address:</strong> {order.address}</p>
-                    <table className="w-full text-sm">
-                      <thead><tr className="text-xs text-gray-500 border-b border-gray-200"><th className="text-left pb-2">Product</th><th className="text-left pb-2">Price</th><th className="text-left pb-2">Qty</th><th className="text-left pb-2">Total</th></tr></thead>
-                      <tbody>
-                        {order.items?.map(item => (
-                          <tr key={item.id} className="border-b border-gray-100 last:border-0">
-                            <td className="py-2 text-gray-800">{item.productName}</td>
-                            <td className="py-2 text-gray-600">Rs. {item.price?.toLocaleString()}</td>
-                            <td className="py-2 text-gray-600">{item.quantity}</td>
-                            <td className="py-2 font-medium text-gray-800">Rs. {(item.price * item.quantity)?.toLocaleString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    <div className="overflow-x-auto">
+                      <table className="w-full min-w-[500px] text-sm">
+                        <thead><tr className="text-xs text-gray-500 border-b border-gray-200"><th className="text-left pb-2">Product</th><th className="text-left pb-2">Price</th><th className="text-left pb-2">Qty</th><th className="text-left pb-2">Total</th></tr></thead>
+                        <tbody>
+                          {order.items?.map(item => (
+                            <tr key={item.id} className="border-b border-gray-100 last:border-0">
+                              <td className="py-2 text-gray-800">{item.productName}</td>
+                              <td className="py-2 text-gray-600">Rs. {item.price?.toLocaleString()}</td>
+                              <td className="py-2 text-gray-600">{item.quantity}</td>
+                              <td className="py-2 font-medium text-gray-800">Rs. {(item.price * item.quantity)?.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
               </div>
@@ -222,32 +224,34 @@ export default function OrderManagement() {
               <div>
                 <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Ordered Items</h4>
                 <div className="border border-gray-200 rounded-xl overflow-hidden">
-                  <table className="w-full text-xs text-left">
-                    <thead className="bg-gray-50 text-gray-500 border-b border-gray-200 font-bold uppercase text-[10px]">
-                      <tr>
-                        <th className="px-3 py-2">Product</th>
-                        <th className="px-3 py-2 text-right">Unit Price</th>
-                        <th className="px-3 py-2 text-center">Qty</th>
-                        <th className="px-3 py-2 text-right">Subtotal</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {viewingOrder.items?.map((item) => (
-                        <tr key={item.id} className="hover:bg-gray-50/50">
-                          <td className="px-3 py-2 font-medium text-gray-900">{item.productName}</td>
-                          <td className="px-3 py-2 text-right text-gray-600">Rs. {item.price?.toLocaleString()}</td>
-                          <td className="px-3 py-2 text-center font-semibold text-gray-700">{item.quantity}</td>
-                          <td className="px-3 py-2 text-right font-bold text-gray-900">Rs. {(item.price * item.quantity)?.toLocaleString()}</td>
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[500px] text-xs text-left">
+                      <thead className="bg-gray-50 text-gray-500 border-b border-gray-200 font-bold uppercase text-[10px]">
+                        <tr>
+                          <th className="px-3 py-2">Product</th>
+                          <th className="px-3 py-2 text-right">Unit Price</th>
+                          <th className="px-3 py-2 text-center">Qty</th>
+                          <th className="px-3 py-2 text-right">Subtotal</th>
                         </tr>
-                      ))}
-                    </tbody>
-                    <tfoot className="bg-gray-50 border-t border-gray-200 font-bold">
-                      <tr>
-                        <td colSpan={3} className="px-3 py-2.5 text-gray-700 uppercase text-[11px]">Total Order Amount</td>
-                        <td className="px-3 py-2.5 text-right text-emerald-700 text-sm">Rs. {viewingOrder.totalAmount?.toLocaleString()}</td>
-                      </tr>
-                    </tfoot>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {viewingOrder.items?.map((item) => (
+                          <tr key={item.id} className="hover:bg-gray-50/50">
+                            <td className="px-3 py-2 font-medium text-gray-900">{item.productName}</td>
+                            <td className="px-3 py-2 text-right text-gray-600">Rs. {item.price?.toLocaleString()}</td>
+                            <td className="px-3 py-2 text-center font-semibold text-gray-700">{item.quantity}</td>
+                            <td className="px-3 py-2 text-right font-bold text-gray-900">Rs. {(item.price * item.quantity)?.toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot className="bg-gray-50 border-t border-gray-200 font-bold">
+                        <tr>
+                          <td colSpan={3} className="px-3 py-2.5 text-gray-700 uppercase text-[11px]">Total Order Amount</td>
+                          <td className="px-3 py-2.5 text-right text-emerald-700 text-sm">Rs. {viewingOrder.totalAmount?.toLocaleString()}</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>

@@ -328,7 +328,7 @@ export default function MushroomManagement() {
           {/* Ultra-Compact Administrative Data Table */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
+              <table className="w-full min-w-[850px] text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-gray-50/90 border-b border-gray-200 text-gray-500 uppercase font-bold text-[11px] whitespace-nowrap">
                     <th className="px-3 py-2 w-10 text-center">#</th>

@@ -303,7 +303,8 @@ export const AgriLandMasterManager: React.FC<AgriLandMasterManagerProps> = ({
               {search && <p className="text-xs text-slate-400 mt-1">Try refining your search keyword</p>}
             </div>
           ) : (
-            <table className="w-full text-left border-collapse text-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[700px] text-left border-collapse text-xs">
               <thead>
                 <tr className="bg-slate-50 text-slate-500 uppercase tracking-wider text-[11px] border-b border-slate-200">
                   <th className="py-3 px-4 font-bold">#</th>
@@ -414,6 +415,7 @@ export const AgriLandMasterManager: React.FC<AgriLandMasterManagerProps> = ({
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       </div>

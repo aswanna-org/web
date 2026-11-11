@@ -507,7 +507,7 @@ export default function ImportantEventManagement() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-gray-700 border-collapse">
+            <table className="w-full min-w-[750px] text-left text-xs text-gray-700 border-collapse">
               <thead>
                 <tr className="bg-gray-50/90 border-b border-gray-200">
                   <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap w-12 text-center">

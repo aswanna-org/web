@@ -232,7 +232,7 @@ export default function MushroomViewModal({
                 <span>Inventory Items ({supplier.inventoryItems.length})</span>
               </h4>
               <div className="overflow-x-auto border border-gray-200 rounded-lg">
-                <table className="w-full text-left border-collapse text-xs">
+                <table className="w-full min-w-[500px] text-left border-collapse text-xs">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200">
                       <th className="px-3 py-1.5 text-[10px] uppercase font-bold text-gray-600">Category</th>

@@ -203,7 +203,8 @@ export default function NewsManagement() {
         {isLoading ? (
           <div className="flex justify-center items-center py-20"><AgroLoader message="Loading news..." /></div>
         ) : (
-          <table className="w-full text-left text-xs text-gray-700">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[700px] text-left text-xs text-gray-700">
             <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
               <tr>
                 <th className="px-3 py-2">Title</th>
@@ -261,6 +262,7 @@ export default function NewsManagement() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
         {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
       </div>

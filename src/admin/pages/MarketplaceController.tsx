@@ -754,7 +754,7 @@ export default function MarketplaceController() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-gray-700">
+                <table className="w-full min-w-[800px] text-left text-xs text-gray-700">
                   <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
                     <tr>
                       <th className="px-3 py-2">Listing Item</th>
@@ -968,7 +968,7 @@ export default function MarketplaceController() {
           ) : (
             <div className="bg-white rounded-xl border border-gray-200 shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-gray-700">
+                <table className="w-full min-w-[800px] text-left text-xs text-gray-700">
                   <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
                     <tr>
                       <th className="px-3 py-2">Category Name</th>

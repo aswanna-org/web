@@ -873,7 +873,7 @@ export default function AscManagement() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-gray-700">
+            <table className="w-full min-w-[700px] text-left text-xs text-gray-700">
               <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
                 <tr>
                   <th className="px-3 py-2">Center</th>
@@ -988,7 +988,7 @@ export default function AscManagement() {
                               </div>
                             ) : (
                               <div className="overflow-x-auto">
-                                <table className="w-full text-[11px]">
+                                <table className="w-full min-w-[600px] text-[11px]">
                                   <thead className="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold text-[10px]">
                                     <tr>
                                       <th className="px-4 py-2.5 text-center w-10">අනු අංකය</th>
@@ -1854,7 +1854,7 @@ export default function AscManagement() {
                         <span className="ml-auto text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">{(form.gnDivisions || []).length} records</span>
                       </div>
                       <div className="overflow-x-auto">
-                        <table className="w-full text-[11px]">
+                        <table className="w-full min-w-[600px] text-[11px]">
                           <thead className="bg-gray-50 text-gray-500 uppercase tracking-wider font-bold text-[10px] border-b border-gray-200">
                             <tr>
                               <th className="px-3 py-2.5 text-center w-10">අනු</th>

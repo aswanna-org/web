@@ -231,7 +231,7 @@ export default function NurseryViewModal({
             <div>
               <h4 className="text-xs font-bold text-gray-700 mb-2">Available Crops & Stocks</h4>
               <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white">
-                <table className="w-full text-left text-xs border-collapse">
+                <table className="w-full min-w-[500px] text-left text-xs border-collapse">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-200 text-[10px] text-gray-600 font-bold uppercase">
                       <th className="px-3 py-1.5">Category</th>

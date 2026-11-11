@@ -169,53 +169,55 @@ export default function BlogManagement() {
         {isLoading ? (
           <div className="flex justify-center items-center py-20"><AgroLoader message="Loading blogs..." /></div>
         ) : (
-          <table className="w-full text-left text-xs text-gray-700">
-            <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
-              <tr>
-                <th className="px-3 py-2">Title</th>
-                <th className="px-3 py-2">Author</th>
-                <th className="px-3 py-2">Slug</th>
-                <th className="px-3 py-2">Date</th>
-                <th className="px-3 py-2 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {filteredItems.length === 0 ? (
-                <tr><td colSpan={5} className="text-center py-12 text-gray-400"><Newspaper className="mx-auto mb-2" size={32} /><p>No blog posts found</p></td></tr>
-              ) : filteredItems.map(item => (
-                <tr key={item.id} className="hover:bg-gray-50/70 transition-colors">
-                  <td className="px-3 py-1.5 whitespace-nowrap">
-                    <div className="flex items-center gap-2 max-w-md">
-                      {item.image && <img src={item.image} alt="" className="w-6 h-6 rounded object-cover shrink-0 border border-gray-200" />}
-                      <span className="font-semibold text-gray-900 truncate" title={item.title || item.sinhalaTitle || 'Untitled'}>
-                        {item.title || item.sinhalaTitle || 'Untitled'}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">{item.authorName || '-'}</td>
-                  <td className="px-3 py-1.5 whitespace-nowrap text-gray-400 font-mono text-[11px]">{item.slug || '-'}</td>
-                  <td className="px-3 py-1.5 whitespace-nowrap text-gray-500">{new Date(item.createdAt).toLocaleDateString()}</td>
-                  <td className="px-3 py-1.5 text-right whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        onClick={() => {
-                          setViewingItem(item);
-                          setActivePreviewLang(item.sinhalaContent && !item.content ? 'si' : 'en');
-                        }}
-                        title="View Blog Details"
-                        className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
-                      >
-                        <Eye size={15} />
-                      </button>
-                      <button onClick={() => openComments(item)} title="Manage Comments" className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"><MessageSquare size={15} /></button>
-                      <button onClick={() => openEdit(item)} title="Edit Post" className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"><Edit size={15} /></button>
-                      <button onClick={() => handleDelete(item.id)} title="Delete Post" className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"><Trash2 size={15} /></button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[700px] text-left text-xs text-gray-700">
+              <thead className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
+                <tr>
+                  <th className="px-3 py-2">Title</th>
+                  <th className="px-3 py-2">Author</th>
+                  <th className="px-3 py-2">Slug</th>
+                  <th className="px-3 py-2">Date</th>
+                  <th className="px-3 py-2 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {filteredItems.length === 0 ? (
+                  <tr><td colSpan={5} className="text-center py-12 text-gray-400"><Newspaper className="mx-auto mb-2" size={32} /><p>No blog posts found</p></td></tr>
+                ) : filteredItems.map(item => (
+                  <tr key={item.id} className="hover:bg-gray-50/70 transition-colors">
+                    <td className="px-3 py-1.5 whitespace-nowrap">
+                      <div className="flex items-center gap-2 max-w-md">
+                        {item.image && <img src={item.image} alt="" className="w-6 h-6 rounded object-cover shrink-0 border border-gray-200" />}
+                        <span className="font-semibold text-gray-900 truncate" title={item.title || item.sinhalaTitle || 'Untitled'}>
+                          {item.title || item.sinhalaTitle || 'Untitled'}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-3 py-1.5 whitespace-nowrap text-gray-600">{item.authorName || '-'}</td>
+                    <td className="px-3 py-1.5 whitespace-nowrap text-gray-400 font-mono text-[11px]">{item.slug || '-'}</td>
+                    <td className="px-3 py-1.5 whitespace-nowrap text-gray-500">{new Date(item.createdAt).toLocaleDateString()}</td>
+                    <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => {
+                            setViewingItem(item);
+                            setActivePreviewLang(item.sinhalaContent && !item.content ? 'si' : 'en');
+                          }}
+                          title="View Blog Details"
+                          className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
+                        >
+                          <Eye size={15} />
+                        </button>
+                        <button onClick={() => openComments(item)} title="Manage Comments" className="p-1 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded transition-colors cursor-pointer"><MessageSquare size={15} /></button>
+                        <button onClick={() => openEdit(item)} title="Edit Post" className="p-1 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors cursor-pointer"><Edit size={15} /></button>
+                        <button onClick={() => handleDelete(item.id)} title="Delete Post" className="p-1 text-gray-500 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors cursor-pointer"><Trash2 size={15} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
         {totalPages > 1 && <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />}
       </div>

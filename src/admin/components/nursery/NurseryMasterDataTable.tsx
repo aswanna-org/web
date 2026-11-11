@@ -325,7 +325,7 @@ export default function NurseryMasterDataTable({
       {/* Ultra-Compact Table complying strictly with AGENTS.md */}
       <div className="bg-white rounded-xl border border-gray-200 shadow-2xs overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs text-gray-700">
+          <table className="w-full min-w-[800px] text-left border-collapse text-xs text-gray-700">
             <thead>
               <tr className="bg-gray-50/90 border-b border-gray-200 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">
                 <th className="px-3 py-2 w-12 text-center">#</th>
