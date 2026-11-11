@@ -275,6 +275,11 @@ export default function GovijanaSewaDetail() {
         description={pageDesc}
         keywords={dynamicKeywords}
         canonical={`/govijana-sewa/${center.id || center.ascId}`}
+        breadcrumbs={[
+          { name: isSinhala ? 'මුල් පිටුව' : 'Home', url: '/' },
+          { name: isSinhala ? 'ගොවිජන සේවා මධ්‍යස්ථාන' : 'Govijana Sewa', url: '/govijana-sewa' },
+          { name: isSinhala ? (center.nameSi || center.name) : center.name, url: `/govijana-sewa/${center.id || center.ascId}` }
+        ]}
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "GovernmentOffice",

@@ -5,7 +5,7 @@
   <!-- Home Page -->
   <url>
     <loc>https://aswanna.lk/</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
     <xhtml:link rel="alternate" hreflang="si" href="https://aswanna.lk/?lang=si"/>
@@ -15,7 +15,7 @@
   <!-- Marketplace / Products -->
   <url>
     <loc>https://aswanna.lk/marketplace</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.95</priority>
   </url>
@@ -23,7 +23,7 @@
   <!-- Agro Knowledge Hub -->
   <url>
     <loc>https://aswanna.lk/agro</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
   </url>
@@ -31,47 +31,47 @@
   <!-- Education & Courses -->
   <url>
     <loc>https://aswanna.lk/education</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
 
-  <!-- Short Courses -->
+  <!-- Short Courses & Practical Workshops -->
   <url>
     <loc>https://aswanna.lk/short-courses</loc>
-    <lastmod>2026-10-30</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.80</priority>
-  </url>
-
-  <!-- Plant Finder -->
-  <url>
-    <loc>https://aswanna.lk/plant-finder</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.85</priority>
   </url>
 
-  <!-- Mushroom Finder -->
+  <!-- Plant Finder & Nurseries -->
+  <url>
+    <loc>https://aswanna.lk/plant-finder</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+
+  <!-- Mushroom Cultivation & Spawn Directory -->
   <url>
     <loc>https://aswanna.lk/mushrooms</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.80</priority>
   </url>
 
-  <!-- Govijana Sewa Centers -->
+  <!-- Govijana Sewa Agrarian Services Centers -->
   <url>
     <loc>https://aswanna.lk/govijana-sewa</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.80</priority>
+    <priority>0.85</priority>
   </url>
 
-  <!-- News -->
+  <!-- Daily Agri News -->
   <url>
     <loc>https://aswanna.lk/news</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
@@ -79,39 +79,79 @@
   <!-- Blogs & Agri Articles -->
   <url>
     <loc>https://aswanna.lk/blog</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.85</priority>
   </url>
 
-  <!-- Agro Lands -->
+  <!-- Agricultural Lands Directory -->
   <url>
     <loc>https://aswanna.lk/agro-lands</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
+    <priority>0.80</priority>
   </url>
 
-  <!-- Agri Info Hub -->
+  <!-- Agri Information Hub -->
   <url>
     <loc>https://aswanna.lk/agri-info-hub</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.80</priority>
+  </url>
+
+  <!-- Government Agri Institutions -->
+  <url>
+    <loc>https://aswanna.lk/government-institutions</loc>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
 
-  <!-- About Us -->
+  <!-- Private Agri Institutions -->
   <url>
-    <loc>https://aswanna.lk/about</loc>
-    <lastmod>2026-10-30</lastmod>
+    <loc>https://aswanna.lk/private-institutions</loc>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
 
-  <!-- Contact Us -->
+  <!-- International Agri Organizations -->
   <url>
-    <loc>https://aswanna.lk/contact</loc>
-    <lastmod>2026-10-30</lastmod>
+    <loc>https://aswanna.lk/international-institutions</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <!-- Careers & Job Opportunities -->
+  <url>
+    <loc>https://aswanna.lk/careers</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.80</priority>
+  </url>
+
+  <!-- Publications & Handbooks -->
+  <url>
+    <loc>https://aswanna.lk/publications-manuals</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <!-- Agri Extension Materials -->
+  <url>
+    <loc>https://aswanna.lk/agri-extension-materials</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <!-- Agricultural Educational Institutes -->
+  <url>
+    <loc>https://aswanna.lk/agricultural-educational-institutes</loc>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
@@ -119,49 +159,33 @@
   <!-- Research Papers -->
   <url>
     <loc>https://aswanna.lk/research-papers</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.70</priority>
-  </url>
-
-  <!-- Publications Manuals -->
-  <url>
-    <loc>https://aswanna.lk/publications-manuals</loc>
-    <lastmod>2026-10-30</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.70</priority>
-  </url>
-
-  <!-- Agri Extension Materials -->
-  <url>
-    <loc>https://aswanna.lk/agri-extension-materials</loc>
-    <lastmod>2026-10-30</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.70</priority>
-  </url>
-
-  <!-- Agricultural Educational Institutes -->
-  <url>
-    <loc>https://aswanna.lk/educational-institutes</loc>
-    <lastmod>2026-10-30</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.70</priority>
-  </url>
-
-  <!-- Careers -->
-  <url>
-    <loc>https://aswanna.lk/careers</loc>
-    <lastmod>2026-10-30</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.65</priority>
   </url>
 
   <!-- Gallery -->
   <url>
     <loc>https://aswanna.lk/gallery</loc>
-    <lastmod>2026-10-30</lastmod>
+    <lastmod>2026-11-11</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.65</priority>
+  </url>
+
+  <!-- About Us -->
+  <url>
+    <loc>https://aswanna.lk/about</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+
+  <!-- Contact Us -->
+  <url>
+    <loc>https://aswanna.lk/contact</loc>
+    <lastmod>2026-11-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
   </url>
 
 </urlset>

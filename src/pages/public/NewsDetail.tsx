@@ -185,6 +185,36 @@ export default function NewsDetail() {
         image={news?.image || undefined}
         canonical={`/news/${news?.slug || slug}`}
         type="article"
+        breadcrumbs={[
+          { name: isSinhala ? 'මුල් පිටුව' : 'Home', url: '/' },
+          { name: isSinhala ? 'කෘෂි පුවත්' : 'News', url: '/news' },
+          { name: title, url: `/news/${news?.slug || slug}` }
+        ]}
+        jsonLd={news ? {
+          "@context": "https://schema.org",
+          "@type": "NewsArticle",
+          "headline": title,
+          "description": cleanDescription,
+          "image": news.image ? [news.image] : ["https://aswanna.lk/images/aswanna_logo_square.png"],
+          "datePublished": news.createdAt,
+          "dateModified": news.createdAt,
+          "author": {
+            "@type": "Person",
+            "name": news.authorName || "Aswanna Editorial Team"
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "Aswanna Ceylon Agro",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://aswanna.lk/images/aswanna_logo_square.png"
+            }
+          },
+          "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": `https://aswanna.lk/news/${news.slug || slug}`
+          }
+        } : undefined}
       />
 
       {/* ── Page Hero Banner ── */}

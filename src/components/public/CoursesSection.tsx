@@ -127,8 +127,7 @@ export default function CoursesSection() {
                             ...(durationLabel ? [{ icon: Clock, text: durationLabel }] : [])
                           ]}
                           primaryAction={{
-                            text: isSinhala ? 'විස්තර බලන්න' : 'View Details',
-                            onClick: () => window.location.href = `/education/${course.slug || course.id}`
+                            text: isSinhala ? 'විස්තර බලන්න' : 'View Details'
                           }}
                         />
                       </div>

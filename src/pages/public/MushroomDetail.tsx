@@ -226,7 +226,27 @@ export default function MushroomDetail() {
       <SEO
         title={pageTitle}
         description={pageDesc}
+        image={activePhoto}
         canonical={`/mushrooms/${supplier.slug}`}
+        breadcrumbs={[
+          { name: isSinhala ? 'මුල් පිටුව' : 'Home', url: '/' },
+          { name: isSinhala ? 'බිම්මල් නිෂ්පාදකයින්' : 'Mushroom Suppliers', url: '/mushrooms' },
+          { name: primaryName, url: `/mushrooms/${supplier.slug}` }
+        ]}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          "name": primaryName,
+          "description": pageDesc,
+          "image": activePhoto ? [activePhoto] : undefined,
+          "telephone": supplier.whatsappNumber || undefined,
+          "address": supplier.location ? {
+            "@type": "PostalAddress",
+            "streetAddress": (isSinhala ? supplier.location.fullAddressSi : supplier.location.fullAddressEn) || undefined,
+            "addressLocality": (isSinhala ? supplier.location.districtSi : supplier.location.districtEn) || undefined,
+            "addressCountry": "LK"
+          } : undefined
+        }}
       />
 
       {/* Hero Header */}

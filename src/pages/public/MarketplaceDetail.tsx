@@ -200,12 +200,40 @@ export default function MarketplaceDetail() {
     ? (item.descriptionSi || item.descriptionEn)
     : (item.descriptionEn || item.descriptionSi);
 
+  const canonicalPath = item.category?.slug
+    ? `/marketplace/items/${item.category.slug}/${item.slug || item.id}`
+    : `/marketplace/items/${item.slug || item.id}`;
+
+  const cleanDescription = (item.descriptionEn || item.descriptionSi || displayTitle).slice(0, 160);
+
   return (
     <div className="w-full min-h-screen bg-gray-50/50 pb-20 font-roboto">
       <SEO
         title={`${displayTitle} | Aswanna Marketplace`}
-        description={item.descriptionEn || item.descriptionSi || displayTitle}
+        description={cleanDescription}
         image={images[0]?.imageUrl}
+        canonical={canonicalPath}
+        type="product"
+        breadcrumbs={[
+          { name: isSi ? 'මුල් පිටුව' : 'Home', url: '/' },
+          { name: isSi ? 'වෙළඳපොල' : 'Marketplace', url: '/marketplace' },
+          ...(item.category ? [{ name: categoryName || (isSi ? item.category.nameSi : item.category.nameEn), url: `/marketplace/category/${item.category.slug}` }] : []),
+          { name: displayTitle, url: canonicalPath }
+        ]}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": displayTitle,
+          "description": cleanDescription,
+          "image": images.map(img => img.imageUrl),
+          "offers": {
+            "@type": "Offer",
+            "price": item.priceEn || item.priceSi || '0',
+            "priceCurrency": "LKR",
+            "availability": item.activeState ? "https://schema.org/InStock" : "https://schema.org/SoldOut",
+            "url": `https://aswanna.lk${canonicalPath}`
+          }
+        }}
       />
 
       {/* Page Hero Header */}

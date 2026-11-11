@@ -243,6 +243,12 @@ export default function JobDetail() {
         title={`${displayTitle} | Aswanna Careers`}
         description={job.description ? job.description.slice(0, 160) : `Agricultural career opportunity: ${displayTitle}`}
         canonical={job.jobCategory?.slug ? `/careers/jobs/${job.jobCategory.slug}/${job.slug || job.id}` : `/careers/jobs/${job.slug || job.id}`}
+        breadcrumbs={[
+          { name: isSi ? 'මුල් පිටුව' : 'Home', url: '/' },
+          { name: isSi ? 'වෘත්තීය අවස්ථා' : 'Careers', url: '/careers' },
+          ...(job.jobCategory ? [{ name: job.jobCategory.name, url: `/careers/category/${job.jobCategory.slug}` }] : []),
+          { name: displayTitle, url: job.jobCategory?.slug ? `/careers/jobs/${job.jobCategory.slug}/${job.slug || job.id}` : `/careers/jobs/${job.slug || job.id}` }
+        ]}
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "JobPosting",
@@ -250,9 +256,17 @@ export default function JobDetail() {
           "description": job.description || displayTitle,
           "datePosted": job.createdAt,
           "validThrough": job.expiryDate,
+          "employmentType": "FULL_TIME",
           "hiringOrganization": {
             "@type": "Organization",
             "name": companyOrInstitution
+          },
+          "jobLocation": {
+            "@type": "Place",
+            "address": {
+              "@type": "PostalAddress",
+              "addressCountry": "LK"
+            }
           }
         }}
       />

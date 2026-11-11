@@ -218,6 +218,25 @@ export default function NurseryDetail() {
         description={pageDesc}
         image={heroImage}
         canonical={`/plant-finder/nursery/${nursery.slug}`}
+        breadcrumbs={[
+          { name: isSinhala ? 'මුල් පිටුව' : 'Home', url: '/' },
+          { name: isSinhala ? 'පැළ තවාන්' : 'Plant Nurseries', url: '/plant-finder' },
+          { name: primaryName, url: `/plant-finder/nursery/${nursery.slug}` }
+        ]}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          "name": primaryName,
+          "description": pageDesc,
+          "image": heroImage ? [heroImage] : undefined,
+          "telephone": nursery.hotline || nursery.whatsappNumber || undefined,
+          "address": nursery.location ? {
+            "@type": "PostalAddress",
+            "streetAddress": (isSinhala ? nursery.location.fullAddressSi : nursery.location.fullAddressEn) || undefined,
+            "addressLocality": districtDisplay || undefined,
+            "addressCountry": "LK"
+          } : undefined
+        }}
       />
 
       {/* Page Hero Header */}

@@ -468,6 +468,11 @@ export default function ShortCourseDetail() {
           'Aswanna',
           'Sri Lanka Agriculture Training',
         ].join(', ')}
+        breadcrumbs={[
+          { name: isSinhala ? 'මුල් පිටුව' : 'Home', url: '/' },
+          { name: isSinhala ? 'කෙටිකාලීන පාඨමාලා' : 'Short Courses', url: '/short-courses' },
+          { name: courseTitle, url: `/short-courses/${course.slug}` }
+        ]}
         jsonLd={{
           '@context': 'https://schema.org',
           '@type': 'Course',

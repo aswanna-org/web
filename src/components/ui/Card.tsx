@@ -81,6 +81,8 @@ export default function Card({
             <img
               src={image}
               alt={title}
+              loading="lazy"
+              decoding="async"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
                 if (!target.dataset.fallbackTried) {
@@ -96,6 +98,8 @@ export default function Card({
             <img
               src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=800&q=80"
               alt={title}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 opacity-90"
             />
           )}

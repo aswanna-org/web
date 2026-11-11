@@ -50,6 +50,7 @@ import SocialPlatformDetail from './pages/public/SocialPlatformDetail';
 import NurseryDetail from './pages/public/NurseryDetail';
 import MushroomFinder from './pages/public/MushroomFinder';
 import MushroomDetail from './pages/public/MushroomDetail';
+import NotFound from './pages/public/NotFound';
 
 // Admin imports
 import AdminLayout from './admin/layouts/AdminLayout';
@@ -201,6 +202,7 @@ function App() {
               <Route path="social/:platformSlug" element={<SocialPlatformDetail />} />
               <Route path="social-connect/:platformSlug" element={<SocialPlatformDetail />} />
               <Route path="community/:platformSlug" element={<SocialPlatformDetail />} />
+              <Route path="*" element={<NotFound />} />
             </Route>
 
 

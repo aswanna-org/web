@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -9,7 +10,7 @@ export default function HeroCarousel() {
   const slides = [
     {
       id: 1,
-      image: '/images/hero_farm_1.jpg',
+      image: '/images/hero/aswanna.lk-hero-image-01.jpg',
       tagKey: 'hero.slide1.tag',
       titleKey: 'hero.slide1.title',
       descKey: 'hero.slide1.desc',
@@ -17,7 +18,7 @@ export default function HeroCarousel() {
     },
     {
       id: 2,
-      image: '/images/hero_farm_2.jpg',
+      image: '/images/hero/aswanna.lk-hero-image-02.jpg',
       tagKey: 'hero.slide2.tag',
       titleKey: 'hero.slide2.title',
       descKey: 'hero.slide2.desc',
@@ -25,11 +26,27 @@ export default function HeroCarousel() {
     },
     {
       id: 3,
-      image: '/images/hero_farm_3.jpg',
+      image: '/images/hero/aswanna.lk-hero-image-03.jpg',
       tagKey: 'hero.slide3.tag',
       titleKey: 'hero.slide3.title',
       descKey: 'hero.slide3.desc',
       buttonKey: 'hero.slide3.button',
+    },
+    {
+      id: 4,
+      image: '/images/hero/aswanna.lk-hero-image-04.jpg',
+      tagKey: 'hero.slide1.tag',
+      titleKey: 'hero.slide1.title',
+      descKey: 'hero.slide1.desc',
+      buttonKey: 'hero.slide1.button',
+    },
+    {
+      id: 5,
+      image: '/images/hero/aswanna.lk-hero-image-05.jpg',
+      tagKey: 'hero.slide2.tag',
+      titleKey: 'hero.slide2.title',
+      descKey: 'hero.slide2.desc',
+      buttonKey: 'hero.slide2.button',
     }
   ];
 
@@ -66,6 +83,9 @@ export default function HeroCarousel() {
           <img
             src={slide.image}
             alt={t(slide.titleKey)}
+            loading={index === 0 ? "eager" : "lazy"}
+            fetchPriority={index === 0 ? "high" : "low"}
+            decoding="async"
             className="absolute inset-0 w-full h-full object-cover"
           />
         </div>
@@ -92,15 +112,15 @@ export default function HeroCarousel() {
             {t(slides[currentSlide].descKey)}
           </p>
 
-          <button 
-            onClick={() => window.location.href = '/agri-info-hub'}
+          <Link
+            to="/agri-info-hub"
             className="inline-flex items-center gap-3.5 pl-6 sm:pl-8 pr-2.5 sm:pr-3 py-2 sm:py-2.5 rounded-full bg-white/20 hover:bg-white/35 backdrop-blur-xl border border-white/50 hover:border-white/80 text-white font-bold text-xs sm:text-base shadow-[0_10px_35px_rgba(0,0,0,0.25),inset_0_1.5px_2px_rgba(255,255,255,0.7)] hover:shadow-[0_14px_45px_rgba(0,0,0,0.35),inset_0_2px_2.5px_rgba(255,255,255,0.9)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 group cursor-pointer"
           >
             <span>{t(slides[currentSlide].buttonKey)}</span>
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/30 backdrop-blur-md border border-white/60 flex items-center justify-center text-white group-hover:rotate-45 transition-transform duration-300 shadow-2xs shrink-0">
               <ArrowUpRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
             </div>
-          </button>
+          </Link>
         </div>
       </div>
 

@@ -3,12 +3,14 @@ import { Outlet } from 'react-router-dom';
 import UserSidebar from '../components/UserSidebar';
 import UserTopbar from '../components/UserTopbar';
 import { ConfirmProvider } from '../../admin/components/ConfirmDialog';
+import SEO from '../../components/common/SEO';
 
 export const UserDashboardLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <ConfirmProvider>
+      <SEO title="User Dashboard | Aswanna" noindex={true} />
       <div className="flex h-screen w-full bg-gray-50 font-sans overflow-hidden">
         {/* Sidebar */}
         <UserSidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />

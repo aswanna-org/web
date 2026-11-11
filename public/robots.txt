@@ -1,10 +1,11 @@
 # Robots.txt for Aswanna Ceylon Agro (PVT) LTD
+# https://aswanna.lk
 
 # Allow Google AdSense Crawler
 User-agent: Mediapartners-Google
 Allow: /
 
-# General Crawlers
+# General Crawlers (Googlebot, Bingbot, etc.)
 User-agent: *
 Allow: /
 Allow: /ads.txt
@@ -12,14 +13,19 @@ Allow: /images/
 Allow: /*.png$
 Allow: /*.ico$
 Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.webp$
 Allow: /*.svg$
 Allow: /site.webmanifest
 
-# Disallow admin panel and internal management routes
+# Disallow Private Administrative & User Dashboard Routes
 Disallow: /admin
 Disallow: /admin/*
+Disallow: /dashboard
+Disallow: /dashboard/*
 Disallow: /api/*
 
-# Host & Sitemap
+# Host & Sitemaps
 Host: https://aswanna.lk
 Sitemap: https://aswanna.lk/sitemap.xml
+Sitemap: https://aswanna.lk/api/sitemap.xml

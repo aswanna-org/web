@@ -77,7 +77,8 @@ export default function BlogsSection() {
                         { icon: User, text: item.authorName || 'Admin' },
                         { icon: CalendarDays, text: new Date(item.createdAt).toLocaleDateString() }
                       ]}
-                      primaryAction={{ text: isSinhala ? "තව කියවන්න" : "Read More", onClick: () => window.location.href = `/blog?slug=${item.slug || item.id}` }}
+                      to={`/blog/${item.slug || item.id}`}
+                      primaryAction={{ text: isSinhala ? "තව කියවන්න" : "Read More" }}
                     />
                   </div>
                 </div>

@@ -168,6 +168,36 @@ export default function BlogDetail() {
         image={blog?.image || undefined}
         canonical={`/blog/${blog?.slug || slug}`}
         type="article"
+        breadcrumbs={[
+          { name: isSinhala ? 'මුල් පිටුව' : 'Home', url: '/' },
+          { name: isSinhala ? 'කෘෂි ලිපි' : 'Blog', url: '/blog' },
+          { name: title, url: `/blog/${blog?.slug || slug}` }
+        ]}
+        jsonLd={blog ? {
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "headline": title,
+          "description": cleanDescription,
+          "image": blog.image ? [blog.image] : ["https://aswanna.lk/images/aswanna_logo_square.png"],
+          "datePublished": blog.createdAt,
+          "dateModified": blog.createdAt,
+          "author": {
+            "@type": "Person",
+            "name": blog.authorName || "Aswanna Contributor"
+          },
+          "publisher": {
+            "@type": "Organization",
+            "name": "Aswanna Ceylon Agro",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://aswanna.lk/images/aswanna_logo_square.png"
+            }
+          },
+          "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": `https://aswanna.lk/blog/${blog.slug || slug}`
+          }
+        } : undefined}
       />
 
       {/* ── Page Hero Banner (Title Only, Compact Mobile Sizing) ── */}

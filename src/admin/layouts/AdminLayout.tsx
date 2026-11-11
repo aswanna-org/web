@@ -4,12 +4,14 @@ import { Outlet } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import { ConfirmProvider } from '../components/ConfirmDialog';
+import SEO from '../../components/common/SEO';
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <ConfirmProvider>
+      <SEO title="Admin Portal | Aswanna" noindex={true} />
       <div className="flex h-screen w-full bg-gray-50 font-sans overflow-hidden">
         {/* Sidebar - flex item that pushes content */}
         <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />

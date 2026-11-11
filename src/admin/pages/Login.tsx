@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import AgroLoader from '../../components/common/AgroLoader';
+import SEO from '../../components/common/SEO';
 
 export default function Login() {
   const { user, openLoginModal, isAuthenticated } = useAuth();
@@ -22,6 +23,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <SEO title="Admin Login | Aswanna" noindex={true} />
       <AgroLoader />
     </div>
   );

@@ -470,6 +470,25 @@ export default function AgroLandDetail() {
         description={land.additionalDetailsSi || land.additionalDetailsEn || `${title} in ${locationDisplay}. Agricultural land for sale/lease in Sri Lanka.`}
         image={activeImage}
         canonical={`/agro-lands/${land.slug || land.id}`}
+        breadcrumbs={[
+          { name: isSinhala ? 'මුල් පිටුව' : 'Home', url: '/' },
+          { name: isSinhala ? 'කෘෂිකාර්මික ඉඩම්' : 'Agro Lands', url: '/agro-lands' },
+          { name: title, url: `/agro-lands/${land.slug || land.id}` }
+        ]}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          "name": title,
+          "description": land.additionalDetailsSi || land.additionalDetailsEn || `${title} in ${locationDisplay}`,
+          "image": activeImage ? [activeImage] : undefined,
+          "offers": {
+            "@type": "Offer",
+            "price": land.priceEn || land.priceSi || '0',
+            "priceCurrency": "LKR",
+            "availability": land.activeState ? "https://schema.org/InStock" : "https://schema.org/SoldOut",
+            "url": `https://aswanna.lk/agro-lands/${land.slug || land.id}`
+          }
+        }}
       />
 
       <PageHero
