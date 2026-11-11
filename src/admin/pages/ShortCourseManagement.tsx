@@ -27,6 +27,7 @@ import Pagination from '../../components/admin/Pagination';
 import AgroLoader from '../../components/common/AgroLoader';
 import RichTextEditor from '../components/RichTextEditor';
 import { useConfirm } from '../components/ConfirmDialog';
+import { sanitizeHtml } from '../../utils/sanitize';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -3252,13 +3253,13 @@ export default function ShortCourseManagement() {
                   {previewCourse.overviewEn && (
                     <div
                       className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-sm text-gray-700 leading-relaxed prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: previewCourse.overviewEn }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(previewCourse.overviewEn) }}
                     />
                   )}
                   {previewCourse.overviewSi && (
                     <div
                       className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-sm text-gray-700 font-sinhala leading-relaxed prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: previewCourse.overviewSi }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(previewCourse.overviewSi) }}
                     />
                   )}
                 </div>
@@ -3271,13 +3272,13 @@ export default function ShortCourseManagement() {
                   {previewCourse.detailedDescriptionEn && (
                     <div
                       className="p-5 bg-white rounded-xl border border-gray-200 text-sm text-gray-800 leading-relaxed prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: previewCourse.detailedDescriptionEn }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(previewCourse.detailedDescriptionEn) }}
                     />
                   )}
                   {previewCourse.detailedDescriptionSi && (
                     <div
                       className="p-5 bg-white rounded-xl border border-gray-200 text-sm text-gray-800 font-sinhala leading-relaxed prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: previewCourse.detailedDescriptionSi }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeHtml(previewCourse.detailedDescriptionSi) }}
                     />
                   )}
                 </div>
@@ -3360,14 +3361,14 @@ export default function ShortCourseManagement() {
               {viewingSubject.descriptionEn && (
                 <div>
                   <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Description (English)</h4>
-                  <div className="text-xs text-gray-700 leading-relaxed bg-gray-50 p-3 rounded-xl border border-gray-100" dangerouslySetInnerHTML={{ __html: viewingSubject.descriptionEn }} />
+                  <div className="text-xs text-gray-700 leading-relaxed bg-gray-50 p-3 rounded-xl border border-gray-100" dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewingSubject.descriptionEn) }} />
                 </div>
               )}
 
               {viewingSubject.descriptionSi && (
                 <div>
                   <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">විස්තරය (Sinhala)</h4>
-                  <div className="text-xs text-gray-700 leading-relaxed bg-gray-50 p-3 rounded-xl border border-gray-100" dangerouslySetInnerHTML={{ __html: viewingSubject.descriptionSi }} />
+                  <div className="text-xs text-gray-700 leading-relaxed bg-gray-50 p-3 rounded-xl border border-gray-100" dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewingSubject.descriptionSi) }} />
                 </div>
               )}
             </div>

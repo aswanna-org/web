@@ -12,6 +12,7 @@ import Pagination from '../../components/admin/Pagination';
 import RichTextEditor from '../components/RichTextEditor';
 import AgroLoader from '../../components/common/AgroLoader';
 import { useConfirm } from '../components/ConfirmDialog';
+import { sanitizeHtml } from '../../utils/sanitize';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -3044,7 +3045,7 @@ export default function CourseManagement() {
                   <h4 className="text-xs font-bold uppercase text-gray-600 tracking-wider">Course Description</h4>
                   <div
                     className="p-5 bg-gray-50 rounded-2xl border border-gray-200 text-xs sm:text-sm text-gray-800 leading-relaxed max-w-none prose prose-emerald"
-                    dangerouslySetInnerHTML={{ __html: previewCourse.description }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(previewCourse.description) }}
                   />
                 </div>
               )}
@@ -3055,7 +3056,7 @@ export default function CourseManagement() {
                   <h4 className="text-xs font-bold uppercase text-gray-600 tracking-wider">Entry Requirements</h4>
                   <div
                     className="p-5 bg-gray-50 rounded-2xl border border-gray-200 text-xs sm:text-sm text-gray-800 leading-relaxed max-w-none prose prose-emerald"
-                    dangerouslySetInnerHTML={{ __html: previewCourse.entryRequirements }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(previewCourse.entryRequirements) }}
                   />
                 </div>
               )}

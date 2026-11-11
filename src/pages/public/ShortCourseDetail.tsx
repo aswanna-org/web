@@ -11,6 +11,7 @@ import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
 import { getShareUrl } from '../../utils/shareUrl';
+import { sanitizeHtml } from '../../utils/sanitize';
 import { formatFee, stripHtml, getDistrictLabel, formatSchedule } from './ShortCourses';
 
 interface ShortCourseSubject {
@@ -716,7 +717,7 @@ export default function ShortCourseDetail() {
                   <div
                     className="p-4 sm:p-5 rounded-xl bg-emerald-50/40 border border-emerald-100 text-xs sm:text-sm text-gray-800 leading-relaxed font-medium prose max-w-none prose-emerald rich-content"
                     dangerouslySetInnerHTML={{
-                      __html: overviewHtml.replace(/&nbsp;|\u00a0/g, ' '),
+                      __html: sanitizeHtml(overviewHtml.replace(/&nbsp;|\u00a0/g, ' ')),
                     }}
                   />
                 )}
@@ -725,7 +726,7 @@ export default function ShortCourseDetail() {
                   <div
                     className="text-xs sm:text-sm text-gray-700 leading-relaxed p-4 sm:p-5 bg-gray-50/70 rounded-xl border border-gray-100 prose max-w-none prose-emerald rich-content"
                     dangerouslySetInnerHTML={{
-                      __html: detailedDescriptionHtml.replace(/&nbsp;|\u00a0/g, ' '),
+                      __html: sanitizeHtml(detailedDescriptionHtml.replace(/&nbsp;|\u00a0/g, ' ')),
                     }}
                   />
                 )}

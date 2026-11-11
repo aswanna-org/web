@@ -4,6 +4,7 @@ import Pagination from '../../components/admin/Pagination';
 import RichTextEditor from '../components/RichTextEditor';
 import AgroLoader from '../../components/common/AgroLoader';
 import { useConfirm } from '../components/ConfirmDialog';
+import { sanitizeHtml } from '../../utils/sanitize';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -295,14 +296,14 @@ export default function ProductManagement() {
               {viewingProduct.description && (
                 <div>
                   <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Description (English)</h4>
-                  <div className="text-xs text-gray-700 leading-relaxed bg-white p-3.5 rounded-xl border border-gray-100 rich-content" dangerouslySetInnerHTML={{ __html: viewingProduct.description }} />
+                  <div className="text-xs text-gray-700 leading-relaxed bg-white p-3.5 rounded-xl border border-gray-100 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewingProduct.description) }} />
                 </div>
               )}
 
               {viewingProduct.sinhalaDescription && (
                 <div>
                   <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">විස්තරය (Sinhala)</h4>
-                  <div className="text-xs text-gray-700 leading-relaxed bg-white p-3.5 rounded-xl border border-gray-100 rich-content" dangerouslySetInnerHTML={{ __html: viewingProduct.sinhalaDescription }} />
+                  <div className="text-xs text-gray-700 leading-relaxed bg-white p-3.5 rounded-xl border border-gray-100 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewingProduct.sinhalaDescription) }} />
                 </div>
               )}
             </div>

@@ -4,6 +4,7 @@ import Pagination from '../../components/admin/Pagination';
 import RichTextEditor from '../components/RichTextEditor';
 import AgroLoader from '../../components/common/AgroLoader';
 import { useConfirm } from '../components/ConfirmDialog';
+import { sanitizeHtml } from '../../utils/sanitize';
 
 const YoutubeIcon = ({ size = 18, className = "" }: { size?: number; className?: string }) => (
   <svg
@@ -573,7 +574,7 @@ export default function NewsManagement() {
                     viewingItem.sinhalaContent ? (
                       <div
                         className="prose prose-sm max-w-none text-gray-800 leading-relaxed font-sans"
-                        dangerouslySetInnerHTML={{ __html: viewingItem.sinhalaContent }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewingItem.sinhalaContent) }}
                       />
                     ) : (
                       <p className="text-gray-400 italic text-sm">සිංහල අන්තර්ගතයක් ඇතුළත් කර නොමැත.</p>
@@ -582,7 +583,7 @@ export default function NewsManagement() {
                     viewingItem.content ? (
                       <div
                         className="prose prose-sm max-w-none text-gray-800 leading-relaxed font-sans"
-                        dangerouslySetInnerHTML={{ __html: viewingItem.content }}
+                        dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewingItem.content) }}
                       />
                     ) : (
                       <p className="text-gray-400 italic text-sm">No English content provided.</p>

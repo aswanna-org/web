@@ -11,6 +11,7 @@ import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
 import GoogleAd from '../../components/common/GoogleAd';
 import { getShareUrl } from '../../utils/shareUrl';
+import { sanitizeHtml } from '../../utils/sanitize';
 
 interface Job {
   id: string;
@@ -389,7 +390,7 @@ export default function JobDetail() {
                 <div
                   className="prose prose-sm max-w-none text-gray-700 leading-relaxed rich-content"
                   dangerouslySetInnerHTML={{
-                    __html: ((isSi && job.sinhalaDescription ? job.sinhalaDescription : job.description) || '').replace(/&nbsp;|\u00a0/g, ' ')
+                    __html: sanitizeHtml(((isSi && job.sinhalaDescription ? job.sinhalaDescription : job.description) || '').replace(/&nbsp;|\u00a0/g, ' '))
                   }}
                 />
               </div>
@@ -438,7 +439,7 @@ export default function JobDetail() {
                 {job.salaryDetails.allowances && (
                   <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 text-sm">
                     <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1.5">{isSi ? 'හිමිවන දීමනා' : 'Allowances'}</span>
-                    <div className="prose prose-sm max-w-none text-gray-700 rich-content" dangerouslySetInnerHTML={{ __html: isSi && job.salaryDetails.allowancesSi ? job.salaryDetails.allowancesSi : job.salaryDetails.allowances }} />
+                    <div className="prose prose-sm max-w-none text-gray-700 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(isSi && job.salaryDetails.allowancesSi ? job.salaryDetails.allowancesSi : job.salaryDetails.allowances) }} />
                   </div>
                 )}
               </div>
@@ -479,7 +480,7 @@ export default function JobDetail() {
                     <span className="text-xs text-gray-500 font-bold uppercase tracking-wider block mb-2">
                       {isSi ? 'අධ්‍යාපනික සහ වෘත්තීය සුදුසුකම්' : 'Educational & Professional Qualifications'}
                     </span>
-                    <div className="prose prose-sm max-w-none text-gray-700 rich-content" dangerouslySetInnerHTML={{ __html: isSi && job.eligibility.qualificationsSi ? job.eligibility.qualificationsSi : job.eligibility.qualifications }} />
+                    <div className="prose prose-sm max-w-none text-gray-700 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(isSi && job.eligibility.qualificationsSi ? job.eligibility.qualificationsSi : job.eligibility.qualifications) }} />
                   </div>
                 )}
 
@@ -488,7 +489,7 @@ export default function JobDetail() {
                     <span className="text-xs text-gray-500 font-bold uppercase tracking-wider block mb-2">
                       {isSi ? 'අවශ්‍ය සේවා පළපුරුද්ද හා පුරවැසිභාවය' : 'Required Experience & Citizenship'}
                     </span>
-                    <div className="prose prose-sm max-w-none text-gray-700 rich-content" dangerouslySetInnerHTML={{ __html: isSi && job.eligibility.basicExperienceSi ? job.eligibility.basicExperienceSi : job.eligibility.basicExperience }} />
+                    <div className="prose prose-sm max-w-none text-gray-700 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(isSi && job.eligibility.basicExperienceSi ? job.eligibility.basicExperienceSi : job.eligibility.basicExperience) }} />
                   </div>
                 )}
               </div>
@@ -517,7 +518,7 @@ export default function JobDetail() {
                     <span className="text-xs text-gray-500 font-bold uppercase tracking-wider block mb-2">
                       {isSi ? 'විභාගය / සම්මුඛ පරීක්ෂණ විස්තර' : 'Examination & Interview Details'}
                     </span>
-                    <div className="prose prose-sm max-w-none text-gray-700 rich-content" dangerouslySetInnerHTML={{ __html: isSi && job.selectionProcedure.examDetailsSi ? job.selectionProcedure.examDetailsSi : job.selectionProcedure.examDetails }} />
+                    <div className="prose prose-sm max-w-none text-gray-700 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(isSi && job.selectionProcedure.examDetailsSi ? job.selectionProcedure.examDetailsSi : job.selectionProcedure.examDetails) }} />
                   </div>
                 )}
               </div>
@@ -571,7 +572,7 @@ export default function JobDetail() {
                     <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1.5">
                       {isSi ? 'ලිපි කවරයේ වම්පස ඉහළ කෙළවරේ සටහන' : 'Marking on the Top-Left Corner of Envelope'}
                     </span>
-                    <div className="prose prose-sm max-w-none text-gray-800 rich-content" dangerouslySetInnerHTML={{ __html: isSi && job.applicationInfo.envelopeMarkingSi ? job.applicationInfo.envelopeMarkingSi : job.applicationInfo.envelopeMarking }} />
+                    <div className="prose prose-sm max-w-none text-gray-800 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(isSi && job.applicationInfo.envelopeMarkingSi ? job.applicationInfo.envelopeMarkingSi : job.applicationInfo.envelopeMarking) }} />
                   </div>
                 )}
 
@@ -580,7 +581,7 @@ export default function JobDetail() {
                     <span className="text-xs text-gray-500 font-semibold uppercase tracking-wider block mb-1.5">
                       {isSi ? 'අමතර ඉදිරිපත් කිරීමේ විස්තර සහ උපදෙස්' : 'Additional Submission Details'}
                     </span>
-                    <div className="prose prose-sm max-w-none text-gray-700 rich-content" dangerouslySetInnerHTML={{ __html: isSi && job.applicationInfo.submissionDetailsSi ? job.applicationInfo.submissionDetailsSi : job.applicationInfo.submissionDetails }} />
+                    <div className="prose prose-sm max-w-none text-gray-700 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(isSi && job.applicationInfo.submissionDetailsSi ? job.applicationInfo.submissionDetailsSi : job.applicationInfo.submissionDetails) }} />
                   </div>
                 )}
               </div>

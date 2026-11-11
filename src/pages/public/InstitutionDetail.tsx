@@ -30,6 +30,7 @@ import {
 import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
+import { sanitizeHtml } from '../../utils/sanitize';
 import {
   type InstitutionDocument
 } from '../../data/agriInstitutionsData';
@@ -592,7 +593,7 @@ export default function InstitutionDetail() {
               {description ? (
                 <div
                   className="rich-content prose max-w-none text-gray-700 leading-relaxed text-sm sm:text-base"
-                  dangerouslySetInnerHTML={{ __html: description }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(description) }}
                 />
               ) : null}
             </div>
@@ -610,7 +611,7 @@ export default function InstitutionDetail() {
                 </div>
                 <div
                   className="rich-content prose max-w-none text-gray-700 leading-relaxed text-sm sm:text-base"
-                  dangerouslySetInnerHTML={{ __html: fullDescription }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(fullDescription) }}
                 />
               </div>
             )}

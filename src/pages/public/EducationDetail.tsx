@@ -12,6 +12,7 @@ import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
 import { useAuth } from '../../context/AuthContext';
 import SEO from '../../components/common/SEO';
+import { sanitizeHtml } from '../../utils/sanitize';
 
 // Helper to extract language-isolated course title from bilingual composite titles
 // e.g. "ජලජීවී වගා තාක්ෂණ පාඨමාලාව - AQUACULTURE TECHNOLOGY COURSE (NVQ LEVEL 4)"
@@ -786,7 +787,7 @@ export default function EducationDetail() {
             <div
               className="text-xs sm:text-sm text-gray-700 leading-relaxed bg-gray-50/60 p-5 rounded-xl border border-gray-100 prose max-w-none prose-emerald rich-content"
               dangerouslySetInnerHTML={{
-                __html: course.description.replace(/&nbsp;|\u00a0/g, ' ')
+                __html: sanitizeHtml(course.description.replace(/&nbsp;|\u00a0/g, ' '))
               }}
             />
           </div>
@@ -801,7 +802,7 @@ export default function EducationDetail() {
           <div
             className="text-xs sm:text-sm text-gray-700 leading-relaxed bg-gray-50/60 p-4 rounded-xl border border-gray-100 prose max-w-none prose-emerald rich-content"
             dangerouslySetInnerHTML={{
-              __html: (course.entryRequirements || (isSinhala ? 'අ.පො.ස. (සා.පෙළ) විභාගයට පෙනී සිටීම හෝ කෘෂිකර්මාන්තයට ඇති උනන්දුව.' : 'G.C.E. (O/L) completion or genuine interest in agriculture.')).replace(/&nbsp;|\u00a0/g, ' ')
+              __html: sanitizeHtml((course.entryRequirements || (isSinhala ? 'අ.පො.ස. (සා.පෙළ) විභාගයට පෙනී සිටීම හෝ කෘෂිකර්මාන්තයට ඇති උනන්දුව.' : 'G.C.E. (O/L) completion or genuine interest in agriculture.')).replace(/&nbsp;|\u00a0/g, ' '))
             }}
           />
         </div>

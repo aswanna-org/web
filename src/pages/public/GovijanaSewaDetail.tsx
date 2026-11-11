@@ -22,6 +22,7 @@ import WomanIcon from '@mui/icons-material/Woman';
 import PageHero from '../../components/public/PageHero';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
+import { sanitizeHtml } from '../../utils/sanitize';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -440,7 +441,7 @@ export default function GovijanaSewaDetail() {
                       return (
                         <div
                           className="text-amber-950 text-xs sm:text-sm leading-relaxed rich-content prose prose-sm max-w-none font-medium"
-                          dangerouslySetInnerHTML={{ __html: noteContent }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(noteContent) }}
                         />
                       );
                     }

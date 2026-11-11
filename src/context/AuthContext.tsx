@@ -53,17 +53,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const lastActive = localStorage.getItem('admin_last_active');
 
     if (storedToken && storedUser) {
-      // Check if session expired due to inactivity (1 hour = 3600000 ms)
-      const now = Date.now();
-      if (lastActive && now - parseInt(lastActive) > 3600000) {
-        // Session expired
+      try {
+        // Check if session expired due to inactivity (1 hour = 3600000 ms)
+        const now = Date.now();
+        const parsedLastActive = lastActive ? parseInt(lastActive, 10) : NaN;
+        if (!isNaN(parsedLastActive) && now - parsedLastActive > 3600000) {
+          // Session expired
+          localStorage.removeItem('admin_token');
+          localStorage.removeItem('admin_user');
+          localStorage.removeItem('admin_last_active');
+        } else {
+          const parsedUser = JSON.parse(storedUser);
+          if (parsedUser && typeof parsedUser === 'object' && parsedUser.id) {
+            setToken(storedToken);
+            setUser(parsedUser);
+            localStorage.setItem('admin_last_active', now.toString());
+          } else {
+            throw new Error('Invalid stored user payload');
+          }
+        }
+      } catch {
+        // Clear corrupted state
         localStorage.removeItem('admin_token');
         localStorage.removeItem('admin_user');
         localStorage.removeItem('admin_last_active');
-      } else {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
-        localStorage.setItem('admin_last_active', now.toString());
       }
     }
     setIsLoading(false);

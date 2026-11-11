@@ -9,6 +9,7 @@ import Pagination from '../../components/admin/Pagination';
 import AgroLoader from '../../components/common/AgroLoader';
 import RichTextEditor from '../components/RichTextEditor';
 import { useConfirm } from '../components/ConfirmDialog';
+import { sanitizeHtml } from '../../utils/sanitize';
 import { SRI_LANKA_PROVINCES, getDistrictsForProvince, getDSDsForDistrict, getGNDsForDSD } from '../../data/sriLankaLocations';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -3507,13 +3508,13 @@ export default function CareerManagement() {
                 {viewingJob.salaryDetails.allowances && (
                   <div>
                     <span className="font-semibold text-gray-700 block mb-1">Allowances (English):</span>
-                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.salaryDetails.allowances }} />
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewingJob.salaryDetails.allowances) }} />
                   </div>
                 )}
                 {viewingJob.salaryDetails.allowancesSi && (
                   <div>
                     <span className="font-semibold text-emerald-800 block mb-1">දීමනා (Sinhala):</span>
-                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.salaryDetails.allowancesSi }} />
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewingJob.salaryDetails.allowancesSi) }} />
                   </div>
                 )}
               </div>
@@ -3535,25 +3536,25 @@ export default function CareerManagement() {
                 {viewingJob.eligibility.qualifications && (
                   <div>
                     <span className="font-semibold text-gray-700 block mb-1">Qualifications (English):</span>
-                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.eligibility.qualifications }} />
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewingJob.eligibility.qualifications) }} />
                   </div>
                 )}
                 {viewingJob.eligibility.qualificationsSi && (
                   <div>
                     <span className="font-semibold text-emerald-800 block mb-1">අධ්‍යාපනික හා වෘත්තීය සුදුසුකම් (Sinhala):</span>
-                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.eligibility.qualificationsSi }} />
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewingJob.eligibility.qualificationsSi) }} />
                   </div>
                 )}
                 {viewingJob.eligibility.basicExperience && (
                   <div>
                     <span className="font-semibold text-gray-700 block mb-1">Basic Experience & Citizenship (English):</span>
-                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.eligibility.basicExperience }} />
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewingJob.eligibility.basicExperience) }} />
                   </div>
                 )}
                 {viewingJob.eligibility.basicExperienceSi && (
                   <div>
                     <span className="font-semibold text-emerald-800 block mb-1">මූලික පළපුරුද්ද හා පුරවැසිභාවය (Sinhala):</span>
-                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.eligibility.basicExperienceSi }} />
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewingJob.eligibility.basicExperienceSi) }} />
                   </div>
                 )}
               </div>
@@ -3572,13 +3573,13 @@ export default function CareerManagement() {
                 {viewingJob.selectionProcedure.examDetails && (
                   <div>
                     <span className="font-semibold text-gray-700 block mb-1">Examination Details (English):</span>
-                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.selectionProcedure.examDetails }} />
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewingJob.selectionProcedure.examDetails) }} />
                   </div>
                 )}
                 {viewingJob.selectionProcedure.examDetailsSi && (
                   <div>
                     <span className="font-semibold text-emerald-800 block mb-1">විභාග විස්තර (Sinhala):</span>
-                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.selectionProcedure.examDetailsSi }} />
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewingJob.selectionProcedure.examDetailsSi) }} />
                   </div>
                 )}
               </div>
@@ -3602,26 +3603,26 @@ export default function CareerManagement() {
                 {viewingJob.applicationInfo.envelopeMarking && (
                   <div>
                     <span className="font-semibold text-gray-700 block mb-1">Envelope Marking (English):</span>
-                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.applicationInfo.envelopeMarking }} />
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewingJob.applicationInfo.envelopeMarking) }} />
                   </div>
                 )}
                 {viewingJob.applicationInfo.envelopeMarkingSi && (
                   <div>
                     <span className="font-semibold text-emerald-800 block mb-1">කවරයේ සටහන (Sinhala):</span>
-                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.applicationInfo.envelopeMarkingSi }} />
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewingJob.applicationInfo.envelopeMarkingSi) }} />
                   </div>
                 )}
 
                 {viewingJob.applicationInfo.submissionDetails && (
                   <div>
                     <span className="font-semibold text-gray-700 block mb-1">Submission Details (English):</span>
-                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.applicationInfo.submissionDetails }} />
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewingJob.applicationInfo.submissionDetails) }} />
                   </div>
                 )}
                 {viewingJob.applicationInfo.submissionDetailsSi && (
                   <div>
                     <span className="font-semibold text-emerald-800 block mb-1">ඉදිරිපත් කිරීමේ විස්තර (Sinhala):</span>
-                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: viewingJob.applicationInfo.submissionDetailsSi }} />
+                    <div className="prose prose-sm max-w-none text-gray-700 bg-white p-3 rounded-lg border border-gray-200 rich-content" dangerouslySetInnerHTML={{ __html: sanitizeHtml(viewingJob.applicationInfo.submissionDetailsSi) }} />
                   </div>
                 )}
 

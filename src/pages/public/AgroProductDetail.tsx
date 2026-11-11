@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { getAgroTheme } from '../../utils/agroTheme';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
+import { sanitizeHtml } from '../../utils/sanitize';
 
 export default function AgroProductDetail() {
   const { mainSlug, subSlug, productId } = useParams<{ mainSlug: string; subSlug: string; productId: string }>();
@@ -225,7 +226,7 @@ export default function AgroProductDetail() {
             <div className="mb-8 sm:mb-10">
               <div
                 className="text-gray-700 text-sm sm:text-base lg:text-lg leading-relaxed prose max-w-none rich-content"
-                dangerouslySetInnerHTML={{ __html: (isSinhala ? (product.sinhalaDescription || product.description || '') : (product.description || '')).replace(/&nbsp;|\u00a0/g, ' ') }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml((isSinhala ? (product.sinhalaDescription || product.description || '') : (product.description || '')).replace(/&nbsp;|\u00a0/g, ' ')) }}
               />
             </div>
 
@@ -234,7 +235,7 @@ export default function AgroProductDetail() {
                 <p className="text-[11px] sm:text-xs font-bold text-green-700 uppercase tracking-widest mb-2 sm:mb-3">{t('agro.farmingGuide', 'Farming Guide')}</p>
                 <div
                   className="text-gray-800 text-xs sm:text-sm md:text-base leading-relaxed prose max-w-none prose-green rich-content"
-                  dangerouslySetInnerHTML={{ __html: (isSinhala ? (product.sinhalaFarmingGuide || product.farmingGuide || '') : (product.farmingGuide || '')).replace(/&nbsp;|\u00a0/g, ' ') }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml((isSinhala ? (product.sinhalaFarmingGuide || product.farmingGuide || '') : (product.farmingGuide || '')).replace(/&nbsp;|\u00a0/g, ' ')) }}
                 />
               </div>
             )}

@@ -11,6 +11,7 @@ import GoogleAd from '../../components/common/GoogleAd';
 import PageHero from '../../components/public/PageHero';
 import CommentSection from '../../components/public/CommentSection';
 import { getShareUrl } from '../../utils/shareUrl';
+import { sanitizeHtml } from '../../utils/sanitize';
 
 const YoutubeIcon = ({ size = 20, className = "" }: { size?: number; className?: string }) => (
   <svg
@@ -340,7 +341,7 @@ export default function NewsDetail() {
               <div
                 className="rich-content prose prose-emerald prose-base sm:prose-lg text-gray-800 leading-relaxed font-sans text-justify font-normal [&_p]:!w-auto [&_p]:!max-w-none"
                 dangerouslySetInnerHTML={{
-                  __html: contentHtml.replace(/&nbsp;|\u00a0/g, ' ')
+                  __html: sanitizeHtml(contentHtml.replace(/&nbsp;|\u00a0/g, ' '))
                 }}
               />
             </div>
