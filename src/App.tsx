@@ -82,6 +82,15 @@ import MushroomManagement from './admin/pages/MushroomManagement';
 import { ProtectedRoute } from './admin/components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 
+// User Dashboard imports
+import UserProtectedRoute from './components/common/UserProtectedRoute';
+import UserDashboardLayout from './user/layouts/UserDashboardLayout';
+import UserDashboardOverview from './user/pages/UserDashboardOverview';
+import UserNurseryManagement from './user/pages/UserNurseryManagement';
+import UserMushroomManagement from './user/pages/UserMushroomManagement';
+import UserLandManagement from './user/pages/UserLandManagement';
+import UserJobManagement from './user/pages/UserJobManagement';
+
 import ScrollToTop from './components/common/ScrollToTop';
 import GAPageTracker from './components/common/GAPageTracker';
 
@@ -194,6 +203,20 @@ function App() {
               <Route path="community/:platformSlug" element={<SocialPlatformDetail />} />
             </Route>
 
+
+            {/* User Dashboard Routes (Strictly: Nurseries, Mushrooms, Land, Jobs) */}
+            <Route path="/dashboard" element={
+              <UserProtectedRoute>
+                <UserDashboardLayout />
+              </UserProtectedRoute>
+            }>
+              <Route index element={<UserDashboardOverview />} />
+              <Route path="overview" element={<UserDashboardOverview />} />
+              <Route path="nurseries" element={<UserNurseryManagement />} />
+              <Route path="mushrooms" element={<UserMushroomManagement />} />
+              <Route path="lands" element={<UserLandManagement />} />
+              <Route path="jobs" element={<UserJobManagement />} />
+            </Route>
 
             {/* Admin Routes */}
             <Route path="/admin/login" element={<Login />} />

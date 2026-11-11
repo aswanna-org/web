@@ -1,4 +1,4 @@
-import { ShoppingCart, Menu, X, ChevronDown, ChevronRight, LogOut, PhoneCall } from 'lucide-react';
+import { ShoppingCart, Menu, X, ChevronDown, ChevronRight, LogOut, PhoneCall, LayoutDashboard } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useState, useEffect, useMemo } from 'react';
@@ -166,20 +166,30 @@ export default function Header() {
             {/* Login / Logout Button */}
             {isAuthenticated ? (
               <div className="flex items-center gap-2">
+                <Link
+                  to="/dashboard"
+                  className="glass-btn h-[38px] px-3.5 sm:px-4 text-xs sm:text-sm font-bold flex items-center gap-1.5 text-white hover:text-white/90"
+                  title="Open User Dashboard"
+                >
+                  <LayoutDashboard size={14} className="text-emerald-300" />
+                  <span>Dashboard</span>
+                </Link>
                 {user?.role === 'ADMIN' && (
                   <Link
                     to="/admin"
-                    className="glass-btn h-[38px] px-5 text-xs sm:text-sm font-bold"
+                    className="glass-btn h-[38px] px-3 sm:px-4 text-xs sm:text-sm font-bold text-amber-200"
+                    title="Open Admin Panel"
                   >
                     Admin Panel
                   </Link>
                 )}
                 <button
                   onClick={logout}
-                  className="glass-btn h-[38px] px-6 text-xs sm:text-sm tracking-wide font-bold flex items-center gap-1.5 cursor-pointer text-white hover:text-white/90"
+                  className="glass-btn h-[38px] px-3.5 sm:px-4 text-xs sm:text-sm tracking-wide font-bold flex items-center gap-1.5 cursor-pointer text-white hover:text-white/90"
+                  title="Logout"
                 >
                   <LogOut size={15} />
-                  <span>Logout</span>
+                  <span className="hidden sm:inline">Logout</span>
                 </button>
               </div>
             ) : (
@@ -311,6 +321,14 @@ export default function Header() {
               </Link>
               {isAuthenticated ? (
                 <div className="flex flex-col gap-2">
+                  <Link
+                    to="/dashboard"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="glass-btn w-full py-3 text-base font-bold text-center flex items-center justify-center gap-2"
+                  >
+                    <LayoutDashboard size={18} className="text-emerald-300" />
+                    <span>My Dashboard</span>
+                  </Link>
                   {user?.role === 'ADMIN' && (
                     <Link
                       to="/admin"
@@ -325,7 +343,7 @@ export default function Header() {
                       setIsMobileMenuOpen(false);
                       logout();
                     }}
-                    className="glass-btn-light w-full py-3.5 text-base font-bold flex items-center justify-center gap-2 cursor-pointer"
+                    className="glass-btn-light w-full py-3 text-base font-bold flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <LogOut size={18} />
                     <span>Logout</span>
