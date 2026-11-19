@@ -10,6 +10,7 @@ import AgroLoader from '../../components/common/AgroLoader';
 import RichTextEditor from '../components/RichTextEditor';
 import { useConfirm } from '../components/ConfirmDialog';
 import { sanitizeHtml } from '../../utils/sanitize';
+import { formatExternalUrl } from '../../utils/urlHelper';
 import { SRI_LANKA_PROVINCES, getDistrictsForProvince, getDSDsForDistrict, getGNDsForDSD } from '../../data/sriLankaLocations';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -950,7 +951,8 @@ export default function CareerManagement() {
       if (jobForm.agencySi) formData.append('agencySi', jobForm.agencySi);
       if (jobForm.country) formData.append('country', jobForm.country);
       if (jobForm.countrySi) formData.append('countrySi', jobForm.countrySi);
-      if (jobForm.applyLink) formData.append('applyLink', jobForm.applyLink);
+      const cleanedApplyLink = jobForm.applyLink ? formatExternalUrl(jobForm.applyLink) : null;
+      if (cleanedApplyLink) formData.append('applyLink', cleanedApplyLink);
 
       // Salary Details
       formData.append('salaryDetails', JSON.stringify({
@@ -997,7 +999,7 @@ export default function CareerManagement() {
         envelopeMarkingSi: jobForm.envelopeMarkingSi,
         submissionDetails: jobForm.submissionDetails,
         submissionDetailsSi: jobForm.submissionDetailsSi,
-        applyLink: jobForm.applyLink || null,
+        applyLink: cleanedApplyLink,
         gazetteUrl: jobForm.existingGazetteUrl || null,
         gazetteUrlSi: jobForm.existingGazetteUrlSi || null,
         specimenAppUrl: jobForm.existingSpecimenAppUrl || null,
@@ -3076,10 +3078,17 @@ export default function CareerManagement() {
                       <span>Online Application Link (Direct URL - Apply Link)</span>
                     </label>
                     <input
-                      type="url"
-                      placeholder="e.g. https://agrimin.gov.lk/apply or https://forms.gle/... or https://company.com/jobs/123"
+                      type="text"
+                      inputMode="url"
+                      placeholder="e.g. www.doenets.lk or https://agrimin.gov.lk/apply or https://forms.gle/..."
                       value={jobForm.applyLink}
                       onChange={e => setJobForm({ ...jobForm, applyLink: e.target.value })}
+                      onBlur={e => {
+                        const val = e.target.value.trim();
+                        if (val) {
+                          setJobForm(prev => ({ ...prev, applyLink: formatExternalUrl(val) }));
+                        }
+                      }}
                       className="w-full px-3.5 py-2.5 border border-emerald-200 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50 text-sm font-mono text-emerald-950 placeholder:font-sans placeholder:text-gray-400"
                     />
                     <p className="text-xs text-emerald-800 mt-1">
@@ -3626,13 +3635,23 @@ export default function CareerManagement() {
                   </div>
                 )}
 
-                {/* PDF Download Buttons */}
+                {/* PDF & Online Application Buttons */}
                 <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-200/60">
+                  {(viewingJob.applyLink || viewingJob.applicationInfo.applyLink) && (
+                    <a
+                      href={formatExternalUrl(viewingJob.applyLink || viewingJob.applicationInfo.applyLink)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-emerald-800 transition-colors shadow-xs"
+                    >
+                      <ExternalLink size={14} /> Online Application Link
+                    </a>
+                  )}
                   {viewingJob.applicationInfo.gazetteUrl && (
                     <a
-                      href={viewingJob.applicationInfo.gazetteUrl}
+                      href={formatExternalUrl(viewingJob.applicationInfo.gazetteUrl)}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 bg-green-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-green-700 transition-colors"
                     >
                       <Download size={14} /> English Gazette PDF
@@ -3640,9 +3659,9 @@ export default function CareerManagement() {
                   )}
                   {viewingJob.applicationInfo.gazetteUrlSi && (
                     <a
-                      href={viewingJob.applicationInfo.gazetteUrlSi}
+                      href={formatExternalUrl(viewingJob.applicationInfo.gazetteUrlSi)}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-emerald-800 transition-colors"
                     >
                       <Download size={14} /> ගැසට් පත්‍රය (සිංහල)
@@ -3650,9 +3669,9 @@ export default function CareerManagement() {
                   )}
                   {viewingJob.applicationInfo.specimenAppUrl && (
                     <a
-                      href={viewingJob.applicationInfo.specimenAppUrl}
+                      href={formatExternalUrl(viewingJob.applicationInfo.specimenAppUrl)}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 bg-blue-600 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-blue-700 transition-colors"
                     >
                       <Download size={14} /> English Specimen Form
@@ -3660,15 +3679,28 @@ export default function CareerManagement() {
                   )}
                   {viewingJob.applicationInfo.specimenAppUrlSi && (
                     <a
-                      href={viewingJob.applicationInfo.specimenAppUrlSi}
+                      href={formatExternalUrl(viewingJob.applicationInfo.specimenAppUrlSi)}
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 bg-indigo-700 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-indigo-800 transition-colors"
                     >
                       <Download size={14} /> ආදර්ශ අයදුම්පත්‍රය (සිංහල)
                     </a>
                   )}
                 </div>
+              </div>
+            )}
+
+            {!viewingJob.applicationInfo && viewingJob.applyLink && (
+              <div className="border border-gray-100 rounded-xl p-4 bg-gray-50/50 text-xs">
+                <a
+                  href={formatExternalUrl(viewingJob.applyLink)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 bg-emerald-700 text-white px-3 py-1.5 rounded-lg font-medium hover:bg-emerald-800 transition-colors shadow-xs"
+                >
+                  <ExternalLink size={14} /> Online Application Link ({viewingJob.applyLink})
+                </a>
               </div>
             )}
 

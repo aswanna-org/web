@@ -12,6 +12,7 @@ import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
 import { getShareUrl } from '../../utils/shareUrl';
 import { sanitizeHtml } from '../../utils/sanitize';
+import { formatExternalUrl } from '../../utils/urlHelper';
 import { formatFee, stripHtml, getDistrictLabel, formatSchedule } from './ShortCourses';
 
 interface ShortCourseSubject {
@@ -875,7 +876,7 @@ export default function ShortCourseDetail() {
                           <span>{copiedLink ? (isSinhala ? 'පිටපත් විය!' : 'Copied!') : (isSinhala ? 'Copy කරන්න' : 'Copy Link')}</span>
                         </button>
                         <a
-                          href={course.onlineAppUrl}
+                          href={formatExternalUrl(course.onlineAppUrl)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs transition-all shadow-sm"
@@ -921,7 +922,7 @@ export default function ShortCourseDetail() {
 
                       <div className="flex items-center gap-2 pt-2">
                         <a
-                          href={course.pdfLink}
+                          href={formatExternalUrl(course.pdfLink)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 bg-white hover:bg-blue-50 border border-blue-300 text-blue-800 font-bold rounded-xl text-xs transition-all shadow-2xs"
@@ -930,7 +931,7 @@ export default function ShortCourseDetail() {
                           <span>{isSinhala ? 'පෙරදසුන' : 'View'}</span>
                         </a>
                         <a
-                          href={course.pdfLink}
+                          href={formatExternalUrl(course.pdfLink)}
                           target="_blank"
                           rel="noopener noreferrer"
                           download
@@ -994,7 +995,7 @@ export default function ShortCourseDetail() {
               <div className="space-y-3 pt-1">
                 {course.onlineAppUrl && !isExpired && (
                   <a
-                    href={course.onlineAppUrl}
+                    href={formatExternalUrl(course.onlineAppUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-[#006837] hover:bg-[#00522c] text-white font-bold rounded-xl text-sm transition-all shadow-md hover:shadow-lg cursor-pointer"
@@ -1018,7 +1019,7 @@ export default function ShortCourseDetail() {
 
                 {course.pdfLink && (
                   <a
-                    href={course.pdfLink}
+                    href={formatExternalUrl(course.pdfLink)}
                     target="_blank"
                     rel="noopener noreferrer"
                     download

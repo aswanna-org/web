@@ -13,6 +13,7 @@ import AgroLoader from '../../components/common/AgroLoader';
 import { useAuth } from '../../context/AuthContext';
 import SEO from '../../components/common/SEO';
 import { sanitizeHtml } from '../../utils/sanitize';
+import { formatExternalUrl } from '../../utils/urlHelper';
 
 // Helper to extract language-isolated course title from bilingual composite titles
 // e.g. "ජලජීවී වගා තාක්ෂණ පාඨමාලාව - AQUACULTURE TECHNOLOGY COURSE (NVQ LEVEL 4)"
@@ -715,7 +716,7 @@ export default function EducationDetail() {
                         <span>{copiedLink ? (isSinhala ? 'පිටපත් විය!' : 'Copied!') : (isSinhala ? 'ලින්ක් එක Copy කරන්න' : 'Copy Link')}</span>
                       </button>
                       <a
-                        href={course.applyUrl}
+                        href={formatExternalUrl(course.applyUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold transition-all shadow-2xs"
@@ -751,7 +752,7 @@ export default function EducationDetail() {
                     </div>
                     <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
                       <a
-                        href={course.applicationFileUrl}
+                        href={formatExternalUrl(course.applicationFileUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 bg-white hover:bg-blue-50 border border-blue-300 text-blue-800 rounded-lg text-xs font-bold transition-all"
@@ -760,7 +761,7 @@ export default function EducationDetail() {
                         <span>{isSinhala ? 'පෙරදසුන' : 'View'}</span>
                       </a>
                       <a
-                        href={course.applicationFileUrl}
+                        href={formatExternalUrl(course.applicationFileUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
                         download
@@ -867,13 +868,13 @@ export default function EducationDetail() {
                       <span>{copiedLink ? (isSinhala ? 'පිටපත් විය!' : 'Copied!') : (isSinhala ? 'ලින්ක් එක Copy කරන්න' : 'Copy Link')}</span>
                     </button>
                     <a
-                      href={course.applyUrl}
+                      href={formatExternalUrl(course.applyUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs transition-all shadow-sm"
                     >
                       <ExternalLink size={15} />
-                      <span>{isSinhala ? 'පෝරමය විවෘත කරන්න' : 'Open Form'}</span>
+                      <span>{isSinhala ? 'පෝරමය විවරුත කරන්න' : 'Open Form'}</span>
                     </a>
                   </div>
                 </div>
@@ -915,7 +916,7 @@ export default function EducationDetail() {
                   {/* Actions */}
                   <div className="flex items-center gap-2 pt-2">
                     <a
-                      href={course.applicationFileUrl}
+                      href={formatExternalUrl(course.applicationFileUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3.5 bg-white hover:bg-blue-50 border border-blue-300 text-blue-800 font-bold rounded-xl text-xs transition-all shadow-2xs"
@@ -924,7 +925,7 @@ export default function EducationDetail() {
                       <span>{isSinhala ? 'පෙරදසුන' : 'View'}</span>
                     </a>
                     <a
-                      href={course.applicationFileUrl}
+                      href={formatExternalUrl(course.applicationFileUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       download
@@ -1033,7 +1034,7 @@ export default function EducationDetail() {
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
             {course.applyUrl && (
               <a
-                href={course.applyUrl}
+                href={formatExternalUrl(course.applyUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 bg-white/15 hover:bg-white/25 border border-white/30 text-white px-5 py-3 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-xs"
@@ -1043,7 +1044,7 @@ export default function EducationDetail() {
             )}
             {course.applicationFileUrl && (
               <a
-                href={course.applicationFileUrl}
+                href={formatExternalUrl(course.applicationFileUrl)}
                 target="_blank"
                 rel="noopener noreferrer"
                 download
@@ -1189,7 +1190,7 @@ export default function EducationDetail() {
                 <div className="space-y-2 pt-1">
                   {course.applyUrl && (
                     <a
-                      href={course.applyUrl}
+                      href={formatExternalUrl(course.applyUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-emerald-700 hover:underline flex items-center gap-1.5 font-semibold"
@@ -1199,7 +1200,7 @@ export default function EducationDetail() {
                   )}
                   {course.applicationFileUrl && (
                     <a
-                      href={course.applicationFileUrl}
+                      href={formatExternalUrl(course.applicationFileUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       download

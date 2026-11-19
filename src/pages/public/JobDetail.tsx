@@ -12,6 +12,7 @@ import SEO from '../../components/common/SEO';
 import GoogleAd from '../../components/common/GoogleAd';
 import { getShareUrl } from '../../utils/shareUrl';
 import { sanitizeHtml } from '../../utils/sanitize';
+import { formatExternalUrl } from '../../utils/urlHelper';
 
 interface Job {
   id: string;
@@ -228,7 +229,7 @@ export default function JobDetail() {
     ? `${isSi && job.countrySi ? job.countrySi : job.country} ${job.agency ? `• ${job.agency}` : ''}`
     : (isSi && job.institution?.nameSi ? job.institution.nameSi : (job.institution?.name || job.location || 'Sri Lanka'));
 
-  const effectiveApplyLink = job.applyLink || job.applicationInfo?.applyLink;
+  const effectiveApplyLink = formatExternalUrl(job.applyLink || job.applicationInfo?.applyLink);
 
   const hasAnyPdfs = Boolean(
     job.applicationInfo?.gazetteUrl ||
@@ -619,7 +620,7 @@ export default function JobDetail() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-2">
                   {job.applicationInfo?.gazetteUrl && (
                     <a
-                      href={job.applicationInfo.gazetteUrl}
+                      href={formatExternalUrl(job.applicationInfo.gazetteUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="group flex items-center justify-between p-4 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all"
@@ -637,7 +638,7 @@ export default function JobDetail() {
 
                   {job.applicationInfo?.gazetteUrlSi && (
                     <a
-                      href={job.applicationInfo.gazetteUrlSi}
+                      href={formatExternalUrl(job.applicationInfo.gazetteUrlSi)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="group flex items-center justify-between p-4 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all"
@@ -655,7 +656,7 @@ export default function JobDetail() {
 
                   {job.applicationInfo?.specimenAppUrl && (
                     <a
-                      href={job.applicationInfo.specimenAppUrl}
+                      href={formatExternalUrl(job.applicationInfo.specimenAppUrl)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="group flex items-center justify-between p-4 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all"
@@ -673,7 +674,7 @@ export default function JobDetail() {
 
                   {job.applicationInfo?.specimenAppUrlSi && (
                     <a
-                      href={job.applicationInfo.specimenAppUrlSi}
+                      href={formatExternalUrl(job.applicationInfo.specimenAppUrlSi)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="group flex items-center justify-between p-4 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all"
