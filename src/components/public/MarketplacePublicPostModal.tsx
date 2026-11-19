@@ -286,10 +286,7 @@ export default function MarketplacePublicPostModal({
                 type="text"
                 required
                 value={titleSi}
-                onChange={(e) => {
-                  setTitleSi(e.target.value);
-                  if (!titleEn) setTitleEn(e.target.value);
-                }}
+                onChange={(e) => setTitleSi(e.target.value)}
                 placeholder={isSi ? 'උදා: කුබෝටා ට්‍රැක්ටරය 45HP' : 'e.g. Kubota Tractor 45HP'}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-xs sm:text-sm bg-white focus:outline-emerald-600 focus:border-emerald-600 shadow-2xs"
               />

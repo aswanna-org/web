@@ -852,10 +852,7 @@ export default function PublicNurseryPostModal({
                       <input
                         type="text"
                         value={nameEn}
-                        onChange={(e) => {
-                          setNameEn(e.target.value);
-                          if (!nameSi) setNameSi(e.target.value);
-                        }}
+                        onChange={(e) => setNameEn(e.target.value)}
                         placeholder="e.g. Green Meadows Plant Nursery"
                         className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
                       />
@@ -868,10 +865,7 @@ export default function PublicNurseryPostModal({
                       <input
                         type="text"
                         value={nameSi}
-                        onChange={(e) => {
-                          setNameSi(e.target.value);
-                          if (!nameEn) setNameEn(e.target.value);
-                        }}
+                        onChange={(e) => setNameSi(e.target.value)}
                         placeholder="උදා: ග්‍රීන් මෙඩෝස් පැළ තවාන"
                         className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
                       />
@@ -884,10 +878,7 @@ export default function PublicNurseryPostModal({
                       <input
                         type="text"
                         value={ownerNameEn}
-                        onChange={(e) => {
-                          setOwnerNameEn(e.target.value);
-                          if (!ownerNameSi) setOwnerNameSi(e.target.value);
-                        }}
+                        onChange={(e) => setOwnerNameEn(e.target.value)}
                         placeholder="e.g. K. R. Gunasekara"
                         className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
                       />
@@ -900,10 +891,7 @@ export default function PublicNurseryPostModal({
                       <input
                         type="text"
                         value={ownerNameSi}
-                        onChange={(e) => {
-                          setOwnerNameSi(e.target.value);
-                          if (!ownerNameEn) setOwnerNameEn(e.target.value);
-                        }}
+                        onChange={(e) => setOwnerNameSi(e.target.value)}
                         placeholder="උදා: කේ. ආර්. ගුණසේකර"
                         className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
                       />
@@ -930,10 +918,7 @@ export default function PublicNurseryPostModal({
                       <textarea
                         rows={3}
                         value={descriptionEn}
-                        onChange={(e) => {
-                          setDescriptionEn(e.target.value);
-                          if (!descriptionSi) setDescriptionSi(e.target.value);
-                        }}
+                        onChange={(e) => setDescriptionEn(e.target.value)}
                         placeholder="Brief overview about your plant varieties, nursery services, or plant propagation..."
                         className="w-full text-xs p-2.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
                       />
@@ -946,10 +931,7 @@ export default function PublicNurseryPostModal({
                       <textarea
                         rows={3}
                         value={descriptionSi}
-                        onChange={(e) => {
-                          setDescriptionSi(e.target.value);
-                          if (!descriptionEn) setDescriptionEn(e.target.value);
-                        }}
+                        onChange={(e) => setDescriptionSi(e.target.value)}
                         placeholder="ඔබගේ තවානේ පැළ වර්ග, සේවාවන් පිළිබඳ කෙටි හැඳින්වීමක්..."
                         className="w-full text-xs p-2.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
                       />
@@ -1073,10 +1055,7 @@ export default function PublicNurseryPostModal({
                       <input
                         type="text"
                         value={fullAddressEn}
-                        onChange={(e) => {
-                          setFullAddressEn(e.target.value);
-                          if (!fullAddressSi) setFullAddressSi(e.target.value);
-                        }}
+                        onChange={(e) => setFullAddressEn(e.target.value)}
                         placeholder="e.g. No. 45, Kurunegala Road, Narammala."
                         className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
                       />
@@ -1089,10 +1068,7 @@ export default function PublicNurseryPostModal({
                       <input
                         type="text"
                         value={fullAddressSi}
-                        onChange={(e) => {
-                          setFullAddressSi(e.target.value);
-                          if (!fullAddressEn) setFullAddressEn(e.target.value);
-                        }}
+                        onChange={(e) => setFullAddressSi(e.target.value)}
                         placeholder="උදා: නො. 45, කුරුණෑගල පාර, නාරම්මල."
                         className="w-full text-xs px-3 py-2 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837] focus:ring-1 focus:ring-[#006837]"
                       />
@@ -1479,10 +1455,7 @@ export default function PublicNurseryPostModal({
                           <input
                             type="text"
                             value={newFastPrice}
-                            onChange={(e) => {
-                              setNewFastPrice(e.target.value);
-                              if (!newFastPriceSi) setNewFastPriceSi(e.target.value);
-                            }}
+                            onChange={(e) => setNewFastPrice(e.target.value)}
                             placeholder={isSi ? 'උදා: රු. 750' : 'e.g. Rs. 750'}
                             className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-none focus:border-[#006837]"
                           />

@@ -1010,8 +1010,7 @@ export default function MushroomFormModal({
                         onChange={(e) =>
                           setFormData((prev) => ({
                             ...prev,
-                            businessNameSi: e.target.value,
-                            businessNameEn: prev.businessNameEn || e.target.value
+                            businessNameSi: e.target.value
                           }))
                         }
                         placeholder="උදා: රන්දෙණිය බිම්මල් ව්‍යාපාරය & බීජ මධ්‍යස්ථානය"
@@ -1029,8 +1028,7 @@ export default function MushroomFormModal({
                         onChange={(e) =>
                           setFormData((prev) => ({
                             ...prev,
-                            ownerNameSi: e.target.value,
-                            ownerNameEn: prev.ownerNameEn || e.target.value
+                            ownerNameSi: e.target.value
                           }))
                         }
                         placeholder="උදා: ඩී. එම්. සමන් කුමාර මහතා"
@@ -1205,8 +1203,7 @@ export default function MushroomFormModal({
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          fullAddressSi: e.target.value,
-                          fullAddressEn: prev.fullAddressEn || e.target.value
+                          fullAddressSi: e.target.value
                         }))
                       }
                       placeholder="උදා: අංක 12, වේයන්ගොඩ පාර, මීරිගම."
@@ -1834,8 +1831,7 @@ export default function MushroomFormModal({
                     onChange={(e) =>
                       setFormData((prev) => ({
                         ...prev,
-                        descriptionSi: e.target.value,
-                        descriptionEn: prev.descriptionEn || e.target.value
+                        descriptionSi: e.target.value
                       }))
                     }
                     placeholder="බිම්මල් වගාව, බීජ නිෂ්පාදනය, ලී කුඩු, PP පොලිතින් සහ පුළුන්/කරපටි සැපයීම පිළිබඳ විස්තරය..."

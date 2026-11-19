@@ -938,7 +938,7 @@ export default function NurseryFormModal({
                   type="text"
                   required
                   value={formData.nameEn}
-                  onChange={(e) => setFormData({ ...formData, nameEn: e.target.value, nameSi: formData.nameSi || e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, nameEn: e.target.value })}
                   placeholder="e.g. Sarabima Plant Nursery & Agri Center"
                   className="w-full px-3.5 py-2 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all placeholder:text-gray-400"
                 />
@@ -966,7 +966,7 @@ export default function NurseryFormModal({
                 <input
                   type="text"
                   value={formData.ownerNameEn}
-                  onChange={(e) => setFormData({ ...formData, ownerNameEn: e.target.value, ownerNameSi: formData.ownerNameSi || e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, ownerNameEn: e.target.value })}
                   placeholder="e.g. Mr. K. R. Gunasekara"
                   className="w-full px-3.5 py-2 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all placeholder:text-gray-400"
                 />
@@ -1074,8 +1074,7 @@ export default function NurseryFormModal({
                     value={formData.divisionalSecretariatEn}
                     onChange={(e) => setFormData({
                       ...formData,
-                      divisionalSecretariatEn: e.target.value,
-                      divisionalSecretariatSi: formData.divisionalSecretariatSi || e.target.value
+                      divisionalSecretariatEn: e.target.value
                     })}
                     placeholder="e.g. Narammala"
                     className="w-full px-3 py-2 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
@@ -1121,8 +1120,7 @@ export default function NurseryFormModal({
                     value={formData.gramaNiladhariDivisionEn}
                     onChange={(e) => setFormData({
                       ...formData,
-                      gramaNiladhariDivisionEn: e.target.value,
-                      gramaNiladhariDivisionSi: formData.gramaNiladhariDivisionSi || e.target.value
+                      gramaNiladhariDivisionEn: e.target.value
                     })}
                     placeholder="e.g. 512-Dambehera"
                     className="w-full px-3 py-2 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600"
@@ -1157,8 +1155,7 @@ export default function NurseryFormModal({
                   value={formData.fullAddressEn}
                   onChange={(e) => setFormData({
                     ...formData,
-                    fullAddressEn: e.target.value,
-                    fullAddressSi: formData.fullAddressSi || e.target.value
+                    fullAddressEn: e.target.value
                   })}
                   placeholder="e.g. No. 45, Kurunegala Road, Narammala."
                   className="w-full px-3 py-2 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 transition-all placeholder:text-gray-400"
@@ -1660,10 +1657,7 @@ export default function NurseryFormModal({
                     <input
                       type="text"
                       value={newFastPrice}
-                      onChange={(e) => {
-                        setNewFastPrice(e.target.value);
-                        if (!newFastPriceSi) setNewFastPriceSi(e.target.value);
-                      }}
+                      onChange={(e) => setNewFastPrice(e.target.value)}
                       placeholder="e.g. Rs. 750 (per plant)"
                       className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 bg-white focus:outline-hidden focus:ring-1 focus:ring-rose-500"
                     />
@@ -2208,8 +2202,7 @@ export default function NurseryFormModal({
                     value={formData.descriptionEn}
                     onChange={(e) => setFormData({
                       ...formData,
-                      descriptionEn: e.target.value,
-                      descriptionSi: formData.descriptionSi || e.target.value
+                      descriptionEn: e.target.value
                     })}
                     placeholder="e.g. Registered with the Department of Agriculture with over 18 years of experience..."
                     className="w-full px-3.5 py-2.5 text-xs bg-gray-50/70 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 placeholder:text-gray-400"
