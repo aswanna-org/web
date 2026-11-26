@@ -50,6 +50,9 @@ import SocialPlatformDetail from './pages/public/SocialPlatformDetail';
 import NurseryDetail from './pages/public/NurseryDetail';
 import MushroomFinder from './pages/public/MushroomFinder';
 import MushroomDetail from './pages/public/MushroomDetail';
+import Loans from './pages/public/Loans';
+import LoanInstitutionDetail from './pages/public/LoanInstitutionDetail';
+import LoanDetail from './pages/public/LoanDetail';
 import NotFound from './pages/public/NotFound';
 
 // Admin imports
@@ -80,6 +83,7 @@ import ImportantEventManagement from './admin/pages/ImportantEventManagement';
 import SocialLinkManagement from './admin/pages/SocialLinkManagement';
 import NurseryManagement from './admin/pages/NurseryManagement';
 import MushroomManagement from './admin/pages/MushroomManagement';
+import LoanManagement from './admin/pages/LoanManagement';
 import { ProtectedRoute } from './admin/components/ProtectedRoute';
 import { AuthProvider } from './context/AuthContext';
 
@@ -202,6 +206,14 @@ function App() {
               <Route path="social/:platformSlug" element={<SocialPlatformDetail />} />
               <Route path="social-connect/:platformSlug" element={<SocialPlatformDetail />} />
               <Route path="community/:platformSlug" element={<SocialPlatformDetail />} />
+
+              {/* Public Agricultural Loans Routes */}
+              <Route path="loans" element={<Loans />} />
+              <Route path="loans/institution/:institutionSlug" element={<LoanInstitutionDetail />} />
+              <Route path="loans/institution/:institutionSlug/:slug" element={<LoanDetail />} />
+              <Route path="loans/:institutionSlug/:slug" element={<LoanDetail />} />
+              <Route path="loans/:slug" element={<LoanDetail />} />
+
               <Route path="*" element={<NotFound />} />
             </Route>
 
@@ -262,6 +274,8 @@ function App() {
               <Route path="mushrooms" element={<MushroomManagement />} />
               <Route path="mushroom-management" element={<MushroomManagement />} />
               <Route path="mushroom-suppliers" element={<MushroomManagement />} />
+              <Route path="loans" element={<LoanManagement />} />
+              <Route path="loan-management" element={<LoanManagement />} />
             </Route>
           </Routes>
           <CartModal />
