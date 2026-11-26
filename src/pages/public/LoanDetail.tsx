@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   ArrowLeft,
-  Coins,
   PhoneCall,
   Mail,
   ExternalLink,
@@ -159,22 +158,19 @@ export default function LoanDetail() {
   if (error || !loan) {
     return (
       <div className="min-h-screen bg-[#fbfdfa] flex flex-col items-center justify-center p-6 text-center">
-        <Coins className="w-16 h-16 text-gray-300 mb-4" />
-        <h2 className="text-xl font-bold text-gray-800 mb-2">
-          {isSinhala ? 'ණය යෝජනා ක්‍රමය හමු නොවීය' : 'Loan Scheme Not Found'}
-        </h2>
-        <p className="text-gray-500 text-sm max-w-md mb-6">
-          {isSinhala
-            ? 'ඔබ සොයන ණය යෝජනා ක්‍රමය ඉවත් කර හෝ ලිපිනය වැරදි විය හැක.'
-            : 'The loan scheme you are looking for may have expired or the link is incorrect.'}
-        </p>
-        <Link
-          to="/loans"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-700 text-white text-xs sm:text-sm font-semibold hover:bg-emerald-800 transition-colors shadow-md"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{isSinhala ? 'සියලු ණය යෝජනා වෙත' : 'Back to All Loan Schemes'}</span>
-        </Link>
+        <AgroLoader
+          message={isSinhala ? 'ණය යෝජනා ක්‍රමයේ විස්තර සකස් වෙමින් පවතී...' : 'Preparing loan details...'}
+          subMessage={isSinhala ? 'කරුණාකර රැඳී සිටින්න' : 'Please check back soon'}
+        />
+        <div className="mt-8">
+          <Link
+            to={institutionSlug ? `/loans/institution/${institutionSlug}` : '/loans'}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-700 text-white text-xs sm:text-sm font-semibold hover:bg-emerald-800 transition-colors shadow-md cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>{isSinhala ? 'සියලු ණය යෝජනා වෙත' : 'Back to All Loan Schemes'}</span>
+          </Link>
+        </div>
       </div>
     );
   }

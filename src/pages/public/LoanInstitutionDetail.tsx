@@ -3,7 +3,6 @@ import { useParams, Link } from 'react-router-dom';
 import {
   ArrowLeft,
   Search,
-  Coins,
   PhoneCall,
   Mail,
   ExternalLink,
@@ -126,22 +125,19 @@ export default function LoanInstitutionDetail() {
   if (error || !institution) {
     return (
       <div className="min-h-screen bg-[#fbfdfa] flex flex-col items-center justify-center p-6 text-center">
-        <Building2 className="w-16 h-16 text-gray-300 mb-4" />
-        <h2 className="text-xl font-bold text-gray-800 mb-2">
-          {isSinhala ? 'ආයතනය හෝ ණය යෝජනා හමු නොවීය' : 'Institution Not Found'}
-        </h2>
-        <p className="text-gray-500 text-sm max-w-md mb-6">
-          {isSinhala
-            ? 'ඔබ සොයන ආයතනය සම්බන්ධයෙන් සක්‍රීය ණය යෝජනා ක්‍රම මේ මොහොතේ ලියාපදිංචි වී නොමැත.'
-            : 'No active loan schemes could be found for this institution at this time.'}
-        </p>
-        <Link
-          to="/loans"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-700 text-white text-xs sm:text-sm font-semibold hover:bg-emerald-800 transition-colors shadow-md"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{isSinhala ? 'සියලු ආයතන වෙත' : 'Back to All Institutions'}</span>
-        </Link>
+        <AgroLoader
+          message={isSinhala ? 'ආයතනයේ ණය යෝජනා ක්‍රම සකස් වෙමින් පවතී...' : 'Preparing institution loan schemes...'}
+          subMessage={isSinhala ? 'කරුණාකර රැඳී සිටින්න' : 'Please check back soon'}
+        />
+        <div className="mt-8">
+          <Link
+            to="/loans"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-emerald-700 text-white text-xs sm:text-sm font-semibold hover:bg-emerald-800 transition-colors shadow-md cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>{isSinhala ? 'සියලු ආයතන වෙත' : 'Back to All Institutions'}</span>
+          </Link>
+        </div>
       </div>
     );
   }
@@ -222,14 +218,11 @@ export default function LoanInstitutionDetail() {
       <section className="w-full py-8 sm:py-12 bg-[#fbfdfa] flex-1">
         <div className="container mx-auto px-4 lg:px-12">
           {filteredLoans.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-2xl border border-gray-100 max-w-md mx-auto p-6 shadow-sm">
-              <Coins className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-base font-bold text-gray-700 mb-1">
-                {isSinhala ? 'ගැළපෙන ණය යෝජනාවක් හමු නොවීය' : 'No matching loan schemes'}
-              </p>
-              <p className="text-xs text-gray-400">
-                {isSinhala ? 'වෙනත් වචනයකින් සෙවුම උත්සාහ කරන්න.' : 'Try a different search keyword.'}
-              </p>
+            <div className="py-16 sm:py-24 text-center max-w-lg mx-auto flex flex-col items-center justify-center">
+              <AgroLoader
+                message={isSinhala ? 'මෙම සෙවුමට අදාළ ණය යෝජනා ක්‍රම සකස් වෙමින් පවතී...' : 'Preparing loan schemes...'}
+                subMessage={isSinhala ? 'කරුණාකර රැඳී සිටින්න' : 'Please check back soon'}
+              />
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

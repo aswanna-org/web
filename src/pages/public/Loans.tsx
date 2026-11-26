@@ -135,14 +135,11 @@ export default function Loans() {
       <section className="w-full py-8 sm:py-12 bg-[#fbfdfa] flex-1">
         <div className="container mx-auto px-3 sm:px-6 lg:px-12">
           {institutions.length === 0 ? (
-            <div className="text-center py-20 text-gray-400 bg-white rounded-2xl border border-gray-100 max-w-lg mx-auto p-8 shadow-sm">
-              <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-              <p className="text-lg sm:text-xl font-bold text-gray-700 mb-1">
-                {isSinhala ? 'ආයතන හමු නොවීය' : 'No institutions found'}
-              </p>
-              <p className="text-xs sm:text-sm text-gray-400">
-                {isSinhala ? 'මේ මොහොතේ සක්‍රීය ණය ක්‍රම සහිත ආයතන නොමැත.' : 'There are no active institutions at this moment.'}
-              </p>
+            <div className="py-16 sm:py-24 text-center max-w-lg mx-auto flex flex-col items-center justify-center">
+              <AgroLoader
+                message={isSinhala ? 'ණය යෝජනා ක්‍රම සහිත ආයතන තොරතුරු සකස් වෙමින් පවතී...' : 'Preparing institution loan schemes...'}
+                subMessage={isSinhala ? 'කරුණාකර රැඳී සිටින්න' : 'Please check back soon'}
+              />
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5">
