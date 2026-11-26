@@ -10,7 +10,6 @@ import {
   Paperclip,
   Download,
   Share2,
-  Printer,
   CheckCircle2,
   Building2,
   FileText,
@@ -147,10 +146,6 @@ export default function LoanDetail() {
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
     }
-  };
-
-  const handlePrint = () => {
-    window.print();
   };
 
   if (loading) {
