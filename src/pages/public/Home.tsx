@@ -12,6 +12,7 @@ import SmarterGrowthSection from '../../components/public/SmarterGrowthSection';
 import CoursesSection from '../../components/public/CoursesSection';
 import SocialPlatformsSection from '../../components/public/SocialPlatformsSection';
 import MushroomSection from '../../components/public/MushroomSection';
+import LoanPromoSection from '../../components/public/LoanPromoSection';
 import Footer from '../../components/public/Footer';
 import useScrollReveal from '../../utils/useScrollReveal';
 import SEO from '../../components/common/SEO';
@@ -35,6 +36,7 @@ export default function Home() {
         <ProductsSection />
         <AboutSection />
         <MushroomSection />
+        <LoanPromoSection />
         <SocialPlatformsSection />
         <MarketPricesSection />
         <NewsSection />
