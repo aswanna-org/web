@@ -114,6 +114,16 @@ export interface LoanPdfAttachment {
   createdAt?: string;
 }
 
+export interface StagedAttachment {
+  id: string;
+  name: string;
+  pdfTypeId: string;
+  pdfTypeName: string;
+  file: File | null;
+  fileUrl: string;
+  fileSize?: string;
+}
+
 export interface Loan {
   id: string;
   slug: string;
@@ -252,6 +262,15 @@ export default function LoanManagement() {
   const [removeLogo, setRemoveLogo] = useState(false);
   const [removeBanner, setRemoveBanner] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // ── INLINE & STAGED PDF ATTACHMENTS STATE (INSIDE LOAN MODAL) ──
+  const [stagedAttachments, setStagedAttachments] = useState<StagedAttachment[]>([]);
+  const [inlineAttName, setInlineAttName] = useState('');
+  const [inlineAttPdfTypeId, setInlineAttPdfTypeId] = useState('');
+  const [inlineAttFile, setInlineAttFile] = useState<File | null>(null);
+  const [inlineAttFileUrl, setInlineAttFileUrl] = useState('');
+  const [isUploadingInlineAtt, setIsUploadingInlineAtt] = useState(false);
+  const fileInputRefInlineAtt = useRef<HTMLInputElement>(null);
 
   const fileInputRefLogo = useRef<HTMLInputElement>(null);
   const fileInputRefBanner = useRef<HTMLInputElement>(null);
@@ -394,6 +413,12 @@ export default function LoanManagement() {
     setRemoveBanner(false);
     if (fileInputRefLogo.current) fileInputRefLogo.current.value = '';
     if (fileInputRefBanner.current) fileInputRefBanner.current.value = '';
+    setStagedAttachments([]);
+    setInlineAttName('');
+    setInlineAttPdfTypeId(pdfTypes[0]?.id || '');
+    setInlineAttFile(null);
+    setInlineAttFileUrl('');
+    if (fileInputRefInlineAtt.current) fileInputRefInlineAtt.current.value = '';
     setShowLoanModal(true);
   };
 
@@ -438,6 +463,12 @@ export default function LoanManagement() {
     setRemoveBanner(false);
     if (fileInputRefLogo.current) fileInputRefLogo.current.value = '';
     if (fileInputRefBanner.current) fileInputRefBanner.current.value = '';
+    setStagedAttachments([]);
+    setInlineAttName('');
+    setInlineAttPdfTypeId(pdfTypes[0]?.id || '');
+    setInlineAttFile(null);
+    setInlineAttFileUrl('');
+    if (fileInputRefInlineAtt.current) fileInputRefInlineAtt.current.value = '';
     setShowLoanModal(true);
   };
 
@@ -454,6 +485,103 @@ export default function LoanManagement() {
     setFormCoverBannerUrl('');
     setRemoveBanner(true);
     if (fileInputRefBanner.current) fileInputRefBanner.current.value = '';
+  };
+
+  // ── INLINE ATTACHMENT HANDLERS (INSIDE LOAN CREATE/EDIT MODAL) ──
+  const handleAddInlineDocument = async () => {
+    if (!inlineAttName.trim()) {
+      setErrorMsg('Please enter a title for the PDF document');
+      return;
+    }
+    if (!inlineAttFile && !inlineAttFileUrl.trim()) {
+      setErrorMsg('Please select a PDF file or provide a direct file URL');
+      return;
+    }
+
+    const typeId = inlineAttPdfTypeId || (pdfTypes[0]?.id || '');
+
+    if (editingLoan) {
+      setIsUploadingInlineAtt(true);
+      try {
+        const formData = new FormData();
+        formData.append('name', inlineAttName.trim());
+        formData.append('pdfTypeId', typeId);
+        if (inlineAttFile) formData.append('file', inlineAttFile);
+        if (inlineAttFileUrl) formData.append('fileUrl', inlineAttFileUrl.trim());
+
+        const res = await fetch(`${API_BASE_URL}/loans/${editingLoan.id}/attachments`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: formData
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to attach document');
+
+        const newAtt: LoanPdfAttachment = data.data || data.attachment;
+        const updatedAttachments = [...(editingLoan.pdfAttachments || []), newAtt];
+        const updatedLoan = { ...editingLoan, pdfAttachments: updatedAttachments };
+        setEditingLoan(updatedLoan);
+        setLoans(prev => prev.map(l => l.id === updatedLoan.id ? updatedLoan : l));
+        setSuccessMsg('PDF document attached successfully');
+
+        setInlineAttName('');
+        setInlineAttFile(null);
+        setInlineAttFileUrl('');
+        if (fileInputRefInlineAtt.current) fileInputRefInlineAtt.current.value = '';
+      } catch (err: any) {
+        setErrorMsg(err.message || 'Error attaching document');
+      } finally {
+        setIsUploadingInlineAtt(false);
+      }
+    } else {
+      const selectedType = pdfTypes.find(t => t.id === typeId);
+      const newStaged: StagedAttachment = {
+        id: `staged-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        name: inlineAttName.trim(),
+        pdfTypeId: typeId,
+        pdfTypeName: selectedType?.nameEn || selectedType?.nameSi || 'Document',
+        file: inlineAttFile,
+        fileUrl: inlineAttFileUrl.trim(),
+        fileSize: inlineAttFile ? `${(inlineAttFile.size / 1024).toFixed(1)} KB` : (inlineAttFileUrl ? 'Link' : '—')
+      };
+      setStagedAttachments(prev => [...prev, newStaged]);
+      setInlineAttName('');
+      setInlineAttFile(null);
+      setInlineAttFileUrl('');
+      if (fileInputRefInlineAtt.current) fileInputRefInlineAtt.current.value = '';
+    }
+  };
+
+  const handleRemoveStagedDocument = (tempId: string) => {
+    setStagedAttachments(prev => prev.filter(a => a.id !== tempId));
+  };
+
+  const handleDeleteInlineAttachment = async (attachmentId: string, name: string) => {
+    const confirmed = await confirm({
+      title: 'Delete Document?',
+      message: `Are you sure you want to delete "${name}"?`,
+      confirmText: 'Delete File',
+      type: 'danger'
+    });
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/loans/attachments/${attachmentId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      if (!res.ok) throw new Error('Failed to delete attachment');
+
+      setSuccessMsg('Document deleted successfully');
+      if (editingLoan) {
+        const updatedAttachments = editingLoan.pdfAttachments?.filter(a => a.id !== attachmentId) || [];
+        const updated = { ...editingLoan, pdfAttachments: updatedAttachments };
+        setEditingLoan(updated);
+        setLoans(prev => prev.map(l => l.id === updated.id ? updated : l));
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || 'Error deleting file');
+    }
   };
 
   // Submit Loan (Create or Edit)
@@ -527,6 +655,27 @@ export default function LoanManagement() {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to save loan scheme');
+
+      const createdLoan = data.loan || data.data;
+      if (!editingLoan && createdLoan?.id && stagedAttachments.length > 0) {
+        for (const att of stagedAttachments) {
+          try {
+            const attFormData = new FormData();
+            attFormData.append('name', att.name);
+            attFormData.append('pdfTypeId', att.pdfTypeId);
+            if (att.file) attFormData.append('file', att.file);
+            if (att.fileUrl) attFormData.append('fileUrl', att.fileUrl);
+
+            await fetch(`${API_BASE_URL}/loans/${createdLoan.id}/attachments`, {
+              method: 'POST',
+              headers: getAuthHeaders(),
+              body: attFormData
+            });
+          } catch (attErr) {
+            console.error('Error uploading staged PDF attachment:', attErr);
+          }
+        }
+      }
 
       setSuccessMsg(editingLoan ? 'Loan scheme updated successfully' : 'Loan scheme created successfully');
       setShowLoanModal(false);
@@ -2350,90 +2499,223 @@ export default function LoanManagement() {
                 </div>
               </div>
 
-              {/* Section 7: Attached PDF Files (When Editing) */}
-              {editingLoan && (
-                <div className="border border-gray-200 rounded-xl p-3.5 bg-gray-50/40 space-y-2.5">
-                  <div className="flex items-center justify-between border-b border-gray-200 pb-1.5">
-                    <div className="font-bold text-gray-800 text-xs flex items-center gap-1.5">
-                      <Paperclip size={14} className="text-emerald-600" />
-                      <span>7. Attached Documents & Files ({editingLoan.pdfAttachments?.length || 0})</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => handleOpenAttachments(editingLoan)}
-                      className="text-[11px] text-emerald-700 hover:text-emerald-800 font-semibold flex items-center gap-1 cursor-pointer bg-white px-2 py-0.5 rounded border border-gray-200"
-                    >
-                      <Plus size={12} />
-                      <span>Upload & Manage Files</span>
-                    </button>
+              {/* Section 7: Associated PDF Documents (Creation & Editing) */}
+              <div className="border border-gray-200 rounded-xl p-3.5 bg-gray-50/40 space-y-3">
+                <div className="flex items-center justify-between border-b border-gray-200 pb-1.5">
+                  <div className="font-bold text-gray-800 text-xs flex items-center gap-1.5">
+                    <Paperclip size={14} className="text-emerald-600" />
+                    <span>
+                      7. අදාළ PDF ලේඛන සහ බාගැනීම් (PDF Documents & Attachments)
+                      {editingLoan 
+                        ? ` (${editingLoan.pdfAttachments?.length || 0})` 
+                        : ` (${stagedAttachments.length})`}
+                    </span>
                   </div>
-
-                  {editingLoan.pdfAttachments && editingLoan.pdfAttachments.length > 0 ? (
-                    <div className="divide-y divide-gray-100 bg-white rounded-lg border border-gray-200">
-                      {editingLoan.pdfAttachments.map(att => (
-                        <div key={att.id} className="flex items-center justify-between px-3 py-1.5 text-xs">
-                          <div className="flex items-center gap-2 truncate max-w-[70%]">
-                            <span className="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded border border-blue-200 font-medium">
-                              {att.pdfType?.nameEn || 'PDF'}
-                            </span>
-                            <span className="font-medium text-gray-800 truncate" title={att.name}>
-                              {att.name}
-                            </span>
-                            {att.fileSize && (
-                              <span className="text-[10px] text-gray-400 font-mono">({att.fileSize})</span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <a
-                              href={att.fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-1 hover:bg-gray-100 text-blue-600 rounded"
-                              title="Open file"
-                            >
-                              <ExternalLink size={13} />
-                            </a>
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                const confirmed = await confirm({
-                                  title: 'Delete Document?',
-                                  message: `Are you sure you want to delete "${att.name}"?`,
-                                  confirmText: 'Delete File',
-                                  type: 'danger'
-                                });
-                                if (!confirmed) return;
-                                try {
-                                  const res = await fetch(`${API_BASE_URL}/loans/attachments/${att.id}`, {
-                                    method: 'DELETE',
-                                    headers: getAuthHeaders()
-                                  });
-                                  if (!res.ok) throw new Error('Failed to delete attachment');
-                                  setSuccessMsg('Document deleted successfully');
-                                  const updatedAttachments = editingLoan.pdfAttachments?.filter(a => a.id !== att.id) || [];
-                                  const updated = { ...editingLoan, pdfAttachments: updatedAttachments };
-                                  setEditingLoan(updated);
-                                  setLoans(prev => prev.map(l => l.id === updated.id ? updated : l));
-                                } catch (err: any) {
-                                  setErrorMsg(err.message || 'Error deleting file');
-                                }
-                              }}
-                              className="p-1 hover:bg-rose-50 text-rose-600 rounded cursor-pointer"
-                              title="Delete file"
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-2 text-gray-400 text-[11px] bg-white rounded-lg border border-dashed border-gray-200">
-                      No documents attached yet. Click "Upload & Manage Files" to add PDFs.
-                    </div>
-                  )}
+                  <span className="text-[10px] text-gray-500 font-normal">
+                    {editingLoan 
+                      ? 'වෙනම ස්ථාන වලට නොගොස් මෙතැනින්ම PDF එකතු කරන්න හෝ ඉවත් කරන්න' 
+                      : 'ණය ක්‍රමය Create කිරීමත් සමඟම මෙම PDF ගොනු එක් වේ'}
+                  </span>
                 </div>
-              )}
+
+                {/* Inline Add Document Form */}
+                <div className="bg-white p-3 rounded-lg border border-gray-200 space-y-2.5">
+                  <div className="text-[11px] font-bold text-gray-700 flex items-center gap-1.5">
+                    <Plus size={13} className="text-emerald-600" />
+                    <span>අලුත් PDF ලේඛනයක් එක් කරන්න (Add New PDF Document)</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-600 mb-1">
+                        ලේඛනයේ නම (Document Title) *
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g. අයදුම්පත / Application Form (Sinhala)"
+                        value={inlineAttName}
+                        onChange={e => setInlineAttName(e.target.value)}
+                        className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-hidden"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-600 mb-1">
+                        ලේඛන වර්ගය (Document Category) *
+                      </label>
+                      <select
+                        value={inlineAttPdfTypeId || (pdfTypes[0]?.id || '')}
+                        onChange={e => setInlineAttPdfTypeId(e.target.value)}
+                        className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-hidden"
+                      >
+                        {pdfTypes.map(t => (
+                          <option key={t.id} value={t.id}>
+                            {t.nameEn} {t.nameSi ? `(${t.nameSi})` : ''}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-600 mb-1">
+                        PDF ගොනුව තෝරන්න (Select PDF File)
+                      </label>
+                      <input
+                        type="file"
+                        ref={fileInputRefInlineAtt}
+                        accept="application/pdf,.pdf"
+                        onChange={e => {
+                          if (e.target.files && e.target.files[0]) {
+                            setInlineAttFile(e.target.files[0]);
+                            if (!inlineAttName.trim()) {
+                              const cleanName = e.target.files[0].name.replace(/\.[^/.]+$/, '');
+                              setInlineAttName(cleanName);
+                            }
+                          }
+                        }}
+                        className="w-full text-xs text-gray-500 file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-[11px] file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-600 mb-1">
+                        හෝ Direct File URL (විකල්ප)
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          placeholder="https://example.com/document.pdf"
+                          value={inlineAttFileUrl}
+                          onChange={e => setInlineAttFileUrl(e.target.value)}
+                          className="flex-1 px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-mono focus:ring-1 focus:ring-emerald-500 focus:outline-hidden"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddInlineDocument}
+                          disabled={isUploadingInlineAtt}
+                          className="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-semibold shrink-0 cursor-pointer disabled:opacity-50 flex items-center gap-1 shadow-xs transition-colors"
+                        >
+                          {isUploadingInlineAtt ? (
+                            <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          ) : (
+                            <Plus size={13} />
+                          )}
+                          <span>{editingLoan ? 'Upload & Add' : '+ Add to Loan'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Table of PDF Documents */}
+                {editingLoan ? (
+                  /* Editing mode: show real attachments */
+                  <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+                    <table className="w-full text-left text-xs text-gray-700">
+                      <thead className="bg-gray-50/90 border-b border-gray-200">
+                        <tr>
+                          <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">Document Title</th>
+                          <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">Category</th>
+                          <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">Size</th>
+                          <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {!editingLoan.pdfAttachments || editingLoan.pdfAttachments.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="px-3 py-4 text-center text-gray-400 text-xs">
+                              තවමත් PDF ලේඛන එකතු කර නොමැත.
+                            </td>
+                          </tr>
+                        ) : (
+                          editingLoan.pdfAttachments.map(att => (
+                            <tr key={att.id} className="hover:bg-gray-50/60 transition-colors">
+                              <td className="px-3 py-1.5 font-semibold text-gray-900 truncate max-w-[220px]" title={att.name}>
+                                {att.name}
+                              </td>
+                              <td className="px-3 py-1.5 whitespace-nowrap">
+                                <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                                  {att.pdfType?.nameEn || 'Document'}
+                                </span>
+                              </td>
+                              <td className="px-3 py-1.5 text-gray-500 font-mono text-[10px] whitespace-nowrap">
+                                {att.fileSize || '—'}
+                              </td>
+                              <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                                <a
+                                  href={att.fileUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-1 hover:bg-gray-100 text-blue-600 rounded transition-colors inline-block mr-1"
+                                  title="Open PDF"
+                                >
+                                  <ExternalLink size={14} />
+                                </a>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteInlineAttachment(att.id, att.name)}
+                                  className="p-1 hover:bg-rose-50 text-rose-600 rounded transition-colors cursor-pointer"
+                                  title="Delete document"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  /* Create mode: show staged attachments */
+                  <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+                    <table className="w-full text-left text-xs text-gray-700">
+                      <thead className="bg-gray-50/90 border-b border-gray-200">
+                        <tr>
+                          <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">Document Title</th>
+                          <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">Category</th>
+                          <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap">File / Source</th>
+                          <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {stagedAttachments.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="px-3 py-4 text-center text-gray-400 text-xs">
+                              තවමත් PDF ලේඛන එකතු කර නොමැත. ඉහතින් Document Title එක සහ PDF file එක තෝරා "+ Add to Loan" ක්ලික් කරන්න.
+                            </td>
+                          </tr>
+                        ) : (
+                          stagedAttachments.map(staged => (
+                            <tr key={staged.id} className="hover:bg-gray-50/60 transition-colors">
+                              <td className="px-3 py-1.5 font-semibold text-gray-900 truncate max-w-[220px]" title={staged.name}>
+                                {staged.name}
+                              </td>
+                              <td className="px-3 py-1.5 whitespace-nowrap">
+                                <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                  {staged.pdfTypeName}
+                                </span>
+                              </td>
+                              <td className="px-3 py-1.5 text-gray-500 font-mono text-[10px] whitespace-nowrap truncate max-w-[150px]">
+                                {staged.file?.name || staged.fileUrl || 'File attached'} ({staged.fileSize})
+                              </td>
+                              <td className="px-3 py-1.5 text-right whitespace-nowrap">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveStagedDocument(staged.id)}
+                                  className="p-1 hover:bg-rose-50 text-rose-600 rounded transition-colors cursor-pointer"
+                                  title="Remove document"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
 
               {/* Modal Footer Controls */}
               <div className="pt-2 flex items-center justify-end gap-2 border-t border-gray-200">
