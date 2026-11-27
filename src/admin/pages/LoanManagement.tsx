@@ -19,7 +19,8 @@ import {
   Paperclip,
   Check,
   Building,
-  Coins
+  Coins,
+  Image as ImageIcon
 } from 'lucide-react';
 import Pagination from '../../components/admin/Pagination';
 import { useConfirm } from '../components/ConfirmDialog';
@@ -58,6 +59,7 @@ export interface LoanSector {
   slug: string;
   nameSi: string;
   nameEn: string;
+  imageUrl?: string | null;
   _count?: { loans: number };
 }
 
@@ -66,6 +68,7 @@ export interface LoanTargetBeneficiary {
   slug: string;
   nameSi: string;
   nameEn: string;
+  imageUrl?: string | null;
   _count?: { loans: number };
 }
 
@@ -74,6 +77,7 @@ export interface LoanMainBranch {
   slug: string;
   nameSi: string;
   nameEn: string;
+  imageUrl?: string | null;
   subCategories?: LoanSubCategory[];
   _count?: { loans: number; subCategories: number };
 }
@@ -83,6 +87,7 @@ export interface LoanSubCategory {
   slug: string;
   nameSi: string;
   nameEn: string;
+  imageUrl?: string | null;
   mainBranchId: string;
   mainBranch?: LoanMainBranch;
   _count?: { loans: number };
@@ -93,6 +98,7 @@ export interface LoanPdfType {
   slug: string;
   nameSi: string;
   nameEn: string;
+  imageUrl?: string | null;
   _count?: { attachments: number };
 }
 
@@ -203,6 +209,10 @@ export default function LoanManagement() {
   const [taxonomyNameEn, setTaxonomyNameEn] = useState('');
   const [taxonomySlug, setTaxonomySlug] = useState('');
   const [taxonomyParentBranchId, setTaxonomyParentBranchId] = useState('');
+  const [taxonomyImageUrl, setTaxonomyImageUrl] = useState('');
+  const [taxonomyImageFile, setTaxonomyImageFile] = useState<File | null>(null);
+  const [taxonomyRemoveImage, setTaxonomyRemoveImage] = useState(false);
+  const fileInputRefTaxonomyImage = useRef<HTMLInputElement>(null);
 
   // ── LOAN FORM STATE ──
   const [formInstitutionName, setFormInstitutionName] = useState('');
@@ -667,6 +677,10 @@ export default function LoanManagement() {
     setTaxonomyNameEn('');
     setTaxonomySlug('');
     setTaxonomyParentBranchId(mainBranches[0]?.id || '');
+    setTaxonomyImageUrl('');
+    setTaxonomyImageFile(null);
+    setTaxonomyRemoveImage(false);
+    if (fileInputRefTaxonomyImage.current) fileInputRefTaxonomyImage.current.value = '';
   };
 
   const handleOpenEditTaxonomy = (type: 'sector' | 'beneficiary' | 'branch' | 'subCategory' | 'pdfType', item: any) => {
@@ -676,6 +690,10 @@ export default function LoanManagement() {
     setTaxonomyNameEn(item.nameEn || '');
     setTaxonomySlug(item.slug || '');
     setTaxonomyParentBranchId(item.mainBranchId || mainBranches[0]?.id || '');
+    setTaxonomyImageUrl(item.imageUrl || '');
+    setTaxonomyImageFile(null);
+    setTaxonomyRemoveImage(false);
+    if (fileInputRefTaxonomyImage.current) fileInputRefTaxonomyImage.current.value = '';
   };
 
   const handleSaveTaxonomy = async (e: React.FormEvent) => {
@@ -687,19 +705,27 @@ export default function LoanManagement() {
     }
 
     let endpoint = '';
-    const payload: any = {
-      nameSi: taxonomyNameSi.trim() || null,
-      nameEn: taxonomyNameEn.trim() || null,
-      slug: slugToSend
-    };
-
     if (taxonomyModalType === 'sector') endpoint = 'sectors';
     else if (taxonomyModalType === 'beneficiary') endpoint = 'target-beneficiaries';
     else if (taxonomyModalType === 'branch') endpoint = 'main-branches';
-    else if (taxonomyModalType === 'subCategory') {
-      endpoint = 'sub-categories';
-      payload.mainBranchId = taxonomyParentBranchId || null;
-    } else if (taxonomyModalType === 'pdfType') endpoint = 'pdf-types';
+    else if (taxonomyModalType === 'subCategory') endpoint = 'sub-categories';
+    else if (taxonomyModalType === 'pdfType') endpoint = 'pdf-types';
+
+    const formData = new FormData();
+    formData.append('slug', slugToSend);
+    if (taxonomyNameSi.trim()) formData.append('nameSi', taxonomyNameSi.trim());
+    if (taxonomyNameEn.trim()) formData.append('nameEn', taxonomyNameEn.trim());
+    if (taxonomyModalType === 'subCategory' && taxonomyParentBranchId) {
+      formData.append('mainBranchId', taxonomyParentBranchId);
+    }
+
+    if (taxonomyImageFile) {
+      formData.append('image', taxonomyImageFile);
+    } else if (taxonomyRemoveImage || (!taxonomyImageUrl && editingTaxonomyItem?.imageUrl)) {
+      formData.append('removeImage', 'true');
+    } else if (taxonomyImageUrl.trim()) {
+      formData.append('imageUrl', taxonomyImageUrl.trim());
+    }
 
     const url = editingTaxonomyItem
       ? `${API_BASE_URL}/loans/${endpoint}/${editingTaxonomyItem.id}`
@@ -709,11 +735,8 @@ export default function LoanManagement() {
     try {
       const res = await fetch(url, {
         method,
-        headers: {
-          ...getAuthHeaders(),
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
+        headers: getAuthHeaders(),
+        body: formData
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to save item');
@@ -1216,6 +1239,9 @@ export default function LoanManagement() {
             <table className="w-full text-left text-xs text-gray-700 border-collapse">
               <thead>
                 <tr>
+                  <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap bg-gray-50/90 border-b border-gray-200 w-10">
+                    Image
+                  </th>
                   <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap bg-gray-50/90 border-b border-gray-200">
                     Sector Name (English)
                   </th>
@@ -1236,13 +1262,26 @@ export default function LoanManagement() {
               <tbody className="divide-y divide-gray-100">
                 {sectors.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-3 py-6 text-center text-gray-400">
+                    <td colSpan={6} className="px-3 py-6 text-center text-gray-400">
                       No loan sectors added yet.
                     </td>
                   </tr>
                 ) : (
                   sectors.map(sec => (
                     <tr key={sec.id} className="hover:bg-gray-50/60 transition-colors">
+                      <td className="px-3 py-1.5 whitespace-nowrap">
+                        {sec.imageUrl ? (
+                          <img
+                            src={sec.imageUrl}
+                            alt=""
+                            className="w-6 h-6 rounded object-cover border border-gray-200 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-6 h-6 rounded bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 shrink-0">
+                            <ImageIcon size={12} />
+                          </div>
+                        )}
+                      </td>
                       <td className="px-3 py-1.5 font-semibold text-gray-900 truncate">
                         {sec.nameEn}
                       </td>
@@ -1289,6 +1328,9 @@ export default function LoanManagement() {
             <table className="w-full text-left text-xs text-gray-700 border-collapse">
               <thead>
                 <tr>
+                  <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap bg-gray-50/90 border-b border-gray-200 w-10">
+                    Image
+                  </th>
                   <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap bg-gray-50/90 border-b border-gray-200">
                     Beneficiary Name (English)
                   </th>
@@ -1309,13 +1351,26 @@ export default function LoanManagement() {
               <tbody className="divide-y divide-gray-100">
                 {beneficiaries.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-3 py-6 text-center text-gray-400">
+                    <td colSpan={6} className="px-3 py-6 text-center text-gray-400">
                       No target beneficiaries added yet.
                     </td>
                   </tr>
                 ) : (
                   beneficiaries.map(ben => (
                     <tr key={ben.id} className="hover:bg-gray-50/60 transition-colors">
+                      <td className="px-3 py-1.5 whitespace-nowrap">
+                        {ben.imageUrl ? (
+                          <img
+                            src={ben.imageUrl}
+                            alt=""
+                            className="w-6 h-6 rounded object-cover border border-gray-200 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-6 h-6 rounded bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 shrink-0">
+                            <ImageIcon size={12} />
+                          </div>
+                        )}
+                      </td>
                       <td className="px-3 py-1.5 font-semibold text-gray-900 truncate">
                         {ben.nameEn}
                       </td>
@@ -1368,6 +1423,7 @@ export default function LoanManagement() {
               <table className="w-full text-left text-xs text-gray-700 border-collapse">
                 <thead>
                   <tr>
+                    <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap bg-gray-50/90 border-b border-gray-200 w-10">Image</th>
                     <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap bg-gray-50/90 border-b border-gray-200">Name (EN / SI)</th>
                     <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap bg-gray-50/90 border-b border-gray-200">Subs</th>
                     <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap bg-gray-50/90 border-b border-gray-200 text-right">Actions</th>
@@ -1376,6 +1432,19 @@ export default function LoanManagement() {
                 <tbody className="divide-y divide-gray-100">
                   {mainBranches.map(branch => (
                     <tr key={branch.id} className="hover:bg-gray-50/60 transition-colors">
+                      <td className="px-3 py-1.5 whitespace-nowrap">
+                        {branch.imageUrl ? (
+                          <img
+                            src={branch.imageUrl}
+                            alt=""
+                            className="w-6 h-6 rounded object-cover border border-gray-200 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-6 h-6 rounded bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 shrink-0">
+                            <ImageIcon size={12} />
+                          </div>
+                        )}
+                      </td>
                       <td className="px-3 py-1.5 whitespace-nowrap">
                         <div className="font-semibold text-gray-900 truncate text-xs">{branch.nameEn}</div>
                         <div className="text-[10px] text-gray-400 truncate">{branch.nameSi}</div>
@@ -1416,6 +1485,7 @@ export default function LoanManagement() {
               <table className="w-full text-left text-xs text-gray-700 border-collapse">
                 <thead>
                   <tr>
+                    <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap bg-gray-50/90 border-b border-gray-200 w-10">Image</th>
                     <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap bg-gray-50/90 border-b border-gray-200">Sub Category</th>
                     <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap bg-gray-50/90 border-b border-gray-200">Main Branch</th>
                     <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap bg-gray-50/90 border-b border-gray-200 text-right">Actions</th>
@@ -1424,6 +1494,19 @@ export default function LoanManagement() {
                 <tbody className="divide-y divide-gray-100">
                   {subCategories.map(sub => (
                     <tr key={sub.id} className="hover:bg-gray-50/60 transition-colors">
+                      <td className="px-3 py-1.5 whitespace-nowrap">
+                        {sub.imageUrl ? (
+                          <img
+                            src={sub.imageUrl}
+                            alt=""
+                            className="w-6 h-6 rounded object-cover border border-gray-200 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-6 h-6 rounded bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 shrink-0">
+                            <ImageIcon size={12} />
+                          </div>
+                        )}
+                      </td>
                       <td className="px-3 py-1.5 whitespace-nowrap">
                         <div className="font-semibold text-gray-900 truncate text-xs">{sub.nameEn}</div>
                         <div className="text-[10px] text-gray-400 truncate">{sub.nameSi}</div>
@@ -1465,6 +1548,9 @@ export default function LoanManagement() {
             <table className="w-full text-left text-xs text-gray-700 border-collapse">
               <thead>
                 <tr>
+                  <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap bg-gray-50/90 border-b border-gray-200 w-10">
+                    Image
+                  </th>
                   <th className="px-3 py-2 text-[11px] uppercase font-bold text-gray-500 whitespace-nowrap bg-gray-50/90 border-b border-gray-200">
                     PDF Type Name (English)
                   </th>
@@ -1485,13 +1571,26 @@ export default function LoanManagement() {
               <tbody className="divide-y divide-gray-100">
                 {pdfTypes.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-3 py-6 text-center text-gray-400">
+                    <td colSpan={6} className="px-3 py-6 text-center text-gray-400">
                       No PDF types added yet (e.g. "Application Form", "Concession Gazette", "Guideline Booklet").
                     </td>
                   </tr>
                 ) : (
                   pdfTypes.map(pt => (
                     <tr key={pt.id} className="hover:bg-gray-50/60 transition-colors">
+                      <td className="px-3 py-1.5 whitespace-nowrap">
+                        {pt.imageUrl ? (
+                          <img
+                            src={pt.imageUrl}
+                            alt=""
+                            className="w-6 h-6 rounded object-cover border border-gray-200 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-6 h-6 rounded bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400 shrink-0">
+                            <ImageIcon size={12} />
+                          </div>
+                        )}
+                      </td>
                       <td className="px-3 py-1.5 font-semibold text-gray-900 truncate">
                         {pt.nameEn}
                       </td>
@@ -2868,6 +2967,81 @@ export default function LoanManagement() {
                   onChange={e => setTaxonomySlug(generateSlug(e.target.value))}
                   className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs font-mono text-gray-800 focus:ring-1 focus:ring-emerald-500"
                 />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                  Card Cover Image / Thumbnail (Optional)
+                </label>
+                <div className="flex items-center gap-3 p-2.5 rounded-xl border border-gray-200 bg-gray-50/60">
+                  <div className="w-12 h-12 rounded-lg bg-white border border-gray-200 overflow-hidden flex items-center justify-center shrink-0">
+                    {taxonomyImageFile ? (
+                      <img
+                        src={URL.createObjectURL(taxonomyImageFile)}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : taxonomyImageUrl ? (
+                      <img
+                        src={taxonomyImageUrl}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <ImageIcon size={20} className="text-gray-300" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRefTaxonomyImage.current?.click()}
+                        className="px-2.5 py-1 text-xs font-semibold rounded-md bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 shadow-2xs cursor-pointer inline-flex items-center gap-1"
+                      >
+                        <Upload size={12} />
+                        <span>Upload Image File</span>
+                      </button>
+                      {(taxonomyImageFile || taxonomyImageUrl) && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setTaxonomyImageFile(null);
+                            setTaxonomyImageUrl('');
+                            setTaxonomyRemoveImage(true);
+                            if (fileInputRefTaxonomyImage.current) fileInputRefTaxonomyImage.current.value = '';
+                          }}
+                          className="px-2 py-1 text-xs font-semibold rounded-md text-rose-600 hover:bg-rose-50 cursor-pointer inline-flex items-center gap-1"
+                        >
+                          <Trash2 size={12} />
+                          <span>Remove</span>
+                        </button>
+                      )}
+                    </div>
+                    <input
+                      ref={fileInputRefTaxonomyImage}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setTaxonomyImageFile(file);
+                          setTaxonomyRemoveImage(false);
+                        }
+                      }}
+                    />
+                    <input
+                      type="url"
+                      placeholder="Or enter image URL (https://...)"
+                      value={taxonomyImageUrl}
+                      onChange={e => {
+                        setTaxonomyImageUrl(e.target.value);
+                        setTaxonomyRemoveImage(false);
+                      }}
+                      className="mt-1.5 w-full px-2 py-1 bg-white border border-gray-200 rounded text-[11px] focus:ring-1 focus:ring-emerald-500 font-mono text-gray-600"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="pt-2 flex justify-end gap-2 border-t border-gray-100">

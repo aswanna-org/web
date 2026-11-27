@@ -32,6 +32,7 @@ interface PdfAttachment {
     slug: string;
     nameSi: string | null;
     nameEn: string | null;
+    imageUrl?: string | null;
   } | null;
 }
 
@@ -73,10 +74,10 @@ interface LoanDetailData {
   email: string | null;
   website: string | null;
   authorityAddress: string | null;
-  sector?: { id: string; nameSi: string | null; nameEn: string | null } | null;
-  targetBeneficiary?: { id: string; nameSi: string | null; nameEn: string | null } | null;
-  mainBranch?: { id: string; nameSi: string | null; nameEn: string | null } | null;
-  subCategory?: { id: string; nameSi: string | null; nameEn: string | null } | null;
+  sector?: { id: string; nameSi: string | null; nameEn: string | null; imageUrl?: string | null } | null;
+  targetBeneficiary?: { id: string; nameSi: string | null; nameEn: string | null; imageUrl?: string | null } | null;
+  mainBranch?: { id: string; nameSi: string | null; nameEn: string | null; imageUrl?: string | null } | null;
+  subCategory?: { id: string; nameSi: string | null; nameEn: string | null; imageUrl?: string | null } | null;
   pdfAttachments?: PdfAttachment[];
 }
 

@@ -70,6 +70,7 @@ interface LoanSubCategory {
   slug: string;
   nameSi: string | null;
   nameEn: string | null;
+  imageUrl?: string | null;
   mainBranchId: string;
   mainBranch?: {
     id: string;
@@ -229,7 +230,7 @@ export default function LoanSubCategoryInstitutions() {
         subtitle={isSinhala
           ? 'මෙම කාණ්ඩය යටතේ සක්‍රීයව ක්‍රියාත්මක වන නිල ආයතන සහ වැඩසටහන්'
           : 'Participating financial institutions, government bodies, and available support schemes'}
-        image="/images/page-banners/loan_page_banner.jpeg"
+        image={subCategory?.imageUrl || "/images/page-banners/loan_page_banner.jpeg"}
         gradientColor={isFinancial ? '#054a29' : '#8a4b08'}
         icon={isLoanScheme ? Coins : Gift}
         badgeBg={isFinancial ? 'bg-[#054a29]' : 'bg-[#8a4b08]'}

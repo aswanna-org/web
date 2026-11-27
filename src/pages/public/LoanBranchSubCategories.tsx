@@ -22,6 +22,7 @@ interface LoanSubCategory {
   slug: string;
   nameSi: string | null;
   nameEn: string | null;
+  imageUrl?: string | null;
   mainBranchId: string;
   mainBranch?: {
     id: string;
@@ -241,7 +242,7 @@ export default function LoanBranchSubCategories() {
               const IconComp = getCategoryIcon(sub.slug);
               const title = isSinhala ? (sub.nameSi || sub.nameEn || 'කාණ්ඩය') : (sub.nameEn || sub.nameSi || 'Category');
               const desc = getCategoryDescription(sub.slug, isSinhala);
-              const image = getCategoryThumbnail(sub.slug);
+              const image = sub.imageUrl || getCategoryThumbnail(sub.slug);
 
               return (
                 <div key={sub.id} className="h-full">

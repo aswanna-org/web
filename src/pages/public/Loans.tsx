@@ -27,6 +27,7 @@ interface LoanMainBranch {
   slug: string;
   nameSi: string | null;
   nameEn: string | null;
+  imageUrl?: string | null;
   subCategories?: LoanSubCategory[];
   _count?: { loans: number; subCategories: number };
 }
@@ -109,7 +110,7 @@ export default function Loans() {
             {financialBranch && (
               <div className="h-full">
                 <Card
-                  image="https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&q=80"
+                  image={financialBranch.imageUrl || "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&q=80"}
                   icon={Coins}
                   color="#006837"
                   badge={isSinhala ? "01 • මූල්‍ය සහයෝගයන්" : "01 • FINANCIAL SUPPORT"}
@@ -137,7 +138,7 @@ export default function Loans() {
             {materialBranch && (
               <div className="h-full">
                 <Card
-                  image="https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=800&q=80"
+                  image={materialBranch.imageUrl || "https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=800&q=80"}
                   icon={Gift}
                   color="#d97706"
                   badge={isSinhala ? "02 • ද්‍රව්‍යමය ආධාර" : "02 • MATERIAL SUPPORT"}
