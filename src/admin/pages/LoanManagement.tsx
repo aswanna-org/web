@@ -123,6 +123,11 @@ export interface Loan {
   annualInterestRate?: string | null;
   repaymentPeriod?: string | null;
   gracePeriod?: string | null;
+  benefitOrValue?: string | null;
+  benefitOrValueSi?: string | null;
+  benefitOrValueEn?: string | null;
+  institutionContribution?: number | null;
+  farmerContribution?: number | null;
   logoBadgeUrl?: string | null;
   coverBannerUrl?: string | null;
   closingDate?: string | null;
@@ -213,6 +218,9 @@ export default function LoanManagement() {
   const [formAnnualInterestRate, setFormAnnualInterestRate] = useState('');
   const [formRepaymentPeriod, setFormRepaymentPeriod] = useState('');
   const [formGracePeriod, setFormGracePeriod] = useState('');
+  const [formBenefitOrValue, setFormBenefitOrValue] = useState('');
+  const [formInstitutionContribution, setFormInstitutionContribution] = useState('100');
+  const [formFarmerContribution, setFormFarmerContribution] = useState('0');
   const [formClosingDate, setFormClosingDate] = useState('');
   const [formIsOngoing, setFormIsOngoing] = useState(false);
   const [formIsActive, setFormIsActive] = useState(true);
@@ -351,6 +359,9 @@ export default function LoanManagement() {
     setFormAnnualInterestRate('');
     setFormRepaymentPeriod('');
     setFormGracePeriod('');
+    setFormBenefitOrValue('');
+    setFormInstitutionContribution('100');
+    setFormFarmerContribution('0');
     setFormClosingDate('');
     setFormIsOngoing(false);
     setFormIsActive(true);
@@ -392,6 +403,9 @@ export default function LoanManagement() {
     setFormAnnualInterestRate(loan.annualInterestRate || '');
     setFormRepaymentPeriod(loan.repaymentPeriod || '');
     setFormGracePeriod(loan.gracePeriod || '');
+    setFormBenefitOrValue(loan.benefitOrValue || loan.benefitOrValueSi || loan.benefitOrValueEn || '');
+    setFormInstitutionContribution(loan.institutionContribution !== undefined && loan.institutionContribution !== null ? String(loan.institutionContribution) : '100');
+    setFormFarmerContribution(loan.farmerContribution !== undefined && loan.farmerContribution !== null ? String(loan.farmerContribution) : '0');
     setFormClosingDate(loan.closingDate ? loan.closingDate.substring(0, 10) : '');
     setFormIsOngoing(Boolean(loan.isOngoing));
     setFormIsActive(loan.isActive !== undefined ? Boolean(loan.isActive) : true);
@@ -457,6 +471,10 @@ export default function LoanManagement() {
       formData.append('annualInterestRate', formAnnualInterestRate.trim());
       formData.append('repaymentPeriod', formRepaymentPeriod.trim());
       formData.append('gracePeriod', formGracePeriod.trim());
+      formData.append('benefitOrValue', formBenefitOrValue.trim());
+      formData.append('benefitOrValueSi', formBenefitOrValue.trim());
+      formData.append('institutionContribution', formInstitutionContribution.trim());
+      formData.append('farmerContribution', formFarmerContribution.trim());
       if (formClosingDate) formData.append('closingDate', formClosingDate);
       formData.append('isOngoing', String(formIsOngoing));
       formData.append('isActive', String(formIsActive));
@@ -1668,7 +1686,7 @@ export default function LoanManagement() {
 
                   <div>
                     <label className="block text-[11px] font-bold text-gray-700 mb-1">
-                      Main Branch
+                      1. ප්‍රධාන අංශය (Main Branch) *
                     </label>
                     <select
                       value={formMainBranchId}
@@ -1680,91 +1698,154 @@ export default function LoanManagement() {
                       }}
                       className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-emerald-500 cursor-pointer"
                     >
-                      <option value="">Select Main Branch (Optional)</option>
-                      {mainBranches.map(mb => (
-                        <option key={mb.id} value={mb.id}>{mb.nameEn}</option>
+                      <option value="">ප්‍රධාන අංශය තෝරන්න (Select Main Branch)</option>
+                      {mainBranches.map((mb, idx) => (
+                        <option key={mb.id} value={mb.id}>
+                          {mb.nameSi ? `${idx + 1}. ${mb.nameSi} (${mb.nameEn})` : mb.nameEn}
+                        </option>
                       ))}
                     </select>
                   </div>
 
                   <div>
                     <label className="block text-[11px] font-bold text-gray-700 mb-1">
-                      Sub Category
+                      2. උප වර්ගීකරණය (Sub-Category) *
                     </label>
                     <select
                       value={formSubCategoryId}
                       onChange={e => setFormSubCategoryId(e.target.value)}
                       className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-emerald-500 cursor-pointer"
                     >
-                      <option value="">Select Sub Category (Optional)</option>
+                      <option value="">උප වර්ගීකරණය තෝරන්න (Select Sub Category)</option>
                       {modalAvailableSubCategories.map(sc => (
-                        <option key={sc.id} value={sc.id}>{sc.nameEn}</option>
+                        <option key={sc.id} value={sc.id}>
+                          {sc.nameSi ? `${sc.nameSi} (${sc.nameEn})` : sc.nameEn}
+                        </option>
                       ))}
                     </select>
                   </div>
                 </div>
               </div>
 
-              {/* Section 3: Financial Parameters & Deadlines */}
-              <div className="border border-gray-200 rounded-xl p-3.5 bg-gray-50/40 space-y-3">
-                <div className="font-bold text-gray-800 text-xs flex items-center gap-1.5 border-b border-gray-200 pb-1.5">
-                  <Coins size={14} className="text-emerald-600" />
-                  <span>3. Financial Terms, Rates & Periods</span>
-                </div>
+              {/* Dynamic Section 3: Loans vs Material Support / Grants */}
+              {(() => {
+                const currentSubCat = subCategories.find(s => s.id === formSubCategoryId);
+                const isLoanSection = !currentSubCat || currentSubCat.slug === 'loans' || currentSubCat.nameEn?.toLowerCase() === 'loans';
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 mb-1">
-                      Max Loan Amount
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Rs. 5,000,000 / උපරිම ලක්ෂ 50"
-                      value={formMaxLoanAmount}
-                      onChange={e => setFormMaxLoanAmount(e.target.value)}
-                      className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-hidden"
-                    />
+                return isLoanSection ? (
+                  <div className="border border-blue-200 rounded-xl p-3.5 bg-blue-50/20 space-y-3">
+                    <div className="font-bold text-blue-900 text-xs flex items-center gap-1.5 border-b border-blue-100 pb-1.5">
+                      <Building size={14} className="text-blue-700" />
+                      <span>🏛️ ණය පහසුකම් සතු විස්තර</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                          උපරිම ණය මුදල (Max Loan)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="උදා: රු. 5,000,000"
+                          value={formMaxLoanAmount}
+                          onChange={e => setFormMaxLoanAmount(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 focus:outline-hidden"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                          වාර්ෂික පොලී අනුපාතිකය
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="උදා: 6.5%"
+                          value={formAnnualInterestRate}
+                          onChange={e => setFormAnnualInterestRate(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 focus:outline-hidden"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                          ආපසු ගෙවීමේ කාලය
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="උදා: වසර 5ක්"
+                          value={formRepaymentPeriod}
+                          onChange={e => setFormRepaymentPeriod(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 focus:outline-hidden"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                          සහන කාලය (Grace Period)
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="උදා: මාස 6ක්"
+                          value={formGracePeriod}
+                          onChange={e => setFormGracePeriod(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-blue-500 focus:outline-hidden"
+                        />
+                      </div>
+                    </div>
                   </div>
+                ) : (
+                  <div className="border border-amber-200 rounded-xl p-3.5 bg-amber-50/20 space-y-3">
+                    <div className="font-bold text-amber-900 text-xs flex items-center gap-1.5 border-b border-amber-100 pb-1.5">
+                      <span>🎁 ආධාර / ප්‍රදාන සහ ද්‍රව්‍යමය පංගු විස්තර</span>
+                    </div>
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 mb-1">
-                      Annual Interest Rate
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 4.0% - 6.5% p.a."
-                      value={formAnnualInterestRate}
-                      onChange={e => setFormAnnualInterestRate(e.target.value)}
-                      className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-hidden"
-                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                          ලබා දෙන ප්‍රතිලාභය / වටිනාකම
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="උදා: නොමිලේ පැල 50ක් / රු. ලක්ෂ 25 ප්‍රදානය"
+                          value={formBenefitOrValue}
+                          onChange={e => setFormBenefitOrValue(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-amber-500 focus:outline-hidden"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                          ආයතනයේ දායකත්වය (%)
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="100"
+                          value={formInstitutionContribution}
+                          onChange={e => setFormInstitutionContribution(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-amber-500 focus:outline-hidden"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                          ගොවියාගේ දායකත්වය (%)
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="0"
+                          value={formFarmerContribution}
+                          onChange={e => setFormFarmerContribution(e.target.value)}
+                          className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-amber-500 focus:outline-hidden"
+                        />
+                      </div>
+                    </div>
                   </div>
+                );
+              })()}
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 mb-1">
-                      Repayment Period
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. 5 Years (60 Months) / වසර 5ක්"
-                      value={formRepaymentPeriod}
-                      onChange={e => setFormRepaymentPeriod(e.target.value)}
-                      className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-hidden"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 mb-1">
-                      Grace Period
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Up to 6 Months / මාස 6ක්"
-                      value={formGracePeriod}
-                      onChange={e => setFormGracePeriod(e.target.value)}
-                      className="w-full px-2.5 py-1.5 bg-white border border-gray-200 rounded-lg text-xs focus:ring-1 focus:ring-emerald-500 focus:outline-hidden"
-                    />
-                  </div>
-
+              {/* Deadlines & Status */}
+              <div className="border border-gray-200 rounded-xl p-3 bg-gray-50/40">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-[11px] font-bold text-gray-700 mb-1">
                       Closing Date
@@ -1778,7 +1859,7 @@ export default function LoanManagement() {
                     />
                   </div>
 
-                  <div className="flex items-center gap-4 sm:col-span-3 pt-4">
+                  <div className="flex items-center gap-4 sm:col-span-2 pt-4">
                     <label className="flex items-center gap-2 cursor-pointer select-none">
                       <input
                         type="checkbox"
@@ -1790,7 +1871,7 @@ export default function LoanManagement() {
                         className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4 cursor-pointer"
                       />
                       <span className="text-xs font-semibold text-gray-800">
-                        Ongoing Loan Facility (නොකඩවා ක්‍රියාත්මක වන ණය ක්‍රමයකි)
+                        Ongoing Facility (නොකඩවා ක්‍රියාත්මක වන වැඩසටහනකි)
                       </span>
                     </label>
 

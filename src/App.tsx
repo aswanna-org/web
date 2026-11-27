@@ -51,6 +51,8 @@ import NurseryDetail from './pages/public/NurseryDetail';
 import MushroomFinder from './pages/public/MushroomFinder';
 import MushroomDetail from './pages/public/MushroomDetail';
 import Loans from './pages/public/Loans';
+import LoanBranchSubCategories from './pages/public/LoanBranchSubCategories';
+import LoanSubCategoryInstitutions from './pages/public/LoanSubCategoryInstitutions';
 import LoanInstitutionDetail from './pages/public/LoanInstitutionDetail';
 import LoanDetail from './pages/public/LoanDetail';
 import NotFound from './pages/public/NotFound';
@@ -209,6 +211,9 @@ function App() {
 
               {/* Public Agricultural Loans Routes */}
               <Route path="loans" element={<Loans />} />
+              <Route path="loans/branch/:branchSlug" element={<LoanBranchSubCategories />} />
+              <Route path="loans/branch/:branchSlug/:subCategorySlug" element={<LoanSubCategoryInstitutions />} />
+              <Route path="loans/category/:subCategorySlug" element={<LoanSubCategoryInstitutions />} />
               <Route path="loans/institution/:institutionSlug" element={<LoanInstitutionDetail />} />
               <Route path="loans/institution/:institutionSlug/:slug" element={<LoanDetail />} />
               <Route path="loans/:institutionSlug/:slug" element={<LoanDetail />} />

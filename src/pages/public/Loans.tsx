@@ -1,121 +1,90 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, ChevronRight, Building2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  Building2,
+  Coins,
+  Gift,
+  Layers,
+  ShieldCheck
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
 import PageHero from '../../components/public/PageHero';
+import Card from '../../components/ui/Card';
 
-interface InstitutionSummary {
-  name: string;
+interface LoanSubCategory {
+  id: string;
+  slug: string;
   nameSi: string | null;
   nameEn: string | null;
-  slug: string;
-  logoBadgeUrl: string | null;
-  coverBannerUrl: string | null;
-  ministryOrParentOrg: string | null;
-  ministryOrParentOrgSi: string | null;
-  ministryOrParentOrgEn: string | null;
-  authorityAddress: string | null;
-  hotline: string | null;
-  email: string | null;
-  website: string | null;
-  loanCount: number;
+  _count?: { loans: number };
 }
 
-const CLOUD_PALETTE = [
-  { fill: '#e2f5dc' }, // Soft Leaf Green
-  { fill: '#fff1d6' }, // Warm Peach
-  { fill: '#daf0fc' }, // Sky Blue
-  { fill: '#f0def8' }, // Soft Lavender
-  { fill: '#fde2e6' }, // Soft Rose Pink
-  { fill: '#fde8d4' }, // Soft Apricot Orange
-  { fill: '#eef8ce' }, // Fresh Lime
-  { fill: '#d5f3ed' }, // Mint Aqua
-  { fill: '#fce4ec' }, // Blush Rose
-  { fill: '#e8f5e9' }, // Pale Meadow Green
-  { fill: '#ede7f6' }, // Pale Lilac
-  { fill: '#e0f7fa' }, // Soft Cyan Ice
-  { fill: '#fff8e1' }, // Pale Amber Cream
-  { fill: '#fbe9e7' }, // Soft Coral Mist
-  { fill: '#f3e5f5' }, // Light Heather Purple
-  { fill: '#e8eaf6' }, // Periwinkle Mist
-  { fill: '#e0f2f1' }, // Seafoam Mint
-  { fill: '#f9fbe7' }, // Pale Chartreuse
-  { fill: '#fff3e0' }, // Honey Peach
-  { fill: '#f1f8e9' }, // Spring Sprout Green
-];
-
-const CLOUD_PATHS = [
-  "M 25,90 C 5,90 2,65 18,48 C 30,30 55,34 70,22 C 86,5 122,5 142,18 C 162,28 175,38 186,50 C 200,64 198,90 182,108 C 166,126 142,130 124,136 C 96,146 64,142 45,126 C 28,112 25,98 25,90 Z",
-  "M 20,82 C 2,82 0,55 16,38 C 30,22 58,26 72,16 C 90,4 128,4 146,18 C 164,30 178,36 190,52 C 202,68 198,95 180,114 C 162,130 138,132 120,138 C 96,148 62,145 42,126 C 24,108 20,92 20,82 Z",
-  "M 28,95 C 6,95 2,68 18,50 C 32,32 58,38 72,25 C 90,8 126,6 146,18 C 166,28 180,44 192,54 C 206,70 202,98 184,116 C 166,132 142,134 122,140 C 94,150 64,144 46,128 C 30,114 26,102 28,95 Z",
-  "M 22,86 C 4,86 0,60 16,42 C 32,24 60,30 74,18 C 92,4 130,4 148,18 C 166,30 182,40 192,58 C 204,78 198,104 178,122 C 158,134 134,134 116,140 C 90,150 60,144 42,124 C 26,106 22,94 22,86 Z",
-];
-
-function CloudBackground({ index }: { index: number }) {
-  const color = CLOUD_PALETTE[index % CLOUD_PALETTE.length];
-  const path = CLOUD_PATHS[index % CLOUD_PATHS.length];
-
-  return (
-    <svg
-      viewBox="0 0 200 150"
-      className="absolute inset-0 w-full h-full -z-0 transition-transform duration-300 group-hover:scale-105 pointer-events-none"
-      preserveAspectRatio="none"
-    >
-      <path d={path} fill={color.fill} />
-    </svg>
-  );
+interface LoanMainBranch {
+  id: string;
+  slug: string;
+  nameSi: string | null;
+  nameEn: string | null;
+  subCategories?: LoanSubCategory[];
+  _count?: { loans: number; subCategories: number };
 }
 
 export default function Loans() {
   const { i18n } = useTranslation();
   const isSinhala = i18n.language === 'si';
 
-  const [institutions, setInstitutions] = useState<InstitutionSummary[]>([]);
+  const [branches, setBranches] = useState<LoanMainBranch[]>([]);
   const [loading, setLoading] = useState(true);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
-    const fetchInstitutions = async () => {
+    const fetchBranches = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_BASE_URL}/loans/public/institutions`);
+        const res = await fetch(`${API_BASE_URL}/loans/main-branches`);
         if (res.ok) {
           const json = await res.json();
-          const list = Array.isArray(json) ? json : (json.data || json.institutions || []);
-          setInstitutions(list);
+          const list: LoanMainBranch[] = json.data || json.items || [];
+          setBranches(list);
         }
       } catch (err) {
-        console.error('Failed to fetch loan institutions:', err);
+        console.error('Failed to fetch main branches:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchInstitutions();
+    fetchBranches();
   }, [API_BASE_URL]);
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#fbfdfa] flex items-center justify-center pt-24 pb-16">
-        <AgroLoader message={isSinhala ? 'ණය යෝජනා ක්‍රම තොරතුරු පූරණය වෙමින් පවතී...' : 'Loading loan schemes information...'} />
+        <AgroLoader message={isSinhala ? 'ණය සහ ආධාර අංශ පූරණය වෙමින් පවතී...' : 'Loading loan & support branches...'} />
       </div>
     );
   }
 
+  const financialBranch = branches.find(b => b.slug === 'financial-support') || branches[0];
+  const materialBranch = branches.find(b => b.slug === 'material-support') || branches[1];
+
   return (
     <div className="min-h-screen bg-[#fbfdfa] flex flex-col">
       <SEO
-        title={isSinhala ? 'කෘෂිකාර්මික ණය යෝජනා ක්‍රම | Aswanna' : 'Agricultural Loan Schemes | Aswanna'}
+        title={isSinhala ? 'කෘෂිකාර්මික ණය සහ ආධාර යෝජනා ක්‍රම | Aswanna' : 'Agricultural Loan & Aid Schemes | Aswanna'}
         description={isSinhala
-          ? 'ශ්‍රී ලංකාවේ ප්‍රමුඛ බැංකු හා රාජ්‍ය ආයතන මඟින් පිරිනමන කෘෂිකාර්මික ණය යෝජනා ක්‍රම සහ ප්‍රතිලාභ.'
-          : 'Explore agricultural loan schemes and financial support from leading Sri Lankan banks and institutions.'}
+          ? 'ශ්‍රී ලංකාවේ ප්‍රමුඛ බැංකු හා රාජ්‍ය ආයතන මඟින් පිරිනමන කෘෂිකාර්මික ණය, මූල්‍ය ආධාර සහ ද්‍රව්‍යමය යෙදවුම් යෝජනා ක්‍රම.'
+          : 'Explore agricultural loans, financial grants, and material support schemes from leading Sri Lankan banks and institutions.'}
       />
 
       <PageHero
-        title={isSinhala ? 'කෘෂිකාර්මික ණය යෝජනා ක්‍රම' : 'Agricultural Loan Schemes'}
+        title={isSinhala ? 'කෘෂිකාර්මික ණය සහ සහනාධාර යෝජනා ක්‍රම' : 'Agricultural Loans & Support Schemes'}
+        subtitle={isSinhala
+          ? 'මූල්‍ය සහයෝගයන් සහ ද්‍රව්‍යමය ආධාර සපයන නිල ආයතන හා වැඩසටහන්'
+          : 'Explore official government and bank schemes for agricultural credit, grants, and material inputs'}
         image="/images/page-banners/loan_page_banner.jpeg"
         gradientColor="#054a29"
         icon={Building2}
@@ -131,73 +100,67 @@ export default function Loans() {
         </Link>
       </PageHero>
 
-      {/* ── Institutions Grid Section ── */}
+      {/* ── 2 NEWS-STYLE CARDS SECTION ── */}
       <section className="w-full py-8 sm:py-12 bg-[#fbfdfa] flex-1">
-        <div className="container mx-auto px-3 sm:px-6 lg:px-12">
-          {institutions.length === 0 ? (
-            <div className="py-16 sm:py-24 text-center max-w-lg mx-auto flex flex-col items-center justify-center">
-              <AgroLoader
-                message={isSinhala ? 'ණය යෝජනා ක්‍රම සහිත ආයතන තොරතුරු සකස් වෙමින් පවතී...' : 'Preparing institution loan schemes...'}
-                subMessage={isSinhala ? 'කරුණාකර රැඳී සිටින්න' : 'Please check back soon'}
-              />
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5">
-              {institutions.map((inst, index) => {
-                const title = isSinhala ? (inst.nameSi || inst.name) : (inst.nameEn || inst.name);
-                const parent = isSinhala ? (inst.ministryOrParentOrgSi || inst.ministryOrParentOrg) : (inst.ministryOrParentOrgEn || inst.ministryOrParentOrg);
+        <div className="container mx-auto px-4 sm:px-6 lg:px-12">
+          {/* Left-aligned Cards Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
+            {/* Card 1: Financial Support */}
+            {financialBranch && (
+              <div className="h-full">
+                <Card
+                  image="https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&q=80"
+                  icon={Coins}
+                  color="#006837"
+                  badge={isSinhala ? "01 • මූල්‍ය සහයෝගයන්" : "01 • FINANCIAL SUPPORT"}
+                  title={isSinhala ? (financialBranch.nameSi || 'මූල්‍ය සහයෝගයන්') : (financialBranch.nameEn || 'Financial Support')}
+                  subtitle={isSinhala ? 'ණය පහසුකම් සහ මූල්‍ය ආධාර / ප්‍රදාන' : 'Loans & Non-repayable Financial Grants'}
+                  meta={[
+                    {
+                      icon: Layers,
+                      text: `${financialBranch._count?.subCategories || 2} ${isSinhala ? 'උප වර්ගීකරණ' : 'Sub-categories'}`
+                    },
+                    {
+                      icon: ShieldCheck,
+                      text: isSinhala ? 'රාජ්‍ය හා වාණිජ බැංකු' : 'State & Commercial Banks'
+                    }
+                  ]}
+                  to={`/loans/branch/${financialBranch.slug}`}
+                  primaryAction={{
+                    text: isSinhala ? 'අංශයට පිවිසෙන්න' : 'Explore Branch'
+                  }}
+                />
+              </div>
+            )}
 
-                return (
-                  <Link
-                    key={inst.slug || index}
-                    to={`/loans/institution/${inst.slug}`}
-                    style={{ animationDelay: `${Math.min(index * 45, 600)}ms` }}
-                    className="animate-card-pop group relative flex flex-col items-center justify-between p-2.5 sm:p-3 md:p-4 rounded-xl sm:rounded-2xl bg-white border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-emerald-200/80 hover:-translate-y-1 transition-all duration-300"
-                  >
-                    {/* Top: Illustration with large organic cloud pastel background shape */}
-                    <div className="w-full aspect-square max-w-[95px] sm:max-w-[135px] md:max-w-[150px] flex items-center justify-center relative">
-                      <CloudBackground index={index} />
-                      {inst.logoBadgeUrl ? (
-                        <img
-                          src={inst.logoBadgeUrl}
-                          alt={title}
-                          className="w-full h-full max-w-[85%] max-h-[85%] object-contain relative z-10 drop-shadow-md transition-transform duration-300 group-hover:scale-110"
-                        />
-                      ) : (
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/80 shadow-inner flex items-center justify-center relative z-10 text-emerald-700 transition-transform duration-300 group-hover:scale-110">
-                          <Building2 className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-700" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Middle: Title & Metadata */}
-                    <div className="w-full text-center my-1 px-1">
-                      <h3 className="font-bold text-[11px] sm:text-xs md:text-sm text-gray-800 group-hover:text-emerald-700 transition-colors line-clamp-2 leading-tight">
-                        {title}
-                      </h3>
-                      {parent && (
-                        <p className="text-[10px] text-gray-400 line-clamp-1 mt-0.5">
-                          {parent}
-                        </p>
-                      )}
-                      <div className="mt-1">
-                        <span className="inline-block text-[9.5px] sm:text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-100/60">
-                          {inst.loanCount} {isSinhala ? 'ණය යෝජනා' : 'Schemes'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Bottom: Circular Green Chevron Button */}
-                    <div className="mt-1 pb-0.5">
-                      <div className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full bg-emerald-700 group-hover:bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-700/20 group-hover:shadow-emerald-600/30 group-hover:scale-110 transition-all duration-300">
-                        <ChevronRight className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 stroke-[2.5]" />
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+            {/* Card 2: Material Support */}
+            {materialBranch && (
+              <div className="h-full">
+                <Card
+                  image="https://images.unsplash.com/photo-1592982537447-7440770cbfc9?w=800&q=80"
+                  icon={Gift}
+                  color="#d97706"
+                  badge={isSinhala ? "02 • ද්‍රව්‍යමය ආධාර" : "02 • MATERIAL SUPPORT"}
+                  title={isSinhala ? (materialBranch.nameSi || 'ද්‍රව්‍යමය ආධාර සහ යෙදවුම්') : (materialBranch.nameEn || 'Material Support')}
+                  subtitle={isSinhala ? 'කෘෂිකාර්මික උපකරණ, පොහොර, පැල, බීජ සහ යෙදවුම්' : 'Machinery, Fertilizers, Seeds, Plants & Inputs'}
+                  meta={[
+                    {
+                      icon: Layers,
+                      text: `${materialBranch._count?.subCategories || 5} ${isSinhala ? 'උප වර්ගීකරණ' : 'Sub-categories'}`
+                    },
+                    {
+                      icon: ShieldCheck,
+                      text: isSinhala ? 'කෘෂිකර්ම දෙපාර්තමේන්තුව' : 'Department of Agriculture'
+                    }
+                  ]}
+                  to={`/loans/branch/${materialBranch.slug}`}
+                  primaryAction={{
+                    text: isSinhala ? 'අංශයට පිවිසෙන්න' : 'Explore Branch'
+                  }}
+                />
+              </div>
+            )}
+          </div>
         </div>
       </section>
     </div>

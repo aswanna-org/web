@@ -3,19 +3,17 @@ import { useParams, Link } from 'react-router-dom';
 import {
   ArrowLeft,
   Search,
-  PhoneCall,
-  Mail,
-  ExternalLink,
-  MapPin,
-  ChevronRight,
-  ShieldCheck,
   Building2,
+  Coins,
+  Gift,
+  ShieldCheck,
   X
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import AgroLoader from '../../components/common/AgroLoader';
 import SEO from '../../components/common/SEO';
 import PageHero from '../../components/public/PageHero';
+import Card from '../../components/ui/Card';
 
 interface LoanScheme {
   id: string;
@@ -32,6 +30,11 @@ interface LoanScheme {
   annualInterestRate: string | null;
   repaymentPeriod: string | null;
   gracePeriod: string | null;
+  benefitOrValue?: string | null;
+  benefitOrValueSi?: string | null;
+  benefitOrValueEn?: string | null;
+  institutionContribution?: number | null;
+  farmerContribution?: number | null;
   logoBadgeUrl: string | null;
   coverBannerUrl: string | null;
   closingDate: string | null;
@@ -225,169 +228,62 @@ export default function LoanInstitutionDetail() {
               />
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
               {filteredLoans.map((loan) => {
                 const programName = isSinhala
-                  ? (loan.programNameSi || loan.programNameEn || 'කෘෂිකාර්මික ණය යෝජනා ක්‍රමය')
-                  : (loan.programNameEn || loan.programNameSi || 'Agricultural Loan Scheme');
+                  ? (loan.programNameSi || loan.programNameEn || 'කෘෂිකාර්මික යෝජනා ක්‍රමය')
+                  : (loan.programNameEn || loan.programNameSi || 'Agricultural Scheme');
 
-                const sectorName = isSinhala
-                  ? (loan.sector?.nameSi || loan.sector?.nameEn)
-                  : (loan.sector?.nameEn || loan.sector?.nameSi);
-
-                const beneficiaryName = isSinhala
-                  ? (loan.targetBeneficiary?.nameSi || loan.targetBeneficiary?.nameEn)
-                  : (loan.targetBeneficiary?.nameEn || loan.targetBeneficiary?.nameSi);
+                const isLoan = !loan.subCategory || loan.subCategory.nameEn?.toLowerCase() === 'loans' || !loan.benefitOrValue;
+                const instTitle = isSinhala ? (institution.nameSi || institution.name) : (institution.nameEn || institution.name);
+                const beneficiaryName = isSinhala ? (loan.targetBeneficiary?.nameSi || loan.targetBeneficiary?.nameEn) : (loan.targetBeneficiary?.nameEn || loan.targetBeneficiary?.nameSi);
 
                 return (
-                  <div
-                    key={loan.id}
-                    className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.04)] hover:shadow-xl hover:border-emerald-200/80 transition-all duration-300 flex flex-col justify-between overflow-hidden group hover:-translate-y-1"
-                  >
-                    {/* Card Header */}
-                    <div className="p-5 pb-3">
-                      <div className="flex items-start justify-between gap-3 mb-2">
-                        {/* Sector or Status Badge */}
-                        <div className="flex flex-wrap gap-1.5">
-                          {sectorName && (
-                            <span className="text-[10px] px-2.5 py-0.5 rounded-full font-semibold bg-emerald-50 text-emerald-800 border border-emerald-100">
-                              {sectorName}
-                            </span>
-                          )}
-                          {loan.isOngoing ? (
-                            <span className="text-[10px] px-2.5 py-0.5 rounded-full font-semibold bg-blue-50 text-blue-700 border border-blue-100">
-                              {isSinhala ? 'ක්‍රියාත්මකයි' : 'Ongoing'}
-                            </span>
-                          ) : loan.closingDate ? (
-                            <span className="text-[10px] px-2.5 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-800 border border-amber-100">
-                              {isSinhala ? 'අවසාන දිනය: ' : 'Closes: '}
-                              {new Date(loan.closingDate).toLocaleDateString()}
-                            </span>
-                          ) : null}
-                        </div>
-
-                        {loan.logoBadgeUrl && (
+                  <div key={loan.id} className="h-full">
+                    <Card
+                      image={loan.coverBannerUrl || institution.coverBannerUrl || 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800&q=80'}
+                      icon={isLoan ? Coins : Gift}
+                      color={isLoan ? '#006837' : '#d97706'}
+                      badge={isSinhala ? (loan.sector?.nameSi || (loan.isOngoing ? 'ක්‍රියාත්මකයි' : 'යෝජනා ක්‍රමය')) : (loan.sector?.nameEn || 'SCHEME')}
+                      topRightBadge={
+                        loan.logoBadgeUrl || institution.logoBadgeUrl ? (
                           <img
-                            src={loan.logoBadgeUrl}
+                            src={loan.logoBadgeUrl || institution.logoBadgeUrl || ''}
                             alt=""
-                            className="w-8 h-8 object-contain rounded-md border border-gray-100 p-0.5 shrink-0"
+                            className="w-7 h-7 sm:w-8 sm:h-8 object-contain rounded-md bg-white/90 p-0.5 shadow-xs border border-white/60"
                           />
-                        )}
-                      </div>
-
-                      <h3 className="font-bold text-sm sm:text-base text-gray-900 group-hover:text-emerald-700 transition-colors line-clamp-2 leading-snug">
-                        {programName}
-                      </h3>
-
-                      {beneficiaryName && (
-                        <p className="text-[11px] text-gray-500 mt-1 line-clamp-1">
-                          <strong className="text-gray-700">{isSinhala ? 'ප්‍රතිලාභීන්: ' : 'Target: '}</strong>
-                          {beneficiaryName}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Key Highlights Grid */}
-                    <div className="px-5 py-3 bg-gray-50/70 border-y border-gray-100/80 grid grid-cols-2 gap-2 text-xs">
-                      <div>
-                        <span className="text-[10px] text-gray-400 font-semibold uppercase block">
-                          {isSinhala ? 'උපරිම ණය මුදල' : 'Max Amount'}
-                        </span>
-                        <span className="font-bold text-emerald-800 text-xs sm:text-sm">
-                          {loan.maxLoanAmount ? `රු. ${loan.maxLoanAmount}` : 'විමසන්න'}
-                        </span>
-                      </div>
-
-                      <div>
-                        <span className="text-[10px] text-gray-400 font-semibold uppercase block">
-                          {isSinhala ? 'පොලී අනුපාතය' : 'Interest Rate'}
-                        </span>
-                        <span className="font-bold text-gray-800 text-xs sm:text-sm">
-                          {loan.annualInterestRate || 'විමසන්න'}
-                        </span>
-                      </div>
-
-                      <div>
-                        <span className="text-[10px] text-gray-400 font-semibold uppercase block">
-                          {isSinhala ? 'ආපසු ගෙවීම' : 'Repayment'}
-                        </span>
-                        <span className="font-medium text-gray-700 text-xs">
-                          {loan.repaymentPeriod || 'නියමිතයි'}
-                        </span>
-                      </div>
-
-                      <div>
-                        <span className="text-[10px] text-gray-400 font-semibold uppercase block">
-                          {isSinhala ? 'සහන කාලය' : 'Grace Period'}
-                        </span>
-                        <span className="font-medium text-gray-700 text-xs">
-                          {loan.gracePeriod || 'අදාළ නොවේ'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Official Contact Details inside the Card */}
-                    {(institution.hotline || institution.email || institution.website || institution.authorityAddress) && (
-                      <div className="px-5 py-2.5 bg-gray-50/40 border-b border-gray-100/80 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-gray-600">
-                        {institution.hotline && (
-                          <a
-                            href={`tel:${institution.hotline}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1 text-emerald-800 hover:text-emerald-950 font-semibold transition-colors"
-                          >
-                            <PhoneCall size={11} className="text-emerald-700 shrink-0" />
-                            <span>{institution.hotline}</span>
-                          </a>
-                        )}
-
-                        {institution.email && (
-                          <a
-                            href={`mailto:${institution.email}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1 text-gray-600 hover:text-emerald-700 transition-colors"
-                          >
-                            <Mail size={11} className="text-gray-400 shrink-0" />
-                            <span className="truncate max-w-[150px]">{institution.email}</span>
-                          </a>
-                        )}
-
-                        {institution.website && (
-                          <a
-                            href={institution.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1 text-emerald-700 hover:underline font-medium"
-                          >
-                            <span>{isSinhala ? 'නිල වෙබ් අඩවිය' : 'Website'}</span>
-                            <ExternalLink size={10} className="shrink-0" />
-                          </a>
-                        )}
-
-                        {institution.authorityAddress && (
-                          <div className="inline-flex items-center gap-1 text-gray-400">
-                            <MapPin size={11} className="shrink-0" />
-                            <span className="truncate max-w-[170px]">{institution.authorityAddress}</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Card Footer / View Details */}
-                    <div className="p-4 bg-white flex items-center justify-between">
-                      <span className="text-[10px] text-gray-400 flex items-center gap-1">
-                        <ShieldCheck size={12} className="text-emerald-700" />
-                        <span>{isSinhala ? 'තහවුරු කළ ණය ක්‍රමයකි' : 'Verified Scheme'}</span>
-                      </span>
-
-                      <Link
-                        to={`/loans/institution/${institutionSlug}/${loan.slug}`}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-700 text-white text-xs font-semibold hover:bg-emerald-800 transition-colors shadow-xs group-hover:shadow-md cursor-pointer"
-                      >
-                        <span>{isSinhala ? 'විස්තර බලන්න' : 'View Details'}</span>
-                        <ChevronRight size={13} className="transition-transform group-hover:translate-x-0.5" />
-                      </Link>
-                    </div>
+                        ) : undefined
+                      }
+                      title={programName}
+                      subtitle={instTitle + (beneficiaryName ? ` • ${beneficiaryName}` : '')}
+                      meta={
+                        isLoan
+                          ? [
+                              {
+                                icon: Coins,
+                                text: loan.maxLoanAmount ? `රු. ${loan.maxLoanAmount}` : (isSinhala ? 'ණය: විමසන්න' : 'Amount: Inquire')
+                              },
+                              {
+                                icon: ShieldCheck,
+                                text: loan.annualInterestRate ? `පොලිය: ${loan.annualInterestRate}` : (loan.repaymentPeriod || (isSinhala ? 'නියමිතයි' : 'Standard'))
+                              }
+                            ]
+                          : [
+                              {
+                                icon: Gift,
+                                text: loan.benefitOrValue || (isSinhala ? 'නොමිලේ / ප්‍රදානය' : 'Free Grant')
+                              },
+                              {
+                                icon: ShieldCheck,
+                                text: `${isSinhala ? 'ආයතන දායකත්වය' : 'Inst Share'}: ${loan.institutionContribution ?? 100}%`
+                              }
+                            ]
+                      }
+                      to={`/loans/institution/${institutionSlug}/${loan.slug}`}
+                      primaryAction={{
+                        text: isSinhala ? 'විස්තර බලන්න' : 'View Details'
+                      }}
+                    />
                   </div>
                 );
               })}

@@ -50,6 +50,11 @@ interface LoanDetailData {
   annualInterestRate: string | null;
   repaymentPeriod: string | null;
   gracePeriod: string | null;
+  benefitOrValue?: string | null;
+  benefitOrValueSi?: string | null;
+  benefitOrValueEn?: string | null;
+  institutionContribution?: number | null;
+  farmerContribution?: number | null;
   logoBadgeUrl: string | null;
   coverBannerUrl: string | null;
   closingDate: string | null;
@@ -245,43 +250,78 @@ export default function LoanDetail() {
             </div>
           </div>
           {/* Top Key Financial Highlights Bar */}
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-5 mb-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-100/60">
-              <span className="text-[10px] text-gray-400 uppercase font-bold block mb-0.5">
-                {isSinhala ? 'උපරිම ණය මුදල' : 'Max Loan Amount'}
-              </span>
-              <span className="text-base sm:text-lg font-black text-emerald-800">
-                {loan.maxLoanAmount ? `රු. ${loan.maxLoanAmount}` : 'විමසන්න'}
-              </span>
-            </div>
+          {loan.benefitOrValue || (loan.subCategory && loan.subCategory.nameEn?.toLowerCase() !== 'loans') ? (
+            <div className="bg-white rounded-2xl border border-amber-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-5 mb-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-200/60">
+                <span className="text-[10px] text-amber-800 uppercase font-bold block mb-0.5">
+                  {isSinhala ? 'ප්‍රතිලාභය / වටිනාකම' : 'Benefit / Value'}
+                </span>
+                <span className="text-base sm:text-lg font-black text-amber-950">
+                  {loan.benefitOrValue || (isSinhala ? 'නොමිලේ / රාජ්‍ය ප්‍රදානය' : 'Free / Grant')}
+                </span>
+              </div>
 
-            <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100/60">
-              <span className="text-[10px] text-gray-400 uppercase font-bold block mb-0.5">
-                {isSinhala ? 'වාර්ෂික පොලී අනුපාතය' : 'Annual Interest'}
-              </span>
-              <span className="text-base sm:text-lg font-black text-blue-900">
-                {loan.annualInterestRate || 'විමසන්න'}
-              </span>
-            </div>
+              <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-100/60">
+                <span className="text-[10px] text-gray-500 uppercase font-bold block mb-0.5">
+                  {isSinhala ? 'ආයතනයේ දායකත්වය' : 'Institution Share'}
+                </span>
+                <span className="text-base sm:text-lg font-black text-emerald-800">
+                  {loan.institutionContribution !== undefined && loan.institutionContribution !== null
+                    ? `${loan.institutionContribution}%`
+                    : '100%'}
+                </span>
+              </div>
 
-            <div className="p-3 bg-amber-50/60 rounded-xl border border-amber-100/60">
-              <span className="text-[10px] text-gray-400 uppercase font-bold block mb-0.5">
-                {isSinhala ? 'ආපසු ගෙවීමේ කාලය' : 'Repayment Period'}
-              </span>
-              <span className="text-base sm:text-lg font-black text-amber-900">
-                {loan.repaymentPeriod || 'නියමිතයි'}
-              </span>
+              <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100/60">
+                <span className="text-[10px] text-gray-500 uppercase font-bold block mb-0.5">
+                  {isSinhala ? 'ගොවියාගේ දායකත්වය' : 'Farmer Share'}
+                </span>
+                <span className="text-base sm:text-lg font-black text-blue-900">
+                  {loan.farmerContribution !== undefined && loan.farmerContribution !== null
+                    ? `${loan.farmerContribution}%`
+                    : '0%'}
+                </span>
+              </div>
             </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] p-5 mb-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-100/60">
+                <span className="text-[10px] text-gray-400 uppercase font-bold block mb-0.5">
+                  {isSinhala ? 'උපරිම ණය මුදල' : 'Max Loan Amount'}
+                </span>
+                <span className="text-base sm:text-lg font-black text-emerald-800">
+                  {loan.maxLoanAmount ? `රු. ${loan.maxLoanAmount}` : 'විමසන්න'}
+                </span>
+              </div>
 
-            <div className="p-3 bg-purple-50/60 rounded-xl border border-purple-100/60">
-              <span className="text-[10px] text-gray-400 uppercase font-bold block mb-0.5">
-                {isSinhala ? 'සහන කාලය' : 'Grace Period'}
-              </span>
-              <span className="text-base sm:text-lg font-black text-purple-900">
-                {loan.gracePeriod || 'අදාළ නොවේ'}
-              </span>
+              <div className="p-3 bg-blue-50/60 rounded-xl border border-blue-100/60">
+                <span className="text-[10px] text-gray-400 uppercase font-bold block mb-0.5">
+                  {isSinhala ? 'වාර්ෂික පොලී අනුපාතය' : 'Annual Interest'}
+                </span>
+                <span className="text-base sm:text-lg font-black text-blue-900">
+                  {loan.annualInterestRate || 'විමසන්න'}
+                </span>
+              </div>
+
+              <div className="p-3 bg-amber-50/60 rounded-xl border border-amber-100/60">
+                <span className="text-[10px] text-gray-400 uppercase font-bold block mb-0.5">
+                  {isSinhala ? 'ආපසු ගෙවීමේ කාලය' : 'Repayment Period'}
+                </span>
+                <span className="text-base sm:text-lg font-black text-amber-900">
+                  {loan.repaymentPeriod || 'නියමිතයි'}
+                </span>
+              </div>
+
+              <div className="p-3 bg-purple-50/60 rounded-xl border border-purple-100/60">
+                <span className="text-[10px] text-gray-400 uppercase font-bold block mb-0.5">
+                  {isSinhala ? 'සහන කාලය' : 'Grace Period'}
+                </span>
+                <span className="text-base sm:text-lg font-black text-purple-900">
+                  {loan.gracePeriod || 'අදාළ නොවේ'}
+                </span>
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left 2 Columns: Detailed Guidelines */}
